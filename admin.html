@@ -128,6 +128,9 @@
         <button class="admin-tab-btn" data-tab="careersTab" id="btnCareersTab">
           Career Forms
         </button>
+        <button class="admin-tab-btn" data-tab="phoneUsersTab" id="btnPhoneUsersTab">
+          Phone Users
+        </button>
       </div>
 
       <!-- TAB 1: Dashboard Overview -->
@@ -159,6 +162,23 @@
             </h3>
             <p style="color: var(--color-accent); font-size: 1.25rem">
               ● All Resonance Frequencies Nominal
+            </p>
+          </div>
+          <div
+            style="
+              border: 1px solid rgba(0, 229, 255, 0.2);
+              padding: 3rem;
+              text-align: left;
+            "
+          >
+            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+              Phone Users
+            </h3>
+            <p
+              id="phoneUserCount"
+              style="color: var(--color-text-secondary); font-size: 2rem"
+            >
+              0 Registered
             </p>
           </div>
         </div>
@@ -402,6 +422,44 @@
           </table>
         </div>
       </div>
+
+      <!-- TAB 3: Phone Users -->
+      <div id="phoneUsersTab" class="tab-content">
+        <div
+          style="
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            padding: 3rem;
+            text-align: left;
+            background: rgba(0, 229, 255, 0.02);
+            overflow-x: auto;
+          "
+        >
+          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+            Registered Phone Users
+          </h3>
+          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
+            All phone numbers that have registered or logged in.
+          </p>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody id="phoneUsersTableBody">
+              <tr>
+                <td colspan="4" style="text-align: center">
+                  Loading phone users...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
 
     <footer class="footer container" style="margin-top: auto">
@@ -433,8 +491,13 @@
           if (targetId === "careersTab") {
             loadCareersData();
           }
+          if (targetId === "phoneUsersTab") {
+            loadPhoneUsersData();
+          }
         });
       });
+
+      loadPhoneUsersData();
 
       // Fetch and populate career applications
       async function loadCareersData() {
@@ -483,6 +546,50 @@
         } catch (err) {
           tbody.innerHTML =
             '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Network error loading applications.</td></tr>';
+        }
+      }
+
+      async function loadPhoneUsersData() {
+        const tbody = document.getElementById("phoneUsersTableBody");
+        const countEl = document.getElementById("phoneUserCount");
+        try {
+          const response = await fetch("/api/admin/phone-users");
+          const data = await response.json();
+
+          if (response.ok) {
+            if (countEl) {
+              countEl.textContent = `${data.count} Registered`;
+            }
+
+            if (!data.users || data.users.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No phone users found.</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = "";
+            data.users.forEach((user) => {
+              const date = new Date(user.created_at).toLocaleDateString(
+                undefined,
+                { year: "numeric", month: "short", day: "numeric" },
+              );
+
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td>${date}</td>
+                <td style="font-weight: 500; color: var(--color-text-primary);">${user.name || "-"}</td>
+                <td>${user.phone}</td>
+                <td><span style="background: rgba(0, 229, 255, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--color-accent);">${user.role}</span></td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            tbody.innerHTML =
+              '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Failed to load phone users.</td></tr>';
+          }
+        } catch (err) {
+          tbody.innerHTML =
+            '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Network error loading phone users.</td></tr>';
         }
       }
     </script>

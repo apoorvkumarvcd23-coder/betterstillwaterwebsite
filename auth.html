@@ -313,9 +313,9 @@
 
                 <div style="margin-bottom: 1.5rem">
                   <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
-                    Password
+                    Password (required for returning users)
                   </label>
-                  <input type="password" id="loginPassword" placeholder="Enter your password" required class="form-input" />
+                  <input type="password" id="loginPassword" placeholder="Required if you have logged in before" class="form-input" />
                 </div>
 
                 <button type="submit" class="btn btn-solid" style="width: 100%; cursor: pointer">
@@ -424,7 +424,8 @@
         errorDiv.style.display = "none";
 
         const phone = document.getElementById("loginPhone").value;
-        const password = document.getElementById("loginPassword").value;
+        const passwordValue = document.getElementById("loginPassword").value;
+        const password = passwordValue ? passwordValue : undefined;
 
         try {
           const response = await fetch("/auth/login", {

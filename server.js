@@ -98,9 +98,16 @@ async function initDb() {
       ('centres_count', '40K+'),
       ('tourists_count', '600K'),
       ('providers_count', '4'),
-      ('authenticity_pct', '100%')
+      ('authenticity_pct', '100%'),
+      ('phone_user_count', '0')
     ON CONFLICT (key) DO NOTHING
   `);
+}
+
+async function incrementPhoneUserCount() {
+  await pool.query(
+    "INSERT INTO settings (key, value) VALUES ('phone_user_count', '1') ON CONFLICT (key) DO UPDATE SET value = (settings.value::int + 1)::text",
+  );
 }
 
 // Middleware
@@ -548,6 +555,22 @@ app.get("/api/admin/careers", requireRole("admin"), async (req, res) => {
   }
 });
 
+app.get("/api/admin/phone-users", requireRole("admin"), async (_req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id, phone, name, role, created_at FROM users_phone ORDER BY created_at DESC",
+    );
+
+    res.json({
+      count: result.rowCount,
+      users: result.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching phone users:", err.message);
+    res.status(500).json({ error: "Failed to fetch phone users" });
+  }
+});
+
 app.get("/api/auth/me", (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.status(401).json({ error: "Unauthorized" });
@@ -555,7 +578,7 @@ app.get("/api/auth/me", (req, res) => {
 
   res.json({
     id: req.user.id,
-    name: req.user.name,
+    name: req.user.name || req.user.phone || "User",
     email: req.user.email,
     role: req.user.role,
   });
@@ -647,6 +670,7 @@ app.post("/auth/register", async (req, res) => {
     );
 
     const user = result.rows[0];
+    await incrementPhoneUserCount();
 
     // Log the user in via Passport
     req.logIn(user, (err) => {
@@ -680,7 +704,102 @@ app.post("/auth/register", async (req, res) => {
 });
 
 // Phone/Password Login Route
-app.post("/auth/login", (req, res, next) => {
+app.post("/auth/login", async (req, res, next) => {
+  if (process.env.ALLOW_INSECURE_PHONE_LOGIN === "true") {
+    const { phone, password } = req.body || {};
+    if (!phone) {
+      return res.status(400).json({ error: "Phone number is required" });
+    }
+
+    try {
+      let userRow = await pool.query(
+        "SELECT * FROM users_phone WHERE phone = $1",
+        [phone],
+      );
+      let user = userRow.rows[0];
+
+      if (user) {
+        if (!password) {
+          return res
+            .status(401)
+            .json({ error: "Password required for existing users" });
+        }
+        return passport.authenticate("local", (err, authUser, info) => {
+          if (err) {
+            return res.status(500).json({ error: "Authentication error" });
+          }
+
+          if (!authUser) {
+            return res
+              .status(401)
+              .json({ error: info.message || "Invalid credentials" });
+          }
+
+          return req.logIn(authUser, (err) => {
+            if (err) {
+              return res.status(500).json({ error: "Login failed" });
+            }
+
+            req.session.save((saveErr) => {
+              if (saveErr) {
+                return res.status(500).json({ error: "Session save failed" });
+              }
+
+              return res.json({
+                success: true,
+                message: "Logged in successfully",
+                redirectUrl: "/portal.html",
+                user: {
+                  id: authUser.id,
+                  phone: authUser.phone,
+                  name: authUser.name,
+                  role: authUser.role,
+                },
+              });
+            });
+          });
+        })(req, res, next);
+      }
+
+      const password_hash = password
+        ? await bcrypt.hash(password, 10)
+        : "";
+      const created = await pool.query(
+        "INSERT INTO users_phone (phone, name, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, phone, name, role",
+        [phone, phone, password_hash, "customer"],
+      );
+      user = created.rows[0];
+      await incrementPhoneUserCount();
+
+      return req.logIn(user, (err) => {
+        if (err) {
+          return res.status(500).json({ error: "Login failed" });
+        }
+
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            return res.status(500).json({ error: "Session save failed" });
+          }
+
+          return res.json({
+            success: true,
+            message: "Logged in successfully",
+            redirectUrl: "/portal.html",
+            user: {
+              id: user.id,
+              phone: user.phone,
+              name: user.name,
+              role: user.role,
+            },
+          });
+        });
+      });
+    } catch (err) {
+      console.error("Insecure phone login error:", err);
+      return res.status(500).json({ error: "Login failed" });
+    }
+  }
+
   passport.authenticate("local", (err, user, info) => {
     if (err) {
       return res.status(500).json({ error: "Authentication error" });
