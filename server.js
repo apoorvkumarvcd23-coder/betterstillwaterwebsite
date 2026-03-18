@@ -208,19 +208,6 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const result = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-    done(null, result.rows[0] || null);
-  } catch (err) {
-    done(err, null);
-  }
-});
-
 // Build the OAuth callback URL — use absolute URL in production
 const CALLBACK_URL = process.env.BASE_URL
   ? `${process.env.BASE_URL}/auth/google/callback`
@@ -322,15 +309,10 @@ passport.use(
   ),
 );
 
-// Serialize/deserialize for phone-based users
+// Serialize/deserialize for OAuth and phone-based users
 passport.serializeUser((user, done) => {
-  // Store type to differentiate between OAuth and phone users
-  const userWithType = {
-    id: user.id,
-    phone: user.phone,
-    type: "phone",
-  };
-  done(null, userWithType);
+  const type = user && user.phone ? "phone" : "oauth";
+  done(null, { id: user.id, type });
 });
 
 passport.deserializeUser(async (userWithType, done) => {
@@ -340,15 +322,15 @@ passport.deserializeUser(async (userWithType, done) => {
         "SELECT * FROM users_phone WHERE id = $1",
         [userWithType.id],
       );
-      done(null, result.rows[0] || null);
-    } else {
-      const result = await pool.query("SELECT * FROM users WHERE id = $1", [
-        userWithType.id,
-      ]);
-      done(null, result.rows[0] || null);
+      return done(null, result.rows[0] || null);
     }
+
+    const result = await pool.query("SELECT * FROM users WHERE id = $1", [
+      userWithType.id,
+    ]);
+    return done(null, result.rows[0] || null);
   } catch (err) {
-    done(err, null);
+    return done(err, null);
   }
 });
 
@@ -669,14 +651,14 @@ app.post("/auth/register", async (req, res) => {
     // Log the user in via Passport
     req.logIn(user, (err) => {
       if (err) {
-        return res.status(500).json({ error: "Login failed after registration" });
+        return res
+          .status(500)
+          .json({ error: "Login failed after registration" });
       }
 
       req.session.save((err) => {
         if (err) {
-          return res
-            .status(500)
-            .json({ error: "Session save failed" });
+          return res.status(500).json({ error: "Session save failed" });
         }
 
         res.json({

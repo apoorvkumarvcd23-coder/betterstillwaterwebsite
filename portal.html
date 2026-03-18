@@ -1,41 +1,93 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Your Voyage | Stillwater Recovery</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-</head>
-<body style="display: flex; flex-direction: column; min-height: 100vh;">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Your Voyage | Stillwater Recovery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+  </head>
+  <body style="display: flex; flex-direction: column; min-height: 100vh">
+    <header class="header">
+      <a href="/" class="header-logo">Stillwater</a>
+      <div
+        id="authActions"
+        style="display: flex; gap: 0.75rem; align-items: center"
+      >
+        <a
+          href="/logout"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+          >Log Out</a
+        >
+      </div>
+    </header>
 
-  <header class="header">
-    <a href="/" class="header-logo">Stillwater</a>
-    <a href="/logout" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Log Out</a>
-  </header>
+    <main class="container text-center" style="margin-top: 10rem; flex: 1">
+      <span class="text-caption fade-up">Digital Sanctuary</span>
+      <h1
+        class="text-display fade-up"
+        style="
+          margin-top: 1rem;
+          color: var(--color-text-primary);
+          font-size: clamp(2rem, 5vw, 4rem);
+        "
+      >
+        Your Voyage
+      </h1>
+      <p
+        class="fade-up"
+        style="
+          max-width: 600px;
+          margin: 2rem auto 4rem;
+          color: var(--color-text-secondary);
+          font-size: 1.125rem;
+        "
+      >
+        Welcome to your Personalized Recovery Portal. We are calibrating your
+        bio-resonance frequencies.
+      </p>
 
-  <main class="container text-center" style="margin-top: 10rem; flex: 1;">
-    <span class="text-caption fade-up">Digital Sanctuary</span>
-    <h1 class="text-display fade-up" style="margin-top: 1rem; color: var(--color-text-primary); font-size: clamp(2rem, 5vw, 4rem);">Your Voyage</h1>
-    <p class="fade-up" style="max-width: 600px; margin: 2rem auto 4rem; color: var(--color-text-secondary); font-size: 1.125rem;">
-      Welcome to your Personalized Recovery Portal. We are calibrating your bio-resonance frequencies.
-    </p>
-    
-    <div style="border: 1px solid rgba(224, 242, 241, 0.2); padding: 5rem 2rem; max-width: 600px; margin: 0 auto; background: rgba(0, 229, 255, 0.05);" class="fade-up">
-      <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1.5rem; color: var(--color-accent);">Daily Calibration</h3>
-      <p style="color: var(--color-text-secondary); margin-bottom: 2rem;">Initiate your 15-minute neural reset protocol.</p>
-      <button class="btn btn-solid">Commence Sequence</button>
-    </div>
-  </main>
+      <div
+        style="
+          border: 1px solid rgba(224, 242, 241, 0.2);
+          padding: 5rem 2rem;
+          max-width: 600px;
+          margin: 0 auto;
+          background: rgba(0, 229, 255, 0.05);
+        "
+        class="fade-up"
+      >
+        <h3
+          class="text-h2"
+          style="
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--color-accent);
+          "
+        >
+          Daily Calibration
+        </h3>
+        <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
+          Initiate your 15-minute neural reset protocol.
+        </p>
+        <button class="btn btn-solid">Commence Sequence</button>
+      </div>
+    </main>
 
-  <footer class="footer container" style="margin-top: auto;">
-    <div class="footer-bottom">
-      <span>&copy; 2026 Stillwater Digital Sanctuary. All rights reserved.</span>
-    </div>
-  </footer>
+    <footer class="footer container" style="margin-top: auto">
+      <div class="footer-bottom">
+        <span
+          >&copy; 2026 Stillwater Digital Sanctuary. All rights reserved.</span
+        >
+      </div>
+    </footer>
 
-  <script src="js/shared.js"></script>
-</body>
+    <script src="js/shared.js"></script>
+  </body>
 </html>

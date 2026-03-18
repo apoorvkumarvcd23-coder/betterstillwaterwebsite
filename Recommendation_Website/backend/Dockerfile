@@ -17,6 +17,5 @@ COPY . ./
 
 EXPOSE 3001
 
-# Run migrations then start the server
-# Append ?schema=recommendation to DATABASE_URL so Prisma creates tables in the recommendation schema
-CMD ["sh", "-c", "export DATABASE_URL=\"${DATABASE_URL}?schema=recommendation\" && npx prisma migrate deploy && node server.js"]
+# Apply schema then start the server
+CMD ["sh", "-c", "if echo \"$DATABASE_URL\" | grep -q 'schema='; then export DATABASE_URL=\"$DATABASE_URL\"; else if echo \"$DATABASE_URL\" | grep -q '\\?'; then export DATABASE_URL=\"${DATABASE_URL}&schema=recommendation\"; else export DATABASE_URL=\"${DATABASE_URL}?schema=recommendation\"; fi; fi; if [ -d prisma/migrations ] && [ \"$(ls -A prisma/migrations)\" ]; then npx prisma migrate deploy; else npx prisma db push; fi; node server.js"]
