@@ -299,7 +299,8 @@
           <!-- Google OAuth Section -->
           <div id="googleSection">
             <a
-              href="/auth/google?returnTo=/portal.html"
+              href="/auth/google?returnTo=/"
+              id="googleAuthLink"
               class="btn btn-solid"
               style="
                 width: 100%;
@@ -526,6 +527,20 @@
 
     <script src="js/shared.js"></script>
     <script>
+      const returnToParam = new URLSearchParams(window.location.search).get(
+        "returnTo",
+      );
+      const returnTo =
+        returnToParam && returnToParam.startsWith("/") ? returnToParam : "/";
+
+      const googleAuthLink = document.getElementById("googleAuthLink");
+      if (googleAuthLink) {
+        googleAuthLink.setAttribute(
+          "href",
+          `/auth/google?returnTo=${encodeURIComponent(returnTo)}`,
+        );
+      }
+
       // Check if already authenticated
       fetch("/api/auth/me", { credentials: "include" })
         .then((res) => (res.ok ? res.json() : null))
@@ -535,7 +550,7 @@
             window.location.replace("/admin.html");
             return;
           }
-          window.location.replace("/portal.html");
+          window.location.replace(returnTo);
         })
         .catch(() => {});
 
@@ -581,7 +596,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ phone, password }),
+            body: JSON.stringify({ phone, password, returnTo }),
           });
 
           const data = await response.json();
@@ -592,7 +607,7 @@
             return;
           }
 
-          window.location.replace(data.redirectUrl || "/portal.html");
+          window.location.replace(data.redirectUrl || returnTo);
         } catch (err) {
           errorDiv.textContent = "Network error. Please try again.";
           errorDiv.style.display = "block";
@@ -615,7 +630,7 @@
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ name, phone, password }),
+            body: JSON.stringify({ name, phone, password, returnTo }),
           });
 
           const data = await response.json();
@@ -626,7 +641,7 @@
             return;
           }
 
-          window.location.replace("/portal.html");
+          window.location.replace(returnTo);
         } catch (err) {
           errorDiv.textContent = "Network error. Please try again.";
           errorDiv.style.display = "block";

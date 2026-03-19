@@ -114,9 +114,25 @@ async function incrementPhoneUserCount() {
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) {
         return callback(null, true);
       }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      try {
+        const { hostname } = new URL(origin);
+        if (
+          hostname === "stillwater.you" ||
+          hostname.endsWith(".stillwater.you")
+        ) {
+          return callback(null, true);
+        }
+      } catch (err) {
+        // If origin is not a valid URL, fall through to rejection.
+      }
+
       return callback(new Error("CORS not allowed"), false);
     },
     credentials: true,
@@ -584,6 +600,12 @@ app.get("/api/auth/me", (req, res) => {
   });
 });
 
+const resolveReturnTo = (value) => {
+  if (typeof value !== "string") return "/";
+  const trimmed = value.trim();
+  return trimmed.startsWith("/") ? trimmed : "/";
+};
+
 // === STATIC & PUBLIC ROUTES ===
 
 // Serve Static Assets (HTML/CSS/JS/Images)
@@ -611,12 +633,10 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/auth.html" }),
   (req, res) => {
-    let redirectTo = "/portal.html";
+    let redirectTo = "/";
 
     const returnTo = req.session.returnTo;
-    if (returnTo && typeof returnTo === "string" && returnTo.startsWith("/")) {
-      redirectTo = returnTo;
-    }
+    redirectTo = resolveReturnTo(returnTo);
 
     if (req.user.role === "admin") {
       console.log(`[AUTH] Admin authenticated: ${req.user.email}`);
@@ -643,7 +663,7 @@ app.get(
 // Phone/Password Registration Route
 app.post("/auth/register", async (req, res) => {
   try {
-    const { phone, name, password } = req.body;
+    const { phone, name, password, returnTo } = req.body;
 
     if (!phone || !name || !password) {
       return res.status(400).json({
@@ -688,6 +708,7 @@ app.post("/auth/register", async (req, res) => {
         res.json({
           success: true,
           message: "Account created and logged in",
+          redirectUrl: resolveReturnTo(returnTo),
           user: {
             id: user.id,
             phone: user.phone,
@@ -706,7 +727,8 @@ app.post("/auth/register", async (req, res) => {
 // Phone/Password Login Route
 app.post("/auth/login", async (req, res, next) => {
   if (process.env.ALLOW_INSECURE_PHONE_LOGIN === "true") {
-    const { phone, password } = req.body || {};
+    const { phone, password, returnTo } = req.body || {};
+    const redirectTo = resolveReturnTo(returnTo);
     if (!phone) {
       return res.status(400).json({ error: "Phone number is required" });
     }
@@ -749,7 +771,7 @@ app.post("/auth/login", async (req, res, next) => {
               return res.json({
                 success: true,
                 message: "Logged in successfully",
-                redirectUrl: "/portal.html",
+                redirectUrl: redirectTo,
                 user: {
                   id: authUser.id,
                   phone: authUser.phone,
@@ -783,7 +805,7 @@ app.post("/auth/login", async (req, res, next) => {
           return res.json({
             success: true,
             message: "Logged in successfully",
-            redirectUrl: "/portal.html",
+            redirectUrl: redirectTo,
             user: {
               id: user.id,
               phone: user.phone,
@@ -799,7 +821,8 @@ app.post("/auth/login", async (req, res, next) => {
     }
   }
 
-  const { phone, password } = req.body || {};
+  const { phone, password, returnTo } = req.body || {};
+  const redirectTo = resolveReturnTo(returnTo);
   if (!phone) {
     return res.status(400).json({ error: "Phone number is required" });
   }
@@ -834,7 +857,7 @@ app.post("/auth/login", async (req, res, next) => {
         res.json({
           success: true,
           message: "Logged in successfully",
-          redirectUrl: "/portal.html",
+          redirectUrl: redirectTo,
           user: {
             id: user.id,
             phone: user.phone,
