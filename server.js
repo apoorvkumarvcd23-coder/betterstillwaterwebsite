@@ -710,6 +710,12 @@ app.post("/auth/login", async (req, res, next) => {
     if (!phone) {
       return res.status(400).json({ error: "Phone number is required" });
     }
+    if (!password) {
+      return res.status(400).json({
+        error:
+          "Password required. Please enter your password or create an account.",
+      });
+    }
 
     try {
       let userRow = await pool.query(
@@ -719,11 +725,6 @@ app.post("/auth/login", async (req, res, next) => {
       let user = userRow.rows[0];
 
       if (user) {
-        if (!password) {
-          return res
-            .status(401)
-            .json({ error: "Password required for existing users" });
-        }
         return passport.authenticate("local", (err, authUser, info) => {
           if (err) {
             return res.status(500).json({ error: "Authentication error" });
@@ -761,9 +762,7 @@ app.post("/auth/login", async (req, res, next) => {
         })(req, res, next);
       }
 
-      const password_hash = password
-        ? await bcrypt.hash(password, 10)
-        : "";
+      const password_hash = password ? await bcrypt.hash(password, 10) : "";
       const created = await pool.query(
         "INSERT INTO users_phone (phone, name, password_hash, role) VALUES ($1, $2, $3, $4) RETURNING id, phone, name, role",
         [phone, phone, password_hash, "customer"],
@@ -798,6 +797,17 @@ app.post("/auth/login", async (req, res, next) => {
       console.error("Insecure phone login error:", err);
       return res.status(500).json({ error: "Login failed" });
     }
+  }
+
+  const { phone, password } = req.body || {};
+  if (!phone) {
+    return res.status(400).json({ error: "Phone number is required" });
+  }
+  if (!password) {
+    return res.status(400).json({
+      error:
+        "Password required. Please enter your password or create an account.",
+    });
   }
 
   passport.authenticate("local", (err, user, info) => {

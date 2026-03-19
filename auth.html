@@ -201,7 +201,9 @@
   <body>
     <header class="header">
       <a href="index.html" class="header-logo">Stillwater</a>
-      <a href="index.html" class="menu-btn" style="text-decoration: none">&larr; Back to Site</a>
+      <a href="index.html" class="menu-btn" style="text-decoration: none"
+        >&larr; Back to Site</a
+      >
     </header>
 
     <div class="auth-layout">
@@ -227,7 +229,13 @@
               <h3 class="text-h2" style="font-size: 1.2rem; color: #fff">
                 Deep Sleep Somatics
               </h3>
-              <p style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 0.5rem;">
+              <p
+                style="
+                  color: var(--color-text-secondary);
+                  font-size: 0.75rem;
+                  margin-top: 0.5rem;
+                "
+              >
                 45 min • Guided Audio
               </p>
               <div class="play-btn">
@@ -240,7 +248,13 @@
               <h3 class="text-h2" style="font-size: 1.2rem; color: #fff">
                 Morning Breathwork
               </h3>
-              <p style="color: var(--color-text-secondary); font-size: 0.75rem; margin-top: 0.5rem;">
+              <p
+                style="
+                  color: var(--color-text-secondary);
+                  font-size: 0.75rem;
+                  margin-top: 0.5rem;
+                "
+              >
                 15 min • Daily ritual
               </p>
             </div>
@@ -253,17 +267,31 @@
             <h2 id="formTitle" class="text-h1" style="font-size: 2.5rem">
               The Bridge
             </h2>
-            <p style="color: var(--color-text-secondary); margin-top: 0.5rem; margin-bottom: 2rem;">
+            <p
+              style="
+                color: var(--color-text-secondary);
+                margin-top: 0.5rem;
+                margin-bottom: 2rem;
+              "
+            >
               Access the Digital Sanctuary.
             </p>
           </div>
 
           <!-- Login Method Toggle -->
           <div class="toggle-group">
-            <button class="toggle-btn active" id="googleToggle" onclick="switchToGoogle()">
+            <button
+              class="toggle-btn active"
+              id="googleToggle"
+              onclick="switchToGoogle()"
+            >
               Google
             </button>
-            <button class="toggle-btn" id="phoneToggle" onclick="switchToPhone()">
+            <button
+              class="toggle-btn"
+              id="phoneToggle"
+              onclick="switchToPhone()"
+            >
               Phone
             </button>
           </div>
@@ -285,16 +313,30 @@
               "
             >
               <svg width="18" height="18" viewBox="0 0 24 24">
-                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
               </svg>
               Continue with Google
             </a>
 
             <div class="text-center" style="margin-top: 2rem">
-              <p style="font-size: 0.875rem; color: var(--color-text-secondary)">
+              <p
+                style="font-size: 0.875rem; color: var(--color-text-secondary)"
+              >
                 Securely authenticating via Google OAuth 2.0
               </p>
             </div>
@@ -305,27 +347,71 @@
             <div id="phoneLoginForm">
               <form onsubmit="handlePhoneLogin(event)">
                 <div style="margin-bottom: 1.5rem">
-                  <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
+                  <label
+                    style="
+                      display: block;
+                      color: var(--color-text-secondary);
+                      font-size: 0.875rem;
+                      margin-bottom: 0.5rem;
+                    "
+                  >
                     Phone Number
                   </label>
-                  <input type="tel" id="loginPhone" placeholder="+1 (555) 000-0000" required class="form-input" />
+                  <input
+                    type="tel"
+                    id="loginPhone"
+                    placeholder="5550000000"
+                    required
+                    inputmode="numeric"
+                    pattern="\\d+"
+                    class="form-input"
+                  />
                 </div>
 
                 <div style="margin-bottom: 1.5rem">
-                  <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
+                  <label
+                    style="
+                      display: block;
+                      color: var(--color-text-secondary);
+                      font-size: 0.875rem;
+                      margin-bottom: 0.5rem;
+                    "
+                  >
                     Password (required for returning users)
                   </label>
-                  <input type="password" id="loginPassword" placeholder="Required if you have logged in before" class="form-input" />
+                  <input
+                    type="password"
+                    id="loginPassword"
+                    placeholder="Enter your password"
+                    required
+                    class="form-input"
+                  />
                 </div>
 
-                <button type="submit" class="btn btn-solid" style="width: 100%; cursor: pointer">
+                <button
+                  type="submit"
+                  class="btn btn-solid"
+                  style="width: 100%; cursor: pointer"
+                >
                   Login
                 </button>
 
                 <div class="text-center" style="margin-top: 1rem">
-                  <p style="font-size: 0.875rem; color: var(--color-text-secondary)">
+                  <p
+                    style="
+                      font-size: 0.875rem;
+                      color: var(--color-text-secondary);
+                    "
+                  >
                     Don't have an account?
-                    <a href="#" onclick="switchToPhoneRegister(); return false;" style="color: var(--color-accent); text-decoration: none">
+                    <a
+                      href="#"
+                      onclick="
+                        switchToPhoneRegister();
+                        return false;
+                      "
+                      style="color: var(--color-accent); text-decoration: none"
+                    >
                       Create one
                     </a>
                   </p>
@@ -336,34 +422,91 @@
             <div id="phoneRegisterForm" style="display: none">
               <form onsubmit="handlePhoneRegister(event)">
                 <div style="margin-bottom: 1.5rem">
-                  <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
+                  <label
+                    style="
+                      display: block;
+                      color: var(--color-text-secondary);
+                      font-size: 0.875rem;
+                      margin-bottom: 0.5rem;
+                    "
+                  >
                     Full Name
                   </label>
-                  <input type="text" id="regName" placeholder="John Doe" required class="form-input" />
+                  <input
+                    type="text"
+                    id="regName"
+                    placeholder="John Doe"
+                    required
+                    class="form-input"
+                  />
                 </div>
 
                 <div style="margin-bottom: 1.5rem">
-                  <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
+                  <label
+                    style="
+                      display: block;
+                      color: var(--color-text-secondary);
+                      font-size: 0.875rem;
+                      margin-bottom: 0.5rem;
+                    "
+                  >
                     Phone Number
                   </label>
-                  <input type="tel" id="regPhone" placeholder="+1 (555) 000-0000" required class="form-input" />
+                  <input
+                    type="tel"
+                    id="regPhone"
+                    placeholder="5550000000"
+                    required
+                    inputmode="numeric"
+                    pattern="\\d+"
+                    class="form-input"
+                  />
                 </div>
 
                 <div style="margin-bottom: 1.5rem">
-                  <label style="display: block; color: var(--color-text-secondary); font-size: 0.875rem; margin-bottom: 0.5rem">
+                  <label
+                    style="
+                      display: block;
+                      color: var(--color-text-secondary);
+                      font-size: 0.875rem;
+                      margin-bottom: 0.5rem;
+                    "
+                  >
                     Password
                   </label>
-                  <input type="password" id="regPassword" placeholder="Create a strong password" required class="form-input" />
+                  <input
+                    type="password"
+                    id="regPassword"
+                    placeholder="Create a password"
+                    required
+                    class="form-input"
+                  />
                 </div>
 
-                <button type="submit" class="btn btn-solid" style="width: 100%; cursor: pointer">
+                <button
+                  type="submit"
+                  class="btn btn-solid"
+                  style="width: 100%; cursor: pointer"
+                >
                   Create Account
                 </button>
 
                 <div class="text-center" style="margin-top: 1rem">
-                  <p style="font-size: 0.875rem; color: var(--color-text-secondary)">
+                  <p
+                    style="
+                      font-size: 0.875rem;
+                      color: var(--color-text-secondary);
+                    "
+                  >
                     Already have an account?
-                    <a href="#" onclick="switchToPhoneLogin(); return false;" style="color: var(--color-accent); text-decoration: none">
+                    <a
+                      href="#"
+                      onclick="
+                        switchToPhoneLogin();
+                        return false;
+                      "
+                      style="color: var(--color-accent); text-decoration: none"
+                    >
                       Login
                     </a>
                   </p>
@@ -423,7 +566,9 @@
         const errorDiv = document.getElementById("errorMessage");
         errorDiv.style.display = "none";
 
-        const phone = document.getElementById("loginPhone").value;
+        const phone = document
+          .getElementById("loginPhone")
+          .value.replace(/\D/g, "");
         const passwordValue = document.getElementById("loginPassword").value;
         const password = passwordValue ? passwordValue : undefined;
 
@@ -456,7 +601,9 @@
         errorDiv.style.display = "none";
 
         const name = document.getElementById("regName").value;
-        const phone = document.getElementById("regPhone").value;
+        const phone = document
+          .getElementById("regPhone")
+          .value.replace(/\D/g, "");
         const password = document.getElementById("regPassword").value;
 
         try {
