@@ -1,10 +1,10 @@
 # Stillwater Unified Stack
 
-This repository contains:
+This repository now runs a simplified stack:
 
 - Main website (Express) in the repo root
-- Recommendation backend (Express + Prisma) in Recommendation_Website/backend
-- Recommendation frontend (Next.js) in Recommendation_Website/frontend
+- Intake form flow on the main website (`/intake.html`)
+- PostgreSQL database
 
 ## Local Development (Docker)
 
@@ -20,34 +20,27 @@ This repository contains:
    docker compose up --build
    ```
 
-3. Run the recommendation rules seed once:
-   ```bash
-   docker compose exec recommendation-backend node prisma/seed.js
-   ```
-
 Services:
 
-- Main website: http://localhost:3000
-- Recommendation frontend: http://localhost:3002
-- Recommendation backend: http://localhost:3001
+- Main website: http://localhost:3005
+- Intake form: http://localhost:3005/intake.html
 
-## Auth Flow
+## Intake Flow
 
-Recommendation pages require Google OAuth login via the main website. Unauthenticated users are redirected to the Google OAuth flow and returned to the intended recommendation page.
+The old recommendation scoring flow is retired from active runtime.
+The current form collects:
 
-## Prisma Migrations
+1. Name
+2. Phone number
+3. Age
+4. Chronic conditions (diabetes, hypertension, depression, anxiety, sleep issues)
+5. Eyesight issues and eye power
+6. Relation if filling for a family member
 
-For the recommendation backend:
-
-```bash
-cd Recommendation_Website/backend
-npx prisma migrate dev
-npx prisma generate
-```
+Submissions are stored in the `intake_submissions` table in the main/public schema.
 
 ## Render Deployment Notes
 
-- Deploy three services (main, recommendation backend, recommendation frontend) and one managed PostgreSQL database.
-- Ensure `NEXT_PUBLIC_AUTH_BASE_URL` points to the main website domain.
-- Ensure `NEXT_PUBLIC_API_BASE_URL` points to the recommendation backend domain.
+- Deploy one web service (`stillwater-main`) and one managed PostgreSQL database.
+- Remove recommendation-specific Render services/env vars.
 - Set `COOKIE_DOMAIN` if you use a shared custom domain and need cookies available across subdomains.

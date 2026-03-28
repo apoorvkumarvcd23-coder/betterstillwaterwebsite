@@ -69,20 +69,13 @@ document.addEventListener("DOMContentLoaded", () => {
     menuLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
         const href = (anchor.getAttribute("href") || "").toLowerCase();
-        if (href.includes("blog.html") || href.includes("careers.html")) {
+        if (
+          href.includes("fundraising.html") ||
+          href.includes("testimonials.html")
+        ) {
           anchor.closest("li")?.remove();
         }
       });
-
-      const links = Array.from(list.querySelectorAll("a")).map((a) =>
-        (a.getAttribute("href") || "").toLowerCase(),
-      );
-
-      if (!links.includes("testimonials.html")) {
-        const li = document.createElement("li");
-        li.innerHTML = '<a href="testimonials.html">Testimonials</a>';
-        list.appendChild(li);
-      }
 
       list.querySelectorAll("a").forEach((anchor) => {
         const label = (anchor.textContent || "").trim().toLowerCase();
@@ -112,7 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
     footerLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
         const href = (anchor.getAttribute("href") || "").toLowerCase();
-        if (href.includes("careers.html")) {
+        if (
+          href.includes("fundraising.html") ||
+          href.includes("testimonials.html")
+        ) {
           anchor.closest("li")?.remove();
         }
       });
@@ -268,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const authMenu = document.getElementById("authMenu");
     const btnLogin = document.getElementById("btnLogin");
     const btnAdmin = document.getElementById("btnAdmin");
-    const btnRecommendation = document.getElementById("btnRecommendation");
+    const btnIntake = document.getElementById("btnIntake");
 
     const loginUrl = `/auth.html?returnTo=${encodeURIComponent(window.location.href)}`;
     if (btnLogin) btnLogin.setAttribute("href", loginUrl);
@@ -280,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if (authMenuButton) authMenuButton.style.display = "none";
           if (authMenu) authMenu.style.display = "none";
           if (btnAdmin) btnAdmin.style.display = "none";
-          if (btnRecommendation) btnRecommendation.style.display = "none";
+          if (btnIntake) btnIntake.style.display = "none";
           if (btnLogin) btnLogin.style.display = "inline-flex";
           return;
         }
@@ -290,7 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
           authMenuButton.style.display = "inline-flex";
         }
         if (btnLogin) btnLogin.style.display = "none";
-        if (btnRecommendation) btnRecommendation.style.display = "inline-flex";
+        if (btnIntake) btnIntake.style.display = "inline-flex";
         if (btnAdmin && user.role === "admin") {
           btnAdmin.style.display = "inline-flex";
         }
@@ -299,7 +295,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (authMenuButton) authMenuButton.style.display = "none";
         if (authMenu) authMenu.style.display = "none";
         if (btnAdmin) btnAdmin.style.display = "none";
-        if (btnRecommendation) btnRecommendation.style.display = "none";
+        if (btnIntake) btnIntake.style.display = "none";
         if (btnLogin) btnLogin.style.display = "inline-flex";
       });
 

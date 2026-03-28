@@ -9,10 +9,6 @@ const path = require("path");
 const cors = require("cors");
 const { Pool } = require("pg");
 const PgSession = require("connect-pg-simple")(session);
-const {
-  createProxyMiddleware,
-  fixRequestBody,
-} = require("http-proxy-middleware");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -85,6 +81,30 @@ async function initDb() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS intake_submissions (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      age INTEGER NOT NULL,
+      chronic_conditions TEXT NOT NULL DEFAULT '[]',
+      eyesight_issues BOOLEAN NOT NULL DEFAULT FALSE,
+      eye_power TEXT DEFAULT '',
+      relation TEXT DEFAULT '',
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_intake_submissions_phone
+    ON intake_submissions (phone)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_intake_submissions_created_at
+    ON intake_submissions (created_at DESC)
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT
@@ -147,64 +167,6 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-const recommendationApiTarget = (
-  process.env.RECOMMENDATION_API_URL || "http://recommendation-backend:3001"
-)
-  .replace(/\/+$/, "")
-  .replace(/\/(recommendation\/api|api)$/, "");
-const recommendationUiTarget = (
-  process.env.RECOMMENDATION_UI_URL || "http://recommendation-frontend:3000"
-)
-  .replace(/\/+$/, "")
-  .replace(/\/recommendation$/, "");
-
-console.log("Recommendation proxy targets:", {
-  api: recommendationApiTarget,
-  ui: recommendationUiTarget,
-});
-
-app.use(
-  "/recommendation/api",
-  createProxyMiddleware({
-    target: recommendationApiTarget,
-    changeOrigin: true,
-    on: {
-      proxyReq: fixRequestBody,
-    },
-    pathRewrite: (path) => {
-      // Express strips the mount path (/recommendation/api) before proxying.
-      // Re-add /api so backend routes mounted on /api resolve correctly.
-      if (path === "/") return "/api";
-      if (path === "/health") return "/health";
-      if (path.startsWith("/api")) return path;
-      return `/api${path}`;
-    },
-  }),
-);
-
-app.use(
-  "/_next",
-  createProxyMiddleware({
-    target: recommendationUiTarget,
-    changeOrigin: true,
-  }),
-);
-
-app.use(
-  "/recommendation",
-  createProxyMiddleware({
-    target: recommendationUiTarget,
-    changeOrigin: true,
-    pathRewrite: (path) => {
-      // Express strips the mount path (/recommendation) before proxying.
-      // Re-add it so Next.js basePath routes resolve correctly on the UI service.
-      if (path === "/") return "/recommendation";
-      if (path.startsWith("/recommendation")) return path;
-      return `/recommendation${path}`;
-    },
-  }),
-);
-
 app.get("/favicon.ico", (_req, res) => {
   // Keep browser console clean even when no explicit favicon asset is shipped.
   res.status(204).end();
@@ -213,10 +175,31 @@ app.get("/favicon.ico", (_req, res) => {
 app.get(/^\/wellness-details-(.+)$/, (req, res) => {
   const mobile = encodeURIComponent(String(req.params[0] || "").trim());
   if (!mobile) {
-    return res.redirect("/recommendation");
+    return res.redirect("/intake.html");
   }
-  return res.redirect(`/recommendation/wellness-details/${mobile}`);
+  return res.redirect(`/intake.html?phone=${mobile}`);
 });
+
+app.get(/^\/recommendation(?:\/.*)?$/, (_req, res) => {
+  return res.redirect("/intake.html");
+});
+
+const ALLOWED_CHRONIC_CONDITIONS = new Set([
+  "diabetes",
+  "hypertension",
+  "depression",
+  "anxiety",
+  "sleep_issues",
+]);
+
+const toBoolean = (value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return normalized === "true" || normalized === "1" || normalized === "yes";
+  }
+  return !!value;
+};
 
 // Session Configuration
 app.use(
@@ -609,6 +592,147 @@ app.get("/api/auth/me", (req, res) => {
     role: req.user.role,
   });
 });
+
+app.post("/api/intake-submissions", async (req, res) => {
+  try {
+    const {
+      name,
+      phone,
+      age,
+      chronicConditions,
+      eyesightIssues,
+      eyePower,
+      relation,
+      isFamilyMember,
+    } = req.body || {};
+
+    const cleanName = String(name || "").trim();
+    const cleanPhone = String(phone || "")
+      .replace(/\s+/g, "")
+      .trim();
+    const parsedAge = parseInt(String(age || ""), 10);
+    const isForFamilyMember = toBoolean(isFamilyMember);
+    const relationText = String(relation || "").trim();
+    const hasEyesightIssues = toBoolean(eyesightIssues);
+    const cleanEyePower = String(eyePower || "").trim();
+
+    if (!cleanName || cleanName.length > 120) {
+      return res
+        .status(400)
+        .json({ error: "Name is required and must be under 120 characters." });
+    }
+
+    if (!cleanPhone || cleanPhone.length < 8 || cleanPhone.length > 20) {
+      return res.status(400).json({ error: "Valid phone number is required." });
+    }
+
+    if (!Number.isInteger(parsedAge) || parsedAge < 1 || parsedAge > 120) {
+      return res
+        .status(400)
+        .json({ error: "Age must be a number between 1 and 120." });
+    }
+
+    const conditionsInput = Array.isArray(chronicConditions)
+      ? chronicConditions
+      : typeof chronicConditions === "string" && chronicConditions.trim()
+        ? [chronicConditions]
+        : [];
+
+    const normalizedConditions = conditionsInput
+      .map((item) => String(item).trim().toLowerCase())
+      .filter(Boolean);
+
+    const hasInvalidCondition = normalizedConditions.some(
+      (condition) => !ALLOWED_CHRONIC_CONDITIONS.has(condition),
+    );
+
+    if (hasInvalidCondition) {
+      return res
+        .status(400)
+        .json({ error: "One or more chronic conditions are invalid." });
+    }
+
+    if (isForFamilyMember && !relationText) {
+      return res
+        .status(400)
+        .json({
+          error: "Relation is required when filling for a family member.",
+        });
+    }
+
+    if (hasEyesightIssues && !cleanEyePower) {
+      return res
+        .status(400)
+        .json({
+          error: "Please provide eye power when eyesight issues are selected.",
+        });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO intake_submissions
+      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING id, created_at`,
+      [
+        cleanName,
+        cleanPhone,
+        parsedAge,
+        JSON.stringify(normalizedConditions),
+        hasEyesightIssues,
+        cleanEyePower,
+        isForFamilyMember ? relationText : "self",
+      ],
+    );
+
+    return res.status(201).json({
+      success: true,
+      submissionId: result.rows[0].id,
+      createdAt: result.rows[0].created_at,
+    });
+  } catch (err) {
+    console.error("Failed to save intake submission:", err);
+    return res.status(500).json({ error: "Failed to save intake submission" });
+  }
+});
+
+app.get(
+  "/api/admin/intake-submissions",
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const phoneFilter = String(req.query.phone || "").trim();
+      const limitRaw = parseInt(String(req.query.limit || "100"), 10);
+      const limit = Number.isFinite(limitRaw)
+        ? Math.max(1, Math.min(limitRaw, 500))
+        : 100;
+
+      const params = [];
+      let whereClause = "";
+      if (phoneFilter) {
+        params.push(phoneFilter);
+        whereClause = `WHERE phone = $${params.length}`;
+      }
+
+      params.push(limit);
+
+      const result = await pool.query(
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, created_at
+       FROM intake_submissions
+       ${whereClause}
+       ORDER BY created_at DESC
+       LIMIT $${params.length}`,
+        params,
+      );
+
+      return res.json({ count: result.rowCount, items: result.rows });
+    } catch (err) {
+      console.error("Failed to fetch intake submissions:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch intake submissions" });
+    }
+  },
+);
 
 const resolveReturnTo = (value) => {
   if (typeof value !== "string") return "/";

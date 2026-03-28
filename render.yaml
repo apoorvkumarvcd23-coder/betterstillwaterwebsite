@@ -29,49 +29,6 @@ services:
       # e.g. .onrender.com  (leading dot so cookie spans all subdomains)
       - key: COOKIE_DOMAIN
         sync: false
-      # e.g. https://stillwater-recommendation-backend.onrender.com
-      - key: RECOMMENDATION_API_URL
-        sync: false
-      # e.g. https://stillwater-recommendation-frontend.onrender.com
-      - key: RECOMMENDATION_UI_URL
-        sync: false
-
-  # ── 2. Recommendation backend ────────────────────────────────────────────────
-  - type: web
-    name: stillwater-recommendation-backend
-    env: docker
-    plan: free
-    dockerfilePath: ./Recommendation_Website/backend/Dockerfile
-    dockerContext: ./Recommendation_Website/backend
-    healthCheckPath: /health
-    envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: stillwater-postgres
-          property: connectionString
-      - key: SESSION_SECRET
-        sync: false
-      # e.g. https://stillwater-main.onrender.com
-      - key: CORS_ORIGIN
-        sync: false
-
-  # ── 3. Recommendation frontend ───────────────────────────────────────────────
-  - type: web
-    name: stillwater-recommendation-frontend
-    env: docker
-    plan: free
-    dockerfilePath: ./Recommendation_Website/frontend/Dockerfile
-    dockerContext: ./Recommendation_Website/frontend
-    healthCheckPath: /recommendation
-    # These are consumed as Docker build ARGs (baked into the Next.js bundle)
-    # Set them to your main Render URL so browser fetches go through the proxy
-    envVars:
-      # e.g. https://stillwater-main.onrender.com/recommendation/api
-      - key: NEXT_PUBLIC_API_BASE_URL
-        sync: false
-      # e.g. https://stillwater-main.onrender.com
-      - key: NEXT_PUBLIC_AUTH_BASE_URL
-        sync: false
 
 databases:
   - name: stillwater-postgres

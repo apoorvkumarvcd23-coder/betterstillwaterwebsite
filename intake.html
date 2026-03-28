@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stillwater Wellness Assessment</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      .intake-shell {
+        max-width: 900px;
+        margin: 7rem auto 3rem;
+        padding: 0 1.25rem;
+      }
+
+      .intake-card {
+        border: 1px solid rgba(0, 229, 255, 0.2);
+        background: rgba(0, 229, 255, 0.02);
+        padding: 2rem;
+      }
+
+      .intake-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+
+      @media (min-width: 768px) {
+        .intake-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .checklist {
+        display: grid;
+        gap: 0.75rem;
+        margin-top: 0.75rem;
+      }
+
+      .checklist label,
+      .inline-choice label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--color-text-secondary);
+      }
+
+      .inline-choice {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin-top: 0.75rem;
+      }
+
+      .hidden {
+        display: none;
+      }
+
+      .form-message {
+        margin-top: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .form-message.error {
+        color: #ff8a8a;
+      }
+
+      .form-message.success {
+        color: var(--color-accent);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header scrolled">
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="index.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Home</a
+      >
+    </header>
+
+    <main class="intake-shell">
+      <section class="intake-card">
+        <span class="text-caption">Wellness Assessment</span>
+        <h1 class="text-h2" style="margin-top: 0.75rem">Wellness Assessment</h1>
+        <p style="color: var(--color-text-secondary); margin-top: 0.75rem">
+          Please fill this form for yourself or your family member.
+        </p>
+
+        <form id="intakeForm" style="margin-top: 1.5rem">
+          <div class="intake-grid">
+            <div class="form-group">
+              <input
+                class="form-input"
+                id="name"
+                name="name"
+                type="text"
+                placeholder=" "
+                required
+              />
+              <label class="form-label" for="name">1. Name</label>
+            </div>
+            <div class="form-group">
+              <input
+                class="form-input"
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder=" "
+                required
+              />
+              <label class="form-label" for="phone">2. Phone Number</label>
+            </div>
+            <div class="form-group">
+              <input
+                class="form-input"
+                id="age"
+                name="age"
+                type="number"
+                min="1"
+                max="120"
+                placeholder=" "
+                required
+              />
+              <label class="form-label" for="age">3. Age</label>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem">
+            <p style="color: var(--color-text-primary)">
+              4. Which of the following chronic conditions you or your family
+              member has:
+            </p>
+            <div class="checklist">
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="diabetes"
+                />
+                Diabetes</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="hypertension"
+                />
+                Hypertension</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="depression"
+                />
+                Depression</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="anxiety"
+                />
+                Anxiety</label
+              >
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="sleep_issues"
+                />
+                Sleep Issues</label
+              >
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem">
+            <p style="color: var(--color-text-primary)">
+              5. Do you or your family member have any eyesight issues?
+            </p>
+            <div class="inline-choice">
+              <label
+                ><input type="radio" name="eyesightIssues" value="true" />
+                Yes</label
+              >
+              <label
+                ><input
+                  type="radio"
+                  name="eyesightIssues"
+                  value="false"
+                  checked
+                />
+                No</label
+              >
+            </div>
+            <div
+              class="form-group"
+              id="eyePowerWrap"
+              style="margin-top: 1rem; display: none"
+            >
+              <input
+                class="form-input"
+                id="eyePower"
+                name="eyePower"
+                type="text"
+                placeholder=" "
+              />
+              <label class="form-label" for="eyePower"
+                >If you wear spectacles, please provide eye power</label
+              >
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem">
+            <p style="color: var(--color-text-primary)">
+              6. If you are filling form for your family member, please mention
+              your relation
+            </p>
+            <div class="inline-choice">
+              <label
+                ><input
+                  type="radio"
+                  name="isFamilyMember"
+                  value="false"
+                  checked
+                />
+                Self</label
+              >
+              <label
+                ><input type="radio" name="isFamilyMember" value="true" />
+                Family Member</label
+              >
+            </div>
+            <div
+              class="form-group"
+              id="relationWrap"
+              style="margin-top: 1rem; display: none"
+            >
+              <input
+                class="form-input"
+                id="relation"
+                name="relation"
+                type="text"
+                placeholder=" "
+              />
+              <label class="form-label" for="relation"
+                >Relation (e.g. Son, Mother, Spouse)</label
+              >
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-solid"
+            style="margin-top: 1.5rem"
+          >
+            Submit Wellness Assessment
+          </button>
+          <div id="formMessage" class="form-message"></div>
+        </form>
+      </section>
+    </main>
+
+    <script>
+      const intakeForm = document.getElementById("intakeForm");
+      const formMessage = document.getElementById("formMessage");
+      const eyePowerWrap = document.getElementById("eyePowerWrap");
+      const eyePower = document.getElementById("eyePower");
+      const relationWrap = document.getElementById("relationWrap");
+      const relation = document.getElementById("relation");
+
+      const phonePrefill = new URLSearchParams(window.location.search).get(
+        "phone",
+      );
+      if (phonePrefill) {
+        const phoneInput = document.getElementById("phone");
+        if (phoneInput) phoneInput.value = phonePrefill;
+      }
+
+      function getRadioValue(name) {
+        const checked = document.querySelector(`input[name="${name}"]:checked`);
+        return checked ? checked.value : "";
+      }
+
+      function refreshConditionalFields() {
+        const showEyePower = getRadioValue("eyesightIssues") === "true";
+        eyePowerWrap.style.display = showEyePower ? "block" : "none";
+        if (!showEyePower) eyePower.value = "";
+
+        const showRelation = getRadioValue("isFamilyMember") === "true";
+        relationWrap.style.display = showRelation ? "block" : "none";
+        if (!showRelation) relation.value = "";
+      }
+
+      document
+        .querySelectorAll(
+          'input[name="eyesightIssues"], input[name="isFamilyMember"]',
+        )
+        .forEach((el) => {
+          el.addEventListener("change", refreshConditionalFields);
+        });
+
+      refreshConditionalFields();
+
+      intakeForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        formMessage.textContent = "";
+        formMessage.className = "form-message";
+
+        const payload = {
+          name: document.getElementById("name").value.trim(),
+          phone: document.getElementById("phone").value.trim(),
+          age: document.getElementById("age").value,
+          chronicConditions: Array.from(
+            document.querySelectorAll(
+              'input[name="chronicConditions"]:checked',
+            ),
+          ).map((el) => el.value),
+          eyesightIssues: getRadioValue("eyesightIssues") === "true",
+          eyePower: eyePower.value.trim(),
+          isFamilyMember: getRadioValue("isFamilyMember") === "true",
+          relation: relation.value.trim(),
+        };
+
+        try {
+          const response = await fetch("/api/intake-submissions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+
+          const body = await response.json().catch(() => ({}));
+          if (!response.ok) {
+            throw new Error(body.error || "Failed to submit form");
+          }
+
+          formMessage.textContent =
+            "Thank you. Your wellness assessment was submitted successfully.";
+          formMessage.classList.add("success");
+          intakeForm.reset();
+          refreshConditionalFields();
+        } catch (error) {
+          formMessage.textContent = error.message || "Submission failed";
+          formMessage.classList.add("error");
+        }
+      });
+    </script>
+  </body>
+</html>

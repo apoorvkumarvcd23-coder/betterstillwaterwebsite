@@ -229,6 +229,11 @@ img {
 #authActions {
   position: absolute;
   right: 5%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .header > .btn {
@@ -242,39 +247,32 @@ img {
   border: 1px solid var(--color-border-soft);
   background: transparent;
   color: var(--color-text-primary);
-  border-radius: 999px;
-  min-width: 108px;
-  height: 38px;
+  border-radius: 2px;
   display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.45rem;
-  padding: 0 0.6rem;
+  justify-content: center;
+  gap: 0;
+  padding: 0.5rem 0.9rem;
   cursor: pointer;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
   text-transform: uppercase;
   transition: var(--transition-smooth);
 }
 
 .theme-toggle-label {
-  min-width: 44px;
+  min-width: 0;
   text-align: center;
   font-weight: 600;
 }
 
 .theme-toggle::before {
-  content: "";
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: var(--color-accent);
-  flex: 0 0 22px;
-  transition: var(--transition-smooth);
+  content: none;
 }
 
 :root[data-theme="light"] .theme-toggle {
-  flex-direction: row-reverse;
+  flex-direction: row;
 }
 
 .theme-toggle:hover {
@@ -289,6 +287,7 @@ img {
 .header-theme-toggle-inline {
   position: static;
   flex: 0 0 auto;
+  align-self: center;
 }
 
 .settings-panel {
@@ -820,7 +819,13 @@ img {
     text-align: center;
   }
 
-  .header-theme-toggle {
-    right: calc(5% + 130px);
+  #authActions {
+    gap: 0.4rem;
+    max-width: 75%;
+  }
+
+  .theme-toggle {
+    padding: 0.45rem 0.7rem;
+    font-size: 0.68rem;
   }
 }

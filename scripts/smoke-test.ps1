@@ -6,7 +6,6 @@
 
 $ErrorActionPreference = 'Stop'
 $base       = 'http://localhost:3005'
-$backendDirect = 'http://localhost:3006'
 $pass = 0
 $fail = 0
 
@@ -48,98 +47,81 @@ Write-Host "`n=== Stillwater Smoke Tests ===" -ForegroundColor Cyan
 # ── 1. Service health endpoints ────────────────────────────────────────────────
 Write-Host "`n[1] Health endpoints"
 Assert-Http -Label 'main-website /api/funds'                 -Url "$base/api/funds"
-Assert-Http -Label 'recommendation-backend /health (direct)' -Url "$backendDirect/health" -ExpectBodyContains '"ok"'
-Assert-Http -Label 'recommendation-backend /health (proxy)'  -Url "$base/recommendation/api/health" -ExpectBodyContains '"ok"'
+Assert-Http -Label 'intake form page reachable'              -Url "$base/intake.html"
 
-# ── 2. Proxy routing ──────────────────────────────────────────────────────────
-Write-Host "`n[2] Proxy routing"
-Assert-Http -Label 'recommendation-frontend / via proxy'     -Url "$base/recommendation"
-try {
-    $page = Invoke-WebRequest -Uri "$base/recommendation" -UseBasicParsing -TimeoutSec 15
-    if ($page.Content -match '/recommendation/_next/') {
-        Write-Host "  PASS  /recommendation/_next assets referenced via proxy" -ForegroundColor Green
-        $script:pass++
-    } else {
-        Write-Host "  FAIL  /recommendation/_next assets referenced via proxy  [asset path not found in HTML]" -ForegroundColor Red
-        $script:fail++
-    }
-} catch {
-    Write-Host "  FAIL  /recommendation/_next assets referenced via proxy  [$($_.Exception.Message)]" -ForegroundColor Red
-    $script:fail++
+# ── 2. Intake submit ──────────────────────────────────────────────────────────
+Write-Host "`n[2] Intake submission API"
+$submission = @{
+    name = 'Smoke Tester'
+    phone = '9999999999'
+    age = 34
+    chronicConditions = @('diabetes', 'anxiety')
+    eyesightIssues = $true
+    eyePower = '-1.25'
+    isFamilyMember = $true
+    relation = 'Brother'
 }
-
-# ── 3. Assessment submit ──────────────────────────────────────────────────────
-Write-Host "`n[3] Assessment API"
-$assessment = @{
-    age = 30; gender = 'female'; height = 165; weight = 65
-    occupation_type = 'desk'; screen_time_hours = 8; sleep_hours = 6
-    stress_level = 8; water_intake = 'low'; exercise_frequency = 'rarely'
-    diet_type = 'omnivore'; alcohol_frequency = 'weekly'; smoking = 'no'
-    processed_food_frequency = 'daily'; sugar_intake = 'high'; dairy_consumption = 'daily'
-    conditions = @('Anxiety', 'Eye strain'); symptoms = @('tired eyes', 'insomnia'); goals = @('lose weight', 'increase energy')
-}
-$assessmentResp = $null
+$submissionResp = $null
 try {
-    $r = Invoke-WebRequest -Uri "$base/recommendation/api/assessment" -Method POST `
-        -Body ($assessment | ConvertTo-Json -Compress) -ContentType 'application/json' `
+    $r = Invoke-WebRequest -Uri "$base/api/intake-submissions" -Method POST `
+        -Body ($submission | ConvertTo-Json -Compress) -ContentType 'application/json' `
         -UseBasicParsing -TimeoutSec 15
-    $assessmentResp = $r.Content | ConvertFrom-Json
-    if ($assessmentResp.userId) {
-        Write-Host "  PASS  POST /api/assessment  [userId=$($assessmentResp.userId)]" -ForegroundColor Green
+    $submissionResp = $r.Content | ConvertFrom-Json
+    if ($submissionResp.submissionId) {
+        Write-Host "  PASS  POST /api/intake-submissions  [submissionId=$($submissionResp.submissionId)]" -ForegroundColor Green
         $script:pass++
     } else {
-        Write-Host "  FAIL  POST /api/assessment  [no userId in response]" -ForegroundColor Red
+        Write-Host "  FAIL  POST /api/intake-submissions  [no submissionId in response]" -ForegroundColor Red
         $script:fail++
     }
 } catch {
-    Write-Host "  FAIL  POST /api/assessment  [$($_.Exception.Message)]" -ForegroundColor Red
+    Write-Host "  FAIL  POST /api/intake-submissions  [$($_.Exception.Message)]" -ForegroundColor Red
     $script:fail++
 }
 
-# ── 4. Leads submit ───────────────────────────────────────────────────────────
-Write-Host "`n[4] Leads API"
-if ($assessmentResp -and $assessmentResp.userId) {
-    $userId = $assessmentResp.userId
-    Assert-Http -Label 'POST /api/leads' `
-        -Url "$base/recommendation/api/leads" -Method POST `
-        -Body @{ userId = $userId; name = 'Smoke Test'; email = 'smoke@test.local'; phone = '9999999999' } `
-        -ExpectBodyContains '"success":true'
-} else {
-    Write-Host "  SKIP  POST /api/leads  [no userId from previous step]" -ForegroundColor Yellow
-}
+# ── 3. Validation negative case ───────────────────────────────────────────────
+Write-Host "`n[3] Validation (invalid age)"
+try {
+    $badPayload = @{
+      name = 'Bad Case'
+      phone = '8888888888'
+      age = 0
+      chronicConditions = @('diabetes')
+      eyesightIssues = $false
+      eyePower = ''
+      isFamilyMember = $false
+      relation = ''
+    }
+    $response = Invoke-WebRequest -Uri "$base/api/intake-submissions" -Method POST `
+      -Body ($badPayload | ConvertTo-Json -Compress) -ContentType 'application/json' `
+      -UseBasicParsing -TimeoutSec 15
 
-# ── 5. Recommendation generation ─────────────────────────────────────────────
-Write-Host "`n[5] Recommendation generation"
-$recResp = $null
-if ($assessmentResp -and $assessmentResp.userId) {
-    try {
-        $r = Invoke-WebRequest -Uri "$base/recommendation/api/recommendation" -Method POST `
-            -Body (@{ userId = $assessmentResp.userId } | ConvertTo-Json -Compress) `
-            -ContentType 'application/json' -UseBasicParsing -TimeoutSec 30
-        $recResp = $r.Content | ConvertFrom-Json
-        if ($recResp.primary_recommendation) {
-            Write-Host "  PASS  POST /api/recommendation  [primary=$($recResp.primary_recommendation)]" -ForegroundColor Green
-            $script:pass++
-        } else {
-            Write-Host "  FAIL  POST /api/recommendation  [no primary_recommendation in response]" -ForegroundColor Red
-            $script:fail++
-        }
-    } catch {
-        Write-Host "  FAIL  POST /api/recommendation  [$($_.Exception.Message)]" -ForegroundColor Red
+    Write-Host "  FAIL  POST /api/intake-submissions invalid age [unexpected HTTP $($response.StatusCode)]" -ForegroundColor Red
+    $script:fail++
+} catch {
+    if ($_.Exception.Response -and $_.Exception.Response.StatusCode.value__ -eq 400) {
+        Write-Host "  PASS  POST /api/intake-submissions invalid age rejected with 400" -ForegroundColor Green
+        $script:pass++
+    } else {
+        Write-Host "  FAIL  POST /api/intake-submissions invalid age [$($_.Exception.Message)]" -ForegroundColor Red
         $script:fail++
     }
-} else {
-    Write-Host "  SKIP  POST /api/recommendation" -ForegroundColor Yellow
 }
 
-# ── 6. Results retrieval ──────────────────────────────────────────────────────
-Write-Host "`n[6] Results retrieval"
-if ($assessmentResp -and $assessmentResp.userId) {
-    Assert-Http -Label "GET /api/recommendation/:userId" `
-        -Url "$base/recommendation/api/recommendation/$($assessmentResp.userId)" `
-        -ExpectBodyContains 'primary_recommendation'
-} else {
-    Write-Host "  SKIP  GET /api/recommendation/:userId" -ForegroundColor Yellow
+# ── 4. Admin endpoint protection ──────────────────────────────────────────────
+Write-Host "`n[4] Admin API protection"
+try {
+    $response = Invoke-WebRequest -Uri "$base/api/admin/intake-submissions" -UseBasicParsing -TimeoutSec 15
+    if ($response.Content -match "Login & Waitlist") {
+        Write-Host "  PASS  GET /api/admin/intake-submissions unauthenticated redirected to login" -ForegroundColor Green
+        $script:pass++
+    } else {
+        Write-Host "  FAIL  GET /api/admin/intake-submissions unauthenticated [did not route to login]" -ForegroundColor Red
+        $script:fail++
+    }
+} catch {
+    Write-Host "  FAIL  GET /api/admin/intake-submissions unauthenticated [$($_.Exception.Message)]" -ForegroundColor Red
+    $script:fail++
 }
 
 # ── Summary ───────────────────────────────────────────────────────────────────
