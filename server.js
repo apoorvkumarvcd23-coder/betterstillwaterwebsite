@@ -14,6 +14,24 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL;
 
+const DEFAULT_ADMIN_EMAILS = new Set(["amar@stillwater.you"]);
+
+const isAdminEmail = (email) => {
+  const normalizedEmail = String(email || "").trim().toLowerCase();
+  if (!normalizedEmail) return false;
+
+  if (DEFAULT_ADMIN_EMAILS.has(normalizedEmail)) {
+    return true;
+  }
+
+  const envAdmins = String(process.env.ADMIN_EMAIL || "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+
+  return envAdmins.includes(normalizedEmail);
+};
+
 if (!DATABASE_URL) {
   console.error("DATABASE_URL is required.");
   process.exit(1);
@@ -245,7 +263,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             profile.emails && profile.emails.length > 0
               ? profile.emails[0].value
               : null;
-          const adminEmail = process.env.ADMIN_EMAIL;
+          const userIsAdmin = isAdminEmail(email);
 
           const existing = await pool.query(
             "SELECT * FROM users WHERE id = $1",
@@ -254,7 +272,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
           const row = existing.rows[0];
 
           if (row) {
-            if (email === adminEmail && row.role !== "admin") {
+            if (userIsAdmin && row.role !== "admin") {
               const updated = await pool.query(
                 "UPDATE users SET role = 'admin' WHERE id = $1 RETURNING *",
                 [profile.id],
@@ -264,7 +282,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             return cb(null, row);
           }
 
-          const role = email === adminEmail ? "admin" : "customer";
+          const role = userIsAdmin ? "admin" : "customer";
           const user = {
             id: profile.id,
             name: profile.displayName,

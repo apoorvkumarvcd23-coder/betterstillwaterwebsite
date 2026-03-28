@@ -506,20 +506,12 @@
 
     <!-- Trust Indicators Banner -->
     <section class="trust-banner">
-      <div class="grid-4">
-        <div class="trust-item fade-up">
-          <span class="trust-value" id="trustCentres">...</span>
-          <span class="trust-label">Wellness Centres</span>
-        </div>
+      <div class="stats-grid">
         <div class="trust-item fade-up" style="transition-delay: 0.1s">
-          <span class="trust-value" id="trustTourists">...</span>
-          <span class="trust-label">Annual Tourists</span>
-        </div>
-        <div class="trust-item fade-up" style="transition-delay: 0.2s">
           <span class="trust-value" id="trustProviders">...</span>
           <span class="trust-label">Verified Providers</span>
         </div>
-        <div class="trust-item fade-up" style="transition-delay: 0.3s">
+        <div class="trust-item fade-up" style="transition-delay: 0.2s">
           <span class="trust-value" id="trustAuthenticity">...</span>
           <span class="trust-label">Authentic</span>
         </div>
@@ -1043,20 +1035,26 @@
           const statsResponse = await fetch("/api/trust-stats");
           const statsData = await statsResponse.json();
 
-          document.getElementById("trustCentres").innerText =
-            statsData.centres || "40K+";
-          document.getElementById("trustTourists").innerText =
-            statsData.tourists || "600K";
-          document.getElementById("trustProviders").innerText =
-            statsData.providers || "4";
-          document.getElementById("trustAuthenticity").innerText =
-            statsData.authenticity || "100%";
+          const trustProviders = document.getElementById("trustProviders");
+          const trustAuthenticity = document.getElementById("trustAuthenticity");
+
+          if (trustProviders) {
+            trustProviders.innerText = statsData.providers || "4";
+          }
+          if (trustAuthenticity) {
+            trustAuthenticity.innerText = statsData.authenticity || "100%";
+          }
         } catch (err) {
           console.error("Could not fetch trust stats:", err);
-          document.getElementById("trustCentres").innerText = "40K+";
-          document.getElementById("trustTourists").innerText = "600K";
-          document.getElementById("trustProviders").innerText = "4";
-          document.getElementById("trustAuthenticity").innerText = "100%";
+          const trustProviders = document.getElementById("trustProviders");
+          const trustAuthenticity = document.getElementById("trustAuthenticity");
+
+          if (trustProviders) {
+            trustProviders.innerText = "4";
+          }
+          if (trustAuthenticity) {
+            trustAuthenticity.innerText = "100%";
+          }
         }
       });
     </script>

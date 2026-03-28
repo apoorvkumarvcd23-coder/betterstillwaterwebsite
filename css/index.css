@@ -658,17 +658,17 @@ img {
   padding: 2rem 5%;
 }
 
-.trust-banner .grid-4 {
+.trust-banner .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 2rem;
-  max-width: 1400px;
+  max-width: 760px;
   margin: 0 auto;
 }
 
 @media (min-width: 992px) {
-  .trust-banner .grid-4 {
-    grid-template-columns: repeat(4, 1fr);
+  .trust-banner .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 4rem;
   }
 }
@@ -737,7 +737,7 @@ img {
   }
 
   /* Trust banner grid: 2 cols on mobile, already set, ensure spacing */
-  .trust-banner .grid-4 {
+  .trust-banner .stats-grid {
     gap: 1.5rem;
   }
 
