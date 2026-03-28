@@ -1,3 +1,5 @@
 {
-  "python.terminal.useEnvFile": true
+  "python.terminal.useEnvFile": true,
+  "workbench.browser.enableChatTools": true,
+  "workbench.browser.openLocalhostLinks": true
 }

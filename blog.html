@@ -1,395 +1,525 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Blog | Stillwater | Insights for a Healthier Mind</title>
-  <meta name="description" content="Thoughtful insights about stress, emotional well-being, personal growth, and the mind-body connection from Stillwater.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-    }
-
-    /* Blog grid */
-    .blog-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      margin-top: 4rem;
-    }
-
-    @media (min-width: 640px) {
-      .blog-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (min-width: 1024px) {
-      .blog-grid {
-        grid-template-columns: repeat(3, 1fr);
-      }
-    }
-
-    /* Featured post (spans full width) */
-    .blog-card-featured {
-      grid-column: 1 / -1;
-      display: grid;
-      grid-template-columns: 1fr;
-      background-color: var(--color-bg-secondary);
-      border: 1px solid transparent;
-      transition: var(--transition-smooth);
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    @media (min-width: 768px) {
-      .blog-card-featured {
-        grid-template-columns: 1.2fr 1fr;
-      }
-    }
-
-    .blog-card-featured:hover {
-      border-color: var(--color-accent);
-    }
-
-    .blog-card-featured .blog-img {
-      width: 100%;
-      height: 340px;
-      object-fit: cover;
-      filter: grayscale(60%);
-      transition: filter 0.6s;
-    }
-
-    .blog-card-featured:hover .blog-img {
-      filter: grayscale(10%);
-    }
-
-    .blog-card-featured .blog-body {
-      padding: 3rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    /* Standard post card */
-    .blog-card {
-      background-color: var(--color-bg-secondary);
-      border: 1px solid transparent;
-      transition: var(--transition-smooth);
-      overflow: hidden;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .blog-card:hover {
-      border-color: var(--color-accent);
-      transform: translateY(-4px);
-    }
-
-    .blog-card .blog-img {
-      width: 100%;
-      height: 200px;
-      object-fit: cover;
-      filter: grayscale(60%);
-      transition: filter 0.6s, transform 0.6s;
-      display: block;
-    }
-
-    .blog-card:hover .blog-img {
-      filter: grayscale(10%);
-      transform: scale(1.04);
-    }
-
-    .blog-img-wrapper {
-      overflow: hidden;
-    }
-
-    .blog-card .blog-body {
-      padding: 2rem;
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-    }
-
-    /* Common blog body styles */
-    .blog-tag {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--color-accent);
-      margin-bottom: 0.75rem;
-      display: block;
-    }
-
-    .blog-title {
-      font-family: var(--font-heading);
-      font-size: 1.35rem;
-      line-height: 1.3;
-      margin-bottom: 1rem;
-      color: var(--color-text-primary);
-    }
-
-    .blog-card-featured .blog-title {
-      font-size: 1.8rem;
-    }
-
-    .blog-excerpt {
-      color: var(--color-text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.7;
-      flex: 1;
-    }
-
-    .blog-meta {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-top: 1.5rem;
-      font-size: 0.8rem;
-      color: var(--color-text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .blog-meta span::before {
-      content: '·';
-      margin-right: 1rem;
-    }
-
-    .blog-meta span:first-child::before {
-      content: none;
-    }
-
-    /* Coming soon placeholder cards */
-    .blog-card-placeholder {
-      background: rgba(0, 229, 255, 0.03);
-      border: 1px dashed rgba(0, 229, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 280px;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    .blog-card-placeholder p {
-      color: var(--color-text-secondary);
-      font-size: 0.9rem;
-    }
-
-    /* Newsletter strip */
-    .newsletter-strip {
-      background-color: var(--color-bg-secondary);
-      border-top: 1px solid rgba(0, 229, 255, 0.1);
-      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
-      padding: 4rem 0;
-      text-align: center;
-    }
-
-    .newsletter-strip h2 {
-      font-size: clamp(1.5rem, 3vw, 2.5rem);
-      margin-bottom: 1rem;
-    }
-
-    .newsletter-strip p {
-      color: var(--color-text-secondary);
-      max-width: 480px;
-      margin: 0 auto 2rem;
-      font-size: 1rem;
-    }
-
-    @media (max-width: 767px) {
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog | Stillwater | Insights for a Healthier Mind</title>
+    <meta
+      name="description"
+      content="Thoughtful insights about stress, emotional well-being, personal growth, and the mind-body connection from Stillwater."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
       .page-hero {
-        padding-top: 7rem;
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid rgba(240, 248, 255, 0.1);
       }
+
+      /* Blog grid */
+      .blog-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        margin-top: 4rem;
+      }
+
+      @media (min-width: 640px) {
+        .blog-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (min-width: 1024px) {
+        .blog-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      /* Featured post (spans full width) */
+      .blog-card-featured {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: 1fr;
+        background-color: var(--color-bg-secondary);
+        border: 1px solid transparent;
+        transition: var(--transition-smooth);
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+      }
+
+      @media (min-width: 768px) {
+        .blog-card-featured {
+          grid-template-columns: 1.2fr 1fr;
+        }
+      }
+
+      .blog-card-featured:hover {
+        border-color: var(--color-accent);
+      }
+
+      .blog-card-featured .blog-img {
+        width: 100%;
+        height: 340px;
+        object-fit: cover;
+        filter: grayscale(60%);
+        transition: filter 0.6s;
+      }
+
+      .blog-card-featured:hover .blog-img {
+        filter: grayscale(10%);
+      }
+
       .blog-card-featured .blog-body {
+        padding: 3rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+      }
+
+      /* Standard post card */
+      .blog-card {
+        background-color: var(--color-bg-secondary);
+        border: 1px solid transparent;
+        transition: var(--transition-smooth);
+        overflow: hidden;
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .blog-card:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-4px);
+      }
+
+      .blog-card .blog-img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        filter: grayscale(60%);
+        transition:
+          filter 0.6s,
+          transform 0.6s;
+        display: block;
+      }
+
+      .blog-card:hover .blog-img {
+        filter: grayscale(10%);
+        transform: scale(1.04);
+      }
+
+      .blog-img-wrapper {
+        overflow: hidden;
+      }
+
+      .blog-card .blog-body {
+        padding: 2rem;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+      }
+
+      /* Common blog body styles */
+      .blog-tag {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--color-accent);
+        margin-bottom: 0.75rem;
+        display: block;
+      }
+
+      .blog-title {
+        font-family: var(--font-heading);
+        font-size: 1.35rem;
+        line-height: 1.3;
+        margin-bottom: 1rem;
+        color: var(--color-text-primary);
+      }
+
+      .blog-card-featured .blog-title {
+        font-size: 1.8rem;
+      }
+
+      .blog-excerpt {
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        flex: 1;
+      }
+
+      .blog-meta {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .blog-meta span::before {
+        content: "Â·";
+        margin-right: 1rem;
+      }
+
+      .blog-meta span:first-child::before {
+        content: none;
+      }
+
+      /* Coming soon placeholder cards */
+      .blog-card-placeholder {
+        background: rgba(0, 229, 255, 0.03);
+        border: 1px dashed rgba(0, 229, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 280px;
+        text-align: center;
         padding: 2rem;
       }
-      .blog-card-featured .blog-title {
-        font-size: 1.4rem;
+
+      .blog-card-placeholder p {
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
       }
-    }
-  </style>
-</head>
-<body>
 
-  <!-- Navigation -->
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
+      /* Newsletter strip */
+      .newsletter-strip {
+        background-color: var(--color-bg-secondary);
+        border-top: 1px solid rgba(0, 229, 255, 0.1);
+        border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        padding: 4rem 0;
+        text-align: center;
+      }
 
-  <!-- Full Screen Drawer Menu -->
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
+      .newsletter-strip h2 {
+        font-size: clamp(1.5rem, 3vw, 2.5rem);
+        margin-bottom: 1rem;
+      }
+
+      .newsletter-strip p {
+        color: var(--color-text-secondary);
+        max-width: 480px;
+        margin: 0 auto 2rem;
+        font-size: 1rem;
+      }
+
+      @media (max-width: 767px) {
+        .page-hero {
+          padding-top: 7rem;
+        }
+        .blog-card-featured .blog-body {
+          padding: 2rem;
+        }
+        .blog-card-featured .blog-title {
+          font-size: 1.4rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
+
+    <!-- Full Screen Drawer Menu -->
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/c.png&quot;)"
+      ></div>
     </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
 
-  <main>
-    <!-- Page Hero -->
-    <section class="page-hero container">
-      <span class="text-caption fade-up">Our Journal</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">Insights for a Healthier<br>Mind &amp; Balanced Life</h1>
-      <p class="fade-up" style="max-width: 620px; margin-top: 1.5rem; color: var(--color-text-secondary); font-size: 1.125rem; transition-delay: 0.3s;">
-        Thoughtful insights about stress, emotional well-being, personal growth, and the mind-body connection. Knowledge creates awareness — and awareness is often the first step toward healing.
-      </p>
-    </section>
-
-    <!-- Blog Articles -->
-    <section class="section container">
-
-      <div class="blog-grid">
-
-        <!-- Featured Article -->
-        <a href="#" class="blog-card-featured fade-up">
-          <img src="images/spa-bg.png" alt="Understanding the Stress Response" class="blog-img">
-          <div class="blog-body">
-            <span class="blog-tag">Featured · Mind-Body</span>
-            <h2 class="blog-title">Understanding the Stress Response: What Happens Inside Your Body</h2>
-            <p class="blog-excerpt">Stress is more than a feeling — it's a cascade of physiological events. Learn how chronic stress affects your nervous system, hormones, and long-term health, and what you can do to break the cycle.</p>
-            <div class="blog-meta">
-              <span>Stillwater Editorial</span>
-              <span>8 min read</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Article 2 -->
-        <a href="#" class="blog-card fade-up" style="transition-delay: 0.1s;">
-          <div class="blog-img-wrapper">
-            <img src="images/spa-bg.png" alt="Emotional Awareness" class="blog-img">
-          </div>
-          <div class="blog-body">
-            <span class="blog-tag">Emotional Health</span>
-            <h3 class="blog-title">The Practice of Emotional Awareness</h3>
-            <p class="blog-excerpt">Tuning into your emotions isn't weakness — it's one of the most powerful tools for long-term mental well-being.</p>
-            <div class="blog-meta">
-              <span>5 min read</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Article 3 -->
-        <a href="#" class="blog-card fade-up" style="transition-delay: 0.2s;">
-          <div class="blog-img-wrapper">
-            <img src="images/spa-bg.png" alt="Nervous System" class="blog-img">
-          </div>
-          <div class="blog-body">
-            <span class="blog-tag">Neuroscience</span>
-            <h3 class="blog-title">Nervous System Regulation: Why Calm is a Skill</h3>
-            <p class="blog-excerpt">The nervous system shapes everything from how we sleep to how we connect. Discover simple practices to build resilience from the inside out.</p>
-            <div class="blog-meta">
-              <span>6 min read</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Article 4 -->
-        <a href="#" class="blog-card fade-up" style="transition-delay: 0.3s;">
-          <div class="blog-img-wrapper">
-            <img src="images/spa-bg.png" alt="Lifestyle Habits" class="blog-img">
-          </div>
-          <div class="blog-body">
-            <span class="blog-tag">Lifestyle</span>
-            <h3 class="blog-title">Small Habits, Lasting Change: A Holistic Approach</h3>
-            <p class="blog-excerpt">Sustainable wellness isn't built on grand gestures. Learn how small, consistent habits can rewire patterns and restore balance over time.</p>
-            <div class="blog-meta">
-              <span>4 min read</span>
-            </div>
-          </div>
-        </a>
-
-        <!-- Coming Soon placeholders -->
-        <div class="blog-card-placeholder fade-up" style="transition-delay: 0.4s;">
-          <div>
-            <span class="text-caption" style="display: block; margin-bottom: 0.75rem;">Coming Soon</span>
-            <p>More articles on nutrition, sleep, and emotional resilience are on the way.</p>
-          </div>
-        </div>
-
-        <div class="blog-card-placeholder fade-up" style="transition-delay: 0.5s;">
-          <div>
-            <span class="text-caption" style="display: block; margin-bottom: 0.75rem;">Coming Soon</span>
-            <p>Expert perspectives on mindfulness, trauma-informed care, and holistic health.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Newsletter Strip -->
-    <section class="newsletter-strip">
-      <div class="container">
-        <h2 class="fade-up">Stay in the Loop</h2>
-        <p class="fade-up" style="transition-delay: 0.1s;">Join the Stillwater waitlist and be the first to receive new insights, guides, and resources directly to your inbox.</p>
-        <a href="auth.html" class="btn btn-solid fade-up" style="transition-delay: 0.2s;">Join The Waitlist</a>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="footer container">
-    <div class="grid-2">
-      <div>
-        <h3 class="header-logo" style="margin-bottom: 1rem;">Stillwater</h3>
-        <p style="color: var(--color-text-secondary); max-width: 300px;">
-          Pioneering the future of holistic healing, stress management, and premium digital wellness.
+    <main>
+      <!-- Page Hero -->
+      <section class="page-hero container">
+        <span class="text-caption fade-up">Our Journal</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          Insights for a Healthier<br />Mind &amp; Balanced Life
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 620px;
+            margin-top: 1.5rem;
+            color: var(--color-text-secondary);
+            font-size: 1.125rem;
+            transition-delay: 0.3s;
+          "
+        >
+          Thoughtful insights about stress, emotional well-being, personal
+          growth, and the mind-body connection. Knowledge creates awareness
+          &mdash; and awareness is often the first step toward healing.
         </p>
-      </div>
-      <div style="display: flex; gap: 2rem; justify-content: flex-end; flex-wrap: wrap;">
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Explore</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="index.html">Vision</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="teams.html">Teams &amp; Advisors</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="fundraising.html">Fundraising</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Connect</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="careers.html">Careers</a></li>
-            <li><a href="auth.html">Waitlist</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
-      <a href="#" style="text-decoration: underline;">Privacy Policy</a>
-    </div>
-  </footer>
+      </section>
 
-  <script src="js/shared.js"></script>
-</body>
+      <!-- Blog Articles -->
+      <section class="section container">
+        <div class="blog-grid">
+          <!-- Featured Article -->
+          <a href="#" class="blog-card-featured fade-up">
+            <img
+              src="images/d.png"
+              alt="Understanding the Stress Response"
+              class="blog-img"
+            />
+            <div class="blog-body">
+              <span class="blog-tag">Featured Â· Mind-Body</span>
+              <h2 class="blog-title">
+                Understanding the Stress Response: What Happens Inside Your Body
+              </h2>
+              <p class="blog-excerpt">
+                Stress is more than a feeling &mdash; it's a cascade of
+                physiological events. Learn how chronic stress affects your
+                nervous system, hormones, and long-term health, and what you can
+                do to break the cycle.
+              </p>
+              <div class="blog-meta">
+                <span>Stillwater Editorial</span>
+                <span>8 min read</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Article 2 -->
+          <a href="#" class="blog-card fade-up" style="transition-delay: 0.1s">
+            <div class="blog-img-wrapper">
+              <img
+                src="images/e.png"
+                alt="Emotional Awareness"
+                class="blog-img"
+              />
+            </div>
+            <div class="blog-body">
+              <span class="blog-tag">Emotional Health</span>
+              <h3 class="blog-title">The Practice of Emotional Awareness</h3>
+              <p class="blog-excerpt">
+                Tuning into your emotions isn't weakness &mdash; it's one of the
+                most powerful tools for long-term mental well-being.
+              </p>
+              <div class="blog-meta">
+                <span>5 min read</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Article 3 -->
+          <a href="#" class="blog-card fade-up" style="transition-delay: 0.2s">
+            <div class="blog-img-wrapper">
+              <img src="images/c.png" alt="Nervous System" class="blog-img" />
+            </div>
+            <div class="blog-body">
+              <span class="blog-tag">Neuroscience</span>
+              <h3 class="blog-title">
+                Nervous System Regulation: Why Calm is a Skill
+              </h3>
+              <p class="blog-excerpt">
+                The nervous system shapes everything from how we sleep to how we
+                connect. Discover simple practices to build resilience from the
+                inside out.
+              </p>
+              <div class="blog-meta">
+                <span>6 min read</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Article 4 -->
+          <a href="#" class="blog-card fade-up" style="transition-delay: 0.3s">
+            <div class="blog-img-wrapper">
+              <img src="images/d.png" alt="Lifestyle Habits" class="blog-img" />
+            </div>
+            <div class="blog-body">
+              <span class="blog-tag">Lifestyle</span>
+              <h3 class="blog-title">
+                Small Habits, Lasting Change: A Holistic Approach
+              </h3>
+              <p class="blog-excerpt">
+                Sustainable wellness isn't built on grand gestures. Learn how
+                small, consistent habits can rewire patterns and restore balance
+                over time.
+              </p>
+              <div class="blog-meta">
+                <span>4 min read</span>
+              </div>
+            </div>
+          </a>
+
+          <!-- Coming Soon placeholders -->
+          <div
+            class="blog-card-placeholder fade-up"
+            style="transition-delay: 0.4s"
+          >
+            <div>
+              <span
+                class="text-caption"
+                style="display: block; margin-bottom: 0.75rem"
+                >Coming Soon</span
+              >
+              <p>
+                More articles on nutrition, sleep, and emotional resilience are
+                on the way.
+              </p>
+            </div>
+          </div>
+
+          <div
+            class="blog-card-placeholder fade-up"
+            style="transition-delay: 0.5s"
+          >
+            <div>
+              <span
+                class="text-caption"
+                style="display: block; margin-bottom: 0.75rem"
+                >Coming Soon</span
+              >
+              <p>
+                Expert perspectives on mindfulness, trauma-informed care, and
+                holistic health.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Newsletter Strip -->
+      <section class="newsletter-strip">
+        <div class="container">
+          <h2 class="fade-up">Stay in the Loop</h2>
+          <p class="fade-up" style="transition-delay: 0.1s">
+            Join the Stillwater waitlist and be the first to receive new
+            insights, guides, and resources directly to your inbox.
+          </p>
+          <a
+            href="auth.html"
+            class="btn btn-solid fade-up"
+            style="transition-delay: 0.2s"
+            >Join The Waitlist</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <div class="grid-2">
+        <div>
+          <h3 class="header-logo" style="margin-bottom: 1rem">Stillwater</h3>
+          <p style="color: var(--color-text-secondary); max-width: 300px">
+            Pioneering the future of holistic healing, stress management, and
+            premium digital wellness.
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 2rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Explore</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="index.html">Vision</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="teams.html">Teams &amp; Advisors</a></li>
+              <li><a href="blog.html">Blog</a></li>
+              <li><a href="fundraising.html">Fundraising</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Connect</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="careers.html">Careers</a></li>
+              <li><a href="auth.html">Waitlist</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
+        <a href="#" style="text-decoration: underline">Privacy Policy</a>
+      </div>
+    </footer>
+
+    <script src="js/shared.js"></script>
+  </body>
 </html>

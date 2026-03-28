@@ -1,160 +1,246 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Partners | Stillwater | Holistic Healing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-      margin-bottom: 4rem;
-    }
-    
-    .partners-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 3rem;
-      margin-top: 4rem;
-    }
-    
-    @media (min-width: 768px) {
-      .partners-grid {
-        grid-template-columns: repeat(3, 1fr);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Partners | Stillwater | Holistic Healing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      .page-hero {
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid rgba(240, 248, 255, 0.1);
+        margin-bottom: 4rem;
       }
-    }
 
-    .partner-card {
-      background-color: var(--color-bg-secondary);
-      padding: 4rem 2rem;
-      text-align: center;
-      transition: var(--transition-smooth);
-      border: 1px solid transparent;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
+      .partners-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+        margin-top: 4rem;
+      }
 
-    .partner-card:hover {
-      border-color: var(--color-accent);
-      transform: translateY(-5px);
-    }
+      @media (min-width: 768px) {
+        .partners-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
 
-    .partner-logo {
-      font-family: var(--font-heading);
-      font-size: 2.5rem;
-      color: var(--color-accent);
-      margin-bottom: 1rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
+      .partner-card {
+        background-color: var(--color-bg-secondary);
+        padding: 4rem 2rem;
+        text-align: center;
+        transition: var(--transition-smooth);
+        border: 1px solid transparent;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+      }
 
-    .application-section {
-      background-color: var(--color-bg-secondary);
-      padding: var(--spacing-xl) 5%;
-      margin-top: var(--spacing-xl);
-    }
-  </style>
-</head>
-<body>
+      .partner-card:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-5px);
+      }
 
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
+      .partner-logo {
+        font-family: var(--font-heading);
+        font-size: 2.5rem;
+        color: var(--color-accent);
+        margin-bottom: 1rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
 
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
+      .application-section {
+        background-color: var(--color-bg-secondary);
+        padding: var(--spacing-xl) 5%;
+        margin-top: var(--spacing-xl);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
+
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/c.png&quot;)"
+      ></div>
     </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
 
-  <main>
-    <section class="page-hero container text-center">
-      <span class="text-caption fade-up">Our Ecosystem</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">Wellness Partners</h1>
-      <p class="fade-up" style="max-width: 600px; margin: 2rem auto 0; color: var(--color-text-secondary); transition-delay: 0.3s; font-size: 1.125rem;">
-        We collaborate with world-renowned practitioners and organizations to deliver a comprehensive holistic healing experience.
-      </p>
-    </section>
-
-    <section class="container section">
-      <div class="text-center fade-up">
-        <h2 class="text-h2">Already Signed Up</h2>
-      </div>
-
-      <div class="partners-grid fade-up" style="transition-delay: 0.2s;">
-        <a href="https://sharan-india.org/" target="_blank" class="partner-card">
-          <div class="partner-logo">SHARAN</div>
-          <p style="color: var(--color-text-secondary); margin-top: 1rem;">Building a Culture of Health through holistic, plant-based nutrition.</p>
-        </a>
-        <a href="https://healy.com/" target="_blank" class="partner-card">
-          <div class="partner-logo">HEALY</div>
-          <p style="color: var(--color-text-secondary); margin-top: 1rem;">Innovators in frequency therapy and wearable holistic devices.</p>
-        </a>
-        <a href="https://amareye.yoga" target="_blank" class="partner-card">
-          <div class="partner-logo" style="font-size: 1.8rem;">AMAR EYE YOGA</div>
-          <p style="color: var(--color-text-secondary); margin-top: 1rem;">Specialized ancient techniques to naturally rejuvenate ocular health.</p>
-        </a>
-      </div>
-    </section>
-
-    <section class="application-section fade-up">
-      <div class="container text-center">
-        <span class="text-caption">Join Our Ecosystem</span>
-        <h2 class="text-h1" style="margin: 1.5rem 0;">Become a Partner</h2>
-        <p style="color: var(--color-text-secondary); max-width: 600px; margin: 0 auto 3rem;">
-          Are you a clinic, practitioner, or wellness product brand looking to integrate with Stillwater? Connect with us to discuss affiliation.
+    <main>
+      <section class="page-hero container text-center">
+        <span class="text-caption fade-up">Our Ecosystem</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          Wellness Partners
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 600px;
+            margin: 2rem auto 0;
+            color: var(--color-text-secondary);
+            transition-delay: 0.3s;
+            font-size: 1.125rem;
+          "
+        >
+          We collaborate with world-renowned practitioners and organizations to
+          deliver a comprehensive holistic healing experience.
         </p>
+      </section>
 
-        <form style="max-width: 600px; margin: 0 auto; text-align: left;">
-          <div class="form-group">
-            <input type="text" id="bizName" class="form-input" placeholder=" ">
-            <label for="bizName" class="form-label">Business / Clinic Name</label>
-          </div>
-          <div class="form-group">
-            <input type="email" id="email" class="form-input" placeholder=" ">
-            <label for="email" class="form-label">Contact Email</label>
-          </div>
-          <div class="form-group">
-            <input type="text" id="website" class="form-input" placeholder=" ">
-            <label for="website" class="form-label">Website URL</label>
-          </div>
-          <div style="margin-top: 3rem; text-align: center;">
-            <button type="button" class="btn btn-solid" style="width: 100%;">Apply for Affiliation</button>
-          </div>
-        </form>
-      </div>
-    </section>
-  </main>
+      <section class="container section">
+        <div class="text-center fade-up">
+          <h2 class="text-h2">Already Signed Up</h2>
+        </div>
 
-  <footer class="footer container">
-    <!-- Footer content omitted for brevity -->
-  </footer>
+        <div class="partners-grid fade-up" style="transition-delay: 0.2s">
+          <a
+            href="https://sharan-india.org/"
+            target="_blank"
+            class="partner-card"
+          >
+            <div class="partner-logo">SHARAN</div>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem">
+              Building a Culture of Health through holistic, plant-based
+              nutrition.
+            </p>
+          </a>
+          <a href="https://healy.com/" target="_blank" class="partner-card">
+            <div class="partner-logo">HEALY</div>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem">
+              Innovators in frequency therapy and wearable holistic devices.
+            </p>
+          </a>
+          <a href="https://amareye.yoga" target="_blank" class="partner-card">
+            <div class="partner-logo" style="font-size: 1.8rem">
+              AMAR EYE YOGA
+            </div>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem">
+              Specialized ancient techniques to naturally rejuvenate ocular
+              health.
+            </p>
+          </a>
+        </div>
+      </section>
 
-  <script src="js/shared.js"></script>
-</body>
+      <section class="application-section fade-up">
+        <div class="container text-center">
+          <span class="text-caption">Join Our Ecosystem</span>
+          <h2 class="text-h1" style="margin: 1.5rem 0">Become a Partner</h2>
+          <p
+            style="
+              color: var(--color-text-secondary);
+              max-width: 600px;
+              margin: 0 auto 3rem;
+            "
+          >
+            Are you a clinic, practitioner, or wellness product brand looking to
+            integrate with Stillwater? Connect with us to discuss affiliation.
+          </p>
+
+          <form style="max-width: 600px; margin: 0 auto; text-align: left">
+            <div class="form-group">
+              <input
+                type="text"
+                id="bizName"
+                class="form-input"
+                placeholder=" "
+              />
+              <label for="bizName" class="form-label"
+                >Business / Clinic Name</label
+              >
+            </div>
+            <div class="form-group">
+              <input
+                type="email"
+                id="email"
+                class="form-input"
+                placeholder=" "
+              />
+              <label for="email" class="form-label">Contact Email</label>
+            </div>
+            <div class="form-group">
+              <input
+                type="text"
+                id="website"
+                class="form-input"
+                placeholder=" "
+              />
+              <label for="website" class="form-label">Website URL</label>
+            </div>
+            <div style="margin-top: 3rem; text-align: center">
+              <button type="button" class="btn btn-solid" style="width: 100%">
+                Apply for Affiliation
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <!-- Footer content omitted for brevity -->
+    </footer>
+
+    <script src="js/shared.js"></script>
+  </body>
 </html>

@@ -15,6 +15,15 @@ function normalizeList(value) {
   return [];
 }
 
+function toBoolean(value) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const lowered = value.trim().toLowerCase();
+    return lowered === "yes" || lowered === "true" || lowered === "1";
+  }
+  return !!value;
+}
+
 // 1. Save Assessment
 router.post("/assessment", async (req, res) => {
   try {
@@ -52,7 +61,9 @@ router.post("/assessment", async (req, res) => {
         ? 0
         : parseFloat(weight);
     const parsedWaterGlasses =
-      water_glasses === undefined || water_glasses === null || water_glasses === ""
+      water_glasses === undefined ||
+      water_glasses === null ||
+      water_glasses === ""
         ? 0
         : parseInt(water_glasses, 10);
 
@@ -70,7 +81,9 @@ router.post("/assessment", async (req, res) => {
         diet_snacks_time: diet_snacks_time || "",
         bed_time: bed_time || "",
         wake_up_time: wake_up_time || "",
-        water_glasses: Number.isFinite(parsedWaterGlasses) ? parsedWaterGlasses : 0,
+        water_glasses: Number.isFinite(parsedWaterGlasses)
+          ? parsedWaterGlasses
+          : 0,
         exercise_info: exercise_info || "",
         eye_condition: eye_condition || "",
         wears_spectacles: !!wears_spectacles,
@@ -168,12 +181,15 @@ router.get("/recommendation/:userId", async (req, res) => {
 router.get("/admin/dashboard", async (_req, res) => {
   try {
     const totalAssessments = await prisma.user.count();
-    const withEmails = await prisma.user.count({ where: { email: { not: null } } });
+    const withEmails = await prisma.user.count({
+      where: { email: { not: null } },
+    });
 
     const conditions = await prisma.userCondition.findMany();
     const counts = {};
     conditions.forEach((condition) => {
-      counts[condition.condition_name] = (counts[condition.condition_name] || 0) + 1;
+      counts[condition.condition_name] =
+        (counts[condition.condition_name] || 0) + 1;
     });
     const topConditions = Object.entries(counts)
       .sort((a, b) => b[1] - a[1])
@@ -189,6 +205,120 @@ router.get("/admin/dashboard", async (_req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed dashboard stats" });
+  }
+});
+
+// 6. Public Wellness Submission (No Auth)
+router.post("/wellness-submissions", async (req, res) => {
+  try {
+    const {
+      mobile,
+      name,
+      drinksMilkTea,
+      isVegetarian,
+      hasWeightLossGoal,
+      hasDiabetesOrHypertension,
+      wearsSpectacles,
+      details,
+      source,
+      created_by,
+      language,
+      voiceTranscript,
+      userId,
+    } = req.body || {};
+
+    if (!mobile || !name || !String(name).trim()) {
+      return res
+        .status(400)
+        .json({ error: "Mobile and name are required for submission" });
+    }
+
+    const submission = await prisma.wellnessSubmission.create({
+      data: {
+        mobile: String(mobile).trim(),
+        name: String(name).trim(),
+        drinks_milk_tea: toBoolean(drinksMilkTea),
+        is_vegetarian: toBoolean(isVegetarian),
+        has_weight_loss_goal: toBoolean(hasWeightLossGoal),
+        has_diabetes_or_hypertension: toBoolean(hasDiabetesOrHypertension),
+        wears_spectacles: toBoolean(wearsSpectacles),
+        details: String(details || "").trim(),
+        source: String(source || "public-web").trim(),
+        created_by: String(created_by || "self").trim(),
+        language: language ? String(language).trim() : null,
+        voice_transcript: voiceTranscript
+          ? String(voiceTranscript).trim().slice(0, 8000)
+          : null,
+        userId:
+          userId === undefined || userId === null || userId === ""
+            ? null
+            : parseInt(userId, 10),
+      },
+    });
+
+    res.status(201).json({ success: true, submissionId: submission.id });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to create wellness submission" });
+  }
+});
+
+// 7. Admin History Grouped by Mobile
+router.get("/admin/wellness-history", async (req, res) => {
+  try {
+    const mobile =
+      typeof req.query.mobile === "string" ? req.query.mobile.trim() : "";
+    const limitRaw = parseInt(String(req.query.limit || 100), 10);
+    const limit = Number.isFinite(limitRaw)
+      ? Math.max(1, Math.min(limitRaw, 500))
+      : 100;
+
+    const where = mobile ? { mobile } : {};
+    const rows = await prisma.wellnessSubmission.findMany({
+      where,
+      orderBy: [{ mobile: "asc" }, { createdAt: "desc" }],
+      take: limit,
+    });
+
+    const grouped = rows.reduce((acc, row) => {
+      if (!acc[row.mobile]) acc[row.mobile] = [];
+      acc[row.mobile].push(row);
+      return acc;
+    }, {});
+
+    const items = Object.keys(grouped)
+      .sort()
+      .map((key) => ({
+        mobile: key,
+        total: grouped[key].length,
+        latestAt: grouped[key][0].createdAt,
+        submissions: grouped[key],
+      }));
+
+    res.json({ totalMobiles: items.length, items });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch wellness history" });
+  }
+});
+
+// 8. Public History by Mobile
+router.get("/wellness-history/:mobile", async (req, res) => {
+  try {
+    const mobile = String(req.params.mobile || "").trim();
+    if (!mobile) {
+      return res.status(400).json({ error: "Mobile is required" });
+    }
+
+    const submissions = await prisma.wellnessSubmission.findMany({
+      where: { mobile },
+      orderBy: { createdAt: "desc" },
+    });
+
+    res.json({ mobile, total: submissions.length, submissions });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Failed to fetch history" });
   }
 });
 

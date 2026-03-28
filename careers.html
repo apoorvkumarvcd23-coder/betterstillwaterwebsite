@@ -1,278 +1,541 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Careers | Stillwater | Holistic Healing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-      margin-bottom: 4rem;
-    }
-    .jobs-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 3rem;
-    }
-    .job-card {
-      border: 1px solid rgba(240, 248, 255, 0.2);
-      padding: 3rem 2rem;
-      transition: var(--transition-smooth);
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-    }
-    .job-card:hover { border-color: var(--color-accent); transform: translateY(-5px); }
-    .job-tags { display: flex; gap: 1rem; color: var(--color-accent); font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.1em; }
-    
-    .application-section {
-      background-color: var(--color-bg-secondary);
-      padding: var(--spacing-xl) 5%;
-      margin-top: var(--spacing-xl);
-    }
-    .careers-form-container {
-      max-width: 600px;
-      margin: 0 auto;
-    }
-  </style>
-</head>
-<body>
-
-  <!-- Navigation -->
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
-
-  <!-- Full Screen Drawer Menu -->
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
-    </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
-
-  <main>
-    <section class="page-hero container text-center">
-      <span class="text-caption fade-up">Join The Movement</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">Careers at Stillwater</h1>
-      <p class="fade-up" style="max-width: 600px; margin: 2rem auto 0; color: var(--color-text-secondary); transition-delay: 0.3s; font-size: 1.125rem;">
-        We are building a sanctuary for inner peace. Bring your passion, holistic expertise, or technical brilliance to shape the future of dynamic wellness.
-      </p>
-    </section>
-
-    <section class="container">
-      <div class="grid-2 fade-up">
-        <div class="job-card">
-          <div class="job-tags"><span>Wellness</span><span>Remote</span></div>
-          <h2 class="text-h2" style="font-size: 2rem;">Head of Holistic Practices</h2>
-          <p style="color: var(--color-text-secondary);">Curating and overseeing our meditation, somatic healing, and guided breathwork programs. 10+ years experience required.</p>
-          <a href="#apply" class="btn">Apply Now</a>
-        </div>
-        <div class="job-card">
-          <div class="job-tags"><span>Technology</span><span>On-site (NY)</span></div>
-          <h2 class="text-h2" style="font-size: 2rem;">Senior UI/UX Engineer</h2>
-          <p style="color: var(--color-text-secondary);">Designing the premium, tranquil digital interfaces that make our web platforms feel like a retreat.</p>
-          <a href="#apply" class="btn">Apply Now</a>
-        </div>
-        <div class="job-card">
-          <div class="job-tags"><span>Operations</span><span>Remote</span></div>
-          <h2 class="text-h2" style="font-size: 2rem;">Retreat Concierge</h2>
-          <p style="color: var(--color-text-secondary);">Managing VIP member experiences, retreat bookings, and providing seamless support to our exclusive community.</p>
-          <a href="#apply" class="btn">Apply Now</a>
-        </div>
-      </div>
-    </section>
-
-    <section id="apply" class="application-section">
-      <div class="careers-form-container fade-up">
-        <div class="text-center" style="margin-bottom: 4rem;">
-          <span class="text-caption">Open Application</span>
-          <h2 class="text-h1" style="margin-top: 1rem;">Don't see a fit?</h2>
-          <p style="color: var(--color-text-secondary); margin-top: 1rem;">Send us your details and how you envision contributing to Stillwater.</p>
-        </div>
-
-        <form id="careerForm">
-          <select id="role" class="form-input" style="background-color: var(--color-bg-primary); margin-bottom: 2rem;" required>
-            <option value="" disabled selected hidden>Position Applied For</option>
-            <option value="Head of Holistic Practices">Head of Holistic Practices</option>
-            <option value="Senior UI/UX Engineer">Senior UI/UX Engineer</option>
-            <option value="Retreat Concierge">Retreat Concierge</option>
-            <option value="Open Application">Open Application</option>
-          </select>
-
-          <div class="grid-2" style="gap: 2rem; margin-bottom: 2rem;">
-            <div class="form-group">
-              <input type="text" id="fname" class="form-input" placeholder=" " required>
-              <label for="fname" class="form-label">First Name</label>
-            </div>
-            <div class="form-group">
-              <input type="text" id="lname" class="form-input" placeholder=" " required>
-              <label for="lname" class="form-label">Last Name</label>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <input type="email" id="email" class="form-input" placeholder=" " required>
-            <label for="email" class="form-label">Email Address</label>
-          </div>
-          
-          <div class="form-group">
-            <input type="url" id="linkedin" class="form-input" placeholder=" ">
-            <label for="linkedin" class="form-label">LinkedIn / Portfolio URL</label>
-          </div>
-
-          <div class="form-group">
-            <textarea id="message" class="form-input" rows="4" style="resize: none;" placeholder=" "></textarea>
-            <label for="message" class="form-label">Why Stillwater?</label>
-          </div>
-
-          <div id="formMessage" style="color: var(--color-accent); margin-top: 1rem; text-align: center; display: none;"></div>
-
-          <div style="margin-top: 2rem; text-align: center;">
-            <button type="submit" class="btn btn-solid" style="width: 100%; max-width: 300px;">Submit Application</button>
-          </div>
-        </form>
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer container">
-    <div class="grid-2">
-      <div>
-        <h3 class="header-logo" style="margin-bottom: 1rem;">Stillwater</h3>
-        <p style="color: var(--color-text-secondary); max-width: 300px;">
-          Pioneering the future of holistic healing, stress management, and premium digital wellness.
-        </p>
-      </div>
-      <div style="display: flex; gap: 2rem; justify-content: flex-end; flex-wrap: wrap;">
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Explore</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="index.html">Vision</a></li>
-            <li><a href="teams.html">Teams & Advisors</a></li>
-            <li><a href="fundraising.html">Fundraising</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Connect</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="careers.html">Careers</a></li>
-            <li><a href="auth.html">Waitlist</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <!-- Social Links -->
-    <div class="social-links">
-      <!-- Instagram -->
-      <a href="https://www.instagram.com/stillwater_you" target="_blank" rel="noopener" aria-label="Instagram" class="social-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="1.5"/>
-          <circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5"/>
-          <circle cx="17.5" cy="6.5" r="1" fill="currentColor"/>
-        </svg>
-      </a>
-      <!-- LinkedIn -->
-      <a href="https://www.linkedin.com/company/stillwater-you" target="_blank" rel="noopener" aria-label="LinkedIn" class="social-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect x="2" y="2" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/>
-          <path d="M7 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M11 17v-4c0-1.5 1-3 3-3s3 1.5 3 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <path d="M11 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-          <circle cx="7" cy="7.5" r="1" fill="currentColor"/>
-        </svg>
-      </a>
-      <!-- Facebook -->
-      <a href="https://www.facebook.com/stillwateryou" target="_blank" rel="noopener" aria-label="Facebook" class="social-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </a>
-      <!-- X (Twitter) -->
-      <a href="https://x.com/StillWater_You" target="_blank" rel="noopener" aria-label="X / Twitter" class="social-icon">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4l16 16M4 20L20 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </a>
-    </div>
-
-    <div class="footer-bottom">
-      <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
-      <a href="#" style="text-decoration: underline;">Privacy Policy</a>
-    </div>
-  </footer>
-
-  <script src="js/shared.js"></script>
-  <script>
-    document.getElementById('careerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const submitBtn = e.target.querySelector('button[type="submit"]');
-      const messageDiv = document.getElementById('formMessage');
-      
-      const formData = {
-        firstName: document.getElementById('fname').value,
-        lastName: document.getElementById('lname').value,
-        email: document.getElementById('email').value,
-        linkedinUrl: document.getElementById('linkedin').value,
-        role: document.getElementById('role').value,
-        message: document.getElementById('message').value
-      };
-
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Submitting...';
-      messageDiv.style.display = 'none';
-
-      try {
-        const response = await fetch('/api/careers/apply', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-
-        const result = await response.json();
-
-        if (response.ok) {
-          messageDiv.style.color = 'var(--color-accent)';
-          messageDiv.innerText = 'Application submitted successfully. We will reach out soon.';
-          document.getElementById('careerForm').reset();
-        } else {
-          messageDiv.style.color = '#ff6b6b';
-          messageDiv.innerText = result.error || 'Failed to submit application.';
-        }
-      } catch (err) {
-        messageDiv.style.color = '#ff6b6b';
-        messageDiv.innerText = 'Network error. Please try again later.';
-      } finally {
-        messageDiv.style.display = 'block';
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Submit Application';
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Careers | Stillwater | Holistic Healing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      .page-hero {
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid var(--color-border-soft);
+        margin-bottom: 4rem;
       }
-    });
-  </script>
-</body>
+      .jobs-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 3rem;
+      }
+      .job-card {
+        border: 1px solid var(--color-border-soft);
+        background: var(--color-surface);
+        padding: 3rem 2rem;
+        transition: var(--transition-smooth);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+      .job-card:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-5px);
+      }
+      .job-tags {
+        display: flex;
+        gap: 1rem;
+        color: var(--color-accent);
+        font-size: 0.875rem;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .application-section {
+        background-color: var(--color-bg-secondary);
+        padding: var(--spacing-xl) 5%;
+        margin-top: var(--spacing-xl);
+        border-top: 1px solid var(--color-border-soft);
+      }
+      .careers-form-container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
+
+    <!-- Full Screen Drawer Menu -->
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/e.png&quot;)"
+      ></div>
+    </div>
+
+    <main>
+      <section class="page-hero container text-center">
+        <span class="text-caption fade-up">Join The Movement</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          Careers at Stillwater
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 600px;
+            margin: 2rem auto 0;
+            color: var(--color-text-secondary);
+            transition-delay: 0.3s;
+            font-size: 1.125rem;
+          "
+        >
+          We are building a trusted wellness community. Bring your passion,
+          holistic expertise, or technical brilliance to shape supportive and
+          balance-focused experiences.
+        </p>
+      </section>
+
+      <section class="container">
+        <div class="grid-2 fade-up">
+          <div class="job-card">
+            <div class="job-tags"><span>Wellness</span><span>Remote</span></div>
+            <h2 class="text-h2" style="font-size: 2rem">
+              Head of Holistic Practices
+            </h2>
+            <p style="color: var(--color-text-secondary)">
+              Curating and overseeing our meditation, somatic healing, and
+              guided breathwork programs. 10+ years experience required.
+            </p>
+            <a href="#apply" class="btn">Apply Now</a>
+          </div>
+          <div class="job-card">
+            <div class="job-tags">
+              <span>Technology</span><span>On-site (NY)</span>
+            </div>
+            <h2 class="text-h2" style="font-size: 2rem">
+              Senior UI/UX Engineer
+            </h2>
+            <p style="color: var(--color-text-secondary)">
+              Designing the premium, tranquil digital interfaces that make our
+              web platforms feel like a retreat.
+            </p>
+            <a href="#apply" class="btn">Apply Now</a>
+          </div>
+          <div class="job-card">
+            <div class="job-tags">
+              <span>Operations</span><span>Remote</span>
+            </div>
+            <h2 class="text-h2" style="font-size: 2rem">Retreat Concierge</h2>
+            <p style="color: var(--color-text-secondary)">
+              Managing VIP member experiences, retreat bookings, and providing
+              seamless support to our exclusive community.
+            </p>
+            <a href="#apply" class="btn">Apply Now</a>
+          </div>
+        </div>
+      </section>
+
+      <section id="apply" class="application-section">
+        <div class="careers-form-container fade-up">
+          <div class="text-center" style="margin-bottom: 4rem">
+            <span class="text-caption">Open Application</span>
+            <h2 class="text-h1" style="margin-top: 1rem">Don't see a fit?</h2>
+            <p style="color: var(--color-text-secondary); margin-top: 1rem">
+              Send us your details and how you envision contributing to
+              Stillwater.
+            </p>
+          </div>
+
+          <form id="careerForm">
+            <select
+              id="role"
+              class="form-input"
+              style="
+                background-color: var(--color-bg-primary);
+                margin-bottom: 2rem;
+              "
+              required
+            >
+              <option value="" disabled selected hidden>
+                Position Applied For
+              </option>
+              <option value="Head of Holistic Practices">
+                Head of Holistic Practices
+              </option>
+              <option value="Senior UI/UX Engineer">
+                Senior UI/UX Engineer
+              </option>
+              <option value="Retreat Concierge">Retreat Concierge</option>
+              <option value="Open Application">Open Application</option>
+            </select>
+
+            <div class="grid-2" style="gap: 2rem; margin-bottom: 2rem">
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="fname"
+                  class="form-input"
+                  placeholder=" "
+                  required
+                />
+                <label for="fname" class="form-label">First Name</label>
+              </div>
+              <div class="form-group">
+                <input
+                  type="text"
+                  id="lname"
+                  class="form-input"
+                  placeholder=" "
+                  required
+                />
+                <label for="lname" class="form-label">Last Name</label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <input
+                type="email"
+                id="email"
+                class="form-input"
+                placeholder=" "
+                required
+              />
+              <label for="email" class="form-label">Email Address</label>
+            </div>
+
+            <div class="form-group">
+              <input
+                type="url"
+                id="linkedin"
+                class="form-input"
+                placeholder=" "
+              />
+              <label for="linkedin" class="form-label"
+                >LinkedIn / Portfolio URL</label
+              >
+            </div>
+
+            <div class="form-group">
+              <textarea
+                id="message"
+                class="form-input"
+                rows="4"
+                style="resize: none"
+                placeholder=" "
+              ></textarea>
+              <label for="message" class="form-label">Why Stillwater?</label>
+            </div>
+
+            <div
+              id="formMessage"
+              style="
+                color: var(--color-accent);
+                margin-top: 1rem;
+                text-align: center;
+                display: none;
+              "
+            ></div>
+
+            <div style="margin-top: 2rem; text-align: center">
+              <button
+                type="submit"
+                class="btn btn-solid"
+                style="width: 100%; max-width: 300px"
+              >
+                Submit Application
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <div class="grid-2">
+        <div>
+          <h3 class="header-logo" style="margin-bottom: 1rem">Stillwater</h3>
+          <p style="color: var(--color-text-secondary); max-width: 300px">
+            Pioneering the future of holistic healing, stress management, and
+            premium digital wellness.
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 2rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Explore</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="index.html">Vision</a></li>
+              <li><a href="teams.html">Teams & Advisors</a></li>
+              <li><a href="fundraising.html">Fundraising</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Connect</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="careers.html">Careers</a></li>
+              <li><a href="auth.html">Waitlist</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <!-- Social Links -->
+      <div class="social-links">
+        <!-- Instagram -->
+        <a
+          href="https://www.instagram.com/stillwater_you"
+          target="_blank"
+          rel="noopener"
+          aria-label="Instagram"
+          class="social-icon"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="2"
+              y="2"
+              width="20"
+              height="20"
+              rx="5"
+              ry="5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <circle
+              cx="12"
+              cy="12"
+              r="4.5"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
+          </svg>
+        </a>
+        <!-- LinkedIn -->
+        <a
+          href="https://www.linkedin.com/company/stillwater-you"
+          target="_blank"
+          rel="noopener"
+          aria-label="LinkedIn"
+          class="social-icon"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="2"
+              y="2"
+              width="20"
+              height="20"
+              rx="3"
+              stroke="currentColor"
+              stroke-width="1.5"
+            />
+            <path
+              d="M7 10v7"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M11 17v-4c0-1.5 1-3 3-3s3 1.5 3 3v4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <path
+              d="M11 10v7"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+            <circle cx="7" cy="7.5" r="1" fill="currentColor" />
+          </svg>
+        </a>
+        <!-- Facebook -->
+        <a
+          href="https://www.facebook.com/stillwateryou"
+          target="_blank"
+          rel="noopener"
+          aria-label="Facebook"
+          class="social-icon"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </a>
+        <!-- X (Twitter) -->
+        <a
+          href="https://x.com/StillWater_You"
+          target="_blank"
+          rel="noopener"
+          aria-label="X / Twitter"
+          class="social-icon"
+        >
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M4 4l16 16M4 20L20 4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            />
+          </svg>
+        </a>
+      </div>
+
+      <div class="footer-bottom">
+        <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
+        <a href="#" style="text-decoration: underline">Privacy Policy</a>
+      </div>
+    </footer>
+
+    <script src="js/shared.js"></script>
+    <script>
+      document
+        .getElementById("careerForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const submitBtn = e.target.querySelector('button[type="submit"]');
+          const messageDiv = document.getElementById("formMessage");
+
+          const formData = {
+            firstName: document.getElementById("fname").value,
+            lastName: document.getElementById("lname").value,
+            email: document.getElementById("email").value,
+            linkedinUrl: document.getElementById("linkedin").value,
+            role: document.getElementById("role").value,
+            message: document.getElementById("message").value,
+          };
+
+          submitBtn.disabled = true;
+          submitBtn.innerText = "Submitting...";
+          messageDiv.style.display = "none";
+
+          try {
+            const response = await fetch("/api/careers/apply", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(formData),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              messageDiv.style.color = "var(--color-accent)";
+              messageDiv.innerText =
+                "Application submitted successfully. We will reach out soon.";
+              document.getElementById("careerForm").reset();
+            } else {
+              messageDiv.style.color = "#ff6b6b";
+              messageDiv.innerText =
+                result.error || "Failed to submit application.";
+            }
+          } catch (err) {
+            messageDiv.style.color = "#ff6b6b";
+            messageDiv.innerText = "Network error. Please try again later.";
+          } finally {
+            messageDiv.style.display = "block";
+            submitBtn.disabled = false;
+            submitBtn.innerText = "Submit Application";
+          }
+        });
+    </script>
+  </body>
 </html>

@@ -1,286 +1,410 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>About Us | Stillwater | Holistic Healing</title>
-  <meta name="description" content="Learn about Still Water's philosophy, our approach to holistic healing, and the science behind mind-body connection.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-      margin-bottom: 4rem;
-    }
-
-    /* About Rich Layout */
-    .about-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 4rem;
-      align-items: start;
-    }
-
-    @media (min-width: 992px) {
-      .about-grid {
-        grid-template-columns: 1fr 1fr;
-        gap: 6rem;
-      }
-    }
-
-    .about-lead {
-      font-size: 1.375rem;
-      font-family: var(--font-heading);
-      font-style: italic;
-      color: var(--color-accent);
-      line-height: 1.5;
-      margin-bottom: 2rem;
-    }
-
-    .about-body p {
-      color: var(--color-text-secondary);
-      font-size: 1.05rem;
-      line-height: 1.85;
-      margin-bottom: 1.5rem;
-    }
-
-    /* Decorative accent box */
-    .pull-quote {
-      border-left: 2px solid var(--color-accent);
-      padding: 1.5rem 2rem;
-      background: rgba(0, 229, 255, 0.04);
-      margin: 3rem 0;
-    }
-
-    .pull-quote p {
-      font-family: var(--font-heading);
-      font-style: italic;
-      font-size: 1.25rem;
-      color: var(--color-text-primary);
-      line-height: 1.6;
-      margin: 0;
-    }
-
-    /* Science Section */
-    .science-section {
-      background-color: var(--color-bg-secondary);
-      border-top: 1px solid rgba(0, 229, 255, 0.1);
-      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
-    }
-
-    .pillars-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 1.5rem;
-      margin-top: 3rem;
-    }
-
-    @media (min-width: 768px) {
-      .pillars-grid {
-        grid-template-columns: repeat(4, 1fr);
-      }
-    }
-
-    .pillar-card {
-      background: rgba(0, 229, 255, 0.05);
-      border: 1px solid rgba(0, 229, 255, 0.15);
-      padding: 2rem 1.5rem;
-      text-align: center;
-      transition: var(--transition-smooth);
-    }
-
-    .pillar-card:hover {
-      background: rgba(0, 229, 255, 0.1);
-      border-color: var(--color-accent);
-      transform: translateY(-4px);
-    }
-
-    .pillar-icon {
-      font-size: 2rem;
-      margin-bottom: 1rem;
-      display: block;
-    }
-
-    .pillar-label {
-      font-family: var(--font-heading);
-      font-size: 1rem;
-      color: var(--color-text-primary);
-      line-height: 1.4;
-    }
-
-    .science-body {
-      max-width: 760px;
-    }
-
-    .science-body p {
-      color: var(--color-text-secondary);
-      font-size: 1.05rem;
-      line-height: 1.85;
-      margin-bottom: 1.5rem;
-    }
-
-    @media (max-width: 767px) {
-      .about-lead {
-        font-size: 1.15rem;
-      }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About Us | Stillwater | Holistic Healing</title>
+    <meta
+      name="description"
+      content="Learn about Still Water's philosophy, our approach to holistic healing, and the science behind mind-body connection."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
       .page-hero {
-        padding-top: 7rem;
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid rgba(240, 248, 255, 0.1);
+        margin-bottom: 4rem;
       }
-    }
-  </style>
-</head>
-<body>
 
-  <!-- Navigation -->
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
+      /* About Rich Layout */
+      .about-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 4rem;
+        align-items: start;
+      }
 
-  <!-- Full Screen Drawer Menu -->
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
+      @media (min-width: 992px) {
+        .about-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 6rem;
+        }
+      }
+
+      .about-lead {
+        font-size: 1.375rem;
+        font-family: var(--font-heading);
+        font-style: italic;
+        color: var(--color-accent);
+        line-height: 1.5;
+        margin-bottom: 2rem;
+      }
+
+      .about-body p {
+        color: var(--color-text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.85;
+        margin-bottom: 1.5rem;
+      }
+
+      /* Decorative accent box */
+      .pull-quote {
+        border-left: 2px solid var(--color-accent);
+        padding: 1.5rem 2rem;
+        background: rgba(0, 229, 255, 0.04);
+        margin: 3rem 0;
+      }
+
+      .pull-quote p {
+        font-family: var(--font-heading);
+        font-style: italic;
+        font-size: 1.25rem;
+        color: var(--color-text-primary);
+        line-height: 1.6;
+        margin: 0;
+      }
+
+      /* Science Section */
+      .science-section {
+        background-color: var(--color-bg-secondary);
+        border-top: 1px solid rgba(0, 229, 255, 0.1);
+        border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+      }
+
+      .pillars-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        margin-top: 3rem;
+      }
+
+      @media (min-width: 768px) {
+        .pillars-grid {
+          grid-template-columns: repeat(4, 1fr);
+        }
+      }
+
+      .pillar-card {
+        background: rgba(0, 229, 255, 0.05);
+        border: 1px solid rgba(0, 229, 255, 0.15);
+        padding: 2rem 1.5rem;
+        text-align: center;
+        transition: var(--transition-smooth);
+      }
+
+      .pillar-card:hover {
+        background: rgba(0, 229, 255, 0.1);
+        border-color: var(--color-accent);
+        transform: translateY(-4px);
+      }
+
+      .pillar-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+        display: block;
+      }
+
+      .pillar-label {
+        font-family: var(--font-heading);
+        font-size: 1rem;
+        color: var(--color-text-primary);
+        line-height: 1.4;
+      }
+
+      .science-body {
+        max-width: 760px;
+      }
+
+      .science-body p {
+        color: var(--color-text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.85;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (max-width: 767px) {
+        .about-lead {
+          font-size: 1.15rem;
+        }
+        .page-hero {
+          padding-top: 7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
+
+    <!-- Full Screen Drawer Menu -->
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/d.png&quot;)"
+      ></div>
     </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
 
-  <main>
-
-    <!-- Page Hero -->
-    <section class="page-hero container">
-      <span class="text-caption fade-up">Our Story</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">About Still Water</h1>
-      <p class="fade-up" style="max-width: 620px; margin-top: 1.5rem; color: var(--color-text-secondary); font-size: 1.125rem; transition-delay: 0.3s;">
-        Real healing happens when we look beyond the symptoms and understand the deeper causes affecting our mind and body.
-      </p>
-    </section>
-
-    <!-- About Section -->
-    <section class="section container">
-      <div class="about-grid">
-        <div class="fade-up">
-          <span class="text-caption">Who We Are</span>
-          <h2 class="text-h1" style="margin: 1.5rem 0;">A Sanctuary for<br>Lasting Change</h2>
-          <div class="about-body">
-            <p>In today's fast-paced world, many people experience stress, emotional exhaustion, and unresolved trauma that gradually impact their mental and physical health. While temporary solutions may offer short-term relief, lasting well-being requires a deeper understanding of how the mind, nervous system, and body are connected.</p>
-            <p>Still Water focuses on guiding individuals toward that understanding.</p>
-          </div>
-        </div>
-
-        <div class="fade-up" style="transition-delay: 0.2s;">
-          <div class="pull-quote">
-            <p>"At Still Water, we are committed to helping individuals move from overwhelm to awareness, and from awareness to meaningful change."</p>
-          </div>
-          <div class="about-body">
-            <p>Our platform brings together holistic wellness principles, modern knowledge, and thoughtful guidance to help people reconnect with balance and emotional clarity.</p>
-            <p>We believe that every healing journey is unique. Instead of offering one-size-fits-all solutions, our approach encourages individuals to explore their own patterns, experiences, and emotional landscape in a supportive and structured way.</p>
-            <p>Our goal is to make the journey toward mental and emotional well-being clearer, more compassionate, and more accessible.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Our Science Section -->
-    <section class="section science-section">
-      <div class="container">
-        <div class="text-center fade-up" style="margin-bottom: 3rem;">
-          <span class="text-caption">Evidence-Informed</span>
-          <h2 class="text-h1" style="margin-top: 1rem;">Our Science</h2>
-        </div>
-
-        <div class="science-body fade-up" style="margin: 0 auto; transition-delay: 0.1s;">
-          <p>At Still Water, our philosophy is built on the understanding that mental and physical health are deeply interconnected. Research in psychology, neuroscience, and behavioral science has shown that prolonged stress and unresolved emotional experiences can influence the nervous system, sleep patterns, immunity, and overall well-being.</p>
-          <p>Rather than focusing only on surface-level symptoms, Still Water encourages a deeper exploration of the patterns that shape our mental and emotional health. By combining structured knowledge with holistic awareness, we aim to create a framework that supports long-term wellness rather than temporary fixes.</p>
-          <p style="margin-bottom: 0;">Our approach is inspired by evolving scientific insights that highlight the importance of:</p>
-        </div>
-
-        <div class="pillars-grid fade-up" style="transition-delay: 0.2s;">
-          <div class="pillar-card">
-            <span class="pillar-icon">🧠</span>
-            <p class="pillar-label">Nervous System<br>Regulation</p>
-          </div>
-          <div class="pillar-card">
-            <span class="pillar-icon">💛</span>
-            <p class="pillar-label">Emotional<br>Awareness</p>
-          </div>
-          <div class="pillar-card">
-            <span class="pillar-icon">🌿</span>
-            <p class="pillar-label">Mind-Body<br>Connection</p>
-          </div>
-          <div class="pillar-card">
-            <span class="pillar-icon">🔄</span>
-            <p class="pillar-label">Sustainable<br>Lifestyle Habits</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="section container text-center">
-      <h2 class="text-h2 fade-up" style="max-width: 600px; margin: 0 auto 2rem;">"Knowledge creates awareness, and awareness is often the first step toward healing."</h2>
-      <div class="fade-up" style="transition-delay: 0.2s;">
-        <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="footer container">
-    <div class="grid-2">
-      <div>
-        <h3 class="header-logo" style="margin-bottom: 1rem;">Stillwater</h3>
-        <p style="color: var(--color-text-secondary); max-width: 300px;">
-          Pioneering the future of holistic healing, stress management, and premium digital wellness.
+    <main>
+      <!-- Page Hero -->
+      <section class="page-hero container">
+        <span class="text-caption fade-up">Our Story</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          About Still Water
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 620px;
+            margin-top: 1.5rem;
+            color: var(--color-text-secondary);
+            font-size: 1.125rem;
+            transition-delay: 0.3s;
+          "
+        >
+          Real healing happens when we look beyond the symptoms and understand
+          the deeper causes affecting our mind and body.
         </p>
-      </div>
-      <div style="display: flex; gap: 2rem; justify-content: flex-end; flex-wrap: wrap;">
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Explore</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="index.html">Vision</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="teams.html">Teams &amp; Advisors</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="fundraising.html">Fundraising</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Connect</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="careers.html">Careers</a></li>
-            <li><a href="auth.html">Waitlist</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
-      <a href="#" style="text-decoration: underline;">Privacy Policy</a>
-    </div>
-  </footer>
+      </section>
 
-  <script src="js/shared.js"></script>
-</body>
+      <!-- About Section -->
+      <section class="section container">
+        <div class="about-grid">
+          <div class="fade-up">
+            <span class="text-caption">Who We Are</span>
+            <h2 class="text-h1" style="margin: 1.5rem 0">
+              A Sanctuary for<br />Lasting Change
+            </h2>
+            <div class="about-body">
+              <p>
+                In today's fast-paced world, many people experience stress,
+                emotional exhaustion, and unresolved trauma that gradually
+                impact their mental and physical health. While temporary
+                solutions may offer short-term relief, lasting well-being
+                requires a deeper understanding of how the mind, nervous system,
+                and body are connected.
+              </p>
+              <p>
+                Still Water focuses on guiding individuals toward that
+                understanding.
+              </p>
+            </div>
+          </div>
+
+          <div class="fade-up" style="transition-delay: 0.2s">
+            <div class="pull-quote">
+              <p>
+                "At Still Water, we are committed to helping individuals move
+                from overwhelm to awareness, and from awareness to meaningful
+                change."
+              </p>
+            </div>
+            <div class="about-body">
+              <p>
+                Our platform brings together holistic wellness principles,
+                modern knowledge, and thoughtful guidance to help people
+                reconnect with balance and emotional clarity.
+              </p>
+              <p>
+                We believe that every healing journey is unique. Instead of
+                offering one-size-fits-all solutions, our approach encourages
+                individuals to explore their own patterns, experiences, and
+                emotional landscape in a supportive and structured way.
+              </p>
+              <p>
+                Our goal is to make the journey toward mental and emotional
+                well-being clearer, more compassionate, and more accessible.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Our Science Section -->
+      <section class="section science-section">
+        <div class="container">
+          <div class="text-center fade-up" style="margin-bottom: 3rem">
+            <span class="text-caption">Evidence-Informed</span>
+            <h2 class="text-h1" style="margin-top: 1rem">Our Science</h2>
+          </div>
+
+          <div
+            class="science-body fade-up"
+            style="margin: 0 auto; transition-delay: 0.1s"
+          >
+            <p>
+              At Still Water, our philosophy is built on the understanding that
+              mental and physical health are deeply interconnected. Research in
+              psychology, neuroscience, and behavioral science has shown that
+              prolonged stress and unresolved emotional experiences can
+              influence the nervous system, sleep patterns, immunity, and
+              overall well-being.
+            </p>
+            <p>
+              Rather than focusing only on surface-level symptoms, Still Water
+              encourages a deeper exploration of the patterns that shape our
+              mental and emotional health. By combining structured knowledge
+              with holistic awareness, we aim to create a framework that
+              supports long-term wellness rather than temporary fixes.
+            </p>
+            <p style="margin-bottom: 0">
+              Our approach is inspired by evolving scientific insights that
+              highlight the importance of:
+            </p>
+          </div>
+
+          <div class="pillars-grid fade-up" style="transition-delay: 0.2s">
+            <div class="pillar-card">
+              <span class="pillar-icon">&#129504;</span>
+              <p class="pillar-label">Nervous System<br />Regulation</p>
+            </div>
+            <div class="pillar-card">
+              <span class="pillar-icon">&#128155;</span>
+              <p class="pillar-label">Emotional<br />Awareness</p>
+            </div>
+            <div class="pillar-card">
+              <span class="pillar-icon">&#127807;</span>
+              <p class="pillar-label">Mind-Body<br />Connection</p>
+            </div>
+            <div class="pillar-card">
+              <span class="pillar-icon">&#128260;</span>
+              <p class="pillar-label">Sustainable<br />Lifestyle Habits</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section class="section container text-center">
+        <h2
+          class="text-h2 fade-up"
+          style="max-width: 600px; margin: 0 auto 2rem"
+        >
+          "Knowledge creates awareness, and awareness is often the first step
+          toward healing."
+        </h2>
+        <div class="fade-up" style="transition-delay: 0.2s">
+          <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <div class="grid-2">
+        <div>
+          <h3 class="header-logo" style="margin-bottom: 1rem">Stillwater</h3>
+          <p style="color: var(--color-text-secondary); max-width: 300px">
+            Pioneering the future of holistic healing, stress management, and
+            premium digital wellness.
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 2rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Explore</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="index.html">Vision</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="teams.html">Teams &amp; Advisors</a></li>
+              <li><a href="blog.html">Blog</a></li>
+              <li><a href="fundraising.html">Fundraising</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Connect</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="careers.html">Careers</a></li>
+              <li><a href="auth.html">Waitlist</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
+        <a href="#" style="text-decoration: underline">Privacy Policy</a>
+      </div>
+    </footer>
+
+    <script src="js/shared.js"></script>
+  </body>
 </html>

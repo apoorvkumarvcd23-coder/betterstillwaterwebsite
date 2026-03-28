@@ -46,6 +46,7 @@ model User {
   symptoms                 UserSymptom[]
   goals                    UserGoal[]
   recommendations          Recommendation[]
+  wellnessSubmissions      WellnessSubmission[]
 }
 
 model UserGoal {
@@ -92,4 +93,25 @@ model ServiceRule {
   operator  String? // e.g., ">", "==", for ranges
   service   String // "SHARAN", "EYE_YOGA", "HEALY", "RETREAT"
   score     Int
+}
+
+model WellnessSubmission {
+  id                           Int      @id @default(autoincrement())
+  userId                       Int?
+  mobile                       String
+  name                         String
+  drinks_milk_tea              Boolean
+  is_vegetarian                Boolean
+  has_weight_loss_goal         Boolean
+  has_diabetes_or_hypertension Boolean
+  wears_spectacles             Boolean
+  details                      String   @db.Text
+  source                       String   @default("public-web")
+  created_by                   String   @default("self")
+  language                     String?
+  voice_transcript             String?  @db.Text
+  createdAt                    DateTime @default(now())
+  user                         User?    @relation(fields: [userId], references: [id])
+
+  @@index([mobile, createdAt])
 }

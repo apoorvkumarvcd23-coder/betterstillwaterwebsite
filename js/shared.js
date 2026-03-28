@@ -1,4 +1,181 @@
 document.addEventListener("DOMContentLoaded", () => {
+  const THEME_STORAGE_KEY = "stillwater_theme";
+
+  function getPreferredTheme() {
+    const saved = localStorage.getItem(THEME_STORAGE_KEY);
+    if (saved === "dark" || saved === "light") return saved;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    document.querySelectorAll("[data-theme-toggle]").forEach((toggle) => {
+      const modeLabel = theme === "dark" ? "Dark" : "Light";
+      toggle.setAttribute(
+        "aria-label",
+        `Switch to ${theme === "dark" ? "light" : "dark"} theme`,
+      );
+      toggle.setAttribute("title", `Theme: ${modeLabel}`);
+      const label = toggle.querySelector("span");
+      if (label) {
+        label.textContent = modeLabel;
+      }
+    });
+  }
+
+  function createThemeToggle(extraClasses = "") {
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = `theme-toggle ${extraClasses}`.trim();
+    toggle.setAttribute("data-theme-toggle", "true");
+
+    const text = document.createElement("span");
+    text.className = "theme-toggle-label";
+    toggle.appendChild(text);
+
+    toggle.addEventListener("click", () => {
+      const current =
+        document.documentElement.getAttribute("data-theme") || "dark";
+      applyTheme(current === "dark" ? "light" : "dark");
+    });
+
+    return toggle;
+  }
+
+  function mountThemeToggles() {
+    const header = document.querySelector(".header");
+    const authActions = document.getElementById("authActions");
+
+    if (
+      authActions &&
+      !authActions.querySelector(".header-theme-toggle-inline")
+    ) {
+      authActions.prepend(createThemeToggle("header-theme-toggle-inline"));
+    } else if (header && !header.querySelector(".header-theme-toggle")) {
+      header.appendChild(createThemeToggle("header-theme-toggle"));
+    }
+
+    const settingsMount = document.getElementById("themeSettingsMount");
+    if (settingsMount && !settingsMount.querySelector("[data-theme-toggle]")) {
+      settingsMount.appendChild(createThemeToggle());
+    }
+  }
+
+  function normalizePrimaryNavigation() {
+    const menuLists = document.querySelectorAll(".menu-list");
+    menuLists.forEach((list) => {
+      list.querySelectorAll("a").forEach((anchor) => {
+        const href = (anchor.getAttribute("href") || "").toLowerCase();
+        if (href.includes("blog.html") || href.includes("careers.html")) {
+          anchor.closest("li")?.remove();
+        }
+      });
+
+      const links = Array.from(list.querySelectorAll("a")).map((a) =>
+        (a.getAttribute("href") || "").toLowerCase(),
+      );
+
+      if (!links.includes("testimonials.html")) {
+        const li = document.createElement("li");
+        li.innerHTML = '<a href="testimonials.html">Testimonials</a>';
+        list.appendChild(li);
+      }
+
+      list.querySelectorAll("a").forEach((anchor) => {
+        const label = (anchor.textContent || "").trim().toLowerCase();
+        const href = (anchor.getAttribute("href") || "").trim().toLowerCase();
+        const isWaitlistLink = label.includes("waitlist");
+        const pointsToAuth = href === "auth.html" || href === "/auth.html";
+        if (isWaitlistLink && pointsToAuth) {
+          anchor.setAttribute("href", "/auth.html?showAuth=1");
+        }
+      });
+    });
+  }
+
+  function normalizeWaitlistLinks() {
+    document
+      .querySelectorAll('a[href="auth.html"], a[href="/auth.html"]')
+      .forEach((anchor) => {
+        const label = (anchor.textContent || "").toLowerCase();
+        if (label.includes("waitlist") || label.includes("join")) {
+          anchor.setAttribute("href", "/auth.html?showAuth=1");
+        }
+      });
+  }
+
+  function normalizeFooters() {
+    const footerLists = document.querySelectorAll("footer ul");
+    footerLists.forEach((list) => {
+      list.querySelectorAll("a").forEach((anchor) => {
+        const href = (anchor.getAttribute("href") || "").toLowerCase();
+        if (href.includes("careers.html")) {
+          anchor.closest("li")?.remove();
+        }
+      });
+    });
+
+    document
+      .querySelectorAll("footer .grid-2 > div:last-child")
+      .forEach((box) => {
+        if (box.querySelector("[data-compliance-column]")) return;
+
+        const compliance = document.createElement("div");
+        compliance.setAttribute("data-compliance-column", "true");
+        compliance.innerHTML = `
+        <h4 class="text-caption" style="margin-bottom: 1.5rem;">Legal & Compliance</h4>
+        <ul class="compliance-links">
+          <li><a href="privacy-policy.html">Privacy Policy</a></li>
+          <li><a href="terms-of-use.html">Terms of Use</a></li>
+          <li><a href="medical-disclaimer.html">Health Warning / Medical Disclaimer</a></li>
+          <li><a href="careers.html">Careers</a></li>
+        </ul>
+      `;
+        box.appendChild(compliance);
+      });
+
+    document.querySelectorAll(".footer-bottom a").forEach((anchor) => {
+      if ((anchor.textContent || "").toLowerCase().includes("privacy")) {
+        anchor.setAttribute("href", "privacy-policy.html");
+      }
+    });
+  }
+
+  function injectStillwaterLogo() {
+    const brandElements = document.querySelectorAll(".header-logo");
+    brandElements.forEach((element) => {
+      const text = (element.textContent || "").trim();
+      if (!text || !text.toLowerCase().includes("stillwater")) return;
+      if (element.querySelector(".stillwater-logo-mark")) return;
+
+      element.classList.add("stillwater-brand");
+
+      const label = document.createElement("span");
+      label.className = "stillwater-brand-text";
+      label.textContent = text;
+
+      const logo = document.createElement("img");
+      logo.className = "stillwater-logo-mark";
+      logo.src = "images/logo.png";
+      logo.alt = "Stillwater logo";
+
+      element.textContent = "";
+      element.appendChild(logo);
+      element.appendChild(label);
+    });
+  }
+
+  applyTheme(getPreferredTheme());
+  normalizePrimaryNavigation();
+  normalizeWaitlistLinks();
+  normalizeFooters();
+  injectStillwaterLogo();
+  mountThemeToggles();
+  applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+
   // Drawer Menu Logic
   const menuBtn = document.querySelector(".menu-btn");
   const closeBtn = document.querySelector(".menu-drawer-close");
@@ -99,7 +276,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetch("/api/auth/me", { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
-        if (!user) {
+        if (!user || user.authenticated === false) {
           if (authMenuButton) authMenuButton.style.display = "none";
           if (authMenu) authMenu.style.display = "none";
           if (btnAdmin) btnAdmin.style.display = "none";

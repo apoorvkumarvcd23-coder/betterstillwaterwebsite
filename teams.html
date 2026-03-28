@@ -1,324 +1,529 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Teams & Advisors | Stillwater | Holistic Healing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-      margin-bottom: 4rem;
-    }
-    
-    .team-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 2rem;
-      margin-top: 3rem;
-      align-items: start;
-    }
-    
-    .team-card {
-      background-color: var(--color-bg-secondary);
-      border: 1px solid transparent;
-      transition: var(--transition-smooth);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Teams & Advisors | Stillwater | Holistic Healing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      .page-hero {
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid rgba(240, 248, 255, 0.1);
+        margin-bottom: 4rem;
+      }
 
-    .team-card:hover {
-      border-color: var(--color-accent);
-    }
+      .team-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        margin-top: 3rem;
+        align-items: start;
+      }
 
-    .team-image-wrapper {
-      width: 100%;
-      aspect-ratio: 3/4;
-      overflow: hidden;
-      position: relative;
-      flex-shrink: 0;
-    }
+      .team-card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border-soft);
+        transition: var(--transition-smooth);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
 
-    .team-image-wrapper.square {
-      aspect-ratio: 1/1;
-    }
-    
-    .team-image-wrapper::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: var(--color-bg-primary);
-      opacity: 0.1;
-      transition: opacity 0.4s;
-    }
-    
-    .team-card:hover .team-image-wrapper::after {
-      opacity: 0;
-    }
-    
-    .team-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      filter: grayscale(100%);
-      transition: filter 0.6s, transform 1s;
-    }
-    
-    .team-card:hover .team-image {
-      filter: grayscale(20%);
-      transform: scale(1.05);
-    }
+      .team-card:hover {
+        border-color: var(--color-accent);
+        transform: translateY(-4px);
+      }
 
-    .team-info {
-      padding: 1.5rem;
-    }
+      .team-image-wrapper {
+        width: 100%;
+        aspect-ratio: 3/4;
+        overflow: hidden;
+        position: relative;
+        flex-shrink: 0;
+      }
 
-    .team-info h3 {
-      font-size: 1.5rem;
-      margin-bottom: 0.25rem;
-    }
+      .team-image-wrapper.square {
+        aspect-ratio: 1/1;
+      }
 
-    .team-bio {
-      max-height: 0;
-      opacity: 0;
-      overflow: hidden;
-      transition: max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease, padding 0.4s ease;
-      transition-delay: 0s;
-      padding: 0 1.5rem;
-      color: var(--color-text-secondary);
-      font-size: 0.95rem;
-      line-height: 1.7;
-      border-top: 1px solid transparent;
-    }
+      .team-image-wrapper::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: var(--color-bg-primary);
+        opacity: 0.1;
+        transition: opacity 0.4s;
+      }
 
-    .team-card:hover .team-bio {
-      max-height: 800px;
-      opacity: 1;
-      padding: 1.5rem;
-      border-top-color: rgba(0, 229, 255, 0.15);
-      transition-delay: 0.3s;
-    }
+      .team-card:hover .team-image-wrapper::after {
+        opacity: 0;
+      }
 
-    .team-bio p + p {
-      margin-top: 0.75rem;
-    }
-    
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      margin-bottom: 2rem;
-    }
-    
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background-color: rgba(240, 248, 255, 0.2);
-    }
-  </style>
-</head>
-<body>
+      .team-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: grayscale(100%) contrast(1.05);
+        transition:
+          filter 0.6s,
+          transform 1s;
+      }
 
-  <!-- Navigation -->
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
+      .team-card:hover .team-image {
+        filter: grayscale(20%);
+        transform: scale(1.05);
+      }
 
-  <!-- Full Screen Drawer Menu -->
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="about.html">About Us</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="blog.html">Blog</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
+      .team-info {
+        padding: 1.5rem;
+      }
+
+      .team-info h3 {
+        font-size: 1.5rem;
+        margin-bottom: 0.25rem;
+      }
+
+      .team-bio {
+        max-height: none;
+        opacity: 1;
+        overflow: visible;
+        transition: var(--transition-smooth);
+        padding: 1.5rem;
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        border-top: 1px solid var(--color-border-soft);
+      }
+
+      .team-bio p + p {
+        margin-top: 0.75rem;
+      }
+
+      .profile-link {
+        display: inline-flex;
+        margin-top: 0.75rem;
+        color: var(--color-accent);
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .section-title::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background-color: rgba(240, 248, 255, 0.2);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
+
+    <!-- Full Screen Drawer Menu -->
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/d.png&quot;)"
+      ></div>
     </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
 
-  <main>
-    <section class="page-hero container text-center">
-      <span class="text-caption fade-up">Our People</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">Visionaries &amp; Guides</h1>
-      <p class="fade-up" style="max-width: 600px; margin: 2rem auto 0; color: var(--color-text-secondary); transition-delay: 0.3s; font-size: 1.125rem;">
-        Meet the collective of doctors, healers, engineers, and visionaries dedicated to bringing profound holistic health to the modern world. Hover over a card to learn more.
-      </p>
-    </section>
-
-    <!-- Leadership Team -->
-    <section class="container section">
-      <div class="section-title fade-up">
-        <h2 class="text-h2">Founder &amp; Leadership Team</h2>
-      </div>
-      <div class="team-grid">
-
-        <!-- Amar Kumar Dani -->
-        <div class="team-card fade-up" style="transition-delay: 0.1s;">
-          <div class="team-image-wrapper">
-            <img src="images/amar.png" alt="Amar Kumar Dani" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2">Amar Kumar Dani</h3>
-            <span class="text-caption">Founder &amp; CEO</span>
-          </div>
-          <div class="team-bio">
-            <p>Amar has 18+ years of experience in AI across industries. He studied CS from IIT KGP and MSCF from Carnegie Mellon University.</p>
-            <p>He has started various startups in the past including Shubu.ai, Yota &amp; ShopNTalk which were way ahead of the times.</p>
-            <p>Now, he is starting Stillwater motivated by his personal experiences of healing himself and becoming disease-free.</p>
-          </div>
-        </div>
-
-        <!-- Prachi Kumar -->
-        <div class="team-card fade-up" style="transition-delay: 0.2s;">
-          <div class="team-image-wrapper">
-            <img src="images/prachi.png" alt="Prachi Kumar" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2">Prachi Kumar</h3>
-            <span class="text-caption">CTO</span>
-          </div>
-          <div class="team-bio">
-            <p>Prachi has 25+ years of experience in Technology leadership roles at IBM, Oracle, EY and now ServiceNow.</p>
-            <p>She has an entrepreneurial bent of mind and has worked on several startup ideas in the past.</p>
-            <p>She has joined Stillwater because of her deep conviction in alternative healing techniques.</p>
-          </div>
-        </div>
-
-        <!-- Nick Nowack -->
-        <div class="team-card fade-up" style="transition-delay: 0.3s;">
-          <div class="team-image-wrapper">
-            <img src="images/nick.png" alt="Nick Nowack" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2">Nick Nowack</h3>
-            <span class="text-caption">Chief Scientist</span>
-          </div>
-          <div class="team-bio">
-            <p>Nick is based in the Boston area and holds a BS in Electrical Engineering from MIT, an MS in Cognitive &amp; Neural Systems from Boston University, and trained in numerical methods at the Courant Institute at NYU.</p>
-            <p>His career spans financial engineering, AI model training, image processing, internet traffic optimization, and signal processing for satellite communications.</p>
-            <p>As a long-term caregiver for a family member with ME/CFS, Nick has experienced firsthand the power of nutrition and mind-body interventions — including the relaxation response from the Benson-Henry Institute. He has fully embraced signal processing in the body as a path to health.</p>
-          </div>
-        </div>
-
-        <!-- Captain Joseph Pinto -->
-        <div class="team-card fade-up" style="transition-delay: 0.4s;">
-          <div class="team-image-wrapper">
-            <img src="images/joseph.png" alt="Captain Joseph Pinto" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2">Captain Joseph Pinto</h3>
-            <span class="text-caption">Chief Healing Officer</span>
-          </div>
-          <div class="team-bio">
-            <p>Captain Joseph is an ex-airforce pilot and runs organic farming in Mumbai. Like everyone else on the team, he is deeply curious learner and after being a non-vegetarian till 2014, he gave up all animal products and was able to heal himself.</p>
-            <p>A couple of years back he started the Heal with Pen program in SHARAN through which I got introduced to him and he transformed my life.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- Advisors -->
-    <section class="container section">
-      <div class="section-title fade-up">
-        <h2 class="text-h2">Key Advisors</h2>
-      </div>
-      <div class="team-grid" style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));">
-
-        <!-- Dr. Nandita Shah -->
-        <div class="team-card fade-up" style="transition-delay: 0.1s;">
-          <div class="team-image-wrapper square">
-            <img src="images/nandita.png" alt="Dr. Nandita Shah" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2" style="font-size: 1.5rem;">Dr. Nandita Shah</h3>
-            <span class="text-caption">Founder, SHARAN</span>
-          </div>
-          <div class="team-bio">
-            <p>Dr Nandita Shah, the recipient of the prestigious Nari Shakti Puraskaar in 2016, is the Founder, Director, and trustee of SHARAN.</p>
-            <p>She founded SHARAN in 2005 with the aim of helping people to heal themselves, and the planet, by connecting to animals and nature.</p>
-            <p>SHARAN is now a vibrant and growing social enterprise, whose vision is to build a culture of health, and has already positively impacted more than 100,000 lives in India and overseas.</p>
-          </div>
-        </div>
-
-        <!-- Anradha Dhirasariya -->
-        <div class="team-card fade-up" style="transition-delay: 0.2s;">
-          <div class="team-image-wrapper square">
-            <img src="images/anr.png" alt="Anradha Dhirasariya" class="team-image">
-          </div>
-          <div class="team-info">
-            <h3 class="text-h2" style="font-size: 1.5rem;">Anradha Dhirasariya</h3>
-            <span class="text-caption">Technology Leader | Consciousness Advocate | Community Builder</span>
-          </div>
-          <div class="team-bio">
-            <p>18+ years leading product portfolios in global corporations, with dual master's degrees in Computer Applications (India) and Psychology (USA).</p>
-            <p>Co-founder of NSIS, a nonprofit school in Bihar dedicated to empowering communities through education, technology, and conscious leadership.</p>
-            <p>Certified Reiki Healer, Student Pilot, and Scuba Diver.</p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-  </main>
-
-  <footer class="footer container">
-    <div class="grid-2">
-      <div>
-        <h3 class="header-logo" style="margin-bottom: 1rem;">Stillwater</h3>
-        <p style="color: var(--color-text-secondary); max-width: 300px;">
-          Pioneering the future of holistic healing, stress management, and premium digital wellness.
+    <main>
+      <section class="page-hero container text-center">
+        <span class="text-caption fade-up">Our People</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          Visionaries &amp; Guides
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 600px;
+            margin: 2rem auto 0;
+            color: var(--color-text-secondary);
+            transition-delay: 0.3s;
+            font-size: 1.125rem;
+          "
+        >
+          Meet the collective of doctors, healers, engineers, and visionaries
+          dedicated to bringing profound holistic health to the modern world.
         </p>
-      </div>
-      <div style="display: flex; gap: 2rem; justify-content: flex-end; flex-wrap: wrap;">
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Explore</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="index.html">Vision</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="teams.html">Teams &amp; Advisors</a></li>
-            <li><a href="blog.html">Blog</a></li>
-            <li><a href="fundraising.html">Fundraising</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4 class="text-caption" style="margin-bottom: 1.5rem;">Connect</h4>
-          <ul style="list-style: none; display: flex; flex-direction: column; gap: 0.8rem; color: var(--color-text-secondary);">
-            <li><a href="careers.html">Careers</a></li>
-            <li><a href="auth.html">Waitlist</a></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-    <div class="footer-bottom">
-      <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
-      <a href="#" style="text-decoration: underline;">Privacy Policy</a>
-    </div>
-  </footer>
+      </section>
 
-  <script src="js/shared.js"></script>
-</body>
+      <!-- Leadership Team -->
+      <section class="container section">
+        <div class="section-title fade-up">
+          <h2 class="text-h2">Founder &amp; Leadership Team</h2>
+        </div>
+        <div class="team-grid">
+          <!-- Amar Kumar Dani -->
+          <div class="team-card fade-up" style="transition-delay: 0.1s">
+            <div class="team-image-wrapper">
+              <img
+                src="images/amar.png"
+                alt="Amar Kumar Dani"
+                class="team-image"
+              />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2">Amar Kumar Dani</h3>
+              <span class="text-caption">Founder &amp; CEO</span>
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                Amar has 18+ years of experience in AI across industries. He
+                studied CS from IIT KGP and MSCF from Carnegie Mellon
+                University.
+              </p>
+              <p>
+                He has started various startups in the past including Shubu.ai,
+                Yota &amp; ShopNTalk which were way ahead of the times.
+              </p>
+              <p>
+                Now, he is starting Stillwater motivated by his personal
+                experiences of healing himself and becoming disease-free.
+              </p>
+            </div>
+          </div>
+
+          <!-- Prachi Kumar -->
+          <div class="team-card fade-up" style="transition-delay: 0.2s">
+            <div class="team-image-wrapper">
+              <img
+                src="images/prachi.png"
+                alt="Prachi Kumar"
+                class="team-image"
+              />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2">Prachi Kumar</h3>
+              <span class="text-caption">CTO</span>
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                Prachi has 25+ years of experience in Technology leadership
+                roles at IBM, Oracle, EY and now ServiceNow.
+              </p>
+              <p>
+                She has an entrepreneurial bent of mind and has worked on
+                several startup ideas in the past.
+              </p>
+              <p>
+                She has joined Stillwater because of her deep conviction in
+                alternative healing techniques.
+              </p>
+            </div>
+          </div>
+
+          <!-- Nick Nowack -->
+          <div class="team-card fade-up" style="transition-delay: 0.3s">
+            <div class="team-image-wrapper">
+              <img src="images/nick.png" alt="Nick Nowack" class="team-image" />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2">Nick Nowack</h3>
+              <span class="text-caption">Chief Scientist</span>
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                Nick is based in the Boston area and holds a BS in Electrical
+                Engineering from MIT, an MS in Cognitive &amp; Neural Systems
+                from Boston University, and trained in numerical methods at the
+                Courant Institute at NYU.
+              </p>
+              <p>
+                His career spans financial engineering, AI model training, image
+                processing, internet traffic optimization, and signal processing
+                for satellite communications.
+              </p>
+              <p>
+                As a long-term caregiver for a family member with ME/CFS, Nick
+                has experienced firsthand the power of nutrition and mind-body
+                interventions &mdash; including the relaxation response from the
+                Benson-Henry Institute. He has fully embraced signal processing
+                in the body as a path to health.
+              </p>
+            </div>
+          </div>
+
+          <!-- Captain Joseph Pinto -->
+          <div class="team-card fade-up" style="transition-delay: 0.4s">
+            <div class="team-image-wrapper">
+              <img
+                src="images/joseph.png"
+                alt="Captain Joseph Pinto"
+                class="team-image"
+              />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2">Captain Joseph Pinto</h3>
+              <span class="text-caption">Chief Healing Officer</span>
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                Captain Joseph is an ex-airforce pilot and runs organic farming
+                in Mumbai. Like everyone else on the team, he is deeply curious
+                learner and after being a non-vegetarian till 2014, he gave up
+                all animal products and was able to heal himself.
+              </p>
+              <p>
+                A couple of years back he started the Heal with Pen program in
+                SHARAN through which I got introduced to him and he transformed
+                my life.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Advisors -->
+      <section class="container section">
+        <div class="section-title fade-up">
+          <h2 class="text-h2">Key Advisors</h2>
+        </div>
+        <div
+          class="team-grid"
+          style="grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))"
+        >
+          <!-- Dr. Nandita Shah -->
+          <div class="team-card fade-up" style="transition-delay: 0.1s">
+            <div class="team-image-wrapper square">
+              <img
+                src="images/nandita.png"
+                alt="Dr. Nandita Shah"
+                class="team-image"
+              />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2" style="font-size: 1.5rem">
+                Dr. Nandita Shah
+              </h3>
+              <span class="text-caption">Founder, SHARAN</span>
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                Dr Nandita Shah, the recipient of the prestigious Nari Shakti
+                Puraskaar in 2016, is the Founder, Director, and trustee of
+                SHARAN.
+              </p>
+              <p>
+                She founded SHARAN in 2005 with the aim of helping people to
+                heal themselves, and the planet, by connecting to animals and
+                nature.
+              </p>
+              <p>
+                SHARAN is now a vibrant and growing social enterprise, whose
+                vision is to build a culture of health, and has already
+                positively impacted more than 100,000 lives in India and
+                overseas.
+              </p>
+            </div>
+          </div>
+
+          <!-- Anradha Dhirasariya -->
+          <div class="team-card fade-up" style="transition-delay: 0.2s">
+            <div class="team-image-wrapper square">
+              <img
+                src="images/anr.png"
+                alt="Anradha Dhirasariya"
+                class="team-image"
+              />
+            </div>
+            <div class="team-info">
+              <h3 class="text-h2" style="font-size: 1.5rem">
+                Anradha Dhirasariya
+              </h3>
+              <span class="text-caption"
+                >Technology Leader | Consciousness Advocate | Community
+                Builder</span
+              >
+              <a
+                class="profile-link"
+                target="_blank"
+                rel="noopener"
+                href="https://www.linkedin.com/company/stillwater-you"
+                >Professional Profile</a
+              >
+            </div>
+            <div class="team-bio">
+              <p>
+                18+ years leading product portfolios in global corporations,
+                with dual master's degrees in Computer Applications (India) and
+                Psychology (USA).
+              </p>
+              <p>
+                Co-founder of NSIS, a nonprofit school in Bihar dedicated to
+                empowering communities through education, technology, and
+                conscious leadership.
+              </p>
+              <p>Certified Reiki Healer, Student Pilot, and Scuba Diver.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <div class="grid-2">
+        <div>
+          <h3 class="header-logo" style="margin-bottom: 1rem">Stillwater</h3>
+          <p style="color: var(--color-text-secondary); max-width: 300px">
+            Pioneering the future of holistic healing, stress management, and
+            premium digital wellness.
+          </p>
+        </div>
+        <div
+          style="
+            display: flex;
+            gap: 2rem;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+          "
+        >
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Explore</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="index.html">Vision</a></li>
+              <li><a href="about.html">About Us</a></li>
+              <li><a href="teams.html">Teams &amp; Advisors</a></li>
+              <li><a href="blog.html">Blog</a></li>
+              <li><a href="fundraising.html">Fundraising</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="text-caption" style="margin-bottom: 1.5rem">Connect</h4>
+            <ul
+              style="
+                list-style: none;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8rem;
+                color: var(--color-text-secondary);
+              "
+            >
+              <li><a href="careers.html">Careers</a></li>
+              <li><a href="auth.html">Waitlist</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 Stillwater Estate. All rights reserved.</span>
+        <a href="#" style="text-decoration: underline">Privacy Policy</a>
+      </div>
+    </footer>
+
+    <script src="js/shared.js"></script>
+  </body>
 </html>

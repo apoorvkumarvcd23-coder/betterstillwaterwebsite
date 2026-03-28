@@ -110,6 +110,12 @@ async function incrementPhoneUserCount() {
   );
 }
 
+async function incrementWaitlistCount() {
+  await pool.query(
+    "UPDATE settings SET value = (value::int + 1)::text WHERE key = 'waitlist_count'",
+  );
+}
+
 // Middleware
 app.use(
   cors({
@@ -199,13 +205,18 @@ app.use(
   }),
 );
 
-app.use(
-  "/favicon.ico",
-  createProxyMiddleware({
-    target: recommendationUiTarget,
-    changeOrigin: true,
-  }),
-);
+app.get("/favicon.ico", (_req, res) => {
+  // Keep browser console clean even when no explicit favicon asset is shipped.
+  res.status(204).end();
+});
+
+app.get(/^\/wellness-details-(.+)$/, (req, res) => {
+  const mobile = encodeURIComponent(String(req.params[0] || "").trim());
+  if (!mobile) {
+    return res.redirect("/recommendation");
+  }
+  return res.redirect(`/recommendation/wellness-details/${mobile}`);
+});
 
 // Session Configuration
 app.use(
@@ -283,9 +294,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
             [user.id, user.name, user.email, user.role],
           );
 
-          await pool.query(
-            "UPDATE settings SET value = (value::int + 1)::text WHERE key = 'waitlist_count'",
-          );
+          await incrementWaitlistCount();
 
           return cb(null, user);
         } catch (err) {
@@ -589,10 +598,11 @@ app.get("/api/admin/phone-users", requireRole("admin"), async (_req, res) => {
 
 app.get("/api/auth/me", (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
-    return res.status(401).json({ error: "Unauthorized" });
+    return res.json({ authenticated: false });
   }
 
   res.json({
+    authenticated: true,
     id: req.user.id,
     name: req.user.name || req.user.phone || "User",
     email: req.user.email,
@@ -691,6 +701,7 @@ app.post("/auth/register", async (req, res) => {
 
     const user = result.rows[0];
     await incrementPhoneUserCount();
+    await incrementWaitlistCount();
 
     // Log the user in via Passport
     req.logIn(user, (err) => {
@@ -791,6 +802,7 @@ app.post("/auth/login", async (req, res, next) => {
       );
       user = created.rows[0];
       await incrementPhoneUserCount();
+      await incrementWaitlistCount();
 
       return req.logIn(user, (err) => {
         if (err) {

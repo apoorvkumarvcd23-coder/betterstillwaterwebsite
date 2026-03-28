@@ -1,200 +1,317 @@
-<!DOCTYPE html>
+﻿<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fundraising | Stillwater | Holistic Healing</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/index.css">
-  <style>
-    .page-hero {
-      padding-top: 10rem;
-      padding-bottom: 4rem;
-      border-bottom: 1px solid rgba(240, 248, 255, 0.1);
-      margin-bottom: 4rem;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fundraising | Stillwater | Holistic Healing</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      .page-hero {
+        padding-top: 10rem;
+        padding-bottom: 4rem;
+        border-bottom: 1px solid rgba(240, 248, 255, 0.1);
+        margin-bottom: 4rem;
+      }
 
-    .tracker-card {
-      background-color: var(--color-bg-secondary);
-      border: 1px solid rgba(240, 248, 255, 0.1);
-      padding: 4rem;
-      text-align: center;
-      margin-top: 2rem;
-    }
+      .tracker-card {
+        background-color: var(--color-bg-secondary);
+        border: 1px solid rgba(240, 248, 255, 0.1);
+        padding: 4rem;
+        text-align: center;
+        margin-top: 2rem;
+      }
 
-    .number-display {
-      font-family: var(--font-heading);
-      font-size: clamp(3rem, 8vw, 6rem);
-      color: var(--color-accent);
-      line-height: 1;
-      margin: 1rem 0;
-    }
+      .number-display {
+        font-family: var(--font-heading);
+        font-size: clamp(3rem, 8vw, 6rem);
+        color: var(--color-accent);
+        line-height: 1;
+        margin: 1rem 0;
+      }
 
-    .progress-bar {
-      width: 100%;
-      height: 4px;
-      background-color: rgba(240, 248, 255, 0.1);
-      margin: 2rem 0;
-      position: relative;
-      overflow: hidden;
-    }
+      .progress-bar {
+        width: 100%;
+        height: 4px;
+        background-color: rgba(240, 248, 255, 0.1);
+        margin: 2rem 0;
+        position: relative;
+        overflow: hidden;
+      }
 
-    .progress-fill {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      background-color: var(--color-accent);
-      width: 0%;
-      transition: width 2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
+      .progress-fill {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        background-color: var(--color-accent);
+        width: 0%;
+        transition: width 2s cubic-bezier(0.16, 1, 0.3, 1);
+      }
 
-    .info-boxes {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 2rem;
-      margin-top: 4rem;
-    }
-
-    @media (min-width: 768px) {
       .info-boxes {
-        grid-template-columns: 1fr 1fr;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+        margin-top: 4rem;
       }
-    }
 
-    .info-box {
-      border-top: 1px solid var(--color-accent);
-      padding-top: 2rem;
-    }
+      @media (min-width: 768px) {
+        .info-boxes {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
 
-    .whatsapp-card {
-      background: linear-gradient(135deg, rgba(37, 211, 102, 0.1), transparent);
-      border: 1px solid rgba(37, 211, 102, 0.5);
-      padding: 3rem;
-      text-align: center;
-      margin-top: 4rem;
-    }
-  </style>
-</head>
-<body>
+      .info-box {
+        border-top: 1px solid var(--color-accent);
+        padding-top: 2rem;
+      }
 
-  <header class="header">
-    <button class="menu-btn">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 12H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 6H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-        <path d="M3 18H21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-      </svg>
-      Menu
-    </button>
-    <a href="index.html" class="header-logo">Stillwater</a>
-    <a href="auth.html" class="btn btn-solid" style="padding: 0.5rem 1.5rem; font-size: 0.75rem;">Login</a>
-  </header>
+      .whatsapp-card {
+        background: linear-gradient(
+          135deg,
+          rgba(37, 211, 102, 0.1),
+          transparent
+        );
+        border: 1px solid rgba(37, 211, 102, 0.5);
+        padding: 3rem;
+        text-align: center;
+        margin-top: 4rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <button class="menu-btn">
+        <svg
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M3 12H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 6H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+          <path
+            d="M3 18H21"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          />
+        </svg>
+        Menu
+      </button>
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a
+        href="auth.html"
+        class="btn btn-solid"
+        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+        >Login</a
+      >
+    </header>
 
-  <div class="menu-drawer">
-    <button class="menu-drawer-close">Close ✕</button>
-    <div class="menu-drawer-left">
-      <ul class="menu-list">
-        <li><a href="index.html">Vision</a></li>
-        <li><a href="teams.html">The Team</a></li>
-        <li><a href="fundraising.html">Fundraising</a></li>
-        <li><a href="careers.html">Careers</a></li>
-        <li><a href="auth.html">Waitlist</a></li>
-      </ul>
+    <div class="menu-drawer">
+      <button class="menu-drawer-close">Close &#10005;</button>
+      <div class="menu-drawer-left">
+        <ul class="menu-list">
+          <li><a href="index.html">Vision</a></li>
+          <li><a href="teams.html">The Team</a></li>
+          <li><a href="fundraising.html">Fundraising</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="auth.html">Waitlist</a></li>
+        </ul>
+      </div>
+      <div
+        class="menu-drawer-right"
+        style="background-image: url(&quot;images/d.png&quot;)"
+      ></div>
     </div>
-    <div class="menu-drawer-right" style="background-image: url('images/spa-bg.png');"></div>
-  </div>
 
-  <main>
-    <section class="page-hero container text-center">
-      <span class="text-caption fade-up">Investment Opportunities</span>
-      <h1 class="text-display fade-up" style="margin-top: 1rem; transition-delay: 0.2s;">Fundraising Pulse</h1>
-      <p class="fade-up" style="max-width: 600px; margin: 2rem auto 0; color: var(--color-text-secondary); transition-delay: 0.3s; font-size: 1.125rem;">
-        Track our growth in real-time. We are raising our Seed round via SAFE notes to expand our sanctuary outposts globally.
-      </p>
-    </section>
-
-    <section class="container section">
-      <div class="tracker-card fade-up">
-        <span class="text-caption">Current Milestone</span>
-        <div class="number-display" id="fundAmountDisplay">$...</div>
-        <p style="color: var(--color-text-secondary);">Raised of $2,000,000 Goal</p>
-        
-        <div class="progress-bar">
-          <div class="progress-fill" id="fundBar"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-family: var(--font-body); font-size: 0.875rem; color: var(--color-text-secondary);">
-          <span>0%</span>
-          <span>62.5%</span>
-          <span>100%</span>
-        </div>
-        
-        <p style="font-size: 0.875rem; color: var(--color-accent); margin-top: 2rem;">* Last updated: Today, 08:00 AM EST</p>
-      </div>
-
-      <div class="info-boxes fade-up">
-        <div class="info-box">
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem;">Terms of Investment</h3>
-          <p style="color: var(--color-text-secondary); margin-bottom: 1rem;">We are accepting investments exclusively through standard SAFE (Simple Agreement for Future Equity) notes.</p>
-          <ul style="color: var(--color-text-secondary); list-style: none; margin-bottom: 2rem;">
-            <li style="margin-bottom: 0.5rem;">— <strong>Valuation Cap:</strong> $15M Pre-Money</li>
-            <li style="margin-bottom: 0.5rem;">— <strong>Discount Rate:</strong> 20%</li>
-            <li style="margin-bottom: 0.5rem;">— <strong>Minimum Check:</strong> $25,000</li>
-          </ul>
-          <a href="#" class="btn" style="padding: 0.75rem 1.5rem;">Request Full PDF</a>
-        </div>
-        
-        <div class="info-box">
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem;">Why Invest?</h3>
-          <p style="color: var(--color-text-secondary);">The global wellness economy is valued at $5.6 trillion. Stillwater occupies the rapidly growing intersection of luxury hospitality and clinical holistic mental health treatment. Our proprietary spaces and digital tools provide 360-degree healing.</p>
-        </div>
-      </div>
-
-      <div class="whatsapp-card fade-up">
-        <h3 class="text-h2" style="font-size: 2rem; margin-bottom: 1rem; color: #F5E6D3;">Exclusive Investor Community</h3>
-        <p style="color: var(--color-text-secondary); max-width: 500px; margin: 0 auto 2rem;">
-          Join our private WhatsApp group for verified angels and VCs. Get weekly founder updates, early beta access to our platform, and high-quality networking.
+    <main>
+      <section class="page-hero container text-center">
+        <span class="text-caption fade-up">Investment Opportunities</span>
+        <h1
+          class="text-display fade-up"
+          style="margin-top: 1rem; transition-delay: 0.2s"
+        >
+          Fundraising Pulse
+        </h1>
+        <p
+          class="fade-up"
+          style="
+            max-width: 600px;
+            margin: 2rem auto 0;
+            color: var(--color-text-secondary);
+            transition-delay: 0.3s;
+            font-size: 1.125rem;
+          "
+        >
+          Track our growth in real-time. We are raising our Seed round via SAFE
+          notes to expand our sanctuary outposts globally.
         </p>
-        <a href="https://chat.whatsapp.com/example" target="_blank" class="btn btn-solid" style="background-color: #25D366; color: #122620; border-color: #25D366;">Join WhatsApp Group</a>
-      </div>
-    </section>
-  </main>
+      </section>
 
-  <footer class="footer container">
-    <!-- Footer content omitted for brevity, keeping structure -->
-  </footer>
+      <section class="container section">
+        <div class="tracker-card fade-up">
+          <span class="text-caption">Current Milestone</span>
+          <div class="number-display" id="fundAmountDisplay">$...</div>
+          <p style="color: var(--color-text-secondary)">
+            Raised of $2,000,000 Goal
+          </p>
 
-  <script src="js/shared.js"></script>
-  <script>
-    // Fetch dynamic fund amount and animate progress bar
-    document.addEventListener('DOMContentLoaded', async () => {
-      try {
-        const response = await fetch('/api/funds');
-        const data = await response.json();
-        
-        const currentAmount = data.amount;
-        const targetAmount = 2000000;
-        
-        // Format as currency
-        const formattedAmount = '$' + currentAmount.toLocaleString('en-US');
-        document.getElementById('fundAmountDisplay').innerText = formattedAmount;
-        
-        // Calculate percentage (capped at 100%)
-        let percentage = (currentAmount / targetAmount) * 100;
-        if (percentage > 100) percentage = 100;
+          <div class="progress-bar">
+            <div class="progress-fill" id="fundBar"></div>
+          </div>
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              font-family: var(--font-body);
+              font-size: 0.875rem;
+              color: var(--color-text-secondary);
+            "
+          >
+            <span>0%</span>
+            <span>62.5%</span>
+            <span>100%</span>
+          </div>
 
-        setTimeout(() => {
-          document.getElementById('fundBar').style.width = percentage + '%';
-        }, 500);
+          <p
+            style="
+              font-size: 0.875rem;
+              color: var(--color-accent);
+              margin-top: 2rem;
+            "
+          >
+            * Last updated: Today, 08:00 AM EST
+          </p>
+        </div>
 
-      } catch (err) {
-        console.error("Failed to load fundraising data:", err);
-        // Fallback display
-        document.getElementById('fundAmountDisplay').innerText = "$...";
-      }
-    });
-  </script>
-</body>
+        <div class="info-boxes fade-up">
+          <div class="info-box">
+            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+              Terms of Investment
+            </h3>
+            <p style="color: var(--color-text-secondary); margin-bottom: 1rem">
+              We are accepting investments exclusively through standard SAFE
+              (Simple Agreement for Future Equity) notes.
+            </p>
+            <ul
+              style="
+                color: var(--color-text-secondary);
+                list-style: none;
+                margin-bottom: 2rem;
+              "
+            >
+              <li style="margin-bottom: 0.5rem">
+                &mdash; <strong>Valuation Cap:</strong> $15M Pre-Money
+              </li>
+              <li style="margin-bottom: 0.5rem">
+                &mdash; <strong>Discount Rate:</strong> 20%
+              </li>
+              <li style="margin-bottom: 0.5rem">
+                &mdash; <strong>Minimum Check:</strong> $25,000
+              </li>
+            </ul>
+            <a href="#" class="btn" style="padding: 0.75rem 1.5rem"
+              >Request Full PDF</a
+            >
+          </div>
+
+          <div class="info-box">
+            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+              Why Invest?
+            </h3>
+            <p style="color: var(--color-text-secondary)">
+              The global wellness economy is valued at $5.6 trillion. Stillwater
+              occupies the rapidly growing intersection of luxury hospitality
+              and clinical holistic mental health treatment. Our proprietary
+              spaces and digital tools provide 360-degree healing.
+            </p>
+          </div>
+        </div>
+
+        <div class="whatsapp-card fade-up">
+          <h3
+            class="text-h2"
+            style="font-size: 2rem; margin-bottom: 1rem; color: #f5e6d3"
+          >
+            Exclusive Investor Community
+          </h3>
+          <p
+            style="
+              color: var(--color-text-secondary);
+              max-width: 500px;
+              margin: 0 auto 2rem;
+            "
+          >
+            Join our private WhatsApp group for verified angels and VCs. Get
+            weekly founder updates, early beta access to our platform, and
+            high-quality networking.
+          </p>
+          <a
+            href="https://chat.whatsapp.com/example"
+            target="_blank"
+            class="btn btn-solid"
+            style="
+              background-color: #25d366;
+              color: #122620;
+              border-color: #25d366;
+            "
+            >Join WhatsApp Group</a
+          >
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer container">
+      <!-- Footer content omitted for brevity, keeping structure -->
+    </footer>
+
+    <script src="js/shared.js"></script>
+    <script>
+      // Fetch dynamic fund amount and animate progress bar
+      document.addEventListener("DOMContentLoaded", async () => {
+        try {
+          const response = await fetch("/api/funds");
+          const data = await response.json();
+
+          const currentAmount = data.amount;
+          const targetAmount = 2000000;
+
+          // Format as currency
+          const formattedAmount = "$" + currentAmount.toLocaleString("en-US");
+          document.getElementById("fundAmountDisplay").innerText =
+            formattedAmount;
+
+          // Calculate percentage (capped at 100%)
+          let percentage = (currentAmount / targetAmount) * 100;
+          if (percentage > 100) percentage = 100;
+
+          setTimeout(() => {
+            document.getElementById("fundBar").style.width = percentage + "%";
+          }, 500);
+        } catch (err) {
+          console.error("Failed to load fundraising data:", err);
+          // Fallback display
+          document.getElementById("fundAmountDisplay").innerText = "$...";
+        }
+      });
+    </script>
+  </body>
 </html>

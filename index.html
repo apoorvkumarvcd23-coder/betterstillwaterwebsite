@@ -1,4 +1,4 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -59,6 +59,47 @@
         padding: 0 5%;
       }
 
+      .home-landing .hero-content,
+      .home-landing .hero-content .text-caption,
+      .home-landing .hero-content h1,
+      .home-landing .hero-content p {
+        color: #ffffff !important;
+        text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+      }
+
+      .home-landing .header,
+      .home-landing .header-logo,
+      .home-landing .menu-btn,
+      .home-landing #authMenuButton {
+        color: #ffffff !important;
+      }
+
+      .home-landing .theme-toggle {
+        color: #000000 !important;
+        border-color: rgba(0, 0, 0, 0.45) !important;
+        background: transparent;
+      }
+
+      .home-landing .header.scrolled,
+      .home-landing .header.scrolled .header-logo,
+      .home-landing .header.scrolled .menu-btn,
+      .home-landing .header.scrolled #authMenuButton {
+        color: #112629 !important;
+      }
+
+      .home-landing .header.scrolled .theme-toggle {
+        color: #000000 !important;
+        border-color: rgba(0, 0, 0, 0.35) !important;
+        background: transparent;
+      }
+
+      .home-landing .hero .btn,
+      .home-landing .hero .btn-solid {
+        border-color: #ffffff;
+        background-color: #ffffff;
+        color: #031418;
+      }
+
       .hero-subtitle {
         display: block;
         margin-bottom: 2rem;
@@ -94,7 +135,7 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        filter: brightness(0.85);
+        filter: brightness(0.98);
         transition: filter 1s var(--transition-smooth);
       }
 
@@ -239,7 +280,7 @@
       }
     </style>
   </head>
-  <body>
+  <body class="home-landing">
     <!-- Navigation -->
     <header class="header">
       <button class="menu-btn">
@@ -346,7 +387,7 @@
 
     <!-- Full Screen Drawer Menu -->
     <div class="menu-drawer">
-      <button class="menu-drawer-close">Close ✕</button>
+      <button class="menu-drawer-close">Close &#10005;</button>
       <div class="menu-drawer-left">
         <ul class="menu-list">
           <li><a href="index.html">Vision</a></li>
@@ -360,7 +401,7 @@
       </div>
       <div
         class="menu-drawer-right"
-        style="background-image: url(&quot;images/spa-bg.png&quot;)"
+        style="background-image: url(&quot;images/e.png&quot;)"
       ></div>
     </div>
 
@@ -379,29 +420,88 @@
       </video>
       <div class="hero-content">
         <span class="text-caption hero-subtitle fade-up"
-          >A Sanctuary for Inner Peace</span
+          >Stillwater Community of Holistic Health and Wellness</span
         >
         <h1
           class="text-display fade-up"
           style="transition-delay: 0.2s; margin-bottom: 1.5rem"
         >
-          Redefining Holistic Healing
+          Guidance for Balance, Clarity, and Wellbeing
         </h1>
         <p
           class="fade-up"
           style="
-            font-size: 1.5rem;
-            font-family: var(--font-heading);
-            color: var(--color-accent);
+            font-size: 1.2rem;
+            font-family: var(--font-body);
+            color: var(--color-text-primary);
             margin-bottom: 2rem;
+            max-width: 720px;
+            margin-left: auto;
+            margin-right: auto;
             transition-delay: 0.3s;
           "
         >
-          <span id="waitlistCounter">...</span> individuals currently healing.
+          <span id="waitlistCount">195</span> seekers have already joined the
+          waiting list for Stillwater Community of Holistic Health and Wellness.
+          Join now!
         </p>
         <div class="fade-up" style="transition-delay: 0.4s">
-          <a href="#vision" class="btn btn-solid">Discover Our Vision</a>
+          <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
         </div>
+      </div>
+    </section>
+
+    <section class="provider-row">
+      <div class="text-center fade-up">
+        <span class="text-caption">Trusted Partners</span>
+        <h2 class="text-h2" style="margin-top: 0.8rem">
+          Holistic Health Providers in the Stillwater Community
+        </h2>
+      </div>
+      <div class="provider-row-grid fade-up" style="transition-delay: 0.12s">
+        <article class="provider-card">
+          <span class="provider-tag">Plant Nutrition</span>
+          <h3>SHARAN</h3>
+          <p>
+            Trusted holistic partner for whole-food, plant-based guidance that
+            supports metabolic health, emotional resilience, and sustainable
+            lifestyle routines.
+          </p>
+        </article>
+        <article class="provider-card">
+          <span class="provider-tag">Eye Wellness</span>
+          <h3>Amar Eye Yoga</h3>
+          <p>
+            Trusted holistic partner blending yogic eye practices and mindful
+            routines for visual comfort, screen-strain reduction, and daily
+            focus support.
+          </p>
+        </article>
+        <article class="provider-card">
+          <span class="provider-tag">Ayurveda Retreat</span>
+          <h3>Divine Veda</h3>
+          <p>
+            Trusted holistic partner offering restorative programs with
+            Ayurveda, movement, and nature-based experiences that nurture calm
+            and overall wellbeing.
+          </p>
+        </article>
+        <article class="provider-card">
+          <span class="provider-tag">Frequency Support</span>
+          <h3>Frequency-Based Healing Devices</h3>
+          <p>
+            Trusted holistic partner using frequency-oriented wellness devices
+            to support relaxation, recovery routines, and balance-focused daily
+            care plans.
+          </p>
+        </article>
+      </div>
+
+      <div
+        class="text-center fade-up"
+        style="margin-top: 2.25rem; transition-delay: 0.2s"
+      >
+        <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
       </div>
     </section>
 
@@ -472,8 +572,8 @@
           style="transition-delay: 0.2s"
         >
           <img
-            src="images/spa-bg.png"
-            alt="Holistic Spa Environment"
+            src="images/c.png"
+            alt="Calm wellness landscape"
             class="vision-image"
           />
         </div>
@@ -508,8 +608,9 @@
               "
             >
               To help individuals understand the deeper causes of stress,
-              emotional imbalance, and mental fatigue — and to support them in
-              building a healthier relationship with their mind and body.
+              emotional imbalance, and mental fatigue &mdash; and to support
+              them in building a healthier relationship with their mind and
+              body.
             </p>
           </div>
           <!-- Vision -->
@@ -537,7 +638,7 @@
               "
             >
               A world where mental and emotional well-being are approached with
-              understanding, compassion, and awareness — where people feel
+              understanding, compassion, and awareness &mdash; where people feel
               empowered to take meaningful steps toward lasting balance and
               inner clarity.
             </p>
@@ -571,6 +672,7 @@
         <a
           href="https://sharan-india.org/"
           target="_blank"
+          rel="noopener"
           class="partner-card"
         >
           <div class="partner-header">
@@ -582,14 +684,14 @@
           </p>
           <div class="partner-details">
             <div class="partner-meta">
-              <span>⭐ Rating: 4.9 (312 reviews)</span>
-              <span>📍 Location: Pan India & Online</span>
-              <span>💎 Price: ₹2,500 per consultation</span>
+              <span>&#11088; Rating: 4.9 (312 reviews)</span>
+              <span>&#128205; Location: Pan India & Online</span>
+              <span>&#128142; Price: &#8377;2,500 per consultation</span>
             </div>
             <p class="partner-desc">
-              Dr. Nandita Shah's pioneering organization reverses chronic
-              diseases through whole-food plant-based nutrition, lifestyle
-              medicine, and compassionate community support.
+              Dr. Nandita Shah's pioneering organization supports long-term
+              wellbeing through whole-food plant-based nutrition, lifestyle
+              guidance, and compassionate community support.
             </p>
             <div class="partner-conditions">
               <strong>Conditions:</strong> Diabetes, Heart Disease, Obesity,
@@ -599,7 +701,12 @@
         </a>
 
         <!-- Amar Eye Yoga -->
-        <a href="https://amareye.yoga" target="_blank" class="partner-card">
+        <a
+          href="https://amareye.yoga"
+          target="_blank"
+          rel="noopener"
+          class="partner-card"
+        >
           <div class="partner-header">
             <h3 class="partner-logo">Amar Eye Yoga</h3>
             <span class="partner-badge">IIT Alumni</span>
@@ -607,14 +714,14 @@
           <p class="partner-subtitle">Eye Yoga & Vision Healing</p>
           <div class="partner-details">
             <div class="partner-meta">
-              <span>⭐ Rating: 4.8 (187 reviews)</span>
-              <span>📍 Location: Online & Bengaluru</span>
-              <span>💎 Price: ₹1,800 per session</span>
+              <span>&#11088; Rating: 4.8 (187 reviews)</span>
+              <span>&#128205; Location: Online & Bengaluru</span>
+              <span>&#128142; Price: &#8377;1,800 per session</span>
             </div>
             <p class="partner-desc">
               Ancient yogic techniques combined with modern understanding to
-              naturally restore and strengthen vision. Proven results for
-              myopia, hyperopia, and eye strain.
+              support visual comfort and eye resilience in daily life,
+              especially for myopia, hyperopia, and eye strain routines.
             </p>
             <div class="partner-conditions">
               <strong>Conditions:</strong> Myopia, Hyperopia, Eye Strain,
@@ -632,14 +739,14 @@
           <p class="partner-subtitle">Bioenergetic Technology</p>
           <div class="partner-details">
             <div class="partner-meta">
-              <span>⭐ Rating: 4.7 (143 reviews)</span>
-              <span>📍 Location: Pan India</span>
-              <span>💎 Price: ₹3,500 per session</span>
+              <span>&#11088; Rating: 4.7 (143 reviews)</span>
+              <span>&#128205; Location: Pan India</span>
+              <span>&#128142; Price: &#8377;3,500 per session</span>
             </div>
             <p class="partner-desc">
-              FDA-cleared German Healy device delivers individualized
-              microcurrent frequency programs for pain, sleep, and mental
-              balance. Cutting-edge meets ancient energy healing.
+              Frequency programs designed to support pain-care routines, sleep
+              hygiene, and mental balance. A blend of modern technology and
+              holistic energy principles.
             </p>
             <div class="partner-conditions">
               <strong>Conditions:</strong> Chronic Pain, Sleep Disorders,
@@ -657,14 +764,14 @@
           <p class="partner-subtitle">Ayurveda & Wellness Retreat</p>
           <div class="partner-details">
             <div class="partner-meta">
-              <span>⭐ Rating: 4.95 (256 reviews)</span>
-              <span>📍 Location: Kanakpura, Bengaluru</span>
-              <span>💎 Price: ₹12,000 per night</span>
+              <span>&#11088; Rating: 4.95 (256 reviews)</span>
+              <span>&#128205; Location: Kanakpura, Bengaluru</span>
+              <span>&#128142; Price: &#8377;12,000 per night</span>
             </div>
             <p class="partner-desc">
               Nestled in the serene forests of Kanakpura, Bengaluru. Immersive
-              Ayurvedic treatments, Panchakarma detox, yoga, and sattvic meals
-              in a nature sanctuary.
+              Ayurvedic care, yoga, and sattvic meals in a nature sanctuary
+              designed to support restoration and mindful living.
             </p>
             <div class="partner-conditions">
               <strong>Conditions:</strong> Stress, Detox, Spiritual Healing,
@@ -686,7 +793,7 @@
       <span
         class="text-caption fade-up"
         style="display: block; margin-top: 2rem; transition-delay: 0.2s"
-        >— Hippocrates</span
+        >&mdash; Hippocrates</span
       >
       <div style="margin-top: 4rem" class="fade-up">
         <a href="auth.html" class="btn">Join The Waitlist</a>
@@ -915,35 +1022,25 @@
     </script>
     <script>
       document.addEventListener("DOMContentLoaded", async () => {
-        // 1. Fetch Waitlist
+        // Fetch Waitlist Count
         try {
-          const response = await fetch("/api/waitlist");
-          const data = await response.json();
-          const target = data.count || 842;
-
-          const counterElement = document.getElementById("waitlistCounter");
-          let current = 0;
-          const duration = 2000; // 2 seconds
-          const steps = 60;
-          const increment = target / steps;
-          const stepTime = Math.abs(Math.floor(duration / steps));
-
-          const timer = setInterval(() => {
-            current += increment;
-            if (current >= target) {
-              counterElement.innerText = target.toLocaleString("en-US");
-              clearInterval(timer);
-            } else {
-              counterElement.innerText =
-                Math.floor(current).toLocaleString("en-US");
-            }
-          }, stepTime);
+          const waitlistResponse = await fetch("/api/waitlist");
+          const waitlistData = await waitlistResponse.json();
+          const waitlistCountEl = document.getElementById("waitlistCount");
+          if (waitlistCountEl) {
+            const parsed = Number.parseInt(waitlistData.count, 10);
+            waitlistCountEl.innerText = Number.isFinite(parsed)
+              ? parsed.toString()
+              : "195";
+          }
         } catch (err) {
-          console.error("Could not fetch waitlist count:", err);
-          document.getElementById("waitlistCounter").innerText = "842";
+          const waitlistCountEl = document.getElementById("waitlistCount");
+          if (waitlistCountEl) {
+            waitlistCountEl.innerText = "195";
+          }
         }
 
-        // 2. Fetch Trust Stats
+        // Fetch Trust Stats
         try {
           const statsResponse = await fetch("/api/trust-stats");
           const statsData = await statsResponse.json();

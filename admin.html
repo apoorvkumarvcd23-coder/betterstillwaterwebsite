@@ -128,7 +128,11 @@
         <button class="admin-tab-btn" data-tab="careersTab" id="btnCareersTab">
           Career Forms
         </button>
-        <button class="admin-tab-btn" data-tab="phoneUsersTab" id="btnPhoneUsersTab">
+        <button
+          class="admin-tab-btn"
+          data-tab="phoneUsersTab"
+          id="btnPhoneUsersTab"
+        >
           Phone Users
         </button>
       </div>
@@ -380,6 +384,18 @@
               </button>
             </div>
           </form>
+        </div>
+
+        <div class="settings-panel fade-up" style="transition-delay: 0.35s">
+          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+            Dashboard Settings
+          </h3>
+          <div class="settings-row">
+            <p style="color: var(--color-text-secondary)">
+              Appearance preference for this browser session.
+            </p>
+            <div id="themeSettingsMount"></div>
+          </div>
         </div>
       </div>
 

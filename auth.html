@@ -31,6 +31,14 @@
         z-index: -1;
       }
 
+      /* Auth page keeps a dark backdrop in both themes, so force high-contrast header text. */
+      .header,
+      .header-logo,
+      .stillwater-brand-text,
+      .menu-btn {
+        color: #ffffff !important;
+      }
+
       .auth-layout {
         min-height: 100vh;
         display: flex;
@@ -276,6 +284,34 @@
             >
               Access the Digital Sanctuary.
             </p>
+          </div>
+
+          <div
+            id="signedInState"
+            style="
+              display: none;
+              border: 1px solid rgba(240, 248, 255, 0.2);
+              border-radius: 10px;
+              padding: 1.2rem;
+              margin-bottom: 1.5rem;
+              text-align: center;
+              background: rgba(255, 255, 255, 0.03);
+            "
+          >
+            <p
+              id="signedInMessage"
+              style="
+                color: var(--color-text-primary);
+                margin-bottom: 1rem;
+                font-size: 0.95rem;
+              "
+            ></p>
+            <a
+              href="/logout"
+              class="btn btn-solid"
+              style="display: inline-flex; align-items: center"
+              >Sign Out</a
+            >
           </div>
 
           <!-- Login Method Toggle -->
@@ -527,11 +563,16 @@
 
     <script src="js/shared.js"></script>
     <script>
-      const returnToParam = new URLSearchParams(window.location.search).get(
-        "returnTo",
-      );
+      const searchParams = new URLSearchParams(window.location.search);
+      const returnToParam = searchParams.get("returnTo");
+      const forceAuthView = searchParams.get("showAuth") === "1";
       const returnTo =
         returnToParam && returnToParam.startsWith("/") ? returnToParam : "/";
+      const signedInState = document.getElementById("signedInState");
+      const signedInMessage = document.getElementById("signedInMessage");
+      const toggleGroup = document.querySelector(".toggle-group");
+      const googleSection = document.getElementById("googleSection");
+      const phoneSection = document.getElementById("phoneSection");
 
       const googleAuthLink = document.getElementById("googleAuthLink");
       if (googleAuthLink) {
@@ -546,6 +587,20 @@
         .then((res) => (res.ok ? res.json() : null))
         .then((user) => {
           if (!user) return;
+          if (user.authenticated === false) return;
+
+          if (forceAuthView) {
+            if (signedInMessage) {
+              const name = user.name || user.email || "there";
+              signedInMessage.textContent = `You are already signed in as ${name}.`;
+            }
+            if (signedInState) signedInState.style.display = "block";
+            if (toggleGroup) toggleGroup.style.display = "none";
+            if (googleSection) googleSection.style.display = "none";
+            if (phoneSection) phoneSection.style.display = "none";
+            return;
+          }
+
           if (user.role === "admin") {
             window.location.replace("/admin.html");
             return;
