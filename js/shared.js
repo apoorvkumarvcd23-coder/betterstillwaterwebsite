@@ -21,7 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
       toggle.setAttribute("title", `Theme: ${modeLabel}`);
       const label = toggle.querySelector("span");
       if (label) {
-        label.textContent = modeLabel;
+        label.textContent = `${modeLabel} mode`;
       }
     });
   }
@@ -61,6 +61,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const settingsMount = document.getElementById("themeSettingsMount");
     if (settingsMount && !settingsMount.querySelector("[data-theme-toggle]")) {
       settingsMount.appendChild(createThemeToggle());
+    }
+  }
+
+  function adjustHomeHeaderLayout() {
+    if (!document.body.classList.contains("home-landing")) return;
+
+    const nav = document.querySelector(".home-nav-links");
+    const logo = document.querySelector(".home-landing .header-logo");
+    const auth = document.getElementById("authActions");
+    const menuBtn = document.querySelector(".home-landing .menu-btn");
+
+    if (!nav || !logo || !auth || !menuBtn) return;
+
+    const desktop = window.innerWidth >= 1360;
+    document.body.classList.remove("home-nav-collapsed");
+
+    if (!desktop) return;
+
+    const navRect = nav.getBoundingClientRect();
+    const logoRect = logo.getBoundingClientRect();
+    const authRect = auth.getBoundingClientRect();
+
+    const overlapWithLogo = navRect.left <= logoRect.right + 28;
+    const overlapWithAuth = navRect.right >= authRect.left - 28;
+    const authTooWide =
+      authRect.width > Math.max(260, window.innerWidth * 0.22);
+
+    if (overlapWithLogo || overlapWithAuth || authTooWide) {
+      document.body.classList.add("home-nav-collapsed");
     }
   }
 
@@ -170,7 +199,16 @@ document.addEventListener("DOMContentLoaded", () => {
   normalizeFooters();
   injectStillwaterLogo();
   mountThemeToggles();
+  adjustHomeHeaderLayout();
   applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
+
+  let homeHeaderResizeTimeout = null;
+  window.addEventListener("resize", () => {
+    if (homeHeaderResizeTimeout) {
+      clearTimeout(homeHeaderResizeTimeout);
+    }
+    homeHeaderResizeTimeout = setTimeout(adjustHomeHeaderLayout, 80);
+  });
 
   // Drawer Menu Logic
   const menuBtn = document.querySelector(".menu-btn");
@@ -290,6 +328,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (btnAdmin && user.role === "admin") {
           btnAdmin.style.display = "inline-flex";
         }
+
+        adjustHomeHeaderLayout();
       })
       .catch(() => {
         if (authMenuButton) authMenuButton.style.display = "none";
@@ -297,6 +337,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (btnAdmin) btnAdmin.style.display = "none";
         if (btnIntake) btnIntake.style.display = "none";
         if (btnLogin) btnLogin.style.display = "inline-flex";
+        adjustHomeHeaderLayout();
       });
 
     if (authMenuButton && authMenu) {

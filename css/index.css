@@ -1,18 +1,19 @@
-/* 
-  Design System Variables 
-  Theme: Stillwater - Nautical Teal, High-Tech Digital Sanctuary, Bio-Resonance
+/*
+  Design System Variables
+  Theme: Stillwater - Heritage Wellness (About-inspired)
 */
 :root {
-  --color-bg-primary: #031418; /* Deep Abyss / Oceanic Dark */
-  --color-bg-secondary: #0a262c; /* Dark Nautical Teal */
-  --color-surface: rgba(7, 35, 41, 0.8);
-  --color-text-primary: #e0f2f1; /* Ice / Silver White */
-  --color-text-secondary: rgba(224, 242, 241, 0.6);
-  --color-accent: #00e5ff; /* Bioluminescent Cyan */
-  --color-border-soft: rgba(0, 229, 255, 0.16);
+  --color-bg-primary: #0b1818;
+  --color-bg-secondary: #0e1f1f;
+  --color-surface: rgba(13, 30, 30, 0.86);
+  --color-text-primary: #f5f2ee;
+  --color-text-secondary: rgba(245, 242, 238, 0.66);
+  --color-accent: #c9a96e;
+  --color-accent-soft: #5fb3b3;
+  --color-border-soft: rgba(245, 242, 238, 0.14);
 
-  --font-heading: "Playfair Display", serif;
-  --font-body: "Inter", sans-serif;
+  --font-heading: "Cormorant Garamond", "Playfair Display", serif;
+  --font-body: "Jost", "Inter", sans-serif;
 
   --spacing-sm: 1rem;
   --spacing-md: 2rem;
@@ -23,13 +24,14 @@
 }
 
 :root[data-theme="light"] {
-  --color-bg-primary: #f3f8f8;
-  --color-bg-secondary: #e4efef;
+  --color-bg-primary: #f5f2ee;
+  --color-bg-secondary: #ece5db;
   --color-surface: rgba(255, 255, 255, 0.92);
-  --color-text-primary: #112629;
-  --color-text-secondary: rgba(17, 38, 41, 0.7);
-  --color-accent: #007f8f;
-  --color-border-soft: rgba(0, 127, 143, 0.22);
+  --color-text-primary: #1a2e2c;
+  --color-text-secondary: rgba(26, 46, 44, 0.7);
+  --color-accent: #8f7040;
+  --color-accent-soft: #3a8a8a;
+  --color-border-soft: rgba(26, 46, 44, 0.18);
 }
 
 /* Reset & Base */
@@ -81,7 +83,8 @@ img {
 }
 .text-display {
   font-size: clamp(3rem, 8vw, 6rem);
-  letter-spacing: -0.02em;
+  letter-spacing: 0.01em;
+  font-weight: 300;
 }
 .text-h1 {
   font-size: clamp(2.5rem, 5vw, 4rem);
@@ -90,10 +93,10 @@ img {
   font-size: clamp(2rem, 4vw, 3rem);
 }
 .text-caption {
-  font-size: 0.875rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--color-text-secondary);
+  letter-spacing: 0.24em;
+  color: var(--color-accent);
 }
 
 /* Layout Utilities */
@@ -131,10 +134,18 @@ img {
   align-items: center;
   z-index: 100;
   transition: var(--transition-smooth);
+  background: linear-gradient(
+    to bottom,
+    rgba(11, 24, 24, 0.92) 0%,
+    transparent 100%
+  );
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
 }
 
 .header.scrolled {
   background-color: var(--color-surface);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   padding: 1rem 5%;
   border-bottom: 1px solid var(--color-border-soft);
@@ -176,8 +187,9 @@ img {
 
 .header-logo {
   font-family: var(--font-heading);
-  font-size: 1.5rem;
-  letter-spacing: 0.1em;
+  font-size: 1.6rem;
+  letter-spacing: 0.18em;
+  font-weight: 600;
   text-transform: uppercase;
   position: absolute;
   left: 50%;
@@ -215,9 +227,9 @@ img {
   border: none;
   color: var(--color-text-primary);
   font-family: var(--font-body);
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.18em;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -245,34 +257,74 @@ img {
 
 .theme-toggle {
   border: 1px solid var(--color-border-soft);
-  background: transparent;
+  background: rgba(13, 30, 30, 0.7);
   color: var(--color-text-primary);
-  border-radius: 2px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: 0.5rem 0.9rem;
+  justify-content: flex-start;
+  padding: 0;
+  width: 58px;
+  height: 32px;
   cursor: pointer;
   font-size: 0.75rem;
   letter-spacing: 0.08em;
   line-height: 1;
-  text-transform: uppercase;
   transition: var(--transition-smooth);
+  position: relative;
+  overflow: hidden;
 }
 
 .theme-toggle-label {
-  min-width: 0;
-  text-align: center;
-  font-weight: 600;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .theme-toggle::before {
-  content: none;
+  content: "";
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(245, 242, 238, 0.95);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+.theme-toggle::after {
+  content: "☾";
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(245, 242, 238, 0.85);
+  font-size: 0.82rem;
+  pointer-events: none;
 }
 
 :root[data-theme="light"] .theme-toggle {
-  flex-direction: row;
+  background: rgba(236, 229, 219, 0.88);
+}
+
+:root[data-theme="light"] .theme-toggle::before {
+  transform: translateX(26px);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+:root[data-theme="light"] .theme-toggle::after {
+  content: "☀";
+  left: 8px;
+  right: auto;
+  color: #8f7040;
 }
 
 .theme-toggle:hover {
@@ -312,7 +364,13 @@ img {
   left: 0;
   width: 100%;
   height: 100vh;
-  background-color: var(--color-bg-primary);
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(95, 179, 179, 0.08),
+      transparent 42%
+    ),
+    var(--color-bg-primary);
   z-index: 200;
   display: flex;
   transform: translateY(-100%);
@@ -356,6 +414,7 @@ img {
 .menu-list a {
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 300;
   display: inline-block;
   transform: translateY(100%);
   opacity: 0;
@@ -410,13 +469,14 @@ img {
 /* UI Components */
 .btn {
   display: inline-block;
-  padding: 1rem 2.5rem;
-  border: 1px solid var(--color-text-primary);
+  padding: 0.95rem 2.4rem;
+  border: 1px solid rgba(245, 242, 238, 0.52);
   color: var(--color-text-primary);
   font-family: var(--font-body);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.875rem;
+  letter-spacing: 0.22em;
+  font-size: 0.7rem;
+  font-weight: 300;
   cursor: pointer;
   background: transparent;
   position: relative;
@@ -431,9 +491,9 @@ img {
   width: 100%;
   height: 100%;
   background-color: var(--color-text-primary);
-  transform: translateY(100%);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  z-index: -1;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .btn:hover {
@@ -441,21 +501,22 @@ img {
 }
 
 .btn:hover::before {
-  transform: translateY(0);
+  transform: scaleX(1);
 }
 
 .btn-solid {
-  background-color: var(--color-text-primary);
-  color: var(--color-bg-primary);
+  border-color: rgba(245, 242, 238, 0.45);
+  background-color: transparent;
+  color: var(--color-text-primary);
 }
 
 .btn-solid::before {
-  background-color: var(--color-accent);
+  background-color: var(--color-text-primary);
 }
 
 .btn-solid:hover {
   color: var(--color-bg-primary);
-  border-color: var(--color-accent);
+  border-color: var(--color-text-primary);
 }
 
 /* Forms */
@@ -468,7 +529,7 @@ img {
   width: 100%;
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--color-border-soft);
+  border-bottom: 1px solid rgba(245, 242, 238, 0.22);
   color: var(--color-text-primary);
   padding: 1rem 0;
   font-family: var(--font-body);
@@ -478,7 +539,7 @@ img {
 
 .form-input:focus {
   outline: none;
-  border-bottom-color: var(--color-text-primary);
+  border-bottom-color: var(--color-accent);
 }
 
 .form-label {
@@ -565,8 +626,9 @@ img {
 }
 
 .provider-card h3 {
-  font-size: 1.2rem;
-  color: var(--color-accent);
+  font-size: 1.5rem;
+  color: var(--color-text-primary);
+  letter-spacing: 0.05em;
 }
 
 .provider-card p {
@@ -577,9 +639,9 @@ img {
 .provider-tag {
   align-self: flex-start;
   border: 1px solid var(--color-border-soft);
-  color: var(--color-text-primary);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
+  color: var(--color-accent);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
   padding: 0.25rem 0.55rem;
   border-radius: 999px;
   text-transform: uppercase;
@@ -606,6 +668,7 @@ img {
   left: 0;
   width: 100%;
   background-color: var(--color-surface);
+  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--color-border-soft);
   padding: 1.5rem 5%;
@@ -680,7 +743,7 @@ img {
 .trust-value {
   font-family: var(--font-heading);
   font-size: clamp(2rem, 4vw, 3rem);
-  color: var(--color-accent);
+  color: var(--color-text-primary);
   margin-bottom: 0.5rem;
   display: block;
 }

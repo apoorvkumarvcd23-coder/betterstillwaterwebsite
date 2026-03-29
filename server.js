@@ -17,7 +17,9 @@ const DATABASE_URL = process.env.DATABASE_URL;
 const DEFAULT_ADMIN_EMAILS = new Set(["amar@stillwater.you"]);
 
 const isAdminEmail = (email) => {
-  const normalizedEmail = String(email || "").trim().toLowerCase();
+  const normalizedEmail = String(email || "")
+    .trim()
+    .toLowerCase();
   if (!normalizedEmail) return false;
 
   if (DEFAULT_ADMIN_EMAILS.has(normalizedEmail)) {
@@ -671,19 +673,15 @@ app.post("/api/intake-submissions", async (req, res) => {
     }
 
     if (isForFamilyMember && !relationText) {
-      return res
-        .status(400)
-        .json({
-          error: "Relation is required when filling for a family member.",
-        });
+      return res.status(400).json({
+        error: "Relation is required when filling for a family member.",
+      });
     }
 
     if (hasEyesightIssues && !cleanEyePower) {
-      return res
-        .status(400)
-        .json({
-          error: "Please provide eye power when eyesight issues are selected.",
-        });
+      return res.status(400).json({
+        error: "Please provide eye power when eyesight issues are selected.",
+      });
     }
 
     const result = await pool.query(

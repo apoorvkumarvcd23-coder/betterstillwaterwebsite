@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,12 +11,54 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
     <style>
       /* Home Page Specific Styles */
+      .home-landing .header {
+        justify-content: flex-start;
+        padding: 1.3rem 2.6rem;
+        min-height: 76px;
+      }
+
+      .home-landing .header-logo {
+        position: relative;
+        left: auto;
+        transform: none;
+        font-size: 1.35rem;
+        letter-spacing: 0.24em;
+        z-index: 3;
+        flex: 0 0 auto;
+      }
+
+      .home-nav-links {
+        display: none;
+        align-items: center;
+        gap: 1.8rem;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1;
+        pointer-events: auto;
+        max-width: 48vw;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      .home-nav-links a {
+        font-size: 0.62rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: rgba(245, 242, 238, 0.72);
+      }
+
+      .home-nav-links a:hover {
+        color: #ffffff;
+      }
+
       .hero {
         height: 100vh;
         position: relative;
@@ -25,7 +67,7 @@
         background-position: center;
         background-attachment: fixed;
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         text-align: center;
         overflow: hidden;
@@ -48,15 +90,93 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(rgba(3, 20, 24, 0.5), rgba(3, 20, 24, 0.9));
+        background:
+          linear-gradient(
+            to bottom,
+            rgba(11, 24, 24, 0.5) 0%,
+            rgba(11, 24, 24, 0.18) 38%,
+            rgba(11, 24, 24, 0.75) 100%
+          ),
+          radial-gradient(
+            circle at 85% 45%,
+            rgba(255, 255, 255, 0.12),
+            transparent 50%
+          );
         z-index: 5;
       }
 
       .hero-content {
         position: relative;
         z-index: 10;
-        max-width: 800px;
+        max-width: 980px;
         padding: 0 5%;
+        margin-top: clamp(7.2rem, 13vh, 9.6rem);
+      }
+
+      .hero-line {
+        display: block;
+        font-family: var(--font-heading);
+      }
+
+      .hero-headline {
+        font-family: var(--font-heading);
+        font-size: clamp(2.6rem, 6.8vw, 6.1rem);
+        line-height: 1.06;
+        font-weight: 300;
+        max-width: 920px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .hero-headline em {
+        font-style: italic;
+        color: rgba(245, 242, 238, 0.76);
+      }
+
+      .hero-descriptor {
+        margin: 2rem auto 0;
+        font-size: 0.78rem;
+        letter-spacing: 0.1em;
+        line-height: 1.9;
+        color: rgba(245, 242, 238, 0.66);
+        max-width: 560px;
+      }
+
+      .hero-seekers {
+        margin-top: 2.1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.66rem;
+        letter-spacing: 0.16em;
+        color: rgba(245, 242, 238, 0.6);
+      }
+
+      .hero-seekers-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--color-accent-soft);
+        box-shadow: 0 0 0 0 rgba(95, 179, 179, 0.55);
+        animation: heroPulse 2.6s ease-in-out infinite;
+      }
+
+      @keyframes heroPulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(95, 179, 179, 0.55);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(95, 179, 179, 0);
+        }
+      }
+
+      .hero-cta {
+        margin-top: 2rem;
+      }
+
+      .hero-cta .btn {
+        border-color: rgba(245, 242, 238, 0.62);
       }
 
       .home-landing .hero-content,
@@ -75,9 +195,8 @@
       }
 
       .home-landing .theme-toggle {
-        color: #000000 !important;
-        border-color: rgba(0, 0, 0, 0.45) !important;
-        background: transparent;
+        border-color: rgba(245, 242, 238, 0.38) !important;
+        background: rgba(11, 24, 24, 0.52) !important;
       }
 
       .home-landing .header.scrolled,
@@ -95,14 +214,134 @@
 
       .home-landing .hero .btn,
       .home-landing .hero .btn-solid {
-        border-color: #ffffff;
-        background-color: #ffffff;
-        color: #031418;
+        border-color: rgba(245, 242, 238, 0.62);
+        background-color: transparent;
+        color: #ffffff;
       }
 
       .hero-subtitle {
         display: block;
-        margin-bottom: 2rem;
+        margin-bottom: 1.5rem;
+        color: var(--color-accent) !important;
+      }
+
+      .home-landing #authActions {
+        gap: 0.55rem !important;
+        max-width: min(44vw, 620px);
+        overflow: visible;
+        flex-wrap: nowrap;
+        z-index: 5;
+      }
+
+      .home-landing #authMenuWrap {
+        max-width: 220px;
+        flex: 0 1 auto;
+      }
+
+      .home-landing #authMenuButton {
+        max-width: 210px;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        display: block;
+      }
+
+      .home-landing #authMenu {
+        top: calc(100% + 0.55rem) !important;
+        right: 0;
+        z-index: 20;
+      }
+
+      .home-landing .header-theme-toggle-inline {
+        order: -3;
+      }
+
+      .home-landing #btnIntake {
+        order: -2;
+        font-size: 0.58rem !important;
+        letter-spacing: 0.16em;
+        padding: 0 0.9rem !important;
+      }
+
+      .home-landing #authMenuWrap {
+        order: -1;
+      }
+
+      .home-landing #btnLogin {
+        letter-spacing: 0.22em;
+        font-size: 0.62rem !important;
+        white-space: nowrap;
+        background: rgba(11, 24, 24, 0.58) !important;
+        -webkit-backdrop-filter: blur(4px);
+        backdrop-filter: blur(4px);
+        isolation: isolate;
+      }
+
+      .home-landing #authActions .btn {
+        height: 32px;
+        padding: 0 1.25rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        align-self: center;
+        line-height: 1;
+      }
+
+      .home-landing #btnLogin::after,
+      .home-landing #btnAdmin::after,
+      .home-landing #btnIntake::after {
+        content: none !important;
+      }
+
+      .home-landing #btnAdmin,
+      .home-landing #btnIntake {
+        display: none;
+      }
+
+      @media (min-width: 1360px) {
+        .home-nav-links {
+          display: flex;
+        }
+
+        .home-landing .menu-btn {
+          display: none;
+        }
+
+        .home-landing.home-nav-collapsed .home-nav-links {
+          display: none;
+        }
+
+        .home-landing.home-nav-collapsed .menu-btn {
+          display: flex;
+        }
+      }
+
+      @media (max-width: 1039px) {
+        .home-landing .header {
+          padding: 1rem 5%;
+          min-height: 64px;
+        }
+
+        .home-landing .header-logo {
+          position: absolute;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 1.1rem;
+          letter-spacing: 0.16em;
+        }
+
+        .home-landing #btnLogin,
+        .home-landing #btnAdmin {
+          display: none !important;
+        }
+
+        .hero-headline {
+          font-size: clamp(2.4rem, 10.5vw, 4.6rem);
+        }
+
+        .hero-content {
+          margin-top: clamp(6.2rem, 10vh, 7.8rem);
+        }
       }
 
       .vision-section {
@@ -207,7 +446,7 @@
       }
 
       .partner-badge {
-        background: rgba(0, 229, 255, 0.1);
+        background: rgba(201, 169, 110, 0.1);
         color: var(--color-accent);
         padding: 0.4rem 1rem;
         border-radius: 100px;
@@ -313,6 +552,13 @@
         Menu
       </button>
       <a href="index.html" class="header-logo">Stillwater</a>
+      <nav class="home-nav-links" aria-label="Primary">
+        <a href="index.html">Vision</a>
+        <a href="about.html">About Us</a>
+        <a href="teams.html">The Team</a>
+        <a href="blog.html">Blog</a>
+        <a href="careers.html">Careers</a>
+      </nav>
       <div
         id="authActions"
         style="display: flex; gap: 0.75rem; align-items: center"
@@ -366,7 +612,7 @@
           id="btnLogin"
           class="btn btn-solid"
           style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
-          >Sign Up</a
+          >Join Waitlist</a
         >
         <a
           href="admin.html"
@@ -419,32 +665,32 @@
       </video>
       <div class="hero-content">
         <span class="text-caption hero-subtitle fade-up"
-          >Stillwater Community of Holistic Health and Wellness</span
+          >The Global Bridge to Authentic Healing</span
         >
         <h1
-          class="text-display fade-up"
+          class="hero-headline fade-up"
           style="transition-delay: 0.2s; margin-bottom: 1.5rem"
         >
-          Guidance for Balance, Clarity, and Wellbeing
+          <span class="hero-line">Healing rooted in</span>
+          <span class="hero-line"><em>ancient Indian tradition,</em></span>
+          <span class="hero-line">clinically proven through</span>
+          <span class="hero-line"><em>scientific methods.</em></span>
         </h1>
         <p
-          class="fade-up"
-          style="
-            font-size: 1.2rem;
-            font-family: var(--font-body);
-            color: var(--color-text-primary);
-            margin-bottom: 2rem;
-            max-width: 720px;
-            margin-left: auto;
-            margin-right: auto;
-            transition-delay: 0.3s;
-          "
+          class="hero-descriptor fade-up"
+          style="margin-bottom: 2rem; transition-delay: 0.3s"
         >
-          <span id="waitlistCount">195</span> seekers have already joined the
-          waiting list for Stillwater Community of Holistic Health and Wellness.
-          Join now!
+          Where timeless wisdom meets evidence-based practice.<br />
+          Your journey to wholeness begins here.
         </p>
-        <div class="fade-up" style="transition-delay: 0.4s">
+        <div class="hero-seekers fade-up" style="transition-delay: 0.37s">
+          <span class="hero-seekers-dot"></span>
+          <span
+            ><span id="waitlistCount">195</span> seekers have already joined the
+            waiting list</span
+          >
+        </div>
+        <div class="hero-cta fade-up" style="transition-delay: 0.45s">
           <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
         </div>
       </div>
@@ -576,8 +822,8 @@
       class="section"
       style="
         background-color: var(--color-bg-secondary);
-        border-top: 1px solid rgba(0, 229, 255, 0.1);
-        border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+        border-top: 1px solid rgba(201, 169, 110, 0.1);
+        border-bottom: 1px solid rgba(201, 169, 110, 0.1);
       "
     >
       <div class="container">
@@ -609,7 +855,7 @@
             class="fade-up"
             style="
               padding: 2rem 0;
-              border-left: 1px solid rgba(0, 229, 255, 0.15);
+              border-left: 1px solid rgba(201, 169, 110, 0.15);
               padding-left: 3rem;
             "
             class="fade-up"
@@ -990,7 +1236,7 @@
         const playPromise = video.play();
         if (playPromise !== undefined) {
           playPromise.catch(() => {
-            // Autoplay blocked — try again on first user interaction
+            // Autoplay blocked - try again on first user interaction
             const tryPlay = () => {
               video.play();
               document.removeEventListener("touchstart", tryPlay);
@@ -1036,7 +1282,8 @@
           const statsData = await statsResponse.json();
 
           const trustProviders = document.getElementById("trustProviders");
-          const trustAuthenticity = document.getElementById("trustAuthenticity");
+          const trustAuthenticity =
+            document.getElementById("trustAuthenticity");
 
           if (trustProviders) {
             trustProviders.innerText = statsData.providers || "4";
@@ -1047,7 +1294,8 @@
         } catch (err) {
           console.error("Could not fetch trust stats:", err);
           const trustProviders = document.getElementById("trustProviders");
-          const trustAuthenticity = document.getElementById("trustAuthenticity");
+          const trustAuthenticity =
+            document.getElementById("trustAuthenticity");
 
           if (trustProviders) {
             trustProviders.innerText = "4";
