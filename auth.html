@@ -627,7 +627,9 @@
       const returnToParam = searchParams.get("returnTo");
       const forceAuthView = searchParams.get("showAuth") === "1";
       const returnTo =
-        returnToParam && returnToParam.startsWith("/") ? returnToParam : "/";
+        returnToParam && returnToParam.startsWith("/")
+          ? returnToParam
+          : "/intake.html";
       const signedInState = document.getElementById("signedInState");
       const signedInMessage = document.getElementById("signedInMessage");
       const toggleGroup = document.querySelector(".toggle-group");
@@ -665,7 +667,7 @@
             window.location.replace("/admin.html");
             return;
           }
-          window.location.replace(returnTo);
+          window.location.replace(returnTo || "/intake.html");
         })
         .catch(() => {});
 
@@ -722,7 +724,7 @@
             return;
           }
 
-          window.location.replace(data.redirectUrl || returnTo);
+          window.location.replace(data.redirectUrl || returnTo || "/intake.html");
         } catch (err) {
           errorDiv.textContent = "Network error. Please try again.";
           errorDiv.style.display = "block";
@@ -756,7 +758,7 @@
             return;
           }
 
-          window.location.replace(returnTo);
+          window.location.replace(data.redirectUrl || returnTo || "/intake.html");
         } catch (err) {
           errorDiv.textContent = "Network error. Please try again.";
           errorDiv.style.display = "block";

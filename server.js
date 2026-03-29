@@ -750,10 +750,15 @@ app.get(
   },
 );
 
-const resolveReturnTo = (value) => {
-  if (typeof value !== "string") return "/";
+const getDefaultPostAuthRedirect = (role) => {
+  return role === "admin" ? "/admin.html" : "/intake.html";
+};
+
+const resolveReturnTo = (value, role = "customer") => {
+  const fallback = getDefaultPostAuthRedirect(role);
+  if (typeof value !== "string") return fallback;
   const trimmed = value.trim();
-  return trimmed.startsWith("/") ? trimmed : "/";
+  return trimmed.startsWith("/") ? trimmed : fallback;
 };
 
 // === STATIC & PUBLIC ROUTES ===
@@ -783,10 +788,10 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/auth.html" }),
   (req, res) => {
-    let redirectTo = "/";
+    let redirectTo = getDefaultPostAuthRedirect(req.user?.role);
 
     const returnTo = req.session.returnTo;
-    redirectTo = resolveReturnTo(returnTo);
+    redirectTo = resolveReturnTo(returnTo, req.user?.role);
 
     if (req.user.role === "admin") {
       console.log(`[AUTH] Admin authenticated: ${req.user.email}`);
@@ -859,7 +864,7 @@ app.post("/auth/register", async (req, res) => {
         res.json({
           success: true,
           message: "Account created and logged in",
-          redirectUrl: resolveReturnTo(returnTo),
+          redirectUrl: resolveReturnTo(returnTo, user.role),
           user: {
             id: user.id,
             phone: user.phone,
@@ -879,7 +884,6 @@ app.post("/auth/register", async (req, res) => {
 app.post("/auth/login", async (req, res, next) => {
   if (process.env.ALLOW_INSECURE_PHONE_LOGIN === "true") {
     const { phone, password, returnTo } = req.body || {};
-    const redirectTo = resolveReturnTo(returnTo);
     if (!phone) {
       return res.status(400).json({ error: "Phone number is required" });
     }
@@ -922,7 +926,7 @@ app.post("/auth/login", async (req, res, next) => {
               return res.json({
                 success: true,
                 message: "Logged in successfully",
-                redirectUrl: redirectTo,
+                redirectUrl: resolveReturnTo(returnTo, authUser.role),
                 user: {
                   id: authUser.id,
                   phone: authUser.phone,
@@ -957,7 +961,7 @@ app.post("/auth/login", async (req, res, next) => {
           return res.json({
             success: true,
             message: "Logged in successfully",
-            redirectUrl: redirectTo,
+            redirectUrl: resolveReturnTo(returnTo, user.role),
             user: {
               id: user.id,
               phone: user.phone,
@@ -974,7 +978,6 @@ app.post("/auth/login", async (req, res, next) => {
   }
 
   const { phone, password, returnTo } = req.body || {};
-  const redirectTo = resolveReturnTo(returnTo);
   if (!phone) {
     return res.status(400).json({ error: "Phone number is required" });
   }
@@ -1009,7 +1012,7 @@ app.post("/auth/login", async (req, res, next) => {
         res.json({
           success: true,
           message: "Logged in successfully",
-          redirectUrl: redirectTo,
+          redirectUrl: resolveReturnTo(returnTo, user.role),
           user: {
             id: user.id,
             phone: user.phone,

@@ -87,7 +87,10 @@ async function applyTheme(page, theme) {
 }
 
 async function runChecks(page, route, viewport, theme) {
-  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  await page.setViewportSize({
+    width: viewport.width,
+    height: viewport.height,
+  });
   await page.goto(route, { waitUntil: "networkidle" });
   await applyTheme(page, theme);
 
@@ -157,7 +160,9 @@ async function runChecks(page, route, viewport, theme) {
       }
 
       return {
-        hasViewportMeta: Boolean(document.querySelector('meta[name="viewport"]')),
+        hasViewportMeta: Boolean(
+          document.querySelector('meta[name="viewport"]'),
+        ),
         themeValue: doc.getAttribute("data-theme"),
         docOverflow,
         overflowNodes,
@@ -251,7 +256,8 @@ test.beforeAll(async ({ playwright, baseURL }) => {
 
   const adminApi = await playwright.request.newContext({ baseURL });
   const adminPhone = process.env.TEST_ADMIN_PHONE || "9000000001";
-  const adminPassword = process.env.TEST_ADMIN_PASSWORD || "StillwaterAdmin#123";
+  const adminPassword =
+    process.env.TEST_ADMIN_PASSWORD || "StillwaterAdmin#123";
   const adminRes = await adminApi.post("/auth/login", {
     data: {
       phone: adminPhone,

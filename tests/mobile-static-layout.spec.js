@@ -71,7 +71,10 @@ function toFileUrl(fileName) {
 }
 
 async function runLayoutCheck(page, fileName, viewport, theme) {
-  await page.setViewportSize({ width: viewport.width, height: viewport.height });
+  await page.setViewportSize({
+    width: viewport.width,
+    height: viewport.height,
+  });
   await page.goto(toFileUrl(fileName), { waitUntil: "domcontentloaded" });
 
   await page.evaluate((t) => {
