@@ -16,3 +16,8 @@ node_modules/
 # OS Files
 .DS_Store
 Thumbs.db
+
+# Playwright artifacts
+playwright-report/
+test-results/
+tests/.auth/

@@ -11,6 +11,25 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
+    <style>
+      @media (max-width: 767px) {
+        main.container {
+          margin-top: 7rem !important;
+          padding: 0 4.5%;
+        }
+
+        .portal-card {
+          padding: 2rem 1rem !important;
+        }
+      }
+
+      @media (max-width: 480px) {
+        main.container {
+          margin-top: 6.7rem !important;
+          padding: 0 4%;
+        }
+      }
+    </style>
   </head>
   <body style="display: flex; flex-direction: column; min-height: 100vh">
     <header class="header">
@@ -54,6 +73,7 @@
       </p>
 
       <div
+        class="portal-card"
         style="
           border: 1px solid rgba(224, 242, 241, 0.2);
           padding: 5rem 2rem;

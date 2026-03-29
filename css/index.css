@@ -50,6 +50,7 @@ body {
   background-color: var(--color-bg-primary);
   color: var(--color-text-primary);
   line-height: 1.6;
+  max-width: 100vw;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -79,6 +80,20 @@ img {
   max-width: 100%;
   height: auto;
   display: block;
+}
+
+picture,
+svg,
+video {
+  max-width: 100%;
+  height: auto;
+}
+
+a,
+button,
+.btn,
+[role="button"] {
+  touch-action: manipulation;
 }
 
 /* Typography Utilities */
@@ -378,6 +393,7 @@ img {
   left: 0;
   width: 100%;
   height: 100vh;
+  height: 100dvh;
   background:
     radial-gradient(
       circle at 15% 15%,
@@ -822,6 +838,76 @@ img {
 
 /* Reduce section vertical padding on mobile */
 @media (max-width: 767px) {
+  :root {
+    --color-border-soft: rgba(245, 242, 238, 0.24);
+  }
+
+  :root[data-theme="light"] {
+    --color-border-soft: rgba(26, 46, 44, 0.28);
+  }
+
+  .container {
+    padding: 0 4.5%;
+  }
+
+  .header,
+  .header.scrolled {
+    padding-left: 4.5%;
+    padding-right: 4.5%;
+  }
+
+  .header-logo {
+    font-size: 1.2rem;
+    letter-spacing: 0.14em;
+  }
+
+  .menu-drawer {
+    height: 100dvh;
+  }
+
+  .menu-list a {
+    font-size: clamp(1.5rem, 8vw, 2.5rem);
+  }
+
+  #authActions {
+    gap: 0.45rem;
+    max-width: 78%;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .header-theme-toggle {
+    right: 4.5%;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .theme-toggle {
+    width: 52px;
+    height: 30px;
+  }
+
+  .theme-toggle::before {
+    width: 22px;
+    height: 22px;
+    top: 3px;
+    left: 3px;
+  }
+
+  :root[data-theme="light"] .theme-toggle::before {
+    transform: translateX(22px);
+  }
+
+  .btn {
+    padding: 0.78rem 1.5rem;
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+  }
+
+  .btn-cookie {
+    width: 100%;
+  }
+
   .section {
     padding: 4rem 0;
   }
@@ -857,7 +943,8 @@ img {
 
   /* Team card bio max-height bump for mobile hover */
   .team-card:hover .team-bio {
-    max-height: 1200px;
+    max-height: 560px;
+    overflow-y: auto;
   }
 
   /* Trust banner grid: 2 cols on mobile, already set, ensure spacing */
@@ -868,6 +955,10 @@ img {
   /* Partner cards padding reduction */
   .partner-card {
     padding: 2rem;
+  }
+
+  .provider-card {
+    min-height: 0;
   }
 
   /* Reduce menu-drawer left padding for small screens */
@@ -887,6 +978,36 @@ img {
   .grid-2 > div[style*="border-left"] {
     border-left: none !important;
     padding-left: 0 !important;
+  }
+
+  .cookie-banner {
+    padding: 1rem 4.5%;
+    gap: 0.75rem;
+  }
+
+  .cookie-text {
+    font-size: 0.82rem;
+  }
+
+  .cookie-buttons {
+    width: 100%;
+  }
+
+  .social-links {
+    gap: 0.8rem;
+    flex-wrap: wrap;
+  }
+
+  .admin-table {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    padding: 0.65rem;
   }
 }
 
@@ -924,6 +1045,32 @@ img {
 
 /* Extra small screens */
 @media (max-width: 480px) {
+  .container {
+    padding: 0 4%;
+  }
+
+  .menu-btn {
+    left: 4%;
+    font-size: 0;
+    letter-spacing: 0;
+    gap: 0;
+    min-width: 22px;
+    padding: 0;
+  }
+
+  .menu-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-logo {
+    font-size: 1.05rem;
+  }
+
+  .menu-drawer-left {
+    padding: 12% 7% 8%;
+  }
+
   .trust-banner .grid-4 {
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
@@ -945,11 +1092,93 @@ img {
 
   #authActions {
     gap: 0.4rem;
-    max-width: 75%;
+    max-width: 72%;
   }
 
   .theme-toggle {
-    padding: 0.45rem 0.7rem;
-    font-size: 0.68rem;
+    width: 48px;
+    height: 28px;
+    font-size: 0.62rem;
+  }
+
+  .theme-toggle::before {
+    width: 20px;
+    height: 20px;
+  }
+
+  :root[data-theme="light"] .theme-toggle::before {
+    transform: translateX(18px);
+  }
+
+  .header-theme-toggle {
+    right: calc(4% + 72px);
+  }
+
+  .header > .btn {
+    right: 4%;
+    padding: 0.42rem 0.72rem;
+    font-size: 0.56rem;
+    letter-spacing: 0.12em;
+    max-width: 68px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .menu-list li {
+    margin-bottom: 1.4rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding: 0 3.5%;
+  }
+
+  #authActions {
+    max-width: 68%;
+  }
+
+  .header > .btn {
+    padding: 0.38rem 0.6rem;
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    right: 3.5%;
+    max-width: 62px;
+  }
+
+  .header-theme-toggle {
+    display: none;
+  }
+
+  .stillwater-brand-text {
+    display: none;
+  }
+
+  .header-logo {
+    letter-spacing: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .hero,
+  .page-hero {
+    height: auto;
+    min-height: 72vh;
+  }
+
+  .header,
+  .header.scrolled {
+    padding-top: 0.65rem;
+    padding-bottom: 0.65rem;
+  }
+}
+
+@supports (padding: max(0px)) {
+  .header,
+  .cookie-banner,
+  .menu-drawer-left {
+    padding-left: max(5%, env(safe-area-inset-left));
+    padding-right: max(5%, env(safe-area-inset-right));
   }
 }

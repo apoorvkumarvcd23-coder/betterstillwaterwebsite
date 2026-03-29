@@ -7,7 +7,14 @@
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "check:mojibake": "node scripts/check-mojibake.js",
-    "ci:check": "npm run check:mojibake"
+    "ci:check": "npm run check:mojibake",
+    "seed:test-admin": "node scripts/seed-test-admin.js",
+    "test:mobile-ui": "playwright test",
+    "test:mobile-ui:headed": "playwright test --headed",
+    "test:mobile-ui:install": "playwright install chromium",
+    "test:mobile-ui:static": "playwright test tests/mobile-static-layout.spec.js",
+    "test:mobile-ui:static:headed": "playwright test tests/mobile-static-layout.spec.js --headed",
+    "ci:mobile": "npm run seed:test-admin && playwright test --reporter=line"
   },
   "keywords": [],
   "author": "",
@@ -24,5 +31,8 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-local": "^1.0.0",
     "pg": "^8.20.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.54.2"
   }
 }

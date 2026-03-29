@@ -25,6 +25,7 @@
         gap: 2rem;
         margin-top: 3rem;
         align-items: start;
+        min-width: 0;
       }
 
       .team-card {
@@ -34,6 +35,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        min-width: 0;
       }
 
       .team-card:hover {
@@ -91,6 +93,7 @@
       .team-info h3 {
         font-size: 1.5rem;
         margin-bottom: 0.25rem;
+        overflow-wrap: anywhere;
       }
 
       .team-bio {
@@ -103,6 +106,8 @@
         font-size: 0.95rem;
         line-height: 1.7;
         border-top: 1px solid var(--color-border-soft);
+        overflow-wrap: anywhere;
+        word-break: break-word;
       }
 
       .team-bio p + p {
@@ -116,6 +121,9 @@
         font-size: 0.82rem;
         text-transform: uppercase;
         letter-spacing: 0.08em;
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
       }
 
       .section-title {
@@ -130,6 +138,44 @@
         flex: 1;
         height: 1px;
         background-color: rgba(240, 248, 255, 0.2);
+      }
+
+      @media (max-width: 767px) {
+        .page-hero {
+          padding-top: 7rem;
+          padding-bottom: 3rem;
+          margin-bottom: 2.5rem;
+        }
+
+        .team-grid {
+          grid-template-columns: 1fr;
+          gap: 1rem;
+          margin-top: 2rem;
+          overflow-x: hidden;
+        }
+
+        section.container.section {
+          overflow-x: hidden;
+        }
+
+        .team-info,
+        .team-bio {
+          padding: 1.1rem;
+        }
+
+        .team-info h3 {
+          font-size: 1.25rem;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .team-grid {
+          gap: 0.9rem;
+        }
+
+        .section-title {
+          margin-bottom: 1.3rem;
+        }
       }
     </style>
   </head>
