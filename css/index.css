@@ -301,7 +301,7 @@ img {
 }
 
 .theme-toggle::after {
-  content: "☾";
+  content: "";
   position: absolute;
   right: 8px;
   top: 50%;
@@ -321,7 +321,7 @@ img {
 }
 
 :root[data-theme="light"] .theme-toggle::after {
-  content: "☀";
+  content: "";
   left: 8px;
   right: auto;
   color: #8f7040;

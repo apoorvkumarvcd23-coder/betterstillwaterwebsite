@@ -215,6 +215,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const closeBtn = document.querySelector(".menu-drawer-close");
   const drawer = document.querySelector(".menu-drawer");
 
+  if (drawer) {
+    // Ensure drawer is always closed on page load
+    drawer.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+
   if (menuBtn && closeBtn && drawer) {
     menuBtn.addEventListener("click", () => {
       drawer.classList.add("active");
