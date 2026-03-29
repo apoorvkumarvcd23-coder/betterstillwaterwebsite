@@ -7,10 +7,12 @@
   --color-bg-secondary: #0e1f1f;
   --color-surface: rgba(13, 30, 30, 0.86);
   --color-text-primary: #f5f2ee;
-  --color-text-secondary: rgba(245, 242, 238, 0.66);
-  --color-accent: #c9a96e;
+  --color-text-secondary: rgba(245, 242, 238, 0.78);
+  --color-accent: #d6bb86;
   --color-accent-soft: #5fb3b3;
   --color-border-soft: rgba(245, 242, 238, 0.14);
+  --btn-hover-fill: rgba(245, 242, 238, 0.22);
+  --btn-hover-text: #f5f2ee;
 
   --font-heading: "Cormorant Garamond", "Playfair Display", serif;
   --font-body: "Jost", "Inter", sans-serif;
@@ -28,10 +30,12 @@
   --color-bg-secondary: #ece5db;
   --color-surface: rgba(255, 255, 255, 0.92);
   --color-text-primary: #1a2e2c;
-  --color-text-secondary: rgba(26, 46, 44, 0.7);
-  --color-accent: #8f7040;
+  --color-text-secondary: rgba(26, 46, 44, 0.84);
+  --color-accent: #6a4d1f;
   --color-accent-soft: #3a8a8a;
   --color-border-soft: rgba(26, 46, 44, 0.18);
+  --btn-hover-fill: rgba(26, 46, 44, 0.16);
+  --btn-hover-text: #1a2e2c;
 }
 
 /* Reset & Base */
@@ -136,11 +140,21 @@ img {
   transition: var(--transition-smooth);
   background: linear-gradient(
     to bottom,
-    rgba(11, 24, 24, 0.92) 0%,
-    transparent 100%
+    rgba(7, 18, 18, 0.96) 0%,
+    rgba(7, 18, 18, 0.64) 68%,
+    rgba(7, 18, 18, 0.2) 100%
   );
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
+}
+
+:root[data-theme="light"] .header {
+  background: linear-gradient(
+    to bottom,
+    rgba(7, 18, 18, 0.93) 0%,
+    rgba(7, 18, 18, 0.56) 68%,
+    rgba(7, 18, 18, 0.16) 100%
+  );
 }
 
 .header.scrolled {
@@ -301,7 +315,7 @@ img {
 }
 
 .theme-toggle::after {
-  content: "";
+  content: "☾";
   position: absolute;
   right: 8px;
   top: 50%;
@@ -321,7 +335,7 @@ img {
 }
 
 :root[data-theme="light"] .theme-toggle::after {
-  content: "";
+  content: "☀";
   left: 8px;
   right: auto;
   color: #8f7040;
@@ -468,7 +482,9 @@ img {
 
 /* UI Components */
 .btn {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.95rem 2.4rem;
   border: 1px solid rgba(245, 242, 238, 0.52);
   color: var(--color-text-primary);
@@ -481,6 +497,9 @@ img {
   background: transparent;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+  line-height: 1.1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .btn::before {
@@ -490,14 +509,15 @@ img {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: var(--color-text-primary);
+  background-color: var(--btn-hover-fill);
   transform: scaleX(0);
   transform-origin: left;
   transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .btn:hover {
-  color: var(--color-bg-primary);
+  color: var(--btn-hover-text);
+  border-color: rgba(245, 242, 238, 0.72);
 }
 
 .btn:hover::before {
@@ -511,12 +531,53 @@ img {
 }
 
 .btn-solid::before {
-  background-color: var(--color-text-primary);
+  background-color: var(--btn-hover-fill);
 }
 
 .btn-solid:hover {
-  color: var(--color-bg-primary);
-  border-color: var(--color-text-primary);
+  color: var(--btn-hover-text);
+  border-color: rgba(245, 242, 238, 0.78);
+}
+
+:root[data-theme="light"] .btn {
+  text-shadow: none;
+  border-color: rgba(26, 46, 44, 0.35);
+}
+
+:root[data-theme="light"] .btn:hover,
+:root[data-theme="light"] .btn-solid:hover {
+  border-color: rgba(26, 46, 44, 0.55);
+}
+
+/* Preserve readability on image/video-heavy sections in light mode. */
+:root[data-theme="light"] .header:not(.scrolled) .header-logo,
+:root[data-theme="light"] .header:not(.scrolled) .menu-btn,
+:root[data-theme="light"] .header:not(.scrolled) #authMenuButton,
+:root[data-theme="light"] .header:not(.scrolled) #authActions > a,
+:root[data-theme="light"] .header:not(.scrolled) .theme-toggle {
+  color: #f5f2ee !important;
+}
+
+:root[data-theme="light"] .header:not(.scrolled) #authActions .btn,
+:root[data-theme="light"] .header:not(.scrolled) #authMenuButton {
+  border-color: rgba(245, 242, 238, 0.58) !important;
+}
+
+:root[data-theme="light"] .hero :is(h1, h2, h3, h4, h5, h6, p, span, a, button),
+:root[data-theme="light"]
+  .page-hero
+  :is(h1, h2, h3, h4, h5, h6, p, span, a, button),
+:root[data-theme="light"]
+  .hero-content
+  :is(h1, h2, h3, h4, h5, h6, p, span, a, button) {
+  color: #f5f2ee;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.32);
+}
+
+:root[data-theme="light"] .hero .text-caption,
+:root[data-theme="light"] .page-hero .text-caption,
+:root[data-theme="light"] .hero-content .text-caption {
+  color: #e4c489;
 }
 
 /* Forms */

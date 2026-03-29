@@ -31,6 +31,7 @@
         letter-spacing: 0.24em;
         z-index: 3;
         flex: 0 0 auto;
+        margin-left: clamp(5.6rem, 8.4vw, 7.2rem);
       }
 
       .home-nav-links {
@@ -314,6 +315,10 @@
         .home-landing.home-nav-collapsed .menu-btn {
           display: flex;
         }
+
+        .home-landing:not(.home-nav-collapsed) .header-logo {
+          margin-left: 0;
+        }
       }
 
       @media (max-width: 1039px) {
@@ -328,6 +333,7 @@
           transform: translateX(-50%);
           font-size: 1.1rem;
           letter-spacing: 0.16em;
+          margin-left: 0;
         }
 
         .home-landing #btnLogin,

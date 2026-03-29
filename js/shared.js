@@ -335,7 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
           btnAdmin.style.display = "inline-flex";
         }
 
-        adjustHomeHeaderLayout();
+        // Defer layout adjustment to allow DOM to render new button states
+        requestAnimationFrame(() => adjustHomeHeaderLayout());
       })
       .catch(() => {
         if (authMenuButton) authMenuButton.style.display = "none";
@@ -343,7 +344,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (btnAdmin) btnAdmin.style.display = "none";
         if (btnIntake) btnIntake.style.display = "none";
         if (btnLogin) btnLogin.style.display = "inline-flex";
-        adjustHomeHeaderLayout();
+
+        // Defer layout adjustment to allow DOM to render new button states
+        requestAnimationFrame(() => adjustHomeHeaderLayout());
       });
 
     if (authMenuButton && authMenu) {
