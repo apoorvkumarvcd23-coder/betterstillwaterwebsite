@@ -94,9 +94,30 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function normalizePrimaryNavigation() {
+    const isTemporarilyHiddenAboutLink = (anchor) => {
+      const href = (anchor.getAttribute("href") || "").trim().toLowerCase();
+      const normalizedHref = href.replace(/^\.?\//, "");
+      const label = (anchor.textContent || "").trim().toLowerCase();
+      return normalizedHref === "about.html" || label === "about us";
+    };
+
+    const removeNavEntry = (anchor) => {
+      const listItem = anchor.closest("li");
+      if (listItem) {
+        listItem.remove();
+        return;
+      }
+      anchor.remove();
+    };
+
     const menuLists = document.querySelectorAll(".menu-list");
     menuLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
+        if (isTemporarilyHiddenAboutLink(anchor)) {
+          removeNavEntry(anchor);
+          return;
+        }
+
         const href = (anchor.getAttribute("href") || "").toLowerCase();
         if (
           href.includes("fundraising.html") ||
@@ -116,6 +137,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+
+    document
+      .querySelectorAll("header nav a, .home-nav-links a")
+      .forEach((anchor) => {
+        if (isTemporarilyHiddenAboutLink(anchor)) {
+          removeNavEntry(anchor);
+        }
+      });
   }
 
   function normalizeWaitlistLinks() {
@@ -134,7 +163,10 @@ document.addEventListener("DOMContentLoaded", () => {
     footerLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
         const href = (anchor.getAttribute("href") || "").toLowerCase();
+        const label = (anchor.textContent || "").trim().toLowerCase();
         if (
+          href.includes("about.html") ||
+          label === "about us" ||
           href.includes("fundraising.html") ||
           href.includes("testimonials.html")
         ) {
@@ -309,6 +341,86 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById("btnLogin");
     const btnAdmin = document.getElementById("btnAdmin");
     const btnIntake = document.getElementById("btnIntake");
+    const AUTH_COMPACT_BREAKPOINT = 1039;
+    const MAX_COMPACT_NAME_CHARS = 8;
+    const MAX_FULL_NAME_CHARS = 22;
+    let activeUser = null;
+
+    const clampLabel = (value, maxChars) => {
+      if (value.length <= maxChars) return value;
+      return `${value.slice(0, Math.max(1, maxChars - 3))}...`;
+    };
+
+    const setAuthMenuLink = (id, href, label) => {
+      if (!authMenu) return;
+
+      let link = document.getElementById(id);
+      if (!link) {
+        link = document.createElement("a");
+        link.id = id;
+        link.style.display = "block";
+        link.style.padding = "0.5rem 0.75rem";
+        link.style.color = "var(--color-text-primary)";
+        link.style.textDecoration = "none";
+        link.style.fontSize = "0.8rem";
+        const logoutLink = document.getElementById("btnLogout");
+        authMenu.insertBefore(link, logoutLink || null);
+      }
+
+      link.href = href;
+      link.textContent = label;
+    };
+
+    const removeAuthMenuLink = (id) => {
+      const link = document.getElementById(id);
+      if (link) link.remove();
+    };
+
+    const applyAuthActionsLayout = () => {
+      const isAuthenticated = Boolean(activeUser);
+      const isCompact =
+        isAuthenticated && window.innerWidth <= AUTH_COMPACT_BREAKPOINT;
+
+      document.body.classList.toggle("auth-actions-compact", isCompact);
+
+      if (!isAuthenticated) {
+        if (btnAdmin) btnAdmin.style.display = "none";
+        if (btnIntake) btnIntake.style.display = "none";
+        if (btnLogin) btnLogin.style.display = "inline-flex";
+        if (authMenuButton) {
+          authMenuButton.style.display = "none";
+        }
+        return;
+      }
+
+      if (btnLogin) btnLogin.style.display = "none";
+
+      const safeName =
+        typeof activeUser.name === "string" && activeUser.name.trim()
+          ? activeUser.name.trim()
+          : "Member";
+      const firstName = safeName.split(/\s+/)[0] || "Member";
+      const compactName = clampLabel(firstName, MAX_COMPACT_NAME_CHARS);
+      const fullName = clampLabel(safeName, MAX_FULL_NAME_CHARS);
+
+      if (authMenuButton) {
+        authMenuButton.textContent = isCompact
+          ? `Hi, ${compactName}`
+          : `Hi, ${fullName}`;
+        authMenuButton.style.display = "inline-flex";
+      }
+
+      if (btnIntake) {
+        btnIntake.style.display = isCompact ? "none" : "inline-flex";
+      }
+
+      if (btnAdmin) {
+        btnAdmin.style.display =
+          !isCompact && activeUser.role === "admin" ? "inline-flex" : "none";
+      }
+
+      requestAnimationFrame(() => adjustHomeHeaderLayout());
+    };
 
     const loginUrl = `/auth.html?returnTo=${encodeURIComponent(window.location.href)}`;
     if (btnLogin) btnLogin.setAttribute("href", loginUrl);
@@ -317,37 +429,51 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((res) => (res.ok ? res.json() : null))
       .then((user) => {
         if (!user || user.authenticated === false) {
-          if (authMenuButton) authMenuButton.style.display = "none";
+          activeUser = null;
+          removeAuthMenuLink("authMenuIntake");
+          removeAuthMenuLink("authMenuAdmin");
           if (authMenu) authMenu.style.display = "none";
-          if (btnAdmin) btnAdmin.style.display = "none";
-          if (btnIntake) btnIntake.style.display = "none";
-          if (btnLogin) btnLogin.style.display = "inline-flex";
+          applyAuthActionsLayout();
           return;
         }
 
-        if (authMenuButton) {
-          authMenuButton.textContent = `Hi, ${user.name}`;
-          authMenuButton.style.display = "inline-flex";
+        activeUser = user;
+        setAuthMenuLink(
+          "authMenuIntake",
+          "/intake.html",
+          "Wellness Assessment",
+        );
+        if (user.role === "admin") {
+          setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
+        } else {
+          removeAuthMenuLink("authMenuAdmin");
         }
-        if (btnLogin) btnLogin.style.display = "none";
-        if (btnIntake) btnIntake.style.display = "inline-flex";
-        if (btnAdmin && user.role === "admin") {
-          btnAdmin.style.display = "inline-flex";
-        }
+
+        applyAuthActionsLayout();
 
         // Defer layout adjustment to allow DOM to render new button states
         requestAnimationFrame(() => adjustHomeHeaderLayout());
       })
       .catch(() => {
-        if (authMenuButton) authMenuButton.style.display = "none";
+        activeUser = null;
+        removeAuthMenuLink("authMenuIntake");
+        removeAuthMenuLink("authMenuAdmin");
         if (authMenu) authMenu.style.display = "none";
-        if (btnAdmin) btnAdmin.style.display = "none";
-        if (btnIntake) btnIntake.style.display = "none";
-        if (btnLogin) btnLogin.style.display = "inline-flex";
+        applyAuthActionsLayout();
 
         // Defer layout adjustment to allow DOM to render new button states
         requestAnimationFrame(() => adjustHomeHeaderLayout());
       });
+
+    let authLayoutResizeTimeout = null;
+    window.addEventListener("resize", () => {
+      if (authLayoutResizeTimeout) {
+        clearTimeout(authLayoutResizeTimeout);
+      }
+      authLayoutResizeTimeout = setTimeout(() => {
+        applyAuthActionsLayout();
+      }, 80);
+    });
 
     if (authMenuButton && authMenu) {
       authMenuButton.addEventListener("click", (event) => {

@@ -234,9 +234,18 @@
         z-index: 5;
       }
 
+      .home-landing.auth-actions-compact #authActions {
+        max-width: min(54vw, 240px);
+        gap: 0.35rem !important;
+      }
+
       .home-landing #authMenuWrap {
         max-width: 220px;
         flex: 0 1 auto;
+      }
+
+      .home-landing.auth-actions-compact #authMenuWrap {
+        max-width: 118px;
       }
 
       .home-landing #authMenuButton {
@@ -245,6 +254,12 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         display: block;
+      }
+
+      .home-landing.auth-actions-compact #authMenuButton {
+        max-width: 112px;
+        font-size: 0.7rem !important;
+        letter-spacing: 0.06em;
       }
 
       .home-landing #authMenu {
@@ -297,6 +312,11 @@
       .home-landing #btnAdmin,
       .home-landing #btnIntake {
         display: none;
+      }
+
+      .home-landing.auth-actions-compact #btnIntake,
+      .home-landing.auth-actions-compact #btnAdmin {
+        display: none !important;
       }
 
       @media (min-width: 1360px) {
@@ -549,12 +569,25 @@
           gap: 0.35rem !important;
         }
 
+        .home-landing.auth-actions-compact #authActions {
+          max-width: min(52vw, 208px);
+        }
+
         .home-landing #authMenuWrap {
           max-width: 148px;
         }
 
+        .home-landing.auth-actions-compact #authMenuWrap {
+          max-width: 102px;
+        }
+
         .home-landing #authMenuButton {
           max-width: 142px;
+        }
+
+        .home-landing.auth-actions-compact #authMenuButton {
+          max-width: 96px;
+          font-size: 0.66rem !important;
         }
 
         .hero-content {
@@ -591,6 +624,11 @@
 
         .home-landing #authActions {
           max-width: 68%;
+        }
+
+        .home-landing.auth-actions-compact #authActions {
+          max-width: min(49vw, 188px);
+          gap: 0.3rem !important;
         }
 
         .hero {

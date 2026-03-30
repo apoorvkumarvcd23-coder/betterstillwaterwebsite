@@ -277,6 +277,39 @@ button,
   flex-wrap: wrap;
 }
 
+#authMenuWrap {
+  min-width: 0;
+}
+
+#authMenuButton {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body.auth-actions-compact #authActions {
+  max-width: min(60vw, 260px);
+  gap: 0.4rem;
+  flex-wrap: nowrap;
+  overflow: hidden;
+}
+
+body.auth-actions-compact #authMenuWrap {
+  max-width: 140px;
+  flex: 0 1 auto;
+}
+
+body.auth-actions-compact #authMenuButton {
+  max-width: 100%;
+  font-size: 0.72rem;
+}
+
+body.auth-actions-compact #btnIntake,
+body.auth-actions-compact #btnAdmin {
+  display: none !important;
+}
+
 .header > .btn {
   position: absolute;
   right: 5%;
@@ -876,6 +909,18 @@ button,
     overflow: hidden;
   }
 
+  body.auth-actions-compact #authActions {
+    max-width: min(56vw, 212px);
+  }
+
+  body.auth-actions-compact #authMenuWrap {
+    max-width: 108px;
+  }
+
+  body.auth-actions-compact #authMenuButton {
+    font-size: 0.66rem;
+  }
+
   .header-theme-toggle {
     right: 4.5%;
     top: 50%;
@@ -1095,6 +1140,19 @@ button,
     max-width: 72%;
   }
 
+  body.auth-actions-compact #authActions {
+    max-width: min(53vw, 188px);
+    gap: 0.3rem;
+  }
+
+  body.auth-actions-compact #authMenuWrap {
+    max-width: 96px;
+  }
+
+  body.auth-actions-compact #authMenuButton {
+    font-size: 0.62rem;
+  }
+
   .theme-toggle {
     width: 48px;
     height: 28px;
@@ -1137,6 +1195,10 @@ button,
 
   #authActions {
     max-width: 68%;
+  }
+
+  body.auth-actions-compact #authActions {
+    max-width: min(49vw, 166px);
   }
 
   .header > .btn {

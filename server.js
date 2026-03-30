@@ -489,6 +489,12 @@ app.get("/portal.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "portal.html"));
 });
 
+// Temporarily hide the About Us page from navigation and direct access.
+// Keep the file in the repo so it can be restored later.
+app.get("/about.html", (_req, res) => {
+  return res.redirect("/");
+});
+
 // === API ROUTES ===
 app.get("/api/funds", async (req, res) => {
   try {

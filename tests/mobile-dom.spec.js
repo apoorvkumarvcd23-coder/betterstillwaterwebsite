@@ -73,6 +73,68 @@ function buildPhoneSeed() {
   return `9${stamp.slice(-9)}`;
 }
 
+async function ensureCustomerSession(page, options = {}) {
+  const phone =
+    options.phone || process.env.TEST_CUSTOMER_PHONE || buildPhoneSeed();
+  const password =
+    options.password ||
+    process.env.TEST_CUSTOMER_PASSWORD ||
+    "StillwaterUser#123";
+  const name = options.name || "Header Compact QA";
+
+  let loginRes = await page.request.post("/auth/login", {
+    data: {
+      phone,
+      password,
+      returnTo: "/",
+    },
+  });
+
+  if (!loginRes.ok()) {
+    const registerRes = await page.request.post("/auth/register", {
+      data: {
+        phone,
+        name,
+        password,
+        returnTo: "/",
+      },
+    });
+
+    expect(
+      registerRes.ok(),
+      "Customer register for compact test failed",
+    ).toBeTruthy();
+
+    loginRes = await page.request.post("/auth/login", {
+      data: {
+        phone,
+        password,
+        returnTo: "/",
+      },
+    });
+  }
+
+  expect(loginRes.ok(), "Customer login for compact test failed").toBeTruthy();
+}
+
+async function ensureAdminSession(page) {
+  const phone = process.env.TEST_ADMIN_PHONE || "9000000001";
+  const password = process.env.TEST_ADMIN_PASSWORD || "StillwaterAdmin#123";
+
+  const loginRes = await page.request.post("/auth/login", {
+    data: {
+      phone,
+      password,
+      returnTo: "/admin.html",
+    },
+  });
+
+  expect(
+    loginRes.ok(),
+    "Admin login for compact test failed. Run npm run seed:test-admin first.",
+  ).toBeTruthy();
+}
+
 async function applyTheme(page, theme) {
   await page.evaluate((chosenTheme) => {
     localStorage.setItem("stillwater_theme", chosenTheme);
@@ -213,6 +275,37 @@ async function runRouteMatrix(page, route) {
   }
 }
 
+async function readAuthHeaderState(page) {
+  return page.evaluate(() => {
+    const authActions = document.getElementById("authActions");
+    const authMenuButton = document.getElementById("authMenuButton");
+    const btnIntake = document.getElementById("btnIntake");
+    const btnAdmin = document.getElementById("btnAdmin");
+    const authMenuIntake = document.getElementById("authMenuIntake");
+    const authMenuAdmin = document.getElementById("authMenuAdmin");
+
+    const intakeStyles = btnIntake ? getComputedStyle(btnIntake) : null;
+    const adminStyles = btnAdmin ? getComputedStyle(btnAdmin) : null;
+
+    const rect = authActions ? authActions.getBoundingClientRect() : null;
+
+    return {
+      hasCompactClass: document.body.classList.contains("auth-actions-compact"),
+      authButtonText: authMenuButton ? authMenuButton.textContent.trim() : "",
+      intakeVisibleInline: Boolean(
+        btnIntake && intakeStyles && intakeStyles.display !== "none",
+      ),
+      adminVisibleInline: Boolean(
+        btnAdmin && adminStyles && adminStyles.display !== "none",
+      ),
+      hasIntakeMenuLink: Boolean(authMenuIntake),
+      hasAdminMenuLink: Boolean(authMenuAdmin),
+      authActionsRight: rect ? rect.right : null,
+      authActionsLeft: rect ? rect.left : null,
+    };
+  });
+}
+
 test.beforeAll(async ({ playwright, baseURL }) => {
   fs.mkdirSync(authDir, { recursive: true });
 
@@ -291,6 +384,40 @@ test.describe("Mobile DOM QA - Logged In Customer", () => {
       await runRouteMatrix(page, route);
     });
   }
+
+  test("customer mobile header compacts safely on home", async ({ page }) => {
+    await ensureCustomerSession(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/", { waitUntil: "networkidle" });
+
+    const state = await readAuthHeaderState(page);
+
+    expect(state.hasCompactClass).toBeTruthy();
+    expect(state.intakeVisibleInline).toBeFalsy();
+    expect(state.hasIntakeMenuLink).toBeTruthy();
+    expect(state.authButtonText.length).toBeGreaterThan(0);
+    expect(state.authActionsRight).toBeLessThanOrEqual(376);
+    expect(state.authActionsLeft).toBeGreaterThanOrEqual(-1);
+  });
+
+  test("customer compact greeting truncates ultra-long names", async ({
+    page,
+  }) => {
+    await ensureCustomerSession(page, {
+      phone: buildPhoneSeed(),
+      name: "98783063631234567890 Extremely Long Member Name",
+    });
+
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/", { waitUntil: "networkidle" });
+
+    const state = await readAuthHeaderState(page);
+
+    expect(state.hasCompactClass).toBeTruthy();
+    expect(state.authButtonText.startsWith("Hi, ")).toBeTruthy();
+    expect(state.authButtonText.length).toBeLessThanOrEqual(14);
+    expect(state.authButtonText.includes("...")).toBeTruthy();
+  });
 });
 
 test.describe("Mobile DOM QA - Seeded Admin", () => {
@@ -301,4 +428,21 @@ test.describe("Mobile DOM QA - Seeded Admin", () => {
       await runRouteMatrix(page, route);
     });
   }
+
+  test("admin mobile header compacts safely on home", async ({ page }) => {
+    await ensureAdminSession(page);
+    await page.setViewportSize({ width: 375, height: 812 });
+    await page.goto("/", { waitUntil: "networkidle" });
+
+    const state = await readAuthHeaderState(page);
+
+    expect(state.hasCompactClass).toBeTruthy();
+    expect(state.intakeVisibleInline).toBeFalsy();
+    expect(state.adminVisibleInline).toBeFalsy();
+    expect(state.hasIntakeMenuLink).toBeTruthy();
+    expect(state.hasAdminMenuLink).toBeTruthy();
+    expect(state.authButtonText.length).toBeGreaterThan(0);
+    expect(state.authActionsRight).toBeLessThanOrEqual(376);
+    expect(state.authActionsLeft).toBeGreaterThanOrEqual(-1);
+  });
 });
