@@ -887,23 +887,11 @@ body.auth-actions-compact #btnAdmin {
   .header.scrolled {
     padding-left: 4.5%;
     padding-right: 4.5%;
-    justify-content: flex-start;
-  }
-
-  .menu-btn {
-    position: static;
-    left: auto;
-    flex-shrink: 0;
   }
 
   .header-logo {
     font-size: 1.2rem;
     letter-spacing: 0.14em;
-    position: static;
-    transform: none;
-    margin: 0 auto;
-    flex: 0 1 auto;
-    min-width: 0;
   }
 
   .menu-drawer {
@@ -915,18 +903,10 @@ body.auth-actions-compact #btnAdmin {
   }
 
   #authActions {
-    position: static;
-    margin-left: auto;
-    max-width: none;
     gap: 0.45rem;
+    max-width: 78%;
     flex-wrap: nowrap;
     overflow: hidden;
-    flex-shrink: 0;
-  }
-
-  /* Hide the theme toggle inside authActions on mobile — too cramped */
-  #authActions .header-theme-toggle-inline {
-    display: none;
   }
 
   body.auth-actions-compact #authActions {
@@ -1115,6 +1095,7 @@ body.auth-actions-compact #btnAdmin {
   }
 
   .menu-btn {
+    left: 4%;
     font-size: 0;
     letter-spacing: 0;
     gap: 0;
@@ -1129,10 +1110,6 @@ body.auth-actions-compact #btnAdmin {
 
   .header-logo {
     font-size: 1.05rem;
-  }
-
-  .stillwater-brand-text {
-    display: none;
   }
 
   .menu-drawer-left {
@@ -1160,6 +1137,7 @@ body.auth-actions-compact #btnAdmin {
 
   #authActions {
     gap: 0.4rem;
+    max-width: 72%;
   }
 
   body.auth-actions-compact #authActions {
@@ -1232,6 +1210,10 @@ body.auth-actions-compact #btnAdmin {
   }
 
   .header-theme-toggle {
+    display: none;
+  }
+
+  .stillwater-brand-text {
     display: none;
   }
 
