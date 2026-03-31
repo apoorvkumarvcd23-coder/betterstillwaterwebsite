@@ -24,7 +24,6 @@ const PUBLIC_ROUTES = [
   "/medical-disclaimer.html",
   "/partners.html",
   "/privacy-policy.html",
-  "/teams.html",
   "/terms-of-use.html",
 ];
 

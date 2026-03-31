@@ -15,7 +15,6 @@ const FILES = [
   "partners.html",
   "portal.html",
   "privacy-policy.html",
-  "teams.html",
   "terms-of-use.html",
 ];
 

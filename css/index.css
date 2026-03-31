@@ -1443,22 +1443,6 @@ body.auth-actions-compact #btnAdmin {
   }
 }
 
-/* ── 4. Teams page: advisors grid — prevent horizontal scroll */
-/* The inline style grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))
-   forces scroll on screens narrower than 340 px.             */
-@media (max-width: 767px) {
-  .team-grid[style*="minmax(340px"] {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Also cover the standard team-grid to ensure 1 col */
-  .team-grid {
-    grid-template-columns: 1fr !important;
-    min-width: 0;
-    width: 100%;
-  }
-}
-
 /* ── 5. Partner cards: make details visible on mobile (tap) ─ */
 /* On desktop they reveal on :hover; mobile has no hover,
    so we show a truncated preview and allow full reveal via
