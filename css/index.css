@@ -310,6 +310,38 @@ body.auth-actions-compact #btnAdmin {
   display: none !important;
 }
 
+/* ── Mobile header: force-hide inline buttons so logo never collides ── */
+/* These selectors must beat the JS inline-style 'display:inline-flex'   */
+@media (max-width: 1039px) {
+  /* #btnIntake is shown by JS via inline style; !important overrides it */
+  #btnIntake {
+    display: none !important;
+  }
+  /* Admin button only shows on desktop */
+  #btnAdmin {
+    display: none !important;
+  }
+  /* Compact mode: shrink auth zone to guarantee logo clearance */
+  #authActions {
+    max-width: min(42vw, 200px);
+    gap: 0.35rem;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+  #authMenuWrap {
+    max-width: 120px;
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  #authMenuButton {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.72rem;
+  }
+}
+
 .header > .btn {
   position: absolute;
   right: 5%;
@@ -903,22 +935,23 @@ body.auth-actions-compact #btnAdmin {
   }
 
   #authActions {
-    gap: 0.45rem;
-    max-width: 78%;
+    gap: 0.35rem;
+    /* 42vw keeps auth zone fully right of any centered ~110px-wide logo */
+    max-width: min(42vw, 196px);
     flex-wrap: nowrap;
     overflow: hidden;
   }
 
   body.auth-actions-compact #authActions {
-    max-width: min(56vw, 212px);
+    max-width: min(40vw, 180px);
   }
 
   body.auth-actions-compact #authMenuWrap {
-    max-width: 108px;
+    max-width: 100px;
   }
 
   body.auth-actions-compact #authMenuButton {
-    font-size: 0.66rem;
+    font-size: 0.64rem;
   }
 
   .header-theme-toggle {
@@ -1136,21 +1169,21 @@ body.auth-actions-compact #btnAdmin {
   }
 
   #authActions {
-    gap: 0.4rem;
-    max-width: 72%;
+    gap: 0.3rem;
+    max-width: min(40vw, 172px);
   }
 
   body.auth-actions-compact #authActions {
-    max-width: min(53vw, 188px);
-    gap: 0.3rem;
+    max-width: min(38vw, 158px);
+    gap: 0.25rem;
   }
 
   body.auth-actions-compact #authMenuWrap {
-    max-width: 96px;
+    max-width: 86px;
   }
 
   body.auth-actions-compact #authMenuButton {
-    font-size: 0.62rem;
+    font-size: 0.6rem;
   }
 
   .theme-toggle {
@@ -1194,11 +1227,11 @@ body.auth-actions-compact #btnAdmin {
   }
 
   #authActions {
-    max-width: 68%;
+    max-width: min(38vw, 152px);
   }
 
   body.auth-actions-compact #authActions {
-    max-width: min(49vw, 166px);
+    max-width: min(36vw, 140px);
   }
 
   .header > .btn {
@@ -1243,4 +1276,397 @@ body.auth-actions-compact #btnAdmin {
     padding-left: max(5%, env(safe-area-inset-left));
     padding-right: max(5%, env(safe-area-inset-right));
   }
+
+  @media (max-width: 767px) {
+    .header,
+    .cookie-banner,
+    .menu-drawer-left {
+      padding-left: max(4.5%, env(safe-area-inset-left));
+      padding-right: max(4.5%, env(safe-area-inset-right));
+    }
+  }
+
+  @media (max-width: 480px) {
+    .header,
+    .cookie-banner,
+    .menu-drawer-left {
+      padding-left: max(4%, env(safe-area-inset-left));
+      padding-right: max(4%, env(safe-area-inset-right));
+    }
+  }
 }
+
+/* Desktop baseline for Text-to-Icon login button:
+   icon is hidden, text label is shown (default/desktop state). */
+.header-login-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.header-login-btn .btn-icon {
+  display: none; /* Hidden on desktop; shown on mobile via media query */
+}
+
+.header-login-btn .btn-label {
+  display: inline; /* Shown on desktop; hidden on mobile via media query */
+}
+
+/* ==========================================================
+   MOBILE FIXES — strictly scoped to narrow viewports.
+   Desktop (≥ 1040px) is completely unaffected.
+   ========================================================== */
+
+/* ── 1. Hide "Menu" text label — icon-only below 768 px ─── */
+@media (max-width: 767px) {
+  .menu-btn .menu-btn-label {
+    display: none;
+  }
+
+  /* In case the text is a direct text node, zero out font-size
+     and gap on the button itself (already handled at ≤480px via
+     existing rules, but extend the range here for 481-767 px) */
+  .menu-btn {
+    font-size: 0 !important;
+    letter-spacing: 0 !important;
+    gap: 0 !important;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 10px;
+  }
+
+  .menu-btn svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+  }
+}
+
+/* ── 2. Header: enforce safe auth-zone + logo non-collision ─ */
+/* Authenticated state on narrow phones (375-768 px):
+   The theme toggle + "Hi, Name" button together can collide
+   with the absolutely-centred logo.                          */
+@media (max-width: 767px) {
+  /* Shrink the theme toggle slightly so auth zone has room    */
+  .theme-toggle {
+    width: 48px !important;
+    height: 28px !important;
+  }
+
+  /* Give the auth zone a hard right-side cap that leaves at
+     least 40 % of the viewport for the centered logo.        */
+  #authActions {
+    max-width: min(44vw, 192px) !important;
+  }
+
+  /* When the "Hi, Name" greeting + theme toggle are visible,
+     ensure the name is tightly clamped                       */
+  body.auth-actions-compact #authActions {
+    max-width: min(42vw, 176px) !important;
+  }
+
+  body.auth-actions-compact #authMenuWrap {
+    max-width: 108px;
+  }
+
+  body.auth-actions-compact #authMenuButton {
+    font-size: 0.62rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Fix: For non-home pages the header uses .header > .btn
+     (Login / Join) — prevent it from pushing the logo.      */
+  .header > .btn {
+    max-width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Text-to-Icon: hide "Login" text label on mobile;
+     show only the person icon (SVG).                        */
+  .header-login-btn .btn-label {
+    display: none;
+  }
+
+  .header-login-btn .btn-icon {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  /* Also remove the extra padding the inline style adds     */
+  .header-login-btn {
+    padding: 0 !important;
+    font-size: 0 !important;
+    letter-spacing: 0 !important;
+    gap: 0 !important;
+  }
+}
+
+/* Extreme small (≤ 380 px) — further tighten           */
+@media (max-width: 380px) {
+  #authActions {
+    max-width: min(40vw, 152px) !important;
+  }
+
+  body.auth-actions-compact #authActions {
+    max-width: min(38vw, 140px) !important;
+  }
+
+  body.auth-actions-compact #authMenuWrap {
+    max-width: 92px;
+  }
+
+  .header > .btn {
+    max-width: 60px;
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+  }
+}
+
+/* ── 3. Footer: fix right-aligned link columns on mobile ─── */
+@media (max-width: 767px) {
+  /* The footer grid-2 right column uses inline justify-content:
+     flex-end which looks odd on a stacked single column.     */
+  .footer .grid-2 > div:last-child {
+    justify-content: flex-start !important;
+  }
+
+  /* Give the footer link groups proper spacing               */
+  .footer .grid-2 > div:last-child > div {
+    min-width: 0;
+  }
+}
+
+/* ── 4. Teams page: advisors grid — prevent horizontal scroll */
+/* The inline style grid-template-columns: repeat(auto-fill, minmax(340px, 1fr))
+   forces scroll on screens narrower than 340 px.             */
+@media (max-width: 767px) {
+  .team-grid[style*="minmax(340px"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Also cover the standard team-grid to ensure 1 col */
+  .team-grid {
+    grid-template-columns: 1fr !important;
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+/* ── 5. Partner cards: make details visible on mobile (tap) ─ */
+/* On desktop they reveal on :hover; mobile has no hover,
+   so we show a truncated preview and allow full reveal via
+   the .open class applied in JS (below).                    */
+@media (max-width: 767px) {
+  /* Show a short preview by default */
+  .partner-details {
+    max-height: none !important;
+    opacity: 1 !important;
+    margin-top: 1rem !important;
+    overflow: hidden;
+    transition: none !important;
+  }
+
+  /* Keep partner-conditions and meta visible but truncate desc */
+  .partner-desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* When user taps a partner card, show full description     */
+  .partner-card.mobile-open .partner-desc {
+    display: block;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+    overflow: visible;
+  }
+
+  /* Ensure partner-card hover transform doesn't apply on touch */
+  .partner-card:hover {
+    transform: none;
+  }
+}
+
+/* ── 6. auth.html: allow body to scroll on mobile ──────────  */
+/* auth.html originally sets overflow: hidden on body;
+   on short-ish phones with a long form this clips content.  */
+@media (max-width: 767px) {
+  /* Only for the auth layout; scoped via its unique class    */
+  body:has(.auth-layout) {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+  }
+
+  .auth-layout {
+    height: auto !important;
+    min-height: 100svh;
+  }
+
+  .auth-main {
+    height: auto !important;
+    min-height: 100svh;
+  }
+
+  .right {
+    padding: 3rem 1.5rem 4rem !important;
+    min-height: 100svh;
+    overflow-y: visible !important;
+  }
+
+  /* Ensure the toggle buttons have ample touch targets       */
+  .toggle-btn {
+    padding: 1rem 0;
+    font-size: 0.68rem !important;
+  }
+}
+
+/* ── 7. intake.html: safe header on the no-menu page ───────  */
+@media (max-width: 767px) {
+  /* intake header only has logo + Home btn, so use simple
+     space-between layout instead of absolute positioning     */
+  .intake-shell {
+    margin-top: 5.5rem;
+  }
+
+  .intake-card {
+    padding: 1.4rem 1.1rem;
+  }
+}
+
+/* ── 8. Blog page: featured card stacks cleanly on mobile ── */
+@media (max-width: 767px) {
+  .blog-card-featured {
+    grid-column: 1 / -1;        /* already set, keep it */
+    display: flex !important;   /* override the grid layout */
+    flex-direction: column !important;
+  }
+
+  /* Blog placeholder cards: reduce min-height on very small screens */
+  .blog-card-placeholder {
+    min-height: 180px;
+  }
+}
+
+/* ── 9. Careers: job card grid forces 1 col cleanly ────────  */
+@media (max-width: 767px) {
+  .jobs-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* ── 10. General overflow guard for all pages ───────────────  */
+@media (max-width: 767px) {
+  /* Prevent any element from causing horizontal scroll   */
+  section,
+  .container,
+  main,
+  footer {
+    max-width: 100vw;
+    overflow-x: hidden;
+  }
+
+  /* Trust banner: ensure 2-col grid doesn't overflow     */
+  .trust-banner .stats-grid {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Provider row: tighten padding */
+  .provider-row {
+    padding-left: 4.5%;
+    padding-right: 4.5%;
+  }
+
+  /* Quote section on index: ensure it wraps and doesn't push width */
+  .text-h2 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Admin table: already has overflow-x: auto at ≤767px,
+     but ensure the wrapping element clips as well         */
+  .admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── 11. Cookie banner: safe-area bottom on modern iPhones ─  */
+@media (max-width: 767px) {
+  .cookie-banner {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+}
+
+/* ── 12. Hero descriptor: keep text readable at 375 px ─────  */
+@media (max-width: 480px) {
+  .hero-descriptor {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  /* Ensure hero CTA button has full touch target             */
+  .hero-cta .btn {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ── 13. Vision section: reduce oversized image height ─────  */
+@media (max-width: 767px) {
+  .vision-image-wrapper {
+    height: 260px;
+  }
+}
+
+@media (max-width: 480px) {
+  .vision-image-wrapper {
+    height: 220px;
+  }
+}
+
+/* ── 14. Section spacing: avoid excessive whitespace ────────  */
+@media (max-width: 480px) {
+  .partners-section {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+  }
+
+  .application-section {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+}
+
+/* ── 15. Page hero: consistent padding across pages  ────────  */
+@media (max-width: 767px) {
+  .page-hero {
+    padding-top: 7rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .page-hero h1.text-display {
+    font-size: clamp(2rem, 9vw, 3rem);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-hero {
+    padding-top: 6.4rem !important;
+    padding-bottom: 2rem !important;
+  }
+}
+

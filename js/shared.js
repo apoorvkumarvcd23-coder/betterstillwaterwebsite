@@ -459,4 +459,34 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
   }
+
+  // ── Mobile: add auth-actions-compact class when authenticated on mobile ──
+  // This lets CSS tighten the auth zone further to prevent logo collision.
+  function updateAuthCompactClass() {
+    const isMobile = window.innerWidth <= 767;
+    const authMenuBtn = document.getElementById("authMenuButton");
+    if (isMobile && authMenuBtn) {
+      document.body.classList.add("auth-actions-compact");
+    } else {
+      document.body.classList.remove("auth-actions-compact");
+    }
+  }
+
+  // Run once + on resize
+  updateAuthCompactClass();
+  window.addEventListener("resize", updateAuthCompactClass);
+
+  // ── Mobile: partner card tap-to-reveal ──────────────────────────────────
+  // On touch devices the :hover state never fires, so partner details are
+  // permanently hidden. This handler toggles a .mobile-open class on tap.
+  if (window.matchMedia("(hover: none), (pointer: coarse)").matches) {
+    document.querySelectorAll(".partner-card").forEach((card) => {
+      card.addEventListener("click", (e) => {
+        // If the click is on an anchor inside the card let it navigate;
+        // only toggle if the card itself (or non-link child) is tapped.
+        if (e.target.closest("a") && e.target.closest("a") !== card) return;
+        card.classList.toggle("mobile-open");
+      });
+    });
+  }
 });
