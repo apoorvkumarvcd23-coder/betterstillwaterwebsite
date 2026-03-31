@@ -6,7 +6,6 @@ const ROOT = path.resolve(__dirname, "..");
 
 const FILES = [
   "index.html",
-  "about.html",
   "admin.html",
   "auth.html",
   "blog.html",

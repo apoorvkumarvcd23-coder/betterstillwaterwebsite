@@ -94,30 +94,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function normalizePrimaryNavigation() {
-    const isTemporarilyHiddenAboutLink = (anchor) => {
-      const href = (anchor.getAttribute("href") || "").trim().toLowerCase();
-      const normalizedHref = href.replace(/^\.?\//, "");
-      const label = (anchor.textContent || "").trim().toLowerCase();
-      return normalizedHref === "about.html" || label === "about us";
-    };
-
-    const removeNavEntry = (anchor) => {
-      const listItem = anchor.closest("li");
-      if (listItem) {
-        listItem.remove();
-        return;
-      }
-      anchor.remove();
-    };
-
     const menuLists = document.querySelectorAll(".menu-list");
     menuLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
-        if (isTemporarilyHiddenAboutLink(anchor)) {
-          removeNavEntry(anchor);
-          return;
-        }
-
         const href = (anchor.getAttribute("href") || "").toLowerCase();
         if (
           href.includes("fundraising.html") ||
@@ -137,14 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
-
-    document
-      .querySelectorAll("header nav a, .home-nav-links a")
-      .forEach((anchor) => {
-        if (isTemporarilyHiddenAboutLink(anchor)) {
-          removeNavEntry(anchor);
-        }
-      });
   }
 
   function normalizeWaitlistLinks() {
@@ -163,10 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
     footerLists.forEach((list) => {
       list.querySelectorAll("a").forEach((anchor) => {
         const href = (anchor.getAttribute("href") || "").toLowerCase();
-        const label = (anchor.textContent || "").trim().toLowerCase();
         if (
-          href.includes("about.html") ||
-          label === "about us" ||
           href.includes("fundraising.html") ||
           href.includes("testimonials.html")
         ) {

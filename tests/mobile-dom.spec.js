@@ -17,7 +17,6 @@ const THEMES = ["dark", "light"];
 
 const PUBLIC_ROUTES = [
   "/",
-  "/about.html",
   "/auth.html",
   "/blog.html",
   "/careers.html",

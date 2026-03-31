@@ -1,0 +1,38 @@
+[
+  {
+    "file": "admin.html",
+    "viewport": "iPhone SE (w375)",
+    "report": {
+      "docOverflow": 0,
+      "overflow": [],
+      "offscreen": []
+    }
+  },
+  {
+    "file": "admin.html",
+    "viewport": "Galaxy Fold (w320)",
+    "report": {
+      "docOverflow": 0,
+      "overflow": [],
+      "offscreen": []
+    }
+  },
+  {
+    "file": "index.html",
+    "viewport": "iPhone SE (w375)",
+    "report": {
+      "docOverflow": 0,
+      "overflow": [],
+      "offscreen": []
+    }
+  },
+  {
+    "file": "index.html",
+    "viewport": "Galaxy Fold (w320)",
+    "report": {
+      "docOverflow": 0,
+      "overflow": [],
+      "offscreen": []
+    }
+  }
+]
