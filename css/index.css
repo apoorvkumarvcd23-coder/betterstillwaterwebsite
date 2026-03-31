@@ -1312,6 +1312,15 @@ body.auth-actions-compact #btnAdmin {
   display: inline; /* Shown on desktop; hidden on mobile via media query */
 }
 
+/* User profile button desktop baseline */
+#authMenuButton .auth-btn-icon {
+  display: none;
+}
+
+#authMenuButton .auth-btn-label {
+  display: inline;
+}
+
 /* ==========================================================
    MOBILE FIXES — strictly scoped to narrow viewports.
    Desktop (≥ 1040px) is completely unaffected.
@@ -1359,21 +1368,33 @@ body.auth-actions-compact #btnAdmin {
     max-width: min(44vw, 192px) !important;
   }
 
-  /* When the "Hi, Name" greeting + theme toggle are visible,
-     ensure the name is tightly clamped                       */
-  body.auth-actions-compact #authActions {
-    max-width: min(42vw, 176px) !important;
+  /* Hide header theme toggle on mobile as requested */
+  .header-theme-toggle-inline {
+    display: none !important;
   }
 
-  body.auth-actions-compact #authMenuWrap {
-    max-width: 108px;
+  /* Text-to-Icon: On mobile, hide the "Hi, Name" text label and
+     show a profile icon instead. Restrict to a 44x44 circular button. */
+  #authMenuButton .auth-btn-label {
+    display: none !important;
+  }
+  
+  #authMenuButton .auth-btn-icon {
+    display: block !important;
+    flex-shrink: 0;
   }
 
-  body.auth-actions-compact #authMenuButton {
-    font-size: 0.62rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  #authMenuButton {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 !important;
+    justify-content: center;
+    border-radius: 50%;
+  }
+
+  /* Since text + theme toggle are gone, we can safely reduce the container sizes */
+  #authActions, #authMenuWrap {
+    max-width: 50px !important;
   }
 
   /* Fix: For non-home pages the header uses .header > .btn
@@ -1408,26 +1429,6 @@ body.auth-actions-compact #btnAdmin {
   }
 }
 
-/* Extreme small (≤ 380 px) — further tighten           */
-@media (max-width: 380px) {
-  #authActions {
-    max-width: min(40vw, 152px) !important;
-  }
-
-  body.auth-actions-compact #authActions {
-    max-width: min(38vw, 140px) !important;
-  }
-
-  body.auth-actions-compact #authMenuWrap {
-    max-width: 92px;
-  }
-
-  .header > .btn {
-    max-width: 60px;
-    font-size: 0.52rem;
-    letter-spacing: 0.08em;
-  }
-}
 
 /* ── 3. Footer: fix right-aligned link columns on mobile ─── */
 @media (max-width: 767px) {
