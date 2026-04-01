@@ -24,6 +24,21 @@ async function main() {
       )
     `);
 
+    // Ensure login_events table exists so seed can run on fresh DB
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS login_events (
+        id BIGSERIAL PRIMARY KEY,
+        user_id TEXT,
+        user_type TEXT,
+        identifier TEXT,
+        method TEXT,
+        ip TEXT,
+        user_agent TEXT,
+        meta JSONB DEFAULT '{}'::jsonb,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `);
+
     const passwordHash = await bcrypt.hash(password, 10);
 
     const result = await pool.query(

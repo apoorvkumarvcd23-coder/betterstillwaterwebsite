@@ -224,6 +224,9 @@
         <button class="admin-tab-btn" data-tab="careersTab" id="btnCareersTab">
           Career Forms
         </button>
+        <button class="admin-tab-btn" data-tab="loginsTab" id="btnLoginsTab">
+          Login Events
+        </button>
         <button
           class="admin-tab-btn"
           data-tab="phoneUsersTab"
@@ -572,6 +575,47 @@
           </table>
         </div>
       </div>
+
+      <!-- TAB 4: Login Events -->
+      <div id="loginsTab" class="tab-content">
+        <div
+          style="
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            padding: 3rem;
+            text-align: left;
+            background: rgba(201, 169, 110, 0.02);
+            overflow-x: auto;
+          "
+        >
+          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+            Login Events
+          </h3>
+          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
+            Historical record of user logins (Google and phone).
+          </p>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Method</th>
+                <th>Session</th>
+                <th>IP</th>
+                <th>Accept-Language</th>
+                <th>Referer</th>
+                <th>User Agent</th>
+              </tr>
+            </thead>
+            <tbody id="loginsTableBody">
+              <tr>
+                <td colspan="9" style="text-align: center">Loading login events...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
 
     <footer class="footer container" style="margin-top: auto">
@@ -605,6 +649,9 @@
           }
           if (targetId === "phoneUsersTab") {
             loadPhoneUsersData();
+          }
+          if (targetId === "loginsTab") {
+            loadLoginEventsData();
           }
         });
       });
@@ -702,6 +749,66 @@
         } catch (err) {
           tbody.innerHTML =
             '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Network error loading phone users.</td></tr>';
+        }
+      }
+
+      // Fetch and populate login events
+      async function loadLoginEventsData() {
+        const tbody = document.getElementById("loginsTableBody");
+        try {
+          const response = await fetch("/api/admin/logins");
+          const data = await response.json();
+
+          if (response.ok) {
+            if (!data.items || data.items.length === 0) {
+              tbody.innerHTML =
+                '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No login events found.</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = "";
+            data.items.forEach((ev) => {
+              const date = new Date(ev.created_at).toLocaleString();
+              const userLabel = ev.identifier || ev.user_id || "-";
+              const userType = ev.user_type || "-";
+              // meta may be an object or a JSON string
+              let meta = ev.meta || {};
+              if (typeof meta === "string") {
+                try {
+                  meta = JSON.parse(meta);
+                } catch (e) {
+                  meta = {};
+                }
+              }
+
+              const sessionId = (meta && meta.session_id) || "-";
+              const acceptLang = (meta && meta.headers && meta.headers.accept_language) || "-";
+              const referer = (meta && meta.headers && meta.headers.referer) || "-";
+
+              const ua = ev.user_agent || (meta && meta.headers && meta.headers.user_agent) || "-";
+              const uaPreview = ua.length > 120 ? ua.substring(0, 120) + "..." : ua;
+
+              const tr = document.createElement("tr");
+              tr.innerHTML = `
+                <td title="${ev.created_at}">${date}</td>
+                <td style="font-weight: 500; color: var(--color-text-primary);">${userLabel}</td>
+                <td>${userType}</td>
+                <td>${ev.method || '-'}</td>
+                <td>${sessionId}</td>
+                <td>${ev.ip || '-'}</td>
+                <td>${acceptLang}</td>
+                <td>${referer}</td>
+                <td title="${ev.user_agent || ''}">${uaPreview}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+            } else {
+            tbody.innerHTML =
+              '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Failed to load login events.</td></tr>';
+          }
+        } catch (err) {
+          tbody.innerHTML =
+            '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Network error loading login events.</td></tr>';
         }
       }
     </script>
