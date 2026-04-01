@@ -610,7 +610,9 @@
             </thead>
             <tbody id="loginsTableBody">
               <tr>
-                <td colspan="9" style="text-align: center">Loading login events...</td>
+                <td colspan="9" style="text-align: center">
+                  Loading login events...
+                </td>
               </tr>
             </tbody>
           </table>
@@ -782,27 +784,33 @@
               }
 
               const sessionId = (meta && meta.session_id) || "-";
-              const acceptLang = (meta && meta.headers && meta.headers.accept_language) || "-";
-              const referer = (meta && meta.headers && meta.headers.referer) || "-";
+              const acceptLang =
+                (meta && meta.headers && meta.headers.accept_language) || "-";
+              const referer =
+                (meta && meta.headers && meta.headers.referer) || "-";
 
-              const ua = ev.user_agent || (meta && meta.headers && meta.headers.user_agent) || "-";
-              const uaPreview = ua.length > 120 ? ua.substring(0, 120) + "..." : ua;
+              const ua =
+                ev.user_agent ||
+                (meta && meta.headers && meta.headers.user_agent) ||
+                "-";
+              const uaPreview =
+                ua.length > 120 ? ua.substring(0, 120) + "..." : ua;
 
               const tr = document.createElement("tr");
               tr.innerHTML = `
                 <td title="${ev.created_at}">${date}</td>
                 <td style="font-weight: 500; color: var(--color-text-primary);">${userLabel}</td>
                 <td>${userType}</td>
-                <td>${ev.method || '-'}</td>
+                <td>${ev.method || "-"}</td>
                 <td>${sessionId}</td>
-                <td>${ev.ip || '-'}</td>
+                <td>${ev.ip || "-"}</td>
                 <td>${acceptLang}</td>
                 <td>${referer}</td>
-                <td title="${ev.user_agent || ''}">${uaPreview}</td>
+                <td title="${ev.user_agent || ""}">${uaPreview}</td>
               `;
               tbody.appendChild(tr);
             });
-            } else {
+          } else {
             tbody.innerHTML =
               '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Failed to load login events.</td></tr>';
           }

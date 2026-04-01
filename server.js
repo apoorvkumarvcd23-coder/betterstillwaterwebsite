@@ -14,7 +14,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-const DEFAULT_ADMIN_EMAILS = new Set(["amar@stillwater.you"]);
+const DEFAULT_ADMIN_EMAILS = new Set(["amar@stillwater.you", "amar.dani@stillwater.you"]);
 
 const isAdminEmail = (email) => {
   const normalizedEmail = String(email || "")
@@ -618,7 +618,9 @@ app.get("/api/admin/phone-users", requireRole("admin"), async (_req, res) => {
 app.get("/api/admin/logins", requireRole("admin"), async (req, res) => {
   try {
     const limitRaw = parseInt(String(req.query.limit || "100"), 10);
-    const limit = Number.isFinite(limitRaw) ? Math.max(1, Math.min(limitRaw, 1000)) : 100;
+    const limit = Number.isFinite(limitRaw)
+      ? Math.max(1, Math.min(limitRaw, 1000))
+      : 100;
     const offsetRaw = parseInt(String(req.query.offset || "0"), 10);
     const offset = Number.isFinite(offsetRaw) ? Math.max(0, offsetRaw) : 0;
 
@@ -665,7 +667,10 @@ app.get("/api/admin/logins", requireRole("admin"), async (req, res) => {
       countParams,
     );
 
-    res.json({ count: parseInt(countResult.rows[0].count, 10), items: rowsResult.rows });
+    res.json({
+      count: parseInt(countResult.rows[0].count, 10),
+      items: rowsResult.rows,
+    });
   } catch (err) {
     console.error("Error fetching login events:", err.message || err);
     res.status(500).json({ error: "Failed to fetch login events" });
@@ -887,7 +892,10 @@ app.get(
         headers: {
           accept_language: req.get("accept-language") || null,
           referer: req.get("referer") || null,
-          x_forwarded_for: req.get("x-forwarded-for") || req.headers["x-forwarded-for"] || null,
+          x_forwarded_for:
+            req.get("x-forwarded-for") ||
+            req.headers["x-forwarded-for"] ||
+            null,
           sec_ch_ua: req.get("sec-ch-ua") || null,
           sec_ch_ua_platform: req.get("sec-ch-ua-platform") || null,
           sec_ch_ua_mobile: req.get("sec-ch-ua-mobile") || null,
@@ -977,7 +985,10 @@ app.post("/auth/register", async (req, res) => {
           headers: {
             accept_language: req.get("accept-language") || null,
             referer: req.get("referer") || null,
-            x_forwarded_for: req.get("x-forwarded-for") || req.headers["x-forwarded-for"] || null,
+            x_forwarded_for:
+              req.get("x-forwarded-for") ||
+              req.headers["x-forwarded-for"] ||
+              null,
             sec_ch_ua: req.get("sec-ch-ua") || null,
             sec_ch_ua_platform: req.get("sec-ch-ua-platform") || null,
             sec_ch_ua_mobile: req.get("sec-ch-ua-mobile") || null,
@@ -990,9 +1001,22 @@ app.post("/auth/register", async (req, res) => {
           .query(
             `INSERT INTO login_events (user_id, user_type, identifier, method, ip, user_agent, meta)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [String(user.id), "phone", user.phone || null, "phone", ip, ua, JSON.stringify(meta)],
+            [
+              String(user.id),
+              "phone",
+              user.phone || null,
+              "phone",
+              ip,
+              ua,
+              JSON.stringify(meta),
+            ],
           )
-          .catch((err) => console.error("Failed to record login event (phone, register):", err));
+          .catch((err) =>
+            console.error(
+              "Failed to record login event (phone, register):",
+              err,
+            ),
+          );
       } catch (err) {
         console.error("Failed to enqueue login event (phone, register):", err);
       }
@@ -1071,7 +1095,10 @@ app.post("/auth/login", async (req, res, next) => {
                 headers: {
                   accept_language: req.get("accept-language") || null,
                   referer: req.get("referer") || null,
-                  x_forwarded_for: req.get("x-forwarded-for") || req.headers["x-forwarded-for"] || null,
+                  x_forwarded_for:
+                    req.get("x-forwarded-for") ||
+                    req.headers["x-forwarded-for"] ||
+                    null,
                   sec_ch_ua: req.get("sec-ch-ua") || null,
                   sec_ch_ua_platform: req.get("sec-ch-ua-platform") || null,
                   sec_ch_ua_mobile: req.get("sec-ch-ua-mobile") || null,
@@ -1084,11 +1111,27 @@ app.post("/auth/login", async (req, res, next) => {
                 .query(
                   `INSERT INTO login_events (user_id, user_type, identifier, method, ip, user_agent, meta)
                    VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                  [String(authUser.id), "phone", authUser.phone || null, "phone", ip, ua, JSON.stringify(meta)],
+                  [
+                    String(authUser.id),
+                    "phone",
+                    authUser.phone || null,
+                    "phone",
+                    ip,
+                    ua,
+                    JSON.stringify(meta),
+                  ],
                 )
-                .catch((err) => console.error("Failed to record login event (phone, login):", err));
+                .catch((err) =>
+                  console.error(
+                    "Failed to record login event (phone, login):",
+                    err,
+                  ),
+                );
             } catch (err) {
-              console.error("Failed to enqueue login event (phone, login):", err);
+              console.error(
+                "Failed to enqueue login event (phone, login):",
+                err,
+              );
             }
 
             req.session.save((saveErr) => {
@@ -1138,7 +1181,10 @@ app.post("/auth/login", async (req, res, next) => {
             headers: {
               accept_language: req.get("accept-language") || null,
               referer: req.get("referer") || null,
-              x_forwarded_for: req.get("x-forwarded-for") || req.headers["x-forwarded-for"] || null,
+              x_forwarded_for:
+                req.get("x-forwarded-for") ||
+                req.headers["x-forwarded-for"] ||
+                null,
               sec_ch_ua: req.get("sec-ch-ua") || null,
               sec_ch_ua_platform: req.get("sec-ch-ua-platform") || null,
               sec_ch_ua_mobile: req.get("sec-ch-ua-mobile") || null,
@@ -1151,13 +1197,27 @@ app.post("/auth/login", async (req, res, next) => {
             .query(
               `INSERT INTO login_events (user_id, user_type, identifier, method, ip, user_agent, meta)
                VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-              [String(user.id), "phone", user.phone || null, "phone", ip, ua, JSON.stringify(meta)],
+              [
+                String(user.id),
+                "phone",
+                user.phone || null,
+                "phone",
+                ip,
+                ua,
+                JSON.stringify(meta),
+              ],
             )
             .catch((err) =>
-              console.error("Failed to record login event (phone, create+login):", err),
+              console.error(
+                "Failed to record login event (phone, create+login):",
+                err,
+              ),
             );
         } catch (err) {
-          console.error("Failed to enqueue login event (phone, create+login):", err);
+          console.error(
+            "Failed to enqueue login event (phone, create+login):",
+            err,
+          );
         }
 
         req.session.save((saveErr) => {
@@ -1223,7 +1283,10 @@ app.post("/auth/login", async (req, res, next) => {
           headers: {
             accept_language: req.get("accept-language") || null,
             referer: req.get("referer") || null,
-            x_forwarded_for: req.get("x-forwarded-for") || req.headers["x-forwarded-for"] || null,
+            x_forwarded_for:
+              req.get("x-forwarded-for") ||
+              req.headers["x-forwarded-for"] ||
+              null,
             sec_ch_ua: req.get("sec-ch-ua") || null,
             sec_ch_ua_platform: req.get("sec-ch-ua-platform") || null,
             sec_ch_ua_mobile: req.get("sec-ch-ua-mobile") || null,
@@ -1236,11 +1299,27 @@ app.post("/auth/login", async (req, res, next) => {
           .query(
             `INSERT INTO login_events (user_id, user_type, identifier, method, ip, user_agent, meta)
              VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-            [String(user.id), "phone", user.phone || null, "phone", ip, ua, JSON.stringify(meta)],
+            [
+              String(user.id),
+              "phone",
+              user.phone || null,
+              "phone",
+              ip,
+              ua,
+              JSON.stringify(meta),
+            ],
           )
-          .catch((err) => console.error("Failed to record login event (phone, standard login):", err));
+          .catch((err) =>
+            console.error(
+              "Failed to record login event (phone, standard login):",
+              err,
+            ),
+          );
       } catch (err) {
-        console.error("Failed to enqueue login event (phone, standard login):", err);
+        console.error(
+          "Failed to enqueue login event (phone, standard login):",
+          err,
+        );
       }
 
       req.session.save((err) => {
