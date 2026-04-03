@@ -1,0 +1,2 @@
+id,user_id,user_type,identifier,method,ip,user_agent,meta,created_at
+"1","1","phone","9000000001","phone","::1","Mozilla/5.0 (Windows NT; Windows NT 10.0; en-IN) WindowsPowerShell/5.1.26100.7920","{""role"":""admin"",""headers"":{""host"":""localhost:3000"",""accept"":null,""referer"":null,""sec_ch_ua"":null,""accept_language"":null,""x_forwarded_for"":null,""sec_ch_ua_mobile"":null,""sec_ch_ua_platform"":null},""protocol"":""http"",""session_id"":""_wzzaX6fImaDgABucdai-mFv-t4cBlBf"",""originalUrl"":""/auth/login""}","""2026-04-03T03:30:58.697Z"""

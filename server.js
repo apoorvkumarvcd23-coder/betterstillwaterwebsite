@@ -677,6 +677,109 @@ app.get("/api/admin/logins", requireRole("admin"), async (req, res) => {
   }
 });
 
+// Admin: export phone users as CSV
+app.get(
+  "/api/admin/export/phone-users",
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT id, phone, name, role, created_at FROM users_phone ORDER BY created_at DESC",
+      );
+
+      const rows = result.rows || [];
+
+      const headers = ["id", "phone", "name", "role", "created_at"];
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="phone-users.csv"',
+      );
+
+      const escape = (val) => {
+        if (val === null || typeof val === "undefined") return "";
+        return '"' + String(val).replace(/"/g, '""') + '"';
+      };
+
+      let out = headers.join(",") + "\n";
+      rows.forEach((r) => {
+        out +=
+          [r.id, r.phone, r.name, r.role, r.created_at]
+            .map(escape)
+            .join(",") +
+          "\n";
+      });
+
+      res.send(out);
+    } catch (err) {
+      console.error("Error exporting phone users:", err);
+      res.status(500).send("Failed to export phone users");
+    }
+  },
+);
+
+// Admin: export login events as CSV
+app.get(
+  "/api/admin/export/logins",
+  requireRole("admin"),
+  async (_req, res) => {
+    try {
+      const result = await pool.query(
+        "SELECT id, user_id, user_type, identifier, method, ip, user_agent, meta, created_at FROM login_events ORDER BY created_at DESC",
+      );
+
+      const rows = result.rows || [];
+      const headers = [
+        "id",
+        "user_id",
+        "user_type",
+        "identifier",
+        "method",
+        "ip",
+        "user_agent",
+        "meta",
+        "created_at",
+      ];
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="login-events.csv"',
+      );
+
+      const escape = (val) => {
+        if (val === null || typeof val === "undefined") return "";
+        let s = typeof val === "object" ? JSON.stringify(val) : String(val);
+        return '"' + s.replace(/"/g, '""') + '"';
+      };
+
+      let out = headers.join(",") + "\n";
+      rows.forEach((r) => {
+        out +=
+          [
+            r.id,
+            r.user_id,
+            r.user_type,
+            r.identifier,
+            r.method,
+            r.ip,
+            r.user_agent,
+            r.meta,
+            r.created_at,
+          ]
+            .map(escape)
+            .join(",") +
+          "\n";
+      });
+
+      res.send(out);
+    } catch (err) {
+      console.error("Error exporting login events:", err);
+      res.status(500).send("Failed to export login events");
+    }
+  },
+);
+
 app.get("/api/auth/me", (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.json({ authenticated: false });

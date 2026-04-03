@@ -552,9 +552,12 @@
           <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
             Registered Phone Users
           </h3>
-          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-            All phone numbers that have registered or logged in.
-          </p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <p style="color: var(--color-text-secondary); margin:0;">
+              All phone numbers that have registered or logged in.
+            </p>
+            <button id="exportPhoneUsersBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
+          </div>
 
           <table class="admin-table">
             <thead>
@@ -590,9 +593,12 @@
           <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
             Login Events
           </h3>
-          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-            Historical record of user logins (Google and phone).
-          </p>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
+            <p style="color: var(--color-text-secondary); margin:0;">
+              Historical record of user logins (Google and phone).
+            </p>
+            <button id="exportLoginsBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
+          </div>
 
           <table class="admin-table">
             <thead>
@@ -818,6 +824,22 @@
           tbody.innerHTML =
             '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Network error loading login events.</td></tr>';
         }
+      }
+
+      // Export CSV buttons
+      const exportPhoneBtn = document.getElementById("exportPhoneUsersBtn");
+      if (exportPhoneBtn) {
+        exportPhoneBtn.addEventListener("click", () => {
+          // navigate to protected CSV endpoint which returns a file download
+          window.location.href = "/api/admin/export/phone-users";
+        });
+      }
+
+      const exportLoginsBtn = document.getElementById("exportLoginsBtn");
+      if (exportLoginsBtn) {
+        exportLoginsBtn.addEventListener("click", () => {
+          window.location.href = "/api/admin/export/logins";
+        });
       }
     </script>
   </body>
