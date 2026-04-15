@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "rag:backfill-embeddings": "node scripts/backfill-rag-embeddings.js",
     "check:mojibake": "node scripts/check-mojibake.js",
     "ci:check": "npm run check:mojibake",
     "seed:test-admin": "node scripts/seed-test-admin.js",

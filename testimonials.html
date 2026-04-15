@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StillWater - Diabetes Testimonial Chatbot</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/testimonials.css">
+</head>
+<body>
+  <div class="page-bg"></div>
+  <div class="page-overlay"></div>
+
+  <div class="app-shell">
+    <header class="header">
+      <div class="header-bg-art"></div>
+
+      <div class="header-inner">
+        <div class="header-topbar">
+          <div class="brand">
+            <div class="brand-logo">*</div>
+            <div>
+              <div class="brand-name">Still<span>Water</span></div>
+              <div class="brand-tagline">AI-Powered Patient-Centric Evidence-Based</div>
+            </div>
+          </div>
+
+          <div class="header-actions">
+            <button class="lang-toggle" id="langToggle" type="button">English</button>
+            <a class="lang-toggle home-link" href="/index.html">Home</a>
+          </div>
+        </div>
+
+        <div class="header-title">Diabetes Testimonial Chatbot</div>
+        <div class="header-sub">Ask anything. Get insights from real patient stories.</div>
+
+        <div class="header-badges">
+          <div class="badge">Voice and text input</div>
+          <div class="badge">AI-powered insights</div>
+          <div class="badge">Privacy first</div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="card input-card">
+        <div class="card-title">
+          <span>[Input]</span>
+          <span>Your Input</span>
+        </div>
+
+        <p class="helper-text">You can speak or type your question</p>
+
+        <div class="input-tabs">
+          <button class="tab-btn" id="voiceTab" type="button">Voice Input</button>
+          <button class="tab-btn active" id="textTab" type="button">Text Input</button>
+        </div>
+
+        <div class="textarea-wrap">
+          <textarea
+            class="chat-textarea"
+            id="userInput"
+            placeholder="Type your question here...&#10;Example: What foods helped patients reduce their medication?"
+            maxlength="500"
+          ></textarea>
+          <span class="char-count" id="charCount">0/500</span>
+        </div>
+
+        <div class="pref-row">
+          <span>Preferred Response Language</span>
+          <select id="languageSelect" class="lang-select" title="Preferred response language" aria-label="Preferred response language">
+            <option value="en">English</option>
+            <option value="hi">Hindi</option>
+          </select>
+        </div>
+
+        <button class="ask-btn" id="askBtn" type="button">Ask StillWater</button>
+
+        <div class="privacy-note">Your data is private and secure</div>
+      </div>
+
+      <div class="card response-card">
+        <div class="resp-header">
+          <div class="card-title">
+            <span>[Info]</span>
+            <span>StillWater Response</span>
+          </div>
+        </div>
+
+        <div class="resp-loading" id="respLoading">
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <span class="loading-dot"></span>
+          <div class="loading-caption">Searching patient stories...</div>
+        </div>
+
+        <div class="resp-content" id="respContent">
+          <div class="resp-intro" id="respIntro">
+            Here is what I found from real patient stories.
+          </div>
+
+          <div class="insights-title">Key Insights</div>
+
+          <div id="insightsList">
+            <div class="insight-item">
+              <div class="insight-icon insight-icon-1">1</div>
+              <div>Many patients reduced or stopped diabetes medications after adopting a whole-food, plant-based diet.</div>
+            </div>
+
+            <div class="insight-item">
+              <div class="insight-icon insight-icon-2">2</div>
+              <div>Improvements in HbA1c, weight, and energy levels were commonly reported.</div>
+            </div>
+
+            <div class="insight-item">
+              <div class="insight-icon insight-icon-3">3</div>
+              <div>Consistency, meal planning, and community support were key to long-term success.</div>
+            </div>
+          </div>
+
+          <div class="takeaway" id="takeawayBox">
+            <div class="takeaway-title">Key Takeaway</div>
+            <div class="takeaway-text" id="takeawayText">
+              Real patient stories can reveal meaningful patterns, but this chatbot does not provide medical advice.
+            </div>
+
+            <div class="takeaway-actions">
+              <button class="action-btn" id="speakBtn" type="button">Speak</button>
+              <button class="action-btn" id="stopSpeakBtn" type="button">Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <div class="card">
+        <div class="card-title">
+          <span>[Try]</span>
+          <span>Try These Questions</span>
+        </div>
+
+        <div class="question-item" data-question="How did patients reduce medicines with a plant-based diet?">
+          <div class="question-left">
+            <div class="q-icon q-icon-1">Q1</div>
+            <div>How did patients reduce medicines with a plant-based diet?</div>
+          </div>
+          <span class="arrow">></span>
+        </div>
+
+        <div class="question-item" data-question="What are the benefits of a plant-based diet in diabetes?">
+          <div class="question-left">
+            <div class="q-icon q-icon-2">Q2</div>
+            <div>What are the benefits of a plant-based diet in diabetes?</div>
+          </div>
+          <span class="arrow">></span>
+        </div>
+
+        <div class="question-item" data-question="How long did it take to see improvements?">
+          <div class="question-left">
+            <div class="q-icon q-icon-3">Q3</div>
+            <div>How long did it take to see improvements?</div>
+          </div>
+          <span class="arrow">></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="sources-header">
+          <div class="card-title no-margin">
+            <span>[Src]</span>
+            <span>Sources</span>
+          </div>
+          <div class="sources-sub">Real stories. Trusted sources.</div>
+        </div>
+
+        <div class="sources-grid" id="sourcesGrid">
+          <div class="source-card">
+            <div class="source-thumb yt">1</div>
+            <div class="source-body">
+              <div class="source-type yt">Source 1</div>
+              <div class="source-org">Patient testimonial source</div>
+              <div class="source-desc">Relevant source links will appear here after you ask a question.</div>
+              <a class="source-link" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+          </div>
+
+          <div class="source-card">
+            <div class="source-thumb research">2</div>
+            <div class="source-body">
+              <div class="source-type">Source 2</div>
+              <div class="source-org">Evidence-backed source</div>
+              <div class="source-desc">Sources from your RAG results will be shown here.</div>
+              <a class="source-link" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+          </div>
+
+          <div class="source-card">
+            <div class="source-thumb story">3</div>
+            <div class="source-body">
+              <div class="source-type">Source 3</div>
+              <div class="source-org">Recovered patient story</div>
+              <div class="source-desc">Source titles and links will be rendered automatically.</div>
+              <a class="source-link" href="#" target="_blank" rel="noopener noreferrer">Open</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <div>This chatbot uses anonymized patient stories and trusted sources. It does not provide medical advice.</div>
+      <div>Copyright 2026 StillWater.</div>
+    </footer>
+  </div>
+
+  <script src="js/testimonials.js"></script>
+</body>
+</html>

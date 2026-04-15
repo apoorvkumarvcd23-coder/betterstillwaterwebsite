@@ -41,6 +41,9 @@ if (!DATABASE_URL) {
 
 const isProd = process.env.NODE_ENV === "production";
 const rawCookieDomain = (process.env.COOKIE_DOMAIN || "").trim();
+const databaseUrlRequiresSsl = /[?&]sslmode=require/i.test(String(DATABASE_URL || ""));
+const forceDbSsl = String(process.env.DB_SSL || "").trim().toLowerCase() === "true";
+const useDbSsl = isProd || databaseUrlRequiresSsl || forceDbSsl;
 const cookieDomain =
   rawCookieDomain && !/\.?(onrender\.com)$/i.test(rawCookieDomain)
     ? rawCookieDomain
@@ -54,7 +57,7 @@ if (rawCookieDomain && !cookieDomain) {
 
 const pool = new Pool({
   connectionString: DATABASE_URL,
-  ssl: isProd ? { rejectUnauthorized: false } : false,
+  ssl: useDbSsl ? { rejectUnauthorized: false } : false,
 });
 
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3002")
@@ -236,6 +239,230 @@ const toBoolean = (value) => {
   return !!value;
 };
 
+const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || "").trim();
+const GEMINI_CHAT_MODEL = String(process.env.GEMINI_CHAT_MODEL || "models/gemini-2.5-flash").trim();
+const GEMINI_EMBED_MODEL = String(process.env.GEMINI_EMBED_MODEL || "models/text-embedding-004").trim();
+const OPENROUTER_API_KEY = String(process.env.OPENROUTER_API_KEY || "").trim();
+const OPENROUTER_BASE_URL = String(process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1")
+  .trim()
+  .replace(/\/+$/, "");
+const OPENROUTER_CHAT_MODEL = String(
+  process.env.OPENROUTER_CHAT_MODEL || process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+).trim();
+const OPENROUTER_EMBED_MODEL = String(
+  process.env.OPENROUTER_EMBED_MODEL || process.env.OPENROUTER_EMBEDDING_MODEL || "openai/text-embedding-3-small",
+).trim();
+const OPENROUTER_HTTP_REFERER = String(process.env.OPENROUTER_HTTP_REFERER || "").trim();
+const OPENROUTER_APP_NAME = String(process.env.OPENROUTER_APP_NAME || "stillwater-rag").trim();
+const RAG_LLM_PROVIDER = String(
+  process.env.RAG_LLM_PROVIDER || (OPENROUTER_API_KEY && !GEMINI_API_KEY ? "openrouter" : "gemini"),
+)
+  .trim()
+  .toLowerCase();
+const TESTIMONIALS_TABLE = String(
+  process.env.RAG_TESTIMONIALS_TABLE || "testimonials.testimonials_dim_diabetes_amareye",
+).trim();
+
+const buildGeminiApiUrl = (model, action) => {
+  return `https://generativelanguage.googleapis.com/v1beta/${model}:${action}?key=${encodeURIComponent(GEMINI_API_KEY)}`;
+};
+
+const hasRagProviderConfig = () => {
+  if (RAG_LLM_PROVIDER === "openrouter") {
+    return Boolean(OPENROUTER_API_KEY);
+  }
+  return Boolean(GEMINI_API_KEY);
+};
+
+const getProviderSummary = () => {
+  if (RAG_LLM_PROVIDER === "openrouter") {
+    return {
+      provider: RAG_LLM_PROVIDER,
+      configured: Boolean(OPENROUTER_API_KEY),
+      chatModel: OPENROUTER_CHAT_MODEL,
+      embedModel: OPENROUTER_EMBED_MODEL,
+    };
+  }
+
+  return {
+    provider: "gemini",
+    configured: Boolean(GEMINI_API_KEY),
+    chatModel: GEMINI_CHAT_MODEL,
+    embedModel: GEMINI_EMBED_MODEL,
+  };
+};
+
+const buildOpenRouterHeaders = () => {
+  const headers = {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+    "X-Title": OPENROUTER_APP_NAME,
+  };
+
+  if (OPENROUTER_HTTP_REFERER) {
+    headers["HTTP-Referer"] = OPENROUTER_HTTP_REFERER;
+  }
+
+  return headers;
+};
+
+const toVectorLiteral = (values) => {
+  if (!Array.isArray(values) || values.length === 0) {
+    throw new Error("Embedding must be a non-empty numeric array.");
+  }
+  return `[${values.map((num) => Number(num)).join(",")}]`;
+};
+
+const extractGeminiText = (payload) => {
+  const candidates = payload && Array.isArray(payload.candidates) ? payload.candidates : [];
+  for (const candidate of candidates) {
+    const parts =
+      candidate && candidate.content && Array.isArray(candidate.content.parts)
+        ? candidate.content.parts
+        : [];
+    const text = parts
+      .map((part) => (part && typeof part.text === "string" ? part.text : ""))
+      .join("\n")
+      .trim();
+    if (text) return text;
+  }
+  return "";
+};
+
+async function embedTextWithGemini(text) {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not configured.");
+  }
+
+  const response = await fetch(buildGeminiApiUrl(GEMINI_EMBED_MODEL, "embedContent"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: GEMINI_EMBED_MODEL,
+      content: {
+        parts: [{ text }],
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini embedding request failed (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const values = data && data.embedding && Array.isArray(data.embedding.values) ? data.embedding.values : null;
+  if (!values || values.length === 0) {
+    throw new Error("Gemini embedding response did not include embedding values.");
+  }
+
+  return values;
+}
+
+async function embedTextWithOpenRouter(text) {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error("OPENROUTER_API_KEY is not configured.");
+  }
+
+  const response = await fetch(`${OPENROUTER_BASE_URL}/embeddings`, {
+    method: "POST",
+    headers: buildOpenRouterHeaders(),
+    body: JSON.stringify({
+      model: OPENROUTER_EMBED_MODEL,
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenRouter embedding request failed (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const values =
+    data && Array.isArray(data.data) && data.data[0] && Array.isArray(data.data[0].embedding)
+      ? data.data[0].embedding
+      : null;
+
+  if (!values || values.length === 0) {
+    throw new Error("OpenRouter embedding response did not include embedding values.");
+  }
+
+  return values;
+}
+
+async function embedText(text) {
+  if (RAG_LLM_PROVIDER === "openrouter") {
+    return embedTextWithOpenRouter(text);
+  }
+  return embedTextWithGemini(text);
+}
+
+async function generateRagAnswerWithGemini(prompt) {
+  if (!GEMINI_API_KEY) {
+    throw new Error("GEMINI_API_KEY is not configured.");
+  }
+
+  const response = await fetch(buildGeminiApiUrl(GEMINI_CHAT_MODEL, "generateContent"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 500,
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini generation request failed (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const answer = extractGeminiText(data);
+  return answer || "Not found clearly in the testimonials.";
+}
+
+async function generateRagAnswerWithOpenRouter(prompt) {
+  if (!OPENROUTER_API_KEY) {
+    throw new Error("OPENROUTER_API_KEY is not configured.");
+  }
+
+  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: buildOpenRouterHeaders(),
+    body: JSON.stringify({
+      model: OPENROUTER_CHAT_MODEL,
+      temperature: 0.2,
+      max_tokens: 500,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`OpenRouter generation request failed (${response.status}): ${errText}`);
+  }
+
+  const data = await response.json();
+  const choices = data && Array.isArray(data.choices) ? data.choices : [];
+  const answer =
+    choices[0] && choices[0].message && typeof choices[0].message.content === "string"
+      ? choices[0].message.content.trim()
+      : "";
+
+  return answer || "Not found clearly in the testimonials.";
+}
+
+async function generateRagAnswer(prompt) {
+  if (RAG_LLM_PROVIDER === "openrouter") {
+    return generateRagAnswerWithOpenRouter(prompt);
+  }
+  return generateRagAnswerWithGemini(prompt);
+}
+
 // Session Configuration
 app.use(
   session({
@@ -413,6 +640,13 @@ const requireAuth = (req, res, next) => {
   next();
 };
 
+const requireAuthApi = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  next();
+};
+
 // === PROTECTED ROUTES ===
 
 // These must be defined before express.static so that it intercepts the file delivery
@@ -502,6 +736,14 @@ app.post(
 
 app.get("/portal.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "portal.html"));
+});
+
+app.get("/testimonials.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "testimonials.html"));
+});
+
+app.get("/careers.html", (_req, res) => {
+  return res.redirect("/testimonials.html");
 });
 
 // === API ROUTES ===
@@ -779,6 +1021,120 @@ app.get(
     }
   },
 );
+
+app.get("/api/rag/status", async (_req, res) => {
+  try {
+    const stats = await pool.query(
+      `SELECT
+         COUNT(*)::int AS total_rows,
+         COUNT(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_rows
+       FROM ${TESTIMONIALS_TABLE}`,
+    );
+
+    const providerSummary = getProviderSummary();
+
+    return res.json({
+      ok: true,
+      table: TESTIMONIALS_TABLE,
+      provider: providerSummary.provider,
+      configured: providerSummary.configured,
+      chatModel: providerSummary.chatModel,
+      embedModel: providerSummary.embedModel,
+      counts: stats.rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to fetch RAG status:", err);
+    return res.status(500).json({
+      ok: false,
+      table: TESTIMONIALS_TABLE,
+      error: "Failed to fetch RAG status",
+      details: err.message,
+    });
+  }
+});
+
+app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
+  try {
+    const query = String(req.body?.query || "").trim();
+    const language = String(req.body?.language || "en").trim().toLowerCase();
+    const topKRaw = Number.parseInt(String(req.body?.topK || "3"), 10);
+    const topK = Number.isInteger(topKRaw) ? Math.max(1, Math.min(topKRaw, 5)) : 3;
+
+    if (!query) {
+      return res.status(400).json({ error: "Query is required" });
+    }
+    if (!hasRagProviderConfig()) {
+      return res.status(500).json({
+        error: `RAG provider credentials are missing for provider: ${RAG_LLM_PROVIDER}`,
+      });
+    }
+
+    const queryEmbedding = await embedText(query);
+    const vectorLiteral = toVectorLiteral(queryEmbedding);
+
+    const retrieval = await pool.query(
+      `SELECT
+         title,
+         url,
+         testimonial,
+         1 - (embedding <=> $1::vector) AS score
+       FROM ${TESTIMONIALS_TABLE}
+       WHERE embedding IS NOT NULL
+       ORDER BY embedding <=> $1::vector
+       LIMIT $2`,
+      [vectorLiteral, topK],
+    );
+
+    const rows = retrieval.rows || [];
+    if (!rows.length) {
+      return res.json({
+        query,
+        answer:
+          "I could not find matching embedded testimonials yet. Please run embedding backfill first.",
+        sources: [],
+      });
+    }
+
+    const languageInstruction = language === "hi" ? "Answer in Hindi." : "Answer in English.";
+
+    const context = rows
+      .map((row, idx) => {
+        return `SOURCE ${idx + 1}\nTITLE: ${row.title || ""}\nURL: ${row.url || ""}\nTESTIMONIAL:\n${row.testimonial || ""}`;
+      })
+      .join("\n\n");
+
+    const prompt = `You are a testimonial-based assistant.
+
+Rules:
+1. Answer only from the provided testimonial context.
+2. If not found, say: "Not found clearly in the testimonials."
+3. Do not give medical advice.
+4. Mention source title and URL.
+5. Keep answer short.
+6. ${languageInstruction}
+
+User question:
+${query}
+
+Context:
+${context}`;
+
+    const answer = await generateRagAnswer(prompt);
+
+    return res.json({
+      query,
+      answer,
+      sources: rows.map((row) => ({
+        title: row.title || "",
+        url: row.url || "",
+        score: Number(row.score),
+      })),
+    });
+  } catch (err) {
+    console.error("RAG chat failed:", err);
+    return res.status(500).json({ error: "RAG chat failed", details: err.message });
+  }
+});
 
 app.get("/api/auth/me", (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {

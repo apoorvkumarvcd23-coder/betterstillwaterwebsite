@@ -9,9 +9,7 @@ services:
     healthCheckPath: /api/funds
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: stillwater-postgres
-          property: connectionString
+        sync: false
       - key: SESSION_SECRET
         generateValue: true
       - key: GOOGLE_CLIENT_ID
@@ -29,9 +27,17 @@ services:
       # e.g. .onrender.com  (leading dot so cookie spans all subdomains)
       - key: COOKIE_DOMAIN
         sync: false
-
-databases:
-  - name: stillwater-postgres
-    plan: free
-    databaseName: stillwater
-    user: stillwater
+      - key: DB_SSL
+        value: "true"
+      - key: RAG_LLM_PROVIDER
+        value: "openrouter"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: "openai/gpt-oss-120b"
+      - key: OPENROUTER_CHAT_MODEL
+        value: "openai/gpt-oss-120b"
+      - key: OPENROUTER_EMBED_MODEL
+        value: "openai/text-embedding-3-small"
+      - key: RAG_TESTIMONIALS_TABLE
+        value: "testimonials.testimonials_dim_diabetes_amareye"
