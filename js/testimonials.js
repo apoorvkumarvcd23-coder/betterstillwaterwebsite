@@ -108,10 +108,12 @@ function renderSampleQuestions() {
 
 function openLanguageMenu() {
   langMenu.hidden = false;
+  langMenu.classList.add("is-open");
   langButton.setAttribute("aria-expanded", "true");
 }
 
 function closeLanguageMenu() {
+  langMenu.classList.remove("is-open");
   langMenu.hidden = true;
   langButton.setAttribute("aria-expanded", "false");
 }

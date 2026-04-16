@@ -89,8 +89,16 @@ body {
   background: #111827;
   border-radius: 12px;
   padding: 8px;
-  display: grid;
+  display: none;
   gap: 6px;
+}
+
+.lang-menu.is-open {
+  display: grid;
+}
+
+.lang-menu[hidden] {
+  display: none !important;
 }
 
 .lang-item {
