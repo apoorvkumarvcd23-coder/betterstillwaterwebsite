@@ -1,286 +1,67 @@
-let currentLang = "en";
+const SAMPLE_QUESTIONS = {
+  English: ["Reduce Medicines", "Type 2 Reversed", "Can Type 2 Be Reversed?"],
+  Hindi: [
+    "दवाइयां कम करें",
+    "टाइप 2 रिवर्स हुआ",
+    "क्या टाइप 2 रिवर्स हो सकता है?",
+  ],
+};
+
+const COPY = {
+  English: {
+    sampleQuestions: "Sample Questions",
+    askLabel: "Ask your question",
+    queryPlaceholder: "Type your question here...",
+    askButton: "Ask",
+    thinking: "Thinking...",
+    answerLabel: "Answer",
+    sourcesLabel: "Sources",
+    voiceLabel: "Voice Output",
+    authRequired: "Please login to continue.",
+  },
+  Hindi: {
+    sampleQuestions: "नमूना प्रश्न",
+    askLabel: "अपना प्रश्न पूछें",
+    queryPlaceholder: "अपना प्रश्न यहां टाइप करें...",
+    askButton: "पूछें",
+    thinking: "सोच रहा है...",
+    answerLabel: "उत्तर",
+    sourcesLabel: "स्रोत",
+    voiceLabel: "आवाज़ आउटपुट",
+    authRequired: "जारी रखने के लिए कृपया लॉगिन करें।",
+  },
+};
+
+let language = "English";
 let latestAnswer = "";
+let isLoading = false;
+let isRecording = false;
 
-const userInput = document.getElementById("userInput");
-const charCount = document.getElementById("charCount");
-const askBtn = document.getElementById("askBtn");
-const voiceTab = document.getElementById("voiceTab");
-const textTab = document.getElementById("textTab");
-const langToggle = document.getElementById("langToggle");
-const languageSelect = document.getElementById("languageSelect");
-const respLoading = document.getElementById("respLoading");
-const respContent = document.getElementById("respContent");
-const respIntro = document.getElementById("respIntro");
-const insightsList = document.getElementById("insightsList");
-const takeawayText = document.getElementById("takeawayText");
-const speakBtn = document.getElementById("speakBtn");
-const stopSpeakBtn = document.getElementById("stopSpeakBtn");
+const langButton = document.getElementById("langButton");
+const langCurrent = document.getElementById("langCurrent");
+const langMenu = document.getElementById("langMenu");
+const queryInput = document.getElementById("queryInput");
+const askButton = document.getElementById("askButton");
+const voiceButton = document.getElementById("voiceButton");
+const samplesLabel = document.getElementById("samplesLabel");
+const askLabel = document.getElementById("askLabel");
+const answerLabel = document.getElementById("answerLabel");
+const sourcesLabel = document.getElementById("sourcesLabel");
+const voiceLabel = document.getElementById("voiceLabel");
+const sampleQuestions = document.getElementById("sampleQuestions");
+const resultsSection = document.getElementById("resultsSection");
+const answerBody = document.getElementById("answerBody");
+const sourcesList = document.getElementById("sourcesList");
+const statusMessage = document.getElementById("statusMessage");
+const speakButton = document.getElementById("speakButton");
+const stopButton = document.getElementById("stopButton");
 
-function updateCount() {
-  charCount.textContent = `${userInput.value.length}/500`;
+function setStatus(message) {
+  statusMessage.textContent = message || "";
 }
 
-userInput.addEventListener("input", updateCount);
-
-userInput.addEventListener("keydown", function (e) {
-  if (e.key === "Enter" && !e.shiftKey) {
-    e.preventDefault();
-    askStillwater();
-  }
-});
-
-askBtn.addEventListener("click", askStillwater);
-
-textTab.addEventListener("click", function () {
-  textTab.classList.add("active");
-  voiceTab.classList.remove("active");
-});
-
-voiceTab.addEventListener("click", function () {
-  voiceTab.classList.add("active");
-  textTab.classList.remove("active");
-  startVoiceInput();
-});
-
-langToggle.addEventListener("click", function () {
-  currentLang = currentLang === "en" ? "hi" : "en";
-  languageSelect.value = currentLang;
-  langToggle.textContent = currentLang === "en" ? "English" : "हिंदी";
-});
-
-languageSelect.addEventListener("change", function () {
-  currentLang = languageSelect.value;
-  langToggle.textContent = currentLang === "en" ? "English" : "हिंदी";
-});
-
-document.querySelectorAll(".question-item").forEach(item => {
-  item.addEventListener("click", function () {
-    const question = item.getAttribute("data-question");
-    userInput.value = question;
-    updateCount();
-  });
-});
-
-speakBtn.addEventListener("click", function () {
-  if (!latestAnswer) return;
-
-  const utter = new SpeechSynthesisUtterance(latestAnswer);
-  utter.lang = currentLang === "hi" ? "hi-IN" : "en-US";
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utter);
-});
-
-stopSpeakBtn.addEventListener("click", function () {
-  window.speechSynthesis.cancel();
-});
-
-function startVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-  if (!SpeechRecognition) {
-    alert("Voice input is not supported in this browser. Please use Chrome.");
-    return;
-  }
-
-  const recognition = new SpeechRecognition();
-  recognition.lang = currentLang === "hi" ? "hi-IN" : "en-US";
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-
-  recognition.start();
-
-  recognition.onresult = function (event) {
-    userInput.value = event.results[0][0].transcript;
-    updateCount();
-    textTab.classList.add("active");
-    voiceTab.classList.remove("active");
-  };
-
-  recognition.onerror = function () {
-    textTab.classList.add("active");
-    voiceTab.classList.remove("active");
-  };
-
-  recognition.onend = function () {
-    textTab.classList.add("active");
-    voiceTab.classList.remove("active");
-  };
-}
-
-function splitAnswerIntoPoints(answer) {
-  const cleaned = answer
-    .replace(/\r/g, "")
-    .split("\n")
-    .map(line => line.trim())
-    .filter(line => line.length > 0);
-
-  const bulletLines = cleaned.filter(line =>
-    line.startsWith("-") ||
-    line.startsWith("•") ||
-    /^\d+\./.test(line)
-  );
-
-  if (bulletLines.length >= 2) {
-    return bulletLines.slice(0, 3).map(line =>
-      line.replace(/^[-•]\s*/, "").replace(/^\d+\.\s*/, "")
-    );
-  }
-
-  const sentences = answer
-    .replace(/\n/g, " ")
-    .split(/(?<=[.!?])\s+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  return sentences.slice(0, 3);
-}
-
-function getTakeaway(answer) {
-  const sentences = answer
-    .replace(/\n/g, " ")
-    .split(/(?<=[.!?])\s+/)
-    .map(s => s.trim())
-    .filter(Boolean);
-
-  if (sentences.length > 0) {
-    return sentences[sentences.length - 1];
-  }
-
-  return answer;
-}
-
-function renderInsights(points) {
-  const icons = [
-    { emoji: "🌱", bg: "#dcfce7" },
-    { emoji: "📊", bg: "#dbeafe" },
-    { emoji: "👥", bg: "#f3e8ff" }
-  ];
-
-  insightsList.innerHTML = "";
-
-  if (!points.length) {
-    points = ["No clear insights found in the testimonials."];
-  }
-
-  points.slice(0, 3).forEach((point, index) => {
-    const meta = icons[index] || icons[0];
-
-    const item = document.createElement("div");
-    item.className = "insight-item";
-    item.innerHTML = `
-      <div class="insight-icon" style="background:${meta.bg};">${meta.emoji}</div>
-      <div>${escapeHtml(point)}</div>
-    `;
-    insightsList.appendChild(item);
-  });
-}
-
-function renderSources(sources) {
-  const sourcesGrid = document.getElementById("sourcesGrid");
-  sourcesGrid.innerHTML = "";
-
-  if (!sources || !sources.length) {
-    sourcesGrid.innerHTML = `
-      <div class="source-card">
-        <div class="source-thumb yt">▶</div>
-        <div class="source-body">
-          <div class="source-type yt">Source</div>
-          <div class="source-org">No sources available</div>
-          <div class="source-desc">No linked source was returned for this answer.</div>
-          <a class="source-link" href="#" target="_blank" rel="noopener noreferrer">Open</a>
-        </div>
-      </div>
-    `;
-    return;
-  }
-
-  const colorClasses = ["yt", "research", "story"];
-
-  sources.slice(0, 3).forEach((src, index) => {
-    const colorClass = colorClasses[index % colorClasses.length];
-    const title = escapeHtml(src.title || "Source");
-    const url = src.url || "#";
-    const desc = src.score ? `Relevance score: ${Number(src.score).toFixed(3)}` : "Retrieved from testimonial dataset.";
-
-    const card = document.createElement("div");
-    card.className = "source-card";
-    card.innerHTML = `
-      <div class="source-thumb ${colorClass}">${index === 0 ? "▶" : index === 1 ? "🔬" : "👤"}</div>
-      <div class="source-body">
-        <div class="source-type ${index === 0 ? "yt" : ""}">Source ${index + 1}</div>
-        <div class="source-org">${title}</div>
-        <div class="source-desc">${escapeHtml(desc)}</div>
-        <a class="source-link" href="${url}" target="_blank" rel="noopener noreferrer">Open</a>
-      </div>
-    `;
-    sourcesGrid.appendChild(card);
-  });
-}
-
-async function askStillwater() {
-  const q = userInput.value.trim();
-
-  if (!q) {
-    userInput.focus();
-    return;
-  }
-
-  respLoading.style.display = "block";
-  respContent.style.display = "none";
-  latestAnswer = "";
-
-  try {
-    const response = await fetch("/api/rag/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        query: q,
-        language: currentLang
-      })
-    });
-
-    const data = await response.json();
-
-    respLoading.style.display = "none";
-    respContent.style.display = "block";
-
-    if (data.error) {
-      respIntro.textContent = "Sorry, I had trouble fetching insights. Please try again.";
-      renderInsights(["Unable to process your request right now."]);
-      takeawayText.textContent = "Please retry with a clearer question.";
-      renderSources([]);
-      return;
-    }
-
-    const answer = data.answer || "No answer returned.";
-    latestAnswer = stripMarkdown(answer);
-
-    respIntro.textContent = "Here's what I found from real patient stories.";
-
-    const points = splitAnswerIntoPoints(latestAnswer);
-    renderInsights(points);
-
-    takeawayText.textContent = getTakeaway(latestAnswer);
-
-    renderSources(data.sources || []);
-  } catch (err) {
-    respLoading.style.display = "none";
-    respContent.style.display = "block";
-    respIntro.textContent = "Sorry, I had trouble fetching insights. Please try again.";
-    renderInsights(["Network or server error occurred while loading the answer."]);
-    takeawayText.textContent = "Please check the backend connection and try again.";
-    renderSources([]);
-  }
-}
-
-function stripMarkdown(text) {
-  return text
-    .replace(/\*\*/g, "")
-    .replace(/\*/g, "")
-    .replace(/`/g, "")
-    .trim();
+function getApiLanguage() {
+  return language === "Hindi" ? "hi" : "en";
 }
 
 function escapeHtml(text) {
@@ -289,4 +70,256 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-updateCount();
+function applyLanguageCopy() {
+  const copy = COPY[language];
+  langCurrent.textContent = language;
+  samplesLabel.textContent = copy.sampleQuestions;
+  askLabel.textContent = copy.askLabel;
+  queryInput.placeholder = copy.queryPlaceholder;
+  answerLabel.textContent = copy.answerLabel;
+  sourcesLabel.textContent = copy.sourcesLabel;
+  voiceLabel.textContent = copy.voiceLabel;
+
+  if (!isLoading) {
+    askButton.textContent = copy.askButton;
+  }
+
+  document.querySelectorAll(".lang-item").forEach((button) => {
+    const active = button.getAttribute("data-lang") === language;
+    button.classList.toggle("is-active", active);
+  });
+}
+
+function renderSampleQuestions() {
+  sampleQuestions.innerHTML = "";
+
+  SAMPLE_QUESTIONS[language].forEach((question) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "sample-pill";
+    button.textContent = question;
+    button.addEventListener("click", () => {
+      queryInput.value = question;
+      queryInput.focus();
+    });
+    sampleQuestions.appendChild(button);
+  });
+}
+
+function openLanguageMenu() {
+  langMenu.hidden = false;
+  langButton.setAttribute("aria-expanded", "true");
+}
+
+function closeLanguageMenu() {
+  langMenu.hidden = true;
+  langButton.setAttribute("aria-expanded", "false");
+}
+
+function normalizeAnswer(text) {
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\*\*/g, "")
+    .trim();
+}
+
+function renderAnswer(answer) {
+  const cleaned = normalizeAnswer(answer);
+  const lines = cleaned
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!lines.length) {
+    answerBody.innerHTML = "<p>No answer returned.</p>";
+    return;
+  }
+
+  let html = "";
+  let inList = false;
+
+  lines.forEach((line) => {
+    const isBullet = line.startsWith("*") || line.startsWith("-") || /^\d+\./.test(line);
+
+    if (isBullet) {
+      if (!inList) {
+        html += "<ul>";
+        inList = true;
+      }
+      html += `<li>${escapeHtml(line.replace(/^\*\s*|^-\s*|^\d+\.\s*/, ""))}</li>`;
+    } else {
+      if (inList) {
+        html += "</ul>";
+        inList = false;
+      }
+      html += `<p>${escapeHtml(line)}</p>`;
+    }
+  });
+
+  if (inList) {
+    html += "</ul>";
+  }
+
+  answerBody.innerHTML = html;
+}
+
+function renderSources(sources) {
+  sourcesList.innerHTML = "";
+  const safeSources = Array.isArray(sources) ? sources : [];
+
+  if (!safeSources.length) {
+    sourcesList.innerHTML = '<div class="source-item"><p class="source-title">No sources returned.</p></div>';
+    return;
+  }
+
+  safeSources.forEach((source, index) => {
+    const title = source && source.title ? String(source.title) : `Source ${index + 1}`;
+    const url = source && source.url ? String(source.url) : "#";
+    const score =
+      source && typeof source.score !== "undefined"
+        ? Number(source.score).toFixed(4)
+        : null;
+
+    const wrapper = document.createElement("div");
+    wrapper.className = "source-item";
+    wrapper.innerHTML = `
+      <h4 class="source-title">${escapeHtml(`${index + 1}. ${title}`)}</h4>
+      <a class="source-url" href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>
+      <div class="source-meta">${score ? `Score: ${score}` : ""}</div>
+    `;
+    sourcesList.appendChild(wrapper);
+  });
+}
+
+async function askQuestion() {
+  const query = queryInput.value.trim();
+  if (!query || isLoading) {
+    return;
+  }
+
+  isLoading = true;
+  askButton.disabled = true;
+  askButton.textContent = COPY[language].thinking;
+  setStatus("Fetching response...");
+
+  try {
+    const response = await fetch("/api/rag/chat", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        query,
+        language: getApiLanguage(),
+      }),
+    });
+
+    if (response.status === 401) {
+      setStatus(COPY[language].authRequired);
+      window.location.href = "/auth.html?returnTo=/testimonials.html";
+      return;
+    }
+
+    const data = await response.json();
+    if (!response.ok || data.error) {
+      throw new Error(data && data.error ? data.error : "Request failed.");
+    }
+
+    latestAnswer = normalizeAnswer(data.answer || "");
+    renderAnswer(latestAnswer);
+    renderSources(data.sources || []);
+    resultsSection.hidden = false;
+    setStatus("Response ready.");
+  } catch (error) {
+    setStatus(`Failed to fetch response: ${error.message}`);
+  } finally {
+    isLoading = false;
+    askButton.disabled = false;
+    askButton.textContent = COPY[language].askButton;
+  }
+}
+
+function toggleVoiceInput() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    setStatus("Voice input is not supported in this browser.");
+    return;
+  }
+
+  if (isRecording) {
+    return;
+  }
+
+  isRecording = true;
+  voiceButton.classList.add("is-recording");
+  setStatus("Listening...");
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = language === "Hindi" ? "hi-IN" : "en-US";
+  recognition.interimResults = false;
+  recognition.maxAlternatives = 1;
+
+  recognition.onresult = (event) => {
+    queryInput.value = event.results[0][0].transcript || "";
+    queryInput.focus();
+  };
+
+  recognition.onerror = () => {
+    setStatus("Voice recognition error. Please try again.");
+  };
+
+  recognition.onend = () => {
+    isRecording = false;
+    voiceButton.classList.remove("is-recording");
+  };
+
+  recognition.start();
+}
+
+function speakAnswer() {
+  if (!latestAnswer) {
+    return;
+  }
+
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(latestAnswer);
+  utterance.lang = language === "Hindi" ? "hi-IN" : "en-US";
+  window.speechSynthesis.speak(utterance);
+}
+
+langButton.addEventListener("click", () => {
+  if (langMenu.hidden) {
+    openLanguageMenu();
+  } else {
+    closeLanguageMenu();
+  }
+});
+
+document.querySelectorAll(".lang-item").forEach((button) => {
+  button.addEventListener("click", () => {
+    language = button.getAttribute("data-lang") || "English";
+    applyLanguageCopy();
+    renderSampleQuestions();
+    closeLanguageMenu();
+  });
+});
+
+document.addEventListener("click", (event) => {
+  if (!langMenu.hidden && !event.target.closest(".lang-wrap")) {
+    closeLanguageMenu();
+  }
+});
+
+queryInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    askQuestion();
+  }
+});
+
+askButton.addEventListener("click", askQuestion);
+voiceButton.addEventListener("click", toggleVoiceInput);
+speakButton.addEventListener("click", speakAnswer);
+stopButton.addEventListener("click", () => window.speechSynthesis.cancel());
+
+applyLanguageCopy();
+renderSampleQuestions();
