@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StillWater Diabetes Testimonial AI</title>
+  <link rel="stylesheet" href="css/testimonials.css" />
+</head>
+<body data-dataset="diabetes">
+  <div class="canvas-bg"></div>
+
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="home-link" href="/testimonials.html">Back</a>
+      <div class="lang-wrap">
+        <button id="langButton" class="lang-button" type="button" aria-expanded="false" aria-haspopup="listbox">
+          <span id="langCurrent">English</span>
+          <span class="lang-arrow">v</span>
+        </button>
+        <div id="langMenu" class="lang-menu" role="listbox" hidden>
+          <button type="button" data-lang="English" class="lang-item is-active">English</button>
+          <button type="button" data-lang="Hindi" class="lang-item">Hindi</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-wrap">
+      <section class="hero">
+        <div class="brand-dot"></div>
+        <p class="brand-text">StillWater</p>
+        <h1 class="title text-gradient">StillWater Diabetes Testimonial AI</h1>
+      </section>
+
+      <section class="samples">
+        <h2 class="section-label" id="samplesLabel">Sample Questions</h2>
+        <div id="sampleQuestions" class="sample-list"></div>
+      </section>
+
+      <section class="ask-block">
+        <h2 class="section-label" id="askLabel">Ask your question</h2>
+
+        <div class="input-shell">
+          <input id="queryInput" class="query-input" type="text" placeholder="Type your question here..." />
+          <button id="voiceButton" class="icon-button" type="button" title="Voice input" aria-label="Voice input">Mic</button>
+        </div>
+
+        <div class="actions-row">
+          <button id="askButton" class="ask-button" type="button">Ask</button>
+        </div>
+      </section>
+
+      <section id="resultsSection" class="results" hidden>
+        <div class="glass-card">
+          <h3 class="card-title" id="answerLabel">Answer</h3>
+          <div id="answerBody" class="answer-body"></div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title" id="sourcesLabel">Sources</h3>
+          <div id="sourcesList" class="sources-list"></div>
+        </div>
+
+        <div class="glass-card">
+          <h3 class="card-title" id="voiceLabel">Voice Output</h3>
+          <div class="voice-row">
+            <button id="speakButton" class="voice-action" type="button">Speak</button>
+            <button id="stopButton" class="voice-action muted" type="button">Stop</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="statusMessage" class="status-message" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <script src="js/testimonials.js"></script>
+</body>
+</html>

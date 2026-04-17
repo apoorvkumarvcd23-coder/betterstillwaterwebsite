@@ -259,9 +259,38 @@ const RAG_LLM_PROVIDER = String(
 )
   .trim()
   .toLowerCase();
-const TESTIMONIALS_TABLE = String(
-  process.env.RAG_TESTIMONIALS_TABLE || "testimonials.testimonials_dim_diabetes_amareye",
+const TESTIMONIALS_TABLE_DIABETES = String(
+  process.env.RAG_TESTIMONIALS_TABLE_DIABETES ||
+    process.env.RAG_TESTIMONIALS_TABLE ||
+    "testimonials.testimonials_dim_diabetes_amareye",
 ).trim();
+const TESTIMONIALS_TABLE_AMAR_EYE_YOGA = String(
+  process.env.RAG_TESTIMONIALS_TABLE_AMAR_EYE_YOGA || "testimonials.testimonials_dim_amareye",
+).trim();
+const TESTIMONIALS_DATASET_TABLES = {
+  diabetes: TESTIMONIALS_TABLE_DIABETES,
+  amar_eye_yoga: TESTIMONIALS_TABLE_AMAR_EYE_YOGA,
+};
+
+const normalizeTestimonialsDataset = (rawDataset) => {
+  const value = String(rawDataset || "")
+    .trim()
+    .toLowerCase();
+
+  if (
+    ["amar_eye_yoga", "amar-eye-yoga", "amareye", "amareyoga", "eye_yoga", "eye-yoga"].includes(value)
+  ) {
+    return "amar_eye_yoga";
+  }
+
+  return "diabetes";
+};
+
+const resolveDatasetTable = (rawDataset) => {
+  const dataset = normalizeTestimonialsDataset(rawDataset);
+  const table = TESTIMONIALS_DATASET_TABLES[dataset] || TESTIMONIALS_TABLE_DIABETES;
+  return { dataset, table };
+};
 
 const buildGeminiApiUrl = (model, action) => {
   return `https://generativelanguage.googleapis.com/v1beta/${model}:${action}?key=${encodeURIComponent(GEMINI_API_KEY)}`;
@@ -742,6 +771,14 @@ app.get("/testimonials.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "testimonials.html"));
 });
 
+app.get("/testimonials-diabetes.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "testimonials-diabetes.html"));
+});
+
+app.get("/testimonials-amar-eye-yoga.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "testimonials-amar-eye-yoga.html"));
+});
+
 app.get("/careers.html", (_req, res) => {
   return res.redirect("/testimonials.html");
 });
@@ -1024,18 +1061,20 @@ app.get(
 
 app.get("/api/rag/status", async (_req, res) => {
   try {
+    const { dataset, table } = resolveDatasetTable(_req.query?.dataset);
     const stats = await pool.query(
       `SELECT
          COUNT(*)::int AS total_rows,
          COUNT(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_rows
-       FROM ${TESTIMONIALS_TABLE}`,
+       FROM ${table}`,
     );
 
     const providerSummary = getProviderSummary();
 
     return res.json({
       ok: true,
-      table: TESTIMONIALS_TABLE,
+      dataset,
+      table,
       provider: providerSummary.provider,
       configured: providerSummary.configured,
       chatModel: providerSummary.chatModel,
@@ -1046,7 +1085,7 @@ app.get("/api/rag/status", async (_req, res) => {
     console.error("Failed to fetch RAG status:", err);
     return res.status(500).json({
       ok: false,
-      table: TESTIMONIALS_TABLE,
+      table: TESTIMONIALS_TABLE_DIABETES,
       error: "Failed to fetch RAG status",
       details: err.message,
     });
@@ -1057,6 +1096,7 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
   try {
     const query = String(req.body?.query || "").trim();
     const language = String(req.body?.language || "en").trim().toLowerCase();
+    const { dataset, table } = resolveDatasetTable(req.body?.dataset);
     const topKRaw = Number.parseInt(String(req.body?.topK || "3"), 10);
     const topK = Number.isInteger(topKRaw) ? Math.max(1, Math.min(topKRaw, 5)) : 3;
 
@@ -1078,7 +1118,7 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
          url,
          testimonial,
          1 - (embedding <=> $1::vector) AS score
-       FROM ${TESTIMONIALS_TABLE}
+       FROM ${table}
        WHERE embedding IS NOT NULL
        ORDER BY embedding <=> $1::vector
        LIMIT $2`,
@@ -1089,6 +1129,7 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
     if (!rows.length) {
       return res.json({
         query,
+        dataset,
         answer:
           "I could not find matching embedded testimonials yet. Please run embedding backfill first.",
         sources: [],
@@ -1123,6 +1164,7 @@ ${context}`;
 
     return res.json({
       query,
+      dataset,
       answer,
       sources: rows.map((row) => ({
         title: row.title || "",

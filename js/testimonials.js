@@ -36,6 +36,8 @@ let language = "English";
 let latestAnswer = "";
 let isLoading = false;
 let isRecording = false;
+const testimonialDataset =
+  (document.body && document.body.getAttribute("data-dataset")) || "diabetes";
 
 const langButton = document.getElementById("langButton");
 const langCurrent = document.getElementById("langCurrent");
@@ -213,12 +215,14 @@ async function askQuestion() {
       body: JSON.stringify({
         query,
         language: getApiLanguage(),
+        dataset: testimonialDataset,
       }),
     });
 
     if (response.status === 401) {
       setStatus(COPY[language].authRequired);
-      window.location.href = "/auth.html?returnTo=/testimonials.html";
+      const returnTo = `${window.location.pathname}${window.location.search || ""}`;
+      window.location.href = `/auth.html?returnTo=${encodeURIComponent(returnTo)}`;
       return;
     }
 

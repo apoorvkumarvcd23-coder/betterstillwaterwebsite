@@ -41,3 +41,7 @@ services:
         value: "openai/text-embedding-3-small"
       - key: RAG_TESTIMONIALS_TABLE
         value: "testimonials.testimonials_dim_diabetes_amareye"
+      - key: RAG_TESTIMONIALS_TABLE_DIABETES
+        value: "testimonials.testimonials_dim_diabetes_amareye"
+      - key: RAG_TESTIMONIALS_TABLE_AMAR_EYE_YOGA
+        value: "testimonials.testimonials_dim_amareye"
