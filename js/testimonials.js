@@ -1,10 +1,24 @@
-const SAMPLE_QUESTIONS = {
-  English: ["Reduce Medicines", "Type 2 Reversed", "Can Type 2 Be Reversed?"],
-  Hindi: [
-    "दवाइयां कम करें",
-    "टाइप 2 रिवर्स हुआ",
-    "क्या टाइप 2 रिवर्स हो सकता है?",
-  ],
+const SAMPLE_QUESTIONS_BY_DATASET = {
+  diabetes: {
+    English: ["Reduce Medicines", "Type 2 Reversed", "Can Type 2 Be Reversed?"],
+    Hindi: [
+      "दवाइयां कम करें",
+      "टाइप 2 रिवर्स हुआ",
+      "क्या टाइप 2 रिवर्स हो सकता है?",
+    ],
+  },
+  amar_eye_yoga: {
+    English: [
+      "Can eye power improve naturally?",
+      "How long before vision changes are reported?",
+      "Any testimonials on reducing glasses dependence?",
+    ],
+    Hindi: [
+      "क्या आंखों का नंबर नैचुरली कम हो सकता है?",
+      "नतीजे आने में कितना समय लगा?",
+      "क्या चश्मे पर निर्भरता कम हुई है?",
+    ],
+  },
 };
 
 const COPY = {
@@ -95,7 +109,11 @@ function applyLanguageCopy() {
 function renderSampleQuestions() {
   sampleQuestions.innerHTML = "";
 
-  SAMPLE_QUESTIONS[language].forEach((question) => {
+  const datasetQuestions = SAMPLE_QUESTIONS_BY_DATASET[testimonialDataset]
+    || SAMPLE_QUESTIONS_BY_DATASET.diabetes;
+  const questions = datasetQuestions[language] || datasetQuestions.English;
+
+  questions.forEach((question) => {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sample-pill";
