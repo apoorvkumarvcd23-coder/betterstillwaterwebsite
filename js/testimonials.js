@@ -1,48 +1,88 @@
 const SAMPLE_QUESTIONS_BY_DATASET = {
   diabetes: {
-    English: ["Reduce Medicines", "Type 2 Reversed", "Can Type 2 Be Reversed?"],
+    English: [
+      "Find testimonials where people reduced diabetes medicine after switching to plant-based diet",
+      "Give me testimonial of patient who reduced type 2 diabetes",
+      "Can type 2 diabetes be reversed?",
+    ],
     Hindi: [
-      "दवाइयां कम करें",
-      "टाइप 2 रिवर्स हुआ",
-      "क्या टाइप 2 रिवर्स हो सकता है?",
+      "पौधा-आधारित आहार अपनाने के बाद जिन लोगों ने मधुमेह की दवाएं कम कीं, ऐसे प्रशंसापत्र दिखाएं",
+      "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+      "क्या टाइप 2 मधुमेह रिवर्स हो सकता है?",
     ],
   },
   amar_eye_yoga: {
     English: [
-      "Can eye power improve naturally?",
-      "How long before vision changes are reported?",
-      "Any testimonials on reducing glasses dependence?",
+      "What kind of eye problems are people facing before coming to Amar Eye Yoga?",
+      "What improvements do people notice after following the eye exercises and treatment?",
+      "How does the overall experience (training, environment, support) impact their recovery journey?",
     ],
     Hindi: [
-      "क्या आंखों का नंबर नैचुरली कम हो सकता है?",
-      "नतीजे आने में कितना समय लगा?",
-      "क्या चश्मे पर निर्भरता कम हुई है?",
+      "अमर आई योग आने से पहले लोगों को किस तरह की आंखों की समस्याएं थीं?",
+      "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+      "ट्रेनिंग, वातावरण और सपोर्ट का उनके रिकवरी सफर पर क्या असर पड़ा?",
     ],
   },
 };
 
 const COPY = {
   English: {
+    back: "Back",
     sampleQuestions: "Sample Questions",
     askLabel: "Ask your question",
     queryPlaceholder: "Type your question here...",
     askButton: "Ask",
+    voiceButton: "Mic",
+    speakButton: "Speak",
+    stopButton: "Stop",
     thinking: "Thinking...",
+    fetching: "Fetching response...",
+    responseReady: "Response ready.",
+    failedPrefix: "Failed to fetch response:",
+    listening: "Listening...",
+    voiceUnsupported: "Voice input is not supported in this browser.",
+    voiceError: "Voice recognition error. Please try again.",
     answerLabel: "Answer",
     sourcesLabel: "Sources",
     voiceLabel: "Voice Output",
     authRequired: "Please login to continue.",
+    noAnswer: "No answer returned.",
+    noSources: "No sources returned.",
+    heroTitle: {
+      diabetes: "StillWater Diabetes Testimonial AI",
+      amar_eye_yoga: "Amar Eye Yoga Testimonials AI",
+    },
+    datasetDiabetes: "Diabetes",
+    datasetAmar: "Amar Eye Yoga",
   },
   Hindi: {
+    back: "वापस",
     sampleQuestions: "नमूना प्रश्न",
     askLabel: "अपना प्रश्न पूछें",
     queryPlaceholder: "अपना प्रश्न यहां टाइप करें...",
     askButton: "पूछें",
+    voiceButton: "माइक",
+    speakButton: "बोलें",
+    stopButton: "रोकें",
     thinking: "सोच रहा है...",
+    fetching: "उत्तर प्राप्त किया जा रहा है...",
+    responseReady: "उत्तर तैयार है।",
+    failedPrefix: "उत्तर प्राप्त नहीं हो सका:",
+    listening: "सुन रहा है...",
+    voiceUnsupported: "इस ब्राउज़र में वॉइस इनपुट समर्थित नहीं है।",
+    voiceError: "वॉइस पहचान में त्रुटि हुई। कृपया पुनः प्रयास करें।",
     answerLabel: "उत्तर",
     sourcesLabel: "स्रोत",
     voiceLabel: "आवाज़ आउटपुट",
     authRequired: "जारी रखने के लिए कृपया लॉगिन करें।",
+    noAnswer: "कोई उत्तर प्राप्त नहीं हुआ।",
+    noSources: "कोई स्रोत प्राप्त नहीं हुए।",
+    heroTitle: {
+      diabetes: "स्टिलवॉटर डायबिटीज टेस्टिमोनियल एआई",
+      amar_eye_yoga: "अमर आई योग टेस्टिमोनियल्स एआई",
+    },
+    datasetDiabetes: "डायबिटीज",
+    datasetAmar: "अमर आई योग",
   },
 };
 
@@ -56,6 +96,10 @@ const testimonialDataset =
 const langButton = document.getElementById("langButton");
 const langCurrent = document.getElementById("langCurrent");
 const langMenu = document.getElementById("langMenu");
+const backLink = document.getElementById("backLink");
+const heroTitle = document.getElementById("heroTitle");
+const datasetDiabetesLabel = document.getElementById("datasetDiabetesLabel");
+const datasetAmarLabel = document.getElementById("datasetAmarLabel");
 const queryInput = document.getElementById("queryInput");
 const askButton = document.getElementById("askButton");
 const voiceButton = document.getElementById("voiceButton");
@@ -89,12 +133,26 @@ function escapeHtml(text) {
 function applyLanguageCopy() {
   const copy = COPY[language];
   langCurrent.textContent = language;
+  if (backLink) backLink.textContent = copy.back;
+  if (heroTitle) {
+    heroTitle.textContent =
+      (copy.heroTitle && copy.heroTitle[testimonialDataset]) ||
+      (copy.heroTitle && copy.heroTitle.diabetes) ||
+      "";
+  }
+  if (datasetDiabetesLabel) datasetDiabetesLabel.textContent = copy.datasetDiabetes;
+  if (datasetAmarLabel) datasetAmarLabel.textContent = copy.datasetAmar;
   samplesLabel.textContent = copy.sampleQuestions;
   askLabel.textContent = copy.askLabel;
   queryInput.placeholder = copy.queryPlaceholder;
   answerLabel.textContent = copy.answerLabel;
   sourcesLabel.textContent = copy.sourcesLabel;
   voiceLabel.textContent = copy.voiceLabel;
+  voiceButton.textContent = copy.voiceButton;
+  voiceButton.title = copy.voiceButton;
+  voiceButton.setAttribute("aria-label", copy.voiceButton);
+  speakButton.textContent = copy.speakButton;
+  stopButton.textContent = copy.stopButton;
 
   if (!isLoading) {
     askButton.textContent = copy.askButton;
@@ -153,7 +211,7 @@ function renderAnswer(answer) {
     .filter(Boolean);
 
   if (!lines.length) {
-    answerBody.innerHTML = "<p>No answer returned.</p>";
+    answerBody.innerHTML = `<p>${escapeHtml(COPY[language].noAnswer)}</p>`;
     return;
   }
 
@@ -190,7 +248,7 @@ function renderSources(sources) {
   const safeSources = Array.isArray(sources) ? sources : [];
 
   if (!safeSources.length) {
-    sourcesList.innerHTML = '<div class="source-item"><p class="source-title">No sources returned.</p></div>';
+    sourcesList.innerHTML = `<div class="source-item"><p class="source-title">${escapeHtml(COPY[language].noSources)}</p></div>`;
     return;
   }
 
@@ -222,7 +280,7 @@ async function askQuestion() {
   isLoading = true;
   askButton.disabled = true;
   askButton.textContent = COPY[language].thinking;
-  setStatus("Fetching response...");
+  setStatus(COPY[language].fetching);
 
   try {
     const response = await fetch("/api/rag/chat", {
@@ -253,9 +311,9 @@ async function askQuestion() {
     renderAnswer(latestAnswer);
     renderSources(data.sources || []);
     resultsSection.hidden = false;
-    setStatus("Response ready.");
+    setStatus(COPY[language].responseReady);
   } catch (error) {
-    setStatus(`Failed to fetch response: ${error.message}`);
+    setStatus(`${COPY[language].failedPrefix} ${error.message}`);
   } finally {
     isLoading = false;
     askButton.disabled = false;
@@ -266,7 +324,7 @@ async function askQuestion() {
 function toggleVoiceInput() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
-    setStatus("Voice input is not supported in this browser.");
+    setStatus(COPY[language].voiceUnsupported);
     return;
   }
 
@@ -276,7 +334,7 @@ function toggleVoiceInput() {
 
   isRecording = true;
   voiceButton.classList.add("is-recording");
-  setStatus("Listening...");
+  setStatus(COPY[language].listening);
 
   const recognition = new SpeechRecognition();
   recognition.lang = language === "Hindi" ? "hi-IN" : "en-US";
@@ -289,7 +347,7 @@ function toggleVoiceInput() {
   };
 
   recognition.onerror = () => {
-    setStatus("Voice recognition error. Please try again.");
+    setStatus(COPY[language].voiceError);
   };
 
   recognition.onend = () => {
