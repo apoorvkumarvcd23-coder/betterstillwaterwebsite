@@ -45,9 +45,35 @@ body {
 }
 
 .topbar {
+  position: relative;
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.top-brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--text-primary);
+}
+
+.top-brand-logo {
+  width: 34px;
+  height: 34px;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.35));
+}
+
+.top-brand-text {
+  font-size: 22px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
 }
 
 .home-link {
@@ -404,6 +430,16 @@ body {
 @media (max-width: 700px) {
   .page-shell {
     padding: 14px 14px 30px;
+  }
+
+  .top-brand-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .top-brand-text {
+    font-size: 16px;
+    letter-spacing: 0.1em;
   }
 
   .query-input {
