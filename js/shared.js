@@ -2,21 +2,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const THEME_STORAGE_KEY = "stillwater_theme";
 
   function getPreferredTheme() {
-    const saved = localStorage.getItem(THEME_STORAGE_KEY);
-    if (saved === "dark" || saved === "light") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches
-      ? "dark"
-      : "light";
+    // Light mode is temporarily disabled; force dark to avoid contrast regressions.
+    return "dark";
   }
 
   function applyTheme(theme) {
-    document.documentElement.setAttribute("data-theme", theme);
-    localStorage.setItem(THEME_STORAGE_KEY, theme);
+    const safeTheme = "dark";
+    document.documentElement.setAttribute("data-theme", safeTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
     document.querySelectorAll("[data-theme-toggle]").forEach((toggle) => {
-      const modeLabel = theme === "dark" ? "Dark" : "Light";
+      const modeLabel = "Dark";
       toggle.setAttribute(
         "aria-label",
-        `Switch to ${theme === "dark" ? "light" : "dark"} theme`,
+        "Theme toggle disabled while dark mode is enforced",
       );
       toggle.setAttribute("title", `Theme: ${modeLabel}`);
       const label = toggle.querySelector("span");

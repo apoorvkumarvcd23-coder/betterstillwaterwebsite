@@ -227,8 +227,9 @@ button,
   font-weight: 600;
   text-transform: uppercase;
   position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
 }
 
 .stillwater-brand {
@@ -247,6 +248,9 @@ button,
 
 .stillwater-brand-text {
   display: inline-block;
+  color: var(--color-text-primary);
+  opacity: 1;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
 }
 
 .header.scrolled .stillwater-brand-text {

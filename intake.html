@@ -68,13 +68,31 @@
         color: var(--color-accent);
       }
 
-      .form-label {
-        color: var(--color-text-primary) !important;
+      .intake-card .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+        margin-bottom: 1.25rem;
+      }
+
+      .intake-card .form-label {
+        position: static;
+        order: -1;
+        pointer-events: auto;
+        color: var(--color-text-primary);
+        font-size: 0.95rem;
+        letter-spacing: 0.02em;
+      }
+
+      .intake-card .form-input:focus ~ .form-label,
+      .intake-card .form-input:not(:placeholder-shown) ~ .form-label {
+        top: auto;
+        font-size: 0.95rem;
+        color: var(--color-text-primary);
       }
     </style>
   </head>
   <body>
-    <script src="js/shared.js"></script>
     <header class="header scrolled">
       <a href="index.html" class="header-logo">Stillwater</a>
       <a
