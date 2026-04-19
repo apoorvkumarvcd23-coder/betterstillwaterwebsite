@@ -239,6 +239,16 @@ const toBoolean = (value) => {
   return !!value;
 };
 
+const LEMONSLICE_API_KEY = String(process.env.LEMONSLICE_API_KEY || "").trim();
+const LEMONSLICE_BASE_URL = String(
+  process.env.LEMONSLICE_BASE_URL || "https://lemonslice.com/api",
+)
+  .trim()
+  .replace(/\/+$/, "");
+const LEMONSLICE_DEFAULT_AGENT_ID = String(
+  process.env.LEMONSLICE_AGENT_ID || "agent_6194e41857189803",
+).trim();
+
 const GEMINI_API_KEY = String(process.env.GEMINI_API_KEY || "").trim();
 const GEMINI_CHAT_MODEL = String(process.env.GEMINI_CHAT_MODEL || "models/gemini-2.5-flash").trim();
 const GEMINI_EMBED_MODEL = String(process.env.GEMINI_EMBED_MODEL || "models/text-embedding-004").trim();
@@ -833,6 +843,53 @@ app.get("/api/trust-stats", async (req, res) => {
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: "Failed to fetch trust stats" });
+  }
+});
+
+app.post("/api/lemonslice/rooms", async (req, res) => {
+  try {
+    if (!LEMONSLICE_API_KEY) {
+      return res.status(500).json({
+        error: "LemonSlice is not configured on this server.",
+      });
+    }
+
+    const requestedAgentId = String(req.body?.agentId || "").trim();
+    const agentId = requestedAgentId || LEMONSLICE_DEFAULT_AGENT_ID;
+
+    if (!agentId || agentId.length > 120) {
+      return res.status(400).json({ error: "A valid LemonSlice agent ID is required." });
+    }
+
+    const response = await fetch(`${LEMONSLICE_BASE_URL}/liveai/rooms`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-API-Key": LEMONSLICE_API_KEY,
+      },
+      body: JSON.stringify({ agent_id: agentId }),
+    });
+
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const fallbackMessage = `LemonSlice room creation failed (${response.status}).`;
+      return res.status(response.status).json({
+        error:
+          typeof body?.error === "string" && body.error.trim()
+            ? body.error
+            : fallbackMessage,
+      });
+    }
+
+    return res.status(201).json({
+      room_url: body.room_url,
+      token: body.token,
+      image_url: body.image_url,
+      session_id: body.session_id,
+    });
+  } catch (err) {
+    console.error("Failed to create LemonSlice room:", err);
+    return res.status(500).json({ error: "Failed to create LemonSlice room" });
   }
 });
 

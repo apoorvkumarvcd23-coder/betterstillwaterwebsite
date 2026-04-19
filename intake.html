@@ -270,6 +270,8 @@
       const eyePower = document.getElementById("eyePower");
       const relationWrap = document.getElementById("relationWrap");
       const relation = document.getElementById("relation");
+      const submitButton = intakeForm.querySelector('button[type="submit"]');
+      const initialSubmitText = submitButton ? submitButton.textContent : "";
 
       const phonePrefill = new URLSearchParams(window.location.search).get(
         "phone",
@@ -308,6 +310,9 @@
         event.preventDefault();
         formMessage.textContent = "";
         formMessage.className = "form-message";
+        if (submitButton) {
+          submitButton.disabled = true;
+        }
 
         const payload = {
           name: document.getElementById("name").value.trim(),
@@ -337,13 +342,32 @@
           }
 
           formMessage.textContent =
-            "Thank you. Your wellness assessment was submitted successfully.";
+            "Assessment saved. Preparing your guided session...";
           formMessage.classList.add("success");
-          intakeForm.reset();
-          refreshConditionalFields();
+
+          if (submitButton) {
+            submitButton.textContent = "Preparing Session...";
+          }
+
+          const submissionId = body && body.submissionId ? String(body.submissionId) : "";
+          const params = new URLSearchParams();
+          if (submissionId) {
+            params.set("submissionId", submissionId);
+          }
+
+          window.setTimeout(() => {
+            const query = params.toString();
+            window.location.href = query
+              ? `/assistant.html?${query}`
+              : "/assistant.html";
+          }, 1500);
         } catch (error) {
           formMessage.textContent = error.message || "Submission failed";
           formMessage.classList.add("error");
+          if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.textContent = initialSubmitText;
+          }
         }
       });
     </script>

@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Stillwater Guided Session</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: var(--font-body, "Jost", sans-serif);
+        color: #f2f1ee;
+        background: #0b1718;
+        overflow: hidden;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+      }
+
+      .scene video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      .scene::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 30% 20%, rgba(134, 189, 176, 0.18), transparent 55%),
+          linear-gradient(180deg, rgba(6, 17, 18, 0.38), rgba(6, 17, 18, 0.76));
+      }
+
+      .layout {
+        position: relative;
+        z-index: 2;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 1.5rem;
+      }
+
+      .session-shell {
+        width: min(980px, 100%);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        background: rgba(8, 20, 21, 0.72);
+        -webkit-backdrop-filter: blur(12px);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 32px 90px rgba(3, 8, 9, 0.45);
+        border-radius: 20px;
+        padding: 1rem;
+      }
+
+      .status-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.5rem 0.5rem 0.9rem;
+        flex-wrap: wrap;
+      }
+
+      .status-line {
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        color: rgba(238, 236, 229, 0.78);
+      }
+
+      .status-message {
+        margin-top: 0.3rem;
+        font-size: 0.95rem;
+        color: rgba(242, 241, 238, 0.9);
+      }
+
+      .retry-btn {
+        display: inline-flex;
+        border: 1px solid rgba(236, 234, 227, 0.42);
+        background: rgba(235, 232, 224, 0.08);
+        color: #ece9e1;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        font-size: 0.68rem;
+        padding: 0.6rem 1rem;
+        cursor: pointer;
+      }
+
+      .retry-btn[hidden] {
+        display: none;
+      }
+
+      .frame-wrap {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 14px;
+        overflow: hidden;
+        background: rgba(0, 0, 0, 0.35);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      @media (max-width: 900px) {
+        .frame-wrap {
+          aspect-ratio: 10 / 16;
+        }
+
+        .status-wrap {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="scene">
+      <video autoplay loop muted playsinline webkit-playsinline poster="images/hero-bg.png">
+        <source src="visionBGvideo.mp4" type="video/mp4" />
+      </video>
+    </div>
+
+    <main class="layout">
+      <section class="session-shell">
+        <div class="status-wrap">
+          <div>
+            <div class="status-line" id="statusLine">Connecting</div>
+            <div class="status-message" id="statusMessage">
+              Connecting you to your Stillwater guide...
+            </div>
+          </div>
+          <button class="retry-btn" id="retryButton" hidden>Retry</button>
+        </div>
+        <div id="dailyContainer" class="frame-wrap"></div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/@daily-co/daily-js"></script>
+    <script>
+      const statusLineEl = document.getElementById("statusLine");
+      const statusMessageEl = document.getElementById("statusMessage");
+      const retryButton = document.getElementById("retryButton");
+      const dailyContainer = document.getElementById("dailyContainer");
+
+      const query = new URLSearchParams(window.location.search);
+      const submissionId = query.get("submissionId") || "";
+      const agentId = query.get("agentId") || "agent_6194e41857189803";
+
+      let callFrame = null;
+      let attemptCount = 0;
+      const MAX_ATTEMPTS = 2;
+
+      const setStatus = (line, message) => {
+        statusLineEl.textContent = line;
+        statusMessageEl.textContent = message;
+      };
+
+      const createRoom = async () => {
+        const response = await fetch("/api/lemonslice/rooms", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            agentId,
+            submissionId,
+          }),
+        });
+
+        const body = await response.json().catch(() => ({}));
+        if (!response.ok) {
+          throw new Error(body.error || "Unable to create a guided session.");
+        }
+
+        return body;
+      };
+
+      const bindFrameEvents = (frame) => {
+        frame.on("joined-meeting", () => {
+          setStatus("Connected", "Your guided session is live.");
+        });
+
+        frame.on("left-meeting", () => {
+          setStatus("Session Ended", "Your session has ended. You may start again anytime.");
+        });
+
+        frame.on("app-message", (ev) => {
+          const type = ev && ev.data ? ev.data.type : "";
+          if (type === "bot_ready") {
+            setStatus("Guide Ready", "Your Stillwater guide is ready. Speak when comfortable.");
+            return;
+          }
+
+          if (type === "idle_timeout") {
+            setStatus("Session Timed Out", "The session ended due to inactivity.");
+            return;
+          }
+
+          if (type === "daily_error" || type === "video_generation_error") {
+            setStatus("Session Alert", "A live session issue occurred. You can retry the connection.");
+          }
+        });
+      };
+
+      const ensureFrame = () => {
+        if (callFrame) {
+          return callFrame;
+        }
+
+        callFrame = window.DailyIframe.createFrame(dailyContainer, {
+          iframeStyle: {
+            width: "100%",
+            height: "100%",
+            border: "0",
+            borderRadius: "14px",
+          },
+          showLeaveButton: true,
+        });
+
+        bindFrameEvents(callFrame);
+        return callFrame;
+      };
+
+      const joinSession = async () => {
+        attemptCount += 1;
+
+        if (attemptCount === 1) {
+          setStatus("Connecting", "Connecting you to your Stillwater guide...");
+        } else {
+          setStatus("Retrying", "Connection took longer than expected. Retrying now...");
+        }
+
+        const room = await createRoom();
+        const frame = ensureFrame();
+
+        await frame.join({
+          url: room.room_url,
+          token: room.token,
+        });
+      };
+
+      const startSession = async () => {
+        retryButton.hidden = true;
+
+        try {
+          await joinSession();
+        } catch (error) {
+          if (attemptCount < MAX_ATTEMPTS) {
+            await startSession();
+            return;
+          }
+
+          setStatus(
+            "Connection Pending",
+            "Still not connected. Please tap Retry.",
+          );
+          retryButton.hidden = false;
+          console.error("Assistant session failed:", error);
+        }
+      };
+
+      retryButton.addEventListener("click", async () => {
+        attemptCount = 0;
+        await startSession();
+      });
+
+      window.addEventListener("beforeunload", async () => {
+        if (!callFrame) {
+          return;
+        }
+        try {
+          await callFrame.leave();
+          callFrame.destroy();
+        } catch (_err) {
+          // Ignore cleanup errors on unload.
+        }
+      });
+
+      startSession();
+    </script>
+  </body>
+</html>
