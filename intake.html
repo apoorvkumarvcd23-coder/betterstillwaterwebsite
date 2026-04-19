@@ -358,8 +358,8 @@
           window.setTimeout(() => {
             const query = params.toString();
             window.location.href = query
-              ? `/assistant.html?${query}`
-              : "/assistant.html";
+              ? `/care-path.html?${query}`
+              : "/care-path.html";
           }, 1500);
         } catch (error) {
           formMessage.textContent = error.message || "Submission failed";

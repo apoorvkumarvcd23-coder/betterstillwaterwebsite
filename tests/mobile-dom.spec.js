@@ -19,6 +19,7 @@ const PUBLIC_ROUTES = [
   "/",
   "/auth.html",
   "/blog.html",
+  "/care-path.html",
   "/careers.html",
   "/intake.html",
   "/medical-disclaimer.html",

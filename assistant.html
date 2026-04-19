@@ -81,6 +81,13 @@
         z-index: 3;
       }
 
+      .meta-tray {
+        pointer-events: none;
+        display: grid;
+        justify-items: end;
+        gap: 0.45rem;
+      }
+
       .status-chip {
         pointer-events: auto;
         max-width: min(78vw, 560px);
@@ -173,16 +180,15 @@
         color: var(--meeting-text);
       }
 
-      .overlay-bottom {
-        position: absolute;
-        left: 50%;
-        bottom: clamp(0.75rem, 2vw, 1.25rem);
-        transform: translateX(-50%);
+      .top-actions {
+        pointer-events: auto;
         display: flex;
         align-items: center;
-        gap: 0.55rem;
-        z-index: 3;
-        pointer-events: none;
+        gap: 0.45rem;
+      }
+
+      .top-actions[hidden] {
+        display: none;
       }
 
       .control-btn {
@@ -245,16 +251,24 @@
           font-size: 0.84rem;
         }
 
-        .overlay-bottom {
-          width: calc(100% - 1rem);
-          justify-content: center;
+        .overlay-top {
+          align-items: flex-start;
+          gap: 0.5rem;
+        }
+
+        .meta-tray {
+          gap: 0.38rem;
+        }
+
+        .top-actions {
           flex-wrap: wrap;
+          justify-content: flex-end;
+          max-width: min(44vw, 220px);
         }
 
         .control-btn {
-          flex: 1 1 auto;
-          min-width: 120px;
-          text-align: center;
+          padding: 0.55rem 0.8rem;
+          font-size: 0.66rem;
         }
       }
 
@@ -267,7 +281,7 @@
           animation: riseIn 700ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
 
-        .overlay-bottom {
+        .top-actions {
           animation: riseIn 700ms 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
         }
       }
@@ -319,19 +333,17 @@
               Connecting you to your Stillwater guide...
             </div>
           </div>
-          <div class="meeting-meta" id="meetingMeta" data-live="false">
-            <span class="meeting-meta-dot" aria-hidden="true"></span>
-            <span class="meeting-meta-text">Session</span>
-            <span class="meeting-meta-id" id="meetingMetaId">Pending</span>
+          <div class="meta-tray">
+            <div class="meeting-meta" id="meetingMeta" data-live="false">
+              <span class="meeting-meta-dot" aria-hidden="true"></span>
+              <span class="meeting-meta-text">Session</span>
+              <span class="meeting-meta-id" id="meetingMetaId">Pending</span>
+            </div>
+            <div class="top-actions" id="topActions" hidden>
+              <button class="control-btn" id="retryButton" hidden>Retry</button>
+              <button class="control-btn end" id="endButton">End Session</button>
+            </div>
           </div>
-        </div>
-
-        <div class="overlay-bottom">
-          <button class="control-btn" id="retryButton" hidden>Retry</button>
-          <button class="control-btn ghost" id="audioPlaceholder" disabled>
-            Audio Coming Soon
-          </button>
-          <button class="control-btn end" id="endButton">End Session</button>
         </div>
       </section>
     </main>
@@ -343,6 +355,7 @@
       const statusChip = document.getElementById("statusChip");
       const meetingMeta = document.getElementById("meetingMeta");
       const meetingMetaId = document.getElementById("meetingMetaId");
+      const topActions = document.getElementById("topActions");
       const retryButton = document.getElementById("retryButton");
       const endButton = document.getElementById("endButton");
       const dailyContainer = document.getElementById("dailyContainer");
@@ -361,6 +374,25 @@
         statusLineEl.textContent = line;
         statusMessageEl.textContent = message;
         statusChip.dataset.state = state;
+      };
+
+      const setActionMode = (mode) => {
+        const modeKey = String(mode || "").toLowerCase();
+
+        if (modeKey === "connected" || modeKey === "ready") {
+          topActions.hidden = true;
+          retryButton.hidden = true;
+          return;
+        }
+
+        if (modeKey === "error" || modeKey === "ended") {
+          topActions.hidden = false;
+          retryButton.hidden = false;
+          return;
+        }
+
+        topActions.hidden = true;
+        retryButton.hidden = true;
       };
 
       const createRoom = async () => {
@@ -385,28 +417,33 @@
         frame.on("joined-meeting", () => {
           setStatus("Connected", "Your guided session is live.", "connected");
           meetingMeta.dataset.live = "true";
+          setActionMode("connected");
         });
 
         frame.on("left-meeting", () => {
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
           meetingMeta.dataset.live = "false";
+          setActionMode("ended");
         });
 
         frame.on("app-message", (ev) => {
           const type = ev && ev.data ? ev.data.type : "";
           if (type === "bot_ready") {
             setStatus("Guide Ready", "Your Stillwater guide is ready. Speak when comfortable.", "ready");
+            setActionMode("ready");
             return;
           }
 
           if (type === "idle_timeout") {
             setStatus("Session Timed Out", "The session ended due to inactivity.", "ended");
             meetingMeta.dataset.live = "false";
+            setActionMode("ended");
             return;
           }
 
           if (type === "daily_error" || type === "video_generation_error") {
             setStatus("Session Alert", "A live session issue occurred. You can retry the connection.", "error");
+            setActionMode("error");
           }
         });
       };
@@ -452,7 +489,7 @@
       };
 
       const startSession = async () => {
-        retryButton.hidden = true;
+        setActionMode("connecting");
 
         try {
           await joinSession();
@@ -468,7 +505,7 @@
             "error",
           );
           meetingMeta.dataset.live = "false";
-          retryButton.hidden = false;
+          setActionMode("error");
           console.error("Assistant session failed:", error);
         }
       };
@@ -482,15 +519,18 @@
         if (!callFrame) {
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
           meetingMeta.dataset.live = "false";
+          setActionMode("ended");
           return;
         }
 
         try {
           await callFrame.leave();
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
+          setActionMode("ended");
         } catch (err) {
           console.error("Failed to end session:", err);
           setStatus("Session Alert", "Could not end the session cleanly. You can retry.", "error");
+          setActionMode("error");
         }
       });
 

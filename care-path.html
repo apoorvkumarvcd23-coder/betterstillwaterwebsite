@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choose Your Care Path | Stillwater</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 15% 12%, rgba(95, 179, 179, 0.18), transparent 38%),
+          radial-gradient(circle at 85% 88%, rgba(214, 187, 134, 0.15), transparent 40%),
+          linear-gradient(180deg, #0a1718 0%, #0d1f20 100%);
+      }
+
+      .care-shell {
+        max-width: 1120px;
+        margin: 6.5rem auto 3rem;
+        padding: 0 1.1rem 2rem;
+      }
+
+      .care-head {
+        text-align: center;
+      }
+
+      .care-head p {
+        color: var(--color-text-secondary);
+        max-width: 680px;
+        margin: 0.9rem auto 0;
+      }
+
+      .choice-grid {
+        margin-top: 1.7rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .choice-card {
+        border: 1px solid rgba(245, 242, 238, 0.18);
+        border-radius: 22px;
+        background: rgba(9, 24, 25, 0.76);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 18px 42px rgba(3, 10, 11, 0.35);
+        padding: 1.1rem;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .choice-card p {
+        color: var(--color-text-secondary);
+      }
+
+      .choice-card .btn {
+        width: fit-content;
+      }
+
+      .providers-panel {
+        margin-top: 1.25rem;
+        border: 1px solid rgba(245, 242, 238, 0.14);
+        border-radius: 24px;
+        background: rgba(8, 20, 21, 0.72);
+        padding: 1rem;
+      }
+
+      .providers-panel[hidden] {
+        display: none;
+      }
+
+      .providers-grid {
+        margin-top: 0.9rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem;
+      }
+
+      .provider-mini {
+        border: 1px solid rgba(245, 242, 238, 0.14);
+        border-radius: 18px;
+        padding: 0.9rem;
+        background: rgba(12, 28, 29, 0.65);
+      }
+
+      .provider-mini h3 {
+        font-size: 1.05rem;
+        margin-top: 0.2rem;
+      }
+
+      .provider-mini p {
+        margin-top: 0.45rem;
+        color: var(--color-text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .panel-actions {
+        margin-top: 1rem;
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      @media (max-width: 900px) {
+        .choice-grid,
+        .providers-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .care-shell {
+          margin-top: 5.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header scrolled">
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a href="intake.html" class="btn" style="padding: 0.45rem 1.1rem">Back</a>
+    </header>
+
+    <main class="care-shell">
+      <section class="care-head">
+        <span class="text-caption">Your Next Step</span>
+        <h1 class="text-h2" style="margin-top: 0.7rem">Choose your care path</h1>
+        <p>
+          Your assessment is saved. Choose immediate AI guidance or connect with a trusted human healing provider from the Stillwater network.
+        </p>
+      </section>
+
+      <section class="choice-grid" aria-label="Care path options">
+        <article class="choice-card">
+          <span class="text-caption">Human Healing Provider</span>
+          <h2 class="text-h2" style="font-size: 1.6rem">Connect with a trusted provider</h2>
+          <p>
+            Explore our four verified providers and choose the modality that fits your current healing needs.
+          </p>
+          <button class="btn" id="showProvidersBtn">View Providers</button>
+        </article>
+
+        <article class="choice-card">
+          <span class="text-caption">AI Healer</span>
+          <h2 class="text-h2" style="font-size: 1.6rem">Start guided video support now</h2>
+          <p>
+            Enter the live AI healing room for immediate conversational guidance and calming support.
+          </p>
+          <button class="btn btn-solid" id="goAiBtn">Connect with AI Healer</button>
+        </article>
+      </section>
+
+      <section class="providers-panel" id="providersPanel" hidden>
+        <span class="text-caption">Verified Providers</span>
+        <div class="providers-grid">
+          <article class="provider-mini" data-provider-card="true">
+            <span class="provider-tag">Plant Nutrition</span>
+            <h3>SHARAN</h3>
+            <p>
+              Whole-food, plant-based guidance that supports metabolic health, emotional resilience, and sustainable routines.
+            </p>
+          </article>
+
+          <article class="provider-mini" data-provider-card="true">
+            <span class="provider-tag">Eye Wellness</span>
+            <h3>Amar Eye Yoga</h3>
+            <p>
+              Yogic eye practices and mindful routines for visual comfort, reduced screen strain, and focus support.
+            </p>
+          </article>
+
+          <article class="provider-mini" data-provider-card="true">
+            <span class="provider-tag">Ayurveda Retreat</span>
+            <h3>Divine Veda Retreat</h3>
+            <p>
+              Restorative Ayurveda-based retreat programs with movement and nature-centered healing experiences.
+            </p>
+          </article>
+
+          <article class="provider-mini" data-provider-card="true">
+            <span class="provider-tag">Frequency Support</span>
+            <h3>Healy Quantum</h3>
+            <p>
+              Frequency-based wellness support for relaxation, recovery routines, and balance-oriented daily care.
+            </p>
+          </article>
+        </div>
+
+        <div class="panel-actions">
+          <a class="btn" href="partners.html">Explore Partner Profiles</a>
+          <button class="btn btn-solid" id="panelAiBtn">Connect with AI Healer</button>
+        </div>
+      </section>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const submissionId = params.get("submissionId") || "";
+      const agentId = params.get("agentId") || "";
+
+      const showProvidersBtn = document.getElementById("showProvidersBtn");
+      const providersPanel = document.getElementById("providersPanel");
+      const goAiBtn = document.getElementById("goAiBtn");
+      const panelAiBtn = document.getElementById("panelAiBtn");
+
+      const goAi = () => {
+        const next = new URLSearchParams();
+        if (submissionId) next.set("submissionId", submissionId);
+        if (agentId) next.set("agentId", agentId);
+        const query = next.toString();
+        window.location.href = query
+          ? `/assistant.html?${query}`
+          : "/assistant.html";
+      };
+
+      showProvidersBtn.addEventListener("click", () => {
+        providersPanel.hidden = false;
+        providersPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      goAiBtn.addEventListener("click", goAi);
+      panelAiBtn.addEventListener("click", goAi);
+    </script>
+  </body>
+</html>

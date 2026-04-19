@@ -10,6 +10,7 @@ const FILES = [
   "auth.html",
   "blog.html",
   "careers.html",
+  "care-path.html",
   "intake.html",
   "medical-disclaimer.html",
   "partners.html",

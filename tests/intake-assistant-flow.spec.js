@@ -53,12 +53,20 @@ test("intake submission routes to assistant and reaches guide-ready state", asyn
   await page.getByRole("button", { name: "Submit Wellness Assessment" }).click();
 
   await expect(page.getByText("Assessment saved. Preparing your guided session...")).toBeVisible();
+  await expect(page).toHaveURL(/\/care-path\.html/);
+
+  await expect(page.getByRole("button", { name: "Connect with AI Healer" })).toBeVisible();
+  await expect(page.locator("#providersPanel")).toBeHidden();
+  await page.getByRole("button", { name: "Connect with AI Healer" }).first().click();
   await expect(page).toHaveURL(/\/assistant\.html/);
 
   await expect(page.locator('source[src="visionBGvideo.mp4"]')).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "End Session" })).toBeVisible();
+  await expect(page.locator(".overlay-bottom")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "End Session" })).toHaveCount(0);
 
   await expect(
     page.getByText("Your Stillwater guide is ready. Speak when comfortable."),
   ).toBeVisible();
+
+  await expect(page.locator("#meetingMeta")).toBeVisible();
 });
