@@ -55,6 +55,9 @@ test("intake submission routes to assistant and reaches guide-ready state", asyn
   await expect(page.getByText("Assessment saved. Preparing your guided session...")).toBeVisible();
   await expect(page).toHaveURL(/\/assistant\.html/);
 
+  await expect(page.locator('source[src="visionBGvideo.mp4"]')).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "End Session" })).toBeVisible();
+
   await expect(
     page.getByText("Your Stillwater guide is ready. Speak when comfortable."),
   ).toBeVisible();

@@ -8,135 +8,331 @@
     <style>
       :root {
         color-scheme: dark;
+        --meeting-bg: #0a1516;
+        --meeting-surface: rgba(10, 26, 28, 0.82);
+        --meeting-border: rgba(240, 237, 228, 0.2);
+        --meeting-text: #f1eee5;
+        --meeting-text-soft: rgba(241, 238, 229, 0.8);
+        --meeting-shadow: 0 24px 70px rgba(2, 7, 8, 0.52);
+      }
+
+      * {
+        box-sizing: border-box;
       }
 
       body {
         margin: 0;
         min-height: 100vh;
         font-family: var(--font-body, "Jost", sans-serif);
-        color: #f2f1ee;
-        background: #0b1718;
-        overflow: hidden;
-      }
-
-      .scene {
-        position: fixed;
-        inset: 0;
-      }
-
-      .scene video {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .scene::after {
-        content: "";
-        position: absolute;
-        inset: 0;
+        color: var(--meeting-text);
         background:
-          radial-gradient(circle at 30% 20%, rgba(134, 189, 176, 0.18), transparent 55%),
-          linear-gradient(180deg, rgba(6, 17, 18, 0.38), rgba(6, 17, 18, 0.76));
+          radial-gradient(circle at 16% 12%, rgba(66, 120, 121, 0.22), transparent 34%),
+          radial-gradient(circle at 84% 86%, rgba(205, 178, 124, 0.15), transparent 36%),
+          linear-gradient(180deg, #091415 0%, var(--meeting-bg) 100%);
+        overflow: hidden;
       }
 
       .layout {
-        position: relative;
-        z-index: 2;
         min-height: 100vh;
-        display: grid;
-        place-items: center;
-        padding: 1.5rem;
+        padding: clamp(0.7rem, 2vw, 1.25rem);
       }
 
-      .session-shell {
-        width: min(980px, 100%);
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(8, 20, 21, 0.72);
-        -webkit-backdrop-filter: blur(12px);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 32px 90px rgba(3, 8, 9, 0.45);
-        border-radius: 20px;
-        padding: 1rem;
+      .meeting-shell {
+        position: relative;
+        width: 100%;
+        height: calc(100vh - clamp(1.4rem, 4vw, 2.5rem));
+        border-radius: clamp(18px, 2.4vw, 30px);
+        border: 1px solid var(--meeting-border);
+        background: linear-gradient(180deg, rgba(8, 20, 21, 0.9) 0%, rgba(8, 20, 21, 0.78) 100%);
+        box-shadow: var(--meeting-shadow);
+        overflow: hidden;
       }
 
-      .status-wrap {
+      .meeting-stage {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        overflow: hidden;
+      }
+
+      .meeting-stage::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08), inset 0 0 140px rgba(2, 8, 9, 0.2);
+      }
+
+      .stage-frame {
+        width: 100%;
+        height: 100%;
+        background: #060d0e;
+      }
+
+      .overlay-top {
+        position: absolute;
+        top: clamp(0.7rem, 1.9vw, 1.1rem);
+        left: clamp(0.7rem, 1.9vw, 1.1rem);
+        right: clamp(0.7rem, 1.9vw, 1.1rem);
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: space-between;
-        gap: 1rem;
-        padding: 0.5rem 0.5rem 0.9rem;
-        flex-wrap: wrap;
+        pointer-events: none;
+        z-index: 3;
+      }
+
+      .status-chip {
+        pointer-events: auto;
+        max-width: min(78vw, 560px);
+        border: 1px solid rgba(238, 234, 223, 0.26);
+        border-radius: 999px;
+        background: var(--meeting-surface);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        padding: 0.55rem 0.9rem;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+      }
+
+      .status-chip[data-state="connecting"],
+      .status-chip[data-state="retrying"] {
+        border-color: rgba(148, 204, 195, 0.38);
+        background: rgba(8, 30, 29, 0.84);
+      }
+
+      .status-chip[data-state="ready"],
+      .status-chip[data-state="connected"] {
+        border-color: rgba(173, 224, 176, 0.38);
+        background: rgba(7, 31, 22, 0.84);
+      }
+
+      .status-chip[data-state="ended"] {
+        border-color: rgba(244, 222, 165, 0.38);
+        background: rgba(40, 31, 15, 0.84);
+      }
+
+      .status-chip[data-state="error"] {
+        border-color: rgba(255, 183, 183, 0.44);
+        background: rgba(52, 19, 23, 0.86);
       }
 
       .status-line {
-        letter-spacing: 0.06em;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
-        font-size: 0.72rem;
-        color: rgba(238, 236, 229, 0.78);
+        font-size: 0.67rem;
+        color: rgba(245, 241, 230, 0.76);
+        line-height: 1;
       }
 
       .status-message {
-        margin-top: 0.3rem;
-        font-size: 0.95rem;
-        color: rgba(242, 241, 238, 0.9);
+        margin-top: 0.26rem;
+        font-size: 0.9rem;
+        color: var(--meeting-text);
+        line-height: 1.2;
       }
 
-      .retry-btn {
+      .meeting-meta {
+        pointer-events: auto;
         display: inline-flex;
-        border: 1px solid rgba(236, 234, 227, 0.42);
-        background: rgba(235, 232, 224, 0.08);
-        color: #ece9e1;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        font-size: 0.68rem;
-        padding: 0.6rem 1rem;
-        cursor: pointer;
+        align-items: center;
+        gap: 0.48rem;
+        border: 1px solid rgba(238, 234, 223, 0.26);
+        border-radius: 999px;
+        background: var(--meeting-surface);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        padding: 0.48rem 0.8rem;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.24);
       }
 
-      .retry-btn[hidden] {
+      .meeting-meta-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #8c9698;
+        box-shadow: 0 0 0 0 rgba(140, 150, 152, 0.35);
+      }
+
+      .meeting-meta[data-live="true"] .meeting-meta-dot {
+        background: #8de4a8;
+        box-shadow: 0 0 0 8px rgba(141, 228, 168, 0);
+        animation: livePulse 1.9s ease-in-out infinite;
+      }
+
+      .meeting-meta-text {
+        font-size: 0.67rem;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        color: var(--meeting-text-soft);
+        line-height: 1;
+      }
+
+      .meeting-meta-id {
+        margin-left: 0.2rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.03em;
+        color: var(--meeting-text);
+      }
+
+      .overlay-bottom {
+        position: absolute;
+        left: 50%;
+        bottom: clamp(0.75rem, 2vw, 1.25rem);
+        transform: translateX(-50%);
+        display: flex;
+        align-items: center;
+        gap: 0.55rem;
+        z-index: 3;
+        pointer-events: none;
+      }
+
+      .control-btn {
+        pointer-events: auto;
+        border: 1px solid rgba(244, 241, 232, 0.3);
+        border-radius: 999px;
+        background: rgba(10, 24, 26, 0.84);
+        color: var(--meeting-text);
+        padding: 0.66rem 1.05rem;
+        font-size: 0.73rem;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        cursor: pointer;
+        -webkit-backdrop-filter: blur(8px);
+        backdrop-filter: blur(8px);
+        transition: transform 0.22s ease, background-color 0.22s ease, border-color 0.22s ease;
+      }
+
+      .control-btn:hover {
+        transform: translateY(-1px);
+        background: rgba(16, 36, 38, 0.95);
+        border-color: rgba(244, 241, 232, 0.45);
+      }
+
+      .control-btn:disabled {
+        opacity: 0.58;
+        cursor: default;
+      }
+
+      .control-btn[hidden] {
         display: none;
       }
 
-      .frame-wrap {
-        width: 100%;
-        aspect-ratio: 16 / 9;
-        border-radius: 14px;
-        overflow: hidden;
-        background: rgba(0, 0, 0, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+      .control-btn.end {
+        border-color: rgba(255, 186, 186, 0.34);
+        background: rgba(73, 24, 29, 0.74);
+      }
+
+      .control-btn.end:hover {
+        background: rgba(94, 28, 36, 0.9);
+      }
+
+      .control-btn.ghost {
+        border-style: dashed;
+        color: var(--meeting-text-soft);
       }
 
       @media (max-width: 900px) {
-        .frame-wrap {
-          aspect-ratio: 10 / 16;
+        .meeting-shell {
+          border-radius: 18px;
+          height: calc(100vh - 1.2rem);
         }
 
-        .status-wrap {
-          align-items: flex-start;
-          flex-direction: column;
+        .status-chip {
+          max-width: calc(100vw - 2.2rem);
+          padding: 0.48rem 0.8rem;
+        }
+
+        .status-message {
+          font-size: 0.84rem;
+        }
+
+        .overlay-bottom {
+          width: calc(100% - 1rem);
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .control-btn {
+          flex: 1 1 auto;
+          min-width: 120px;
+          text-align: center;
+        }
+      }
+
+      @media (prefers-reduced-motion: no-preference) {
+        .meeting-shell {
+          animation: shellIn 640ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .overlay-top {
+          animation: riseIn 700ms 120ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .overlay-bottom {
+          animation: riseIn 700ms 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+      }
+
+      @keyframes shellIn {
+        from {
+          opacity: 0;
+          transform: scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+
+      @keyframes riseIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes livePulse {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(141, 228, 168, 0.32);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(141, 228, 168, 0);
         }
       }
     </style>
   </head>
   <body>
-    <div class="scene">
-      <video autoplay loop muted playsinline webkit-playsinline poster="images/hero-bg.png">
-        <source src="visionBGvideo.mp4" type="video/mp4" />
-      </video>
-    </div>
-
     <main class="layout">
-      <section class="session-shell">
-        <div class="status-wrap">
-          <div>
+      <section class="meeting-shell">
+        <div class="meeting-stage">
+          <div id="dailyContainer" class="stage-frame"></div>
+        </div>
+
+        <div class="overlay-top">
+          <div class="status-chip" id="statusChip" data-state="connecting">
             <div class="status-line" id="statusLine">Connecting</div>
             <div class="status-message" id="statusMessage">
               Connecting you to your Stillwater guide...
             </div>
           </div>
-          <button class="retry-btn" id="retryButton" hidden>Retry</button>
+          <div class="meeting-meta" id="meetingMeta" data-live="false">
+            <span class="meeting-meta-dot" aria-hidden="true"></span>
+            <span class="meeting-meta-text">Session</span>
+            <span class="meeting-meta-id" id="meetingMetaId">Pending</span>
+          </div>
         </div>
-        <div id="dailyContainer" class="frame-wrap"></div>
+
+        <div class="overlay-bottom">
+          <button class="control-btn" id="retryButton" hidden>Retry</button>
+          <button class="control-btn ghost" id="audioPlaceholder" disabled>
+            Audio Coming Soon
+          </button>
+          <button class="control-btn end" id="endButton">End Session</button>
+        </div>
       </section>
     </main>
 
@@ -144,7 +340,11 @@
     <script>
       const statusLineEl = document.getElementById("statusLine");
       const statusMessageEl = document.getElementById("statusMessage");
+      const statusChip = document.getElementById("statusChip");
+      const meetingMeta = document.getElementById("meetingMeta");
+      const meetingMetaId = document.getElementById("meetingMetaId");
       const retryButton = document.getElementById("retryButton");
+      const endButton = document.getElementById("endButton");
       const dailyContainer = document.getElementById("dailyContainer");
 
       const query = new URLSearchParams(window.location.search);
@@ -155,9 +355,12 @@
       let attemptCount = 0;
       const MAX_ATTEMPTS = 2;
 
-      const setStatus = (line, message) => {
+      meetingMetaId.textContent = submissionId ? `#${submissionId}` : "Pending";
+
+      const setStatus = (line, message, state = "neutral") => {
         statusLineEl.textContent = line;
         statusMessageEl.textContent = message;
+        statusChip.dataset.state = state;
       };
 
       const createRoom = async () => {
@@ -180,27 +383,30 @@
 
       const bindFrameEvents = (frame) => {
         frame.on("joined-meeting", () => {
-          setStatus("Connected", "Your guided session is live.");
+          setStatus("Connected", "Your guided session is live.", "connected");
+          meetingMeta.dataset.live = "true";
         });
 
         frame.on("left-meeting", () => {
-          setStatus("Session Ended", "Your session has ended. You may start again anytime.");
+          setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
+          meetingMeta.dataset.live = "false";
         });
 
         frame.on("app-message", (ev) => {
           const type = ev && ev.data ? ev.data.type : "";
           if (type === "bot_ready") {
-            setStatus("Guide Ready", "Your Stillwater guide is ready. Speak when comfortable.");
+            setStatus("Guide Ready", "Your Stillwater guide is ready. Speak when comfortable.", "ready");
             return;
           }
 
           if (type === "idle_timeout") {
-            setStatus("Session Timed Out", "The session ended due to inactivity.");
+            setStatus("Session Timed Out", "The session ended due to inactivity.", "ended");
+            meetingMeta.dataset.live = "false";
             return;
           }
 
           if (type === "daily_error" || type === "video_generation_error") {
-            setStatus("Session Alert", "A live session issue occurred. You can retry the connection.");
+            setStatus("Session Alert", "A live session issue occurred. You can retry the connection.", "error");
           }
         });
       };
@@ -215,7 +421,7 @@
             width: "100%",
             height: "100%",
             border: "0",
-            borderRadius: "14px",
+            borderRadius: "0",
           },
           showLeaveButton: true,
         });
@@ -228,12 +434,15 @@
         attemptCount += 1;
 
         if (attemptCount === 1) {
-          setStatus("Connecting", "Connecting you to your Stillwater guide...");
+          setStatus("Connecting", "Connecting you to your Stillwater guide...", "connecting");
         } else {
-          setStatus("Retrying", "Connection took longer than expected. Retrying now...");
+          setStatus("Retrying", "Connection took longer than expected. Retrying now...", "retrying");
         }
 
         const room = await createRoom();
+        if (room && room.session_id) {
+          meetingMetaId.textContent = room.session_id;
+        }
         const frame = ensureFrame();
 
         await frame.join({
@@ -256,7 +465,9 @@
           setStatus(
             "Connection Pending",
             "Still not connected. Please tap Retry.",
+            "error",
           );
+          meetingMeta.dataset.live = "false";
           retryButton.hidden = false;
           console.error("Assistant session failed:", error);
         }
@@ -265,6 +476,22 @@
       retryButton.addEventListener("click", async () => {
         attemptCount = 0;
         await startSession();
+      });
+
+      endButton.addEventListener("click", async () => {
+        if (!callFrame) {
+          setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
+          meetingMeta.dataset.live = "false";
+          return;
+        }
+
+        try {
+          await callFrame.leave();
+          setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
+        } catch (err) {
+          console.error("Failed to end session:", err);
+          setStatus("Session Alert", "Could not end the session cleanly. You can retry.", "error");
+        }
       });
 
       window.addEventListener("beforeunload", async () => {
