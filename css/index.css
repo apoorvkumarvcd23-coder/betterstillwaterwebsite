@@ -25,6 +25,7 @@
   --transition-smooth: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+/* COMMENTED OUT: Light theme temporarily disabled - dark mode is default
 :root[data-theme="light"] {
   --color-bg-primary: #f5f2ee;
   --color-bg-secondary: #ece5db;
@@ -37,6 +38,7 @@
   --btn-hover-fill: rgba(26, 46, 44, 0.16);
   --btn-hover-text: #1a2e2c;
 }
+*/
 
 /* Reset & Base */
 * {
@@ -163,6 +165,7 @@ button,
   backdrop-filter: blur(6px);
 }
 
+/* COMMENTED OUT: Light theme - dark mode is default
 :root[data-theme="light"] .header {
   background: linear-gradient(
     to bottom,
@@ -171,6 +174,7 @@ button,
     rgba(7, 18, 18, 0.16) 100%
   );
 }
+*/
 
 .header.scrolled {
   background-color: var(--color-surface);
@@ -180,9 +184,11 @@ button,
   border-bottom: 1px solid var(--color-border-soft);
 }
 
+/* COMMENTED OUT: Light theme - dark mode is default
 :root[data-theme="light"] .header.scrolled {
   background-color: rgba(255, 255, 255, 0.94) !important;
 }
+*/
 
 :root[data-theme="dark"] .header.scrolled {
   background-color: rgba(7, 35, 41, 0.88) !important;
@@ -405,6 +411,7 @@ body.auth-actions-compact #btnAdmin {
   pointer-events: none;
 }
 
+/* COMMENTED OUT: Light theme - dark mode is default
 :root[data-theme="light"] .theme-toggle {
   background: rgba(236, 229, 219, 0.88);
 }
@@ -420,6 +427,7 @@ body.auth-actions-compact #btnAdmin {
   right: auto;
   color: #8f7040;
 }
+*/
 
 .theme-toggle:hover {
   border-color: var(--color-text-primary);
@@ -620,6 +628,7 @@ body.auth-actions-compact #btnAdmin {
   border-color: rgba(245, 242, 238, 0.78);
 }
 
+/* COMMENTED OUT: Light theme - dark mode is default
 :root[data-theme="light"] .btn {
   text-shadow: none;
   border-color: rgba(26, 46, 44, 0.35);
@@ -657,6 +666,7 @@ body.auth-actions-compact #btnAdmin {
 :root[data-theme="light"] .hero-content .text-caption {
   color: #e4c489;
 }
+*/
 
 /* Forms */
 .form-group {
@@ -904,9 +914,11 @@ body.auth-actions-compact #btnAdmin {
     --color-border-soft: rgba(245, 242, 238, 0.24);
   }
 
+  /* COMMENTED OUT: Light theme - dark mode is default
   :root[data-theme="light"] {
     --color-border-soft: rgba(26, 46, 44, 0.28);
   }
+  */
 
   .container {
     padding: 0 4.5%;
@@ -969,9 +981,11 @@ body.auth-actions-compact #btnAdmin {
     left: 3px;
   }
 
+  /* COMMENTED OUT: Light theme - dark mode is default
   :root[data-theme="light"] .theme-toggle::before {
     transform: translateX(22px);
   }
+  */
 
   .btn {
     padding: 0.78rem 1.5rem;
@@ -1194,9 +1208,11 @@ body.auth-actions-compact #btnAdmin {
     height: 20px;
   }
 
+  /* COMMENTED OUT: Light theme - dark mode is default
   :root[data-theme="light"] .theme-toggle::before {
     transform: translateX(18px);
   }
+  */
 
   .header-theme-toggle {
     right: calc(4% + 72px);

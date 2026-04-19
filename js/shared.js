@@ -26,43 +26,45 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  function createThemeToggle(extraClasses = "") {
-    const toggle = document.createElement("button");
-    toggle.type = "button";
-    toggle.className = `theme-toggle ${extraClasses}`.trim();
-    toggle.setAttribute("data-theme-toggle", "true");
+  // COMMENTED OUT: Theme toggle functionality temporarily disabled
+  // function createThemeToggle(extraClasses = "") {
+  //   const toggle = document.createElement("button");
+  //   toggle.type = "button";
+  //   toggle.className = `theme-toggle ${extraClasses}`.trim();
+  //   toggle.setAttribute("data-theme-toggle", "true");
+  //
+  //   const text = document.createElement("span");
+  //   text.className = "theme-toggle-label";
+  //   toggle.appendChild(text);
+  //
+  //   toggle.addEventListener("click", () => {
+  //     const current =
+  //       document.documentElement.getAttribute("data-theme") || "dark";
+  //     applyTheme(current === "dark" ? "light" : "dark");
+  //   });
+  //
+  //   return toggle;
+  // }
 
-    const text = document.createElement("span");
-    text.className = "theme-toggle-label";
-    toggle.appendChild(text);
-
-    toggle.addEventListener("click", () => {
-      const current =
-        document.documentElement.getAttribute("data-theme") || "dark";
-      applyTheme(current === "dark" ? "light" : "dark");
-    });
-
-    return toggle;
-  }
-
-  function mountThemeToggles() {
-    const header = document.querySelector(".header");
-    const authActions = document.getElementById("authActions");
-
-    if (
-      authActions &&
-      !authActions.querySelector(".header-theme-toggle-inline")
-    ) {
-      authActions.prepend(createThemeToggle("header-theme-toggle-inline"));
-    } else if (header && !header.querySelector(".header-theme-toggle")) {
-      header.appendChild(createThemeToggle("header-theme-toggle"));
-    }
-
-    const settingsMount = document.getElementById("themeSettingsMount");
-    if (settingsMount && !settingsMount.querySelector("[data-theme-toggle]")) {
-      settingsMount.appendChild(createThemeToggle());
-    }
-  }
+  // COMMENTED OUT: Theme toggle mount functionality temporarily disabled
+  // function mountThemeToggles() {
+  //   const header = document.querySelector(".header");
+  //   const authActions = document.getElementById("authActions");
+  //
+  //   if (
+  //     authActions &&
+  //     !authActions.querySelector(".header-theme-toggle-inline")
+  //   ) {
+  //     authActions.prepend(createThemeToggle("header-theme-toggle-inline"));
+  //   } else if (header && !header.querySelector(".header-theme-toggle")) {
+  //     header.appendChild(createThemeToggle("header-theme-toggle"));
+  //   }
+  //
+  //   const settingsMount = document.getElementById("themeSettingsMount");
+  //   if (settingsMount && !settingsMount.querySelector("[data-theme-toggle]")) {
+  //     settingsMount.appendChild(createThemeToggle());
+  //   }
+  // }
 
   function adjustHomeHeaderLayout() {
     if (!document.body.classList.contains("home-landing")) return;
@@ -192,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   normalizeWaitlistLinks();
   normalizeFooters();
   injectStillwaterLogo();
-  mountThemeToggles();
+  // mountThemeToggles(); // COMMENTED OUT: Theme toggle functionality temporarily disabled
   adjustHomeHeaderLayout();
   applyTheme(document.documentElement.getAttribute("data-theme") || "dark");
 
