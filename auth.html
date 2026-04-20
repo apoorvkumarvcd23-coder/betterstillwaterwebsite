@@ -649,7 +649,7 @@
       const returnTo =
         returnToParam && returnToParam.startsWith("/")
           ? returnToParam
-          : "/intake.html";
+          : null;
       const signedInState = document.getElementById("signedInState");
       const signedInMessage = document.getElementById("signedInMessage");
       const toggleGroup = document.querySelector(".toggle-group");
@@ -658,10 +658,10 @@
 
       const googleAuthLink = document.getElementById("googleAuthLink");
       if (googleAuthLink) {
-        googleAuthLink.setAttribute(
-          "href",
-          `/auth/google?returnTo=${encodeURIComponent(returnTo)}`,
-        );
+        const googleAuthHref = returnTo
+          ? `/auth/google?returnTo=${encodeURIComponent(returnTo)}`
+          : "/auth/google";
+        googleAuthLink.setAttribute("href", googleAuthHref);
       }
 
       // Check if already authenticated
@@ -687,7 +687,7 @@
             window.location.replace("/admin.html");
             return;
           }
-          window.location.replace(returnTo || "/intake.html");
+          window.location.replace(returnTo || user.redirectUrl || "/intake.html");
         })
         .catch(() => {});
 
@@ -729,11 +729,13 @@
         const password = passwordValue ? passwordValue : undefined;
 
         try {
+          const payload = { phone, password };
+          if (returnTo) payload.returnTo = returnTo;
           const response = await fetch("/auth/login", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ phone, password, returnTo }),
+            body: JSON.stringify(payload),
           });
 
           const data = await response.json();
@@ -765,11 +767,13 @@
         const password = document.getElementById("regPassword").value;
 
         try {
+          const payload = { name, phone, password };
+          if (returnTo) payload.returnTo = returnTo;
           const response = await fetch("/auth/register", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             credentials: "include",
-            body: JSON.stringify({ name, phone, password, returnTo }),
+            body: JSON.stringify(payload),
           });
 
           const data = await response.json();

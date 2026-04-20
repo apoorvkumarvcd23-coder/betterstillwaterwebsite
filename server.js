@@ -60,6 +60,15 @@ const pool = new Pool({
   ssl: useDbSsl ? { rejectUnauthorized: false } : false,
 });
 
+const CUSTOMER_ASSESSMENT_REDIRECT = "/intake.html";
+const CUSTOMER_CARE_PATH_REDIRECT = "/care-path.html";
+const ASSESSMENT_V2_CUTOFF_ISO =
+  process.env.ASSESSMENT_V2_CUTOFF_ISO || "2026-04-20T00:00:00.000Z";
+const parsedAssessmentCutoff = new Date(ASSESSMENT_V2_CUTOFF_ISO);
+const ASSESSMENT_V2_CUTOFF = Number.isNaN(parsedAssessmentCutoff.getTime())
+  ? new Date("2026-04-20T00:00:00.000Z")
+  : parsedAssessmentCutoff;
+
 const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3002")
   .split(",")
   .map((origin) => origin.trim())
@@ -127,6 +136,26 @@ async function initDb() {
     ON intake_submissions (created_at DESC)
   `);
 
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS auth_user_type TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS auth_user_id TEXT
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_intake_submissions_auth_user
+    ON intake_submissions (auth_user_type, auth_user_id, created_at DESC)
+  `);
+
   // Table to record historical login events (oauth and phone)
   await pool.query(`
     CREATE TABLE IF NOT EXISTS login_events (
@@ -173,6 +202,61 @@ async function incrementWaitlistCount() {
     "UPDATE settings SET value = (value::int + 1)::text WHERE key = 'waitlist_count'",
   );
 }
+
+const getAuthUserType = (user) => {
+  return user && user.phone ? "phone" : "oauth";
+};
+
+const getAuthUserId = (user) => {
+  if (!user || typeof user.id === "undefined" || user.id === null) {
+    return null;
+  }
+  return String(user.id);
+};
+
+const hasCompletedAssessmentForUser = async (user) => {
+  if (!user || user.role === "admin") {
+    return false;
+  }
+
+  const authUserId = getAuthUserId(user);
+  if (!authUserId) {
+    return false;
+  }
+
+  const authUserType = getAuthUserType(user);
+  const result = await pool.query(
+    `SELECT id
+     FROM intake_submissions
+     WHERE auth_user_type = $1
+       AND auth_user_id = $2
+       AND completed_at IS NOT NULL
+       AND completed_at >= $3
+     ORDER BY completed_at DESC
+     LIMIT 1`,
+    [authUserType, authUserId, ASSESSMENT_V2_CUTOFF.toISOString()],
+  );
+
+  return result.rowCount > 0;
+};
+
+const getDefaultPostAuthRedirectForUser = async (user) => {
+  if (user?.role === "admin") {
+    return "/admin.html";
+  }
+
+  const hasCompletedAssessment = await hasCompletedAssessmentForUser(user);
+  return hasCompletedAssessment
+    ? CUSTOMER_CARE_PATH_REDIRECT
+    : CUSTOMER_ASSESSMENT_REDIRECT;
+};
+
+const resolvePostAuthRedirect = async (value, user) => {
+  const fallback = await getDefaultPostAuthRedirectForUser(user);
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  return trimmed.startsWith("/") ? trimmed : fallback;
+};
 
 // Middleware
 app.use(
@@ -1235,9 +1319,16 @@ ${context}`;
   }
 });
 
-app.get("/api/auth/me", (req, res) => {
+app.get("/api/auth/me", async (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {
     return res.json({ authenticated: false });
+  }
+
+  let redirectUrl = "/admin.html";
+  try {
+    redirectUrl = await getDefaultPostAuthRedirectForUser(req.user);
+  } catch (err) {
+    console.error("Failed to compute auth/me redirect:", err);
   }
 
   res.json({
@@ -1246,6 +1337,7 @@ app.get("/api/auth/me", (req, res) => {
     name: req.user.name || req.user.phone || "User",
     email: req.user.email,
     role: req.user.role,
+    redirectUrl,
   });
 });
 
@@ -1271,6 +1363,10 @@ app.post("/api/intake-submissions", async (req, res) => {
     const relationText = String(relation || "").trim();
     const hasEyesightIssues = toBoolean(eyesightIssues);
     const cleanEyePower = String(eyePower || "").trim();
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
+    const authUserType = isAuthenticated ? getAuthUserType(req.user) : null;
+    const authUserId = isAuthenticated ? getAuthUserId(req.user) : null;
+    const completedAt = isAuthenticated ? new Date().toISOString() : null;
 
     if (!cleanName || cleanName.length > 120) {
       return res
@@ -1322,8 +1418,8 @@ app.post("/api/intake-submissions", async (req, res) => {
 
     const result = await pool.query(
       `INSERT INTO intake_submissions
-      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
       RETURNING id, created_at`,
       [
         cleanName,
@@ -1333,6 +1429,9 @@ app.post("/api/intake-submissions", async (req, res) => {
         hasEyesightIssues,
         cleanEyePower,
         isForFamilyMember ? relationText : "self",
+        authUserType,
+        authUserId,
+        completedAt,
       ],
     );
 
@@ -1386,17 +1485,6 @@ app.get(
   },
 );
 
-const getDefaultPostAuthRedirect = (role) => {
-  return role === "admin" ? "/admin.html" : "/intake.html";
-};
-
-const resolveReturnTo = (value, role = "customer") => {
-  const fallback = getDefaultPostAuthRedirect(role);
-  if (typeof value !== "string") return fallback;
-  const trimmed = value.trim();
-  return trimmed.startsWith("/") ? trimmed : fallback;
-};
-
 // === STATIC & PUBLIC ROUTES ===
 
 // Serve Static Assets (HTML/CSS/JS/Images)
@@ -1424,16 +1512,11 @@ app.get(
   "/auth/google/callback",
   passport.authenticate("google", { failureRedirect: "/auth.html" }),
   async (req, res) => {
-    let redirectTo = getDefaultPostAuthRedirect(req.user?.role);
-
     const returnTo = req.session.returnTo;
-    redirectTo = resolveReturnTo(returnTo, req.user?.role);
+    let redirectTo = await resolvePostAuthRedirect(returnTo, req.user);
 
     if (req.user.role === "admin") {
       console.log(`[AUTH] Admin authenticated: ${req.user.email}`);
-      if (!returnTo) {
-        redirectTo = "/admin.html";
-      }
     } else {
       console.log(`[AUTH] Customer authenticated: ${req.user.email}`);
     }
@@ -1584,17 +1667,25 @@ app.post("/auth/register", async (req, res) => {
           return res.status(500).json({ error: "Session save failed" });
         }
 
-        res.json({
-          success: true,
-          message: "Account created and logged in",
-          redirectUrl: resolveReturnTo(returnTo, user.role),
-          user: {
-            id: user.id,
-            phone: user.phone,
-            name: user.name,
-            role: user.role,
-          },
-        });
+        (async () => {
+          try {
+            const redirectUrl = await resolvePostAuthRedirect(returnTo, user);
+            res.json({
+              success: true,
+              message: "Account created and logged in",
+              redirectUrl,
+              user: {
+                id: user.id,
+                phone: user.phone,
+                name: user.name,
+                role: user.role,
+              },
+            });
+          } catch (resolveErr) {
+            console.error("Failed to resolve post-register redirect:", resolveErr);
+            res.status(500).json({ error: "Failed to determine redirect" });
+          }
+        })();
       });
     });
   } catch (err) {
@@ -1697,17 +1788,33 @@ app.post("/auth/login", async (req, res, next) => {
                 return res.status(500).json({ error: "Session save failed" });
               }
 
-              return res.json({
-                success: true,
-                message: "Logged in successfully",
-                redirectUrl: resolveReturnTo(returnTo, authUser.role),
-                user: {
-                  id: authUser.id,
-                  phone: authUser.phone,
-                  name: authUser.name,
-                  role: authUser.role,
-                },
-              });
+              (async () => {
+                try {
+                  const redirectUrl = await resolvePostAuthRedirect(
+                    returnTo,
+                    authUser,
+                  );
+                  return res.json({
+                    success: true,
+                    message: "Logged in successfully",
+                    redirectUrl,
+                    user: {
+                      id: authUser.id,
+                      phone: authUser.phone,
+                      name: authUser.name,
+                      role: authUser.role,
+                    },
+                  });
+                } catch (resolveErr) {
+                  console.error(
+                    "Failed to resolve post-login redirect (insecure existing user):",
+                    resolveErr,
+                  );
+                  return res
+                    .status(500)
+                    .json({ error: "Failed to determine redirect" });
+                }
+              })();
             });
           });
         })(req, res, next);
@@ -1783,17 +1890,30 @@ app.post("/auth/login", async (req, res, next) => {
             return res.status(500).json({ error: "Session save failed" });
           }
 
-          return res.json({
-            success: true,
-            message: "Logged in successfully",
-            redirectUrl: resolveReturnTo(returnTo, user.role),
-            user: {
-              id: user.id,
-              phone: user.phone,
-              name: user.name,
-              role: user.role,
-            },
-          });
+          (async () => {
+            try {
+              const redirectUrl = await resolvePostAuthRedirect(returnTo, user);
+              return res.json({
+                success: true,
+                message: "Logged in successfully",
+                redirectUrl,
+                user: {
+                  id: user.id,
+                  phone: user.phone,
+                  name: user.name,
+                  role: user.role,
+                },
+              });
+            } catch (resolveErr) {
+              console.error(
+                "Failed to resolve post-login redirect (insecure new user):",
+                resolveErr,
+              );
+              return res
+                .status(500)
+                .json({ error: "Failed to determine redirect" });
+            }
+          })();
         });
       });
     } catch (err) {
@@ -1885,17 +2005,28 @@ app.post("/auth/login", async (req, res, next) => {
           return res.status(500).json({ error: "Session save failed" });
         }
 
-        res.json({
-          success: true,
-          message: "Logged in successfully",
-          redirectUrl: resolveReturnTo(returnTo, user.role),
-          user: {
-            id: user.id,
-            phone: user.phone,
-            name: user.name,
-            role: user.role,
-          },
-        });
+        (async () => {
+          try {
+            const redirectUrl = await resolvePostAuthRedirect(returnTo, user);
+            res.json({
+              success: true,
+              message: "Logged in successfully",
+              redirectUrl,
+              user: {
+                id: user.id,
+                phone: user.phone,
+                name: user.name,
+                role: user.role,
+              },
+            });
+          } catch (resolveErr) {
+            console.error(
+              "Failed to resolve post-login redirect (standard login):",
+              resolveErr,
+            );
+            res.status(500).json({ error: "Failed to determine redirect" });
+          }
+        })();
       });
     });
   })(req, res, next);
