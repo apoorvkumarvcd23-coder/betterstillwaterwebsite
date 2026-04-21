@@ -227,6 +227,9 @@
         <button class="admin-tab-btn" data-tab="loginsTab" id="btnLoginsTab">
           Login Events
         </button>
+        <button class="admin-tab-btn" data-tab="aiUsageTab" id="btnAiUsageTab">
+          AI Usage
+        </button>
         <button
           class="admin-tab-btn"
           data-tab="phoneUsersTab"
@@ -624,6 +627,71 @@
           </table>
         </div>
       </div>
+
+      <!-- TAB 5: AI Usage -->
+      <div id="aiUsageTab" class="tab-content">
+        <div
+          style="
+            border: 1px solid rgba(201, 169, 110, 0.2);
+            padding: 3rem;
+            text-align: left;
+            background: rgba(201, 169, 110, 0.02);
+            overflow-x: auto;
+          "
+        >
+          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
+            AI Session Usage
+          </h3>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; gap: 1rem;">
+            <p style="color: var(--color-text-secondary); margin:0;">
+              Per-session usage tracking for the LemonSlice assistant.
+            </p>
+            <button id="exportAiUsageBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
+          </div>
+
+          <div class="grid-2" style="gap: 1rem; margin-bottom: 1.5rem">
+            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
+              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Total Sessions</div>
+              <div id="aiUsageTotalSessions" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
+            </div>
+            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
+              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Distinct Users</div>
+              <div id="aiUsageDistinctUsers" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
+            </div>
+            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
+              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Total Duration</div>
+              <div id="aiUsageTotalDuration" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
+            </div>
+            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
+              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Average Duration</div>
+              <div id="aiUsageAvgDuration" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
+            </div>
+          </div>
+
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Start</th>
+                <th>End</th>
+                <th>Duration</th>
+                <th>User</th>
+                <th>Type</th>
+                <th>Agent</th>
+                <th>Submission</th>
+                <th>End Reason</th>
+                <th>Session ID</th>
+              </tr>
+            </thead>
+            <tbody id="aiUsageTableBody">
+              <tr>
+                <td colspan="9" style="text-align: center">
+                  Select the AI Usage tab to load data.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </main>
 
     <footer class="footer container" style="margin-top: auto">
@@ -661,10 +729,30 @@
           if (targetId === "loginsTab") {
             loadLoginEventsData();
           }
+          if (targetId === "aiUsageTab") {
+            loadAiUsageData();
+          }
         });
       });
 
       loadPhoneUsersData();
+
+      function formatDuration(totalSeconds) {
+        const seconds = Number.isFinite(Number(totalSeconds))
+          ? Math.max(0, Math.floor(Number(totalSeconds)))
+          : 0;
+        const hrs = Math.floor(seconds / 3600);
+        const mins = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+
+        if (hrs > 0) {
+          return `${hrs}h ${mins}m ${secs}s`;
+        }
+        if (mins > 0) {
+          return `${mins}m ${secs}s`;
+        }
+        return `${secs}s`;
+      }
 
       // Fetch and populate career applications
       async function loadCareersData() {
@@ -760,6 +848,68 @@
         }
       }
 
+      async function loadAiUsageData() {
+        const tbody = document.getElementById("aiUsageTableBody");
+        const totalSessionsEl = document.getElementById("aiUsageTotalSessions");
+        const distinctUsersEl = document.getElementById("aiUsageDistinctUsers");
+        const totalDurationEl = document.getElementById("aiUsageTotalDuration");
+        const avgDurationEl = document.getElementById("aiUsageAvgDuration");
+
+        try {
+          const response = await fetch("/api/admin/ai-usage");
+          const data = await response.json();
+
+          if (!response.ok) {
+            tbody.innerHTML =
+              '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Failed to load AI usage data.</td></tr>';
+            return;
+          }
+
+          const summary = data.summary || {};
+          totalSessionsEl.textContent = String(summary.total_sessions || 0);
+          distinctUsersEl.textContent = String(summary.distinct_users || 0);
+          totalDurationEl.textContent = formatDuration(
+            summary.total_duration_seconds || 0,
+          );
+          avgDurationEl.textContent = formatDuration(
+            summary.avg_duration_seconds || 0,
+          );
+
+          if (!data.items || data.items.length === 0) {
+            tbody.innerHTML =
+              '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No AI usage sessions found.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = "";
+          data.items.forEach((row) => {
+            const start = row.session_started_at
+              ? new Date(row.session_started_at).toLocaleString()
+              : "-";
+            const end = row.session_ended_at
+              ? new Date(row.session_ended_at).toLocaleString()
+              : "-";
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td title="${row.session_started_at || ""}">${start}</td>
+              <td title="${row.session_ended_at || ""}">${end}</td>
+              <td>${formatDuration(row.duration_seconds || 0)}</td>
+              <td style="font-weight: 500; color: var(--color-text-primary);">${row.auth_user_id || "-"}</td>
+              <td>${row.auth_user_type || "-"}</td>
+              <td>${row.agent_id || "-"}</td>
+              <td>${row.submission_id || "-"}</td>
+              <td>${row.end_reason || "-"}</td>
+              <td title="${row.lemonslice_session_id || ""}">${row.lemonslice_session_id || "-"}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } catch (_err) {
+          tbody.innerHTML =
+            '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Network error loading AI usage data.</td></tr>';
+        }
+      }
+
       // Fetch and populate login events
       async function loadLoginEventsData() {
         const tbody = document.getElementById("loginsTableBody");
@@ -839,6 +989,13 @@
       if (exportLoginsBtn) {
         exportLoginsBtn.addEventListener("click", () => {
           window.location.href = "/api/admin/export/logins";
+        });
+      }
+
+      const exportAiUsageBtn = document.getElementById("exportAiUsageBtn");
+      if (exportAiUsageBtn) {
+        exportAiUsageBtn.addEventListener("click", () => {
+          window.location.href = "/api/admin/export/ai-usage";
         });
       }
     </script>

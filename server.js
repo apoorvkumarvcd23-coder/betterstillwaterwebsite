@@ -172,6 +172,39 @@ async function initDb() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS ai_usage_sessions (
+      id BIGSERIAL PRIMARY KEY,
+      lemonslice_session_id TEXT UNIQUE NOT NULL,
+      auth_user_type TEXT NOT NULL,
+      auth_user_id TEXT NOT NULL,
+      submission_id TEXT,
+      agent_id TEXT,
+      room_url TEXT,
+      session_started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      session_ended_at TIMESTAMPTZ,
+      duration_seconds INTEGER,
+      end_reason TEXT,
+      meta JSONB DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_sessions_started_at
+    ON ai_usage_sessions (session_started_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_sessions_auth_user
+    ON ai_usage_sessions (auth_user_type, auth_user_id, session_started_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_ai_usage_sessions_agent
+    ON ai_usage_sessions (agent_id, session_started_at DESC)
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT
@@ -212,6 +245,23 @@ const getAuthUserId = (user) => {
     return null;
   }
   return String(user.id);
+};
+
+const AI_USAGE_END_REASONS = new Set([
+  "left_meeting",
+  "idle_timeout",
+  "user_end",
+  "unload",
+  "error",
+  "unknown",
+]);
+
+const normalizeAiUsageEndReason = (value) => {
+  const normalized = String(value || "")
+    .trim()
+    .toLowerCase();
+  if (!normalized) return "unknown";
+  return AI_USAGE_END_REASONS.has(normalized) ? normalized : "unknown";
 };
 
 const hasCompletedAssessmentForUser = async (user) => {
@@ -777,6 +827,10 @@ app.get("/admin.html", requireRole("admin"), (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
 });
 
+app.get("/assistant.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "assistant.html"));
+});
+
 // Route to handle the manual fund update from the Admin dashboard
 app.post("/admin/update-funds", requireRole("admin"), async (req, res) => {
   const newAmount = req.body.fundAmount;
@@ -948,7 +1002,7 @@ app.get("/api/trust-stats", async (req, res) => {
   }
 });
 
-app.post("/api/lemonslice/rooms", async (req, res) => {
+app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
   try {
     if (!LEMONSLICE_API_KEY) {
       return res.status(500).json({
@@ -983,15 +1037,120 @@ app.post("/api/lemonslice/rooms", async (req, res) => {
       });
     }
 
+    const lemonsliceSessionId = String(body.session_id || "").trim();
+    if (!lemonsliceSessionId) {
+      return res.status(502).json({
+        error: "LemonSlice did not return a valid session ID.",
+      });
+    }
+
+    const authUserType = getAuthUserType(req.user);
+    const authUserId = getAuthUserId(req.user);
+    const submissionId = String(req.body?.submissionId || "").trim() || null;
+
+    await pool.query(
+      `INSERT INTO ai_usage_sessions (
+         lemonslice_session_id,
+         auth_user_type,
+         auth_user_id,
+         submission_id,
+         agent_id,
+         room_url,
+         session_started_at,
+         meta
+       )
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7::jsonb)
+       ON CONFLICT (lemonslice_session_id)
+       DO UPDATE SET
+         auth_user_type = EXCLUDED.auth_user_type,
+         auth_user_id = EXCLUDED.auth_user_id,
+         submission_id = EXCLUDED.submission_id,
+         agent_id = EXCLUDED.agent_id,
+         room_url = EXCLUDED.room_url,
+         session_started_at = EXCLUDED.session_started_at,
+         meta = EXCLUDED.meta`,
+      [
+        lemonsliceSessionId,
+        authUserType,
+        authUserId,
+        submissionId,
+        agentId,
+        body.room_url || null,
+        JSON.stringify({
+          ip: req.ip || null,
+          user_agent: req.get("user-agent") || null,
+        }),
+      ],
+    );
+
     return res.status(201).json({
       room_url: body.room_url,
       token: body.token,
       image_url: body.image_url,
-      session_id: body.session_id,
+      session_id: lemonsliceSessionId,
     });
   } catch (err) {
     console.error("Failed to create LemonSlice room:", err);
     return res.status(500).json({ error: "Failed to create LemonSlice room" });
+  }
+});
+
+app.post("/api/lemonslice/usage/end", requireAuthApi, async (req, res) => {
+  try {
+    const sessionId = String(req.body?.session_id || "").trim();
+    const endReason = normalizeAiUsageEndReason(req.body?.end_reason);
+
+    if (!sessionId || sessionId.length > 200) {
+      return res.status(400).json({ error: "A valid session_id is required." });
+    }
+
+    const authUserType = getAuthUserType(req.user);
+    const authUserId = getAuthUserId(req.user);
+
+    const updateResult = await pool.query(
+      `UPDATE ai_usage_sessions
+       SET session_ended_at = NOW(),
+           duration_seconds = GREATEST(0, FLOOR(EXTRACT(EPOCH FROM (NOW() - session_started_at)))::INT),
+           end_reason = $4
+       WHERE lemonslice_session_id = $1
+         AND auth_user_type = $2
+         AND auth_user_id = $3
+         AND session_ended_at IS NULL
+       RETURNING lemonslice_session_id, session_started_at, session_ended_at, duration_seconds, end_reason`,
+      [sessionId, authUserType, authUserId, endReason],
+    );
+
+    if (updateResult.rowCount > 0) {
+      return res.json({
+        ok: true,
+        ended: true,
+        item: updateResult.rows[0],
+      });
+    }
+
+    const existing = await pool.query(
+      `SELECT lemonslice_session_id, session_started_at, session_ended_at, duration_seconds, end_reason
+       FROM ai_usage_sessions
+       WHERE lemonslice_session_id = $1
+         AND auth_user_type = $2
+         AND auth_user_id = $3
+       LIMIT 1`,
+      [sessionId, authUserType, authUserId],
+    );
+
+    if (existing.rowCount === 0) {
+      return res.status(404).json({ error: "Session not found for current user." });
+    }
+
+    return res.json({
+      ok: true,
+      ended: false,
+      alreadyEnded: true,
+      item: existing.rows[0],
+    });
+  } catch (err) {
+    console.error("Failed to end LemonSlice usage session:", err);
+    return res.status(500).json({ error: "Failed to end LemonSlice usage session" });
   }
 });
 
@@ -1115,6 +1274,104 @@ app.get("/api/admin/logins", requireRole("admin"), async (req, res) => {
   }
 });
 
+app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
+  try {
+    const limitRaw = parseInt(String(req.query.limit || "100"), 10);
+    const limit = Number.isFinite(limitRaw)
+      ? Math.max(1, Math.min(limitRaw, 1000))
+      : 100;
+    const offsetRaw = parseInt(String(req.query.offset || "0"), 10);
+    const offset = Number.isFinite(offsetRaw) ? Math.max(0, offsetRaw) : 0;
+
+    const userType = req.query.user_type ? String(req.query.user_type).trim() : null;
+    const userId = req.query.user_id ? String(req.query.user_id).trim() : null;
+    const agentId = req.query.agent_id ? String(req.query.agent_id).trim() : null;
+    const from = req.query.from ? String(req.query.from).trim() : null;
+    const to = req.query.to ? String(req.query.to).trim() : null;
+
+    const baseParams = [];
+    const where = [];
+
+    if (userType) {
+      baseParams.push(userType);
+      where.push(`auth_user_type = $${baseParams.length}`);
+    }
+    if (userId) {
+      baseParams.push(userId);
+      where.push(`auth_user_id = $${baseParams.length}`);
+    }
+    if (agentId) {
+      baseParams.push(agentId);
+      where.push(`agent_id = $${baseParams.length}`);
+    }
+    if (from) {
+      baseParams.push(from);
+      where.push(`session_started_at >= $${baseParams.length}`);
+    }
+    if (to) {
+      baseParams.push(to);
+      where.push(`session_started_at <= $${baseParams.length}`);
+    }
+
+    const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+    const rowsParams = baseParams.slice();
+    const limitPos = rowsParams.length + 1;
+    const offsetPos = rowsParams.length + 2;
+    rowsParams.push(limit, offset);
+
+    const rowsResult = await pool.query(
+      `SELECT
+         id,
+         lemonslice_session_id,
+         auth_user_type,
+         auth_user_id,
+         submission_id,
+         agent_id,
+         session_started_at,
+         session_ended_at,
+         duration_seconds,
+         end_reason,
+         created_at
+       FROM ai_usage_sessions
+       ${whereClause}
+       ORDER BY session_started_at DESC
+       LIMIT $${limitPos} OFFSET $${offsetPos}`,
+      rowsParams,
+    );
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS total FROM ai_usage_sessions ${whereClause}`,
+      baseParams,
+    );
+
+    const summaryResult = await pool.query(
+      `SELECT
+         COUNT(*)::int AS total_sessions,
+         COALESCE(SUM(duration_seconds), 0)::int AS total_duration_seconds,
+         COALESCE(AVG(duration_seconds), 0)::float8 AS avg_duration_seconds,
+         COUNT(DISTINCT auth_user_type || ':' || auth_user_id)::int AS distinct_users
+       FROM ai_usage_sessions
+       ${whereClause}`,
+      baseParams,
+    );
+
+    return res.json({
+      count: countResult.rows[0]?.total || 0,
+      items: rowsResult.rows,
+      summary: {
+        total_sessions: summaryResult.rows[0]?.total_sessions || 0,
+        total_duration_seconds: summaryResult.rows[0]?.total_duration_seconds || 0,
+        avg_duration_seconds: summaryResult.rows[0]?.avg_duration_seconds || 0,
+        distinct_users: summaryResult.rows[0]?.distinct_users || 0,
+      },
+    });
+  } catch (err) {
+    console.error("Error fetching AI usage sessions:", err.message || err);
+    return res.status(500).json({ error: "Failed to fetch AI usage sessions" });
+  }
+});
+
 // Admin: export phone users as CSV
 app.get(
   "/api/admin/export/phone-users",
@@ -1214,6 +1471,118 @@ app.get(
     } catch (err) {
       console.error("Error exporting login events:", err);
       res.status(500).send("Failed to export login events");
+    }
+  },
+);
+
+// Admin: export AI usage sessions as CSV
+app.get(
+  "/api/admin/export/ai-usage",
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const userType = req.query.user_type ? String(req.query.user_type).trim() : null;
+      const userId = req.query.user_id ? String(req.query.user_id).trim() : null;
+      const agentId = req.query.agent_id ? String(req.query.agent_id).trim() : null;
+      const from = req.query.from ? String(req.query.from).trim() : null;
+      const to = req.query.to ? String(req.query.to).trim() : null;
+
+      const params = [];
+      const where = [];
+
+      if (userType) {
+        params.push(userType);
+        where.push(`auth_user_type = $${params.length}`);
+      }
+      if (userId) {
+        params.push(userId);
+        where.push(`auth_user_id = $${params.length}`);
+      }
+      if (agentId) {
+        params.push(agentId);
+        where.push(`agent_id = $${params.length}`);
+      }
+      if (from) {
+        params.push(from);
+        where.push(`session_started_at >= $${params.length}`);
+      }
+      if (to) {
+        params.push(to);
+        where.push(`session_started_at <= $${params.length}`);
+      }
+
+      const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
+
+      const result = await pool.query(
+        `SELECT
+           id,
+           lemonslice_session_id,
+           auth_user_type,
+           auth_user_id,
+           submission_id,
+           agent_id,
+           session_started_at,
+           session_ended_at,
+           duration_seconds,
+           end_reason,
+           created_at
+         FROM ai_usage_sessions
+         ${whereClause}
+         ORDER BY session_started_at DESC`,
+        params,
+      );
+
+      const rows = result.rows || [];
+      const headers = [
+        "id",
+        "lemonslice_session_id",
+        "auth_user_type",
+        "auth_user_id",
+        "submission_id",
+        "agent_id",
+        "session_started_at",
+        "session_ended_at",
+        "duration_seconds",
+        "end_reason",
+        "created_at",
+      ];
+
+      res.setHeader("Content-Type", "text/csv; charset=utf-8");
+      res.setHeader(
+        "Content-Disposition",
+        'attachment; filename="ai-usage-sessions.csv"',
+      );
+
+      const escape = (val) => {
+        if (val === null || typeof val === "undefined") return "";
+        return '"' + String(val).replace(/"/g, '""') + '"';
+      };
+
+      let out = headers.join(",") + "\n";
+      rows.forEach((r) => {
+        out +=
+          [
+            r.id,
+            r.lemonslice_session_id,
+            r.auth_user_type,
+            r.auth_user_id,
+            r.submission_id,
+            r.agent_id,
+            r.session_started_at,
+            r.session_ended_at,
+            r.duration_seconds,
+            r.end_reason,
+            r.created_at,
+          ]
+            .map(escape)
+            .join(",") +
+          "\n";
+      });
+
+      return res.send(out);
+    } catch (err) {
+      console.error("Error exporting AI usage sessions:", err);
+      return res.status(500).send("Failed to export AI usage sessions");
     }
   },
 );

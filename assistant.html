@@ -366,6 +366,9 @@
 
       let callFrame = null;
       let attemptCount = 0;
+      let currentSessionId = "";
+      let usageSessionClosed = false;
+      let sessionEndInFlight = null;
       const MAX_ATTEMPTS = 2;
 
       meetingMetaId.textContent = submissionId ? `#${submissionId}` : "Pending";
@@ -413,6 +416,40 @@
         return body;
       };
 
+      const reportSessionEnd = async (endReason, { keepalive = false } = {}) => {
+        if (!currentSessionId || usageSessionClosed) {
+          return;
+        }
+
+        if (sessionEndInFlight) {
+          return sessionEndInFlight;
+        }
+
+        sessionEndInFlight = (async () => {
+          try {
+            const response = await fetch("/api/lemonslice/usage/end", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              keepalive,
+              body: JSON.stringify({
+                session_id: currentSessionId,
+                end_reason: endReason,
+              }),
+            });
+
+            if (response.ok) {
+              usageSessionClosed = true;
+            }
+          } catch (_err) {
+            // Ignore transient telemetry failures in client UX.
+          } finally {
+            sessionEndInFlight = null;
+          }
+        })();
+
+        return sessionEndInFlight;
+      };
+
       const bindFrameEvents = (frame) => {
         frame.on("joined-meeting", () => {
           setStatus("Connected", "Your guided session is live.", "connected");
@@ -421,6 +458,7 @@
         });
 
         frame.on("left-meeting", () => {
+          void reportSessionEnd("left_meeting");
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
           meetingMeta.dataset.live = "false";
           setActionMode("ended");
@@ -435,6 +473,7 @@
           }
 
           if (type === "idle_timeout") {
+            void reportSessionEnd("idle_timeout");
             setStatus("Session Timed Out", "The session ended due to inactivity.", "ended");
             meetingMeta.dataset.live = "false";
             setActionMode("ended");
@@ -476,8 +515,15 @@
           setStatus("Retrying", "Connection took longer than expected. Retrying now...", "retrying");
         }
 
+        if (currentSessionId && !usageSessionClosed) {
+          await reportSessionEnd("error");
+        }
+
         const room = await createRoom();
         if (room && room.session_id) {
+          currentSessionId = room.session_id;
+          usageSessionClosed = false;
+          sessionEndInFlight = null;
           meetingMetaId.textContent = room.session_id;
         }
         const frame = ensureFrame();
@@ -517,6 +563,7 @@
 
       endButton.addEventListener("click", async () => {
         if (!callFrame) {
+          await reportSessionEnd("user_end");
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
           meetingMeta.dataset.live = "false";
           setActionMode("ended");
@@ -524,6 +571,7 @@
         }
 
         try {
+          await reportSessionEnd("user_end");
           await callFrame.leave();
           setStatus("Session Ended", "Your session has ended. You may start again anytime.", "ended");
           setActionMode("ended");
@@ -535,6 +583,22 @@
       });
 
       window.addEventListener("beforeunload", async () => {
+        if (currentSessionId && !usageSessionClosed) {
+          const payload = JSON.stringify({
+            session_id: currentSessionId,
+            end_reason: "unload",
+          });
+
+          if (navigator.sendBeacon) {
+            navigator.sendBeacon(
+              "/api/lemonslice/usage/end",
+              new Blob([payload], { type: "application/json" }),
+            );
+          } else {
+            void reportSessionEnd("unload", { keepalive: true });
+          }
+        }
+
         if (!callFrame) {
           return;
         }
