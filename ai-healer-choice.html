@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Choose Your AI Healer | Stillwater</title>
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      body {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 10%, rgba(95, 179, 179, 0.16), transparent 40%),
+          radial-gradient(circle at 82% 84%, rgba(214, 187, 134, 0.14), transparent 42%),
+          linear-gradient(180deg, #091618 0%, #0c1f21 100%);
+      }
+
+      .healer-shell {
+        max-width: 1140px;
+        margin: 6.5rem auto 3rem;
+        padding: 0 1.1rem 2rem;
+      }
+
+      .healer-head {
+        text-align: center;
+      }
+
+      .healer-head p {
+        color: var(--color-text-secondary);
+        max-width: 720px;
+        margin: 0.85rem auto 0;
+      }
+
+      .healer-title {
+        margin-top: 0.7rem;
+      }
+
+      .healer-grid {
+        margin-top: 1.8rem;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .healer-card {
+        border: 1px solid rgba(245, 242, 238, 0.16);
+        border-radius: 24px;
+        background: rgba(10, 25, 26, 0.78);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 44px rgba(2, 10, 11, 0.34);
+        padding: 1.2rem;
+        display: grid;
+        gap: 0.8rem;
+      }
+
+      .healer-card p {
+        color: var(--color-text-secondary);
+      }
+
+      .healer-name {
+        font-size: 1.72rem;
+      }
+
+      .healer-label {
+        display: inline-flex;
+        width: fit-content;
+        padding: 0.28rem 0.62rem;
+        border-radius: 999px;
+        border: 1px solid rgba(214, 187, 134, 0.28);
+        color: rgba(214, 187, 134, 0.92);
+        font-size: 0.68rem;
+        letter-spacing: 0.11em;
+        text-transform: uppercase;
+      }
+
+      .healer-highlights {
+        margin: 0;
+        padding-left: 1rem;
+        display: grid;
+        gap: 0.4rem;
+        color: rgba(245, 242, 238, 0.82);
+        font-size: 0.9rem;
+      }
+
+      .healer-card .btn {
+        width: fit-content;
+        margin-top: 0.2rem;
+      }
+
+      .nav-back-btn {
+        padding: 0.45rem 1.1rem;
+      }
+
+      @media (max-width: 900px) {
+        .healer-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .healer-shell {
+          margin-top: 5.7rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script src="js/shared.js"></script>
+    <header class="header scrolled">
+      <a href="index.html" class="header-logo">Stillwater</a>
+      <a href="care-path.html" id="backToCarePath" class="btn nav-back-btn">Back</a>
+    </header>
+
+    <main class="healer-shell">
+      <section class="healer-head">
+        <span class="text-caption">AI Guidance</span>
+        <h1 class="text-h2 healer-title">Choose your AI healer</h1>
+        <p>
+          Your care can begin now. Choose the voice you want to begin with today and enter a live Stillwater guidance session.
+        </p>
+      </section>
+
+      <section class="healer-grid" aria-label="AI healer options">
+        <article class="healer-card">
+          <span class="healer-label">Stillwater Presence</span>
+          <h2 class="text-h2 healer-name">Sadhguru</h2>
+          <p>
+            Grounded, reflective guidance for inner clarity, emotional steadiness, and conscious daily rhythm.
+          </p>
+          <ul class="healer-highlights" aria-label="Sadhguru strengths">
+            <li>Breath-led centering and awareness prompts</li>
+            <li>Calm inquiry for stress and mental noise</li>
+            <li>Stepwise practices to bring stillness into routine</li>
+          </ul>
+          <button class="btn btn-solid" data-agent-id="agent_6194e41857189803" data-healer="Sadhguru">
+            Continue with Sadhguru
+          </button>
+        </article>
+
+        <article class="healer-card">
+          <span class="healer-label">Stillwater Restoration</span>
+          <h2 class="text-h2 healer-name">Captain Joseph</h2>
+          <p>
+            Reassuring, practical support for emotional release, resilience, and grounded recovery through life transitions.
+          </p>
+          <ul class="healer-highlights" aria-label="Captain Joseph strengths">
+            <li>Somatic pacing to reduce overwhelm</li>
+            <li>Compassionate reframing for difficult moments</li>
+            <li>Actionable rituals for daily nervous-system ease</li>
+          </ul>
+          <button class="btn" data-agent-id="agent_f73a6b270bf8bc6f" data-healer="Captain Joseph">
+            Continue with Captain Joseph
+          </button>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const submissionId = params.get("submissionId") || "";
+      const existingAgentId = params.get("agentId") || "";
+      const backToCarePath = document.getElementById("backToCarePath");
+
+      if (backToCarePath) {
+        const backParams = new URLSearchParams();
+        if (submissionId) backParams.set("submissionId", submissionId);
+        if (existingAgentId) backParams.set("agentId", existingAgentId);
+        const backQuery = backParams.toString();
+        backToCarePath.href = backQuery
+          ? `/care-path.html?${backQuery}`
+          : "/care-path.html";
+      }
+
+      const chooseHealer = (agentId) => {
+        const next = new URLSearchParams();
+        if (submissionId) next.set("submissionId", submissionId);
+        next.set("agentId", agentId);
+        window.location.href = `/assistant.html?${next.toString()}`;
+      };
+
+      document.querySelectorAll("[data-agent-id]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const selectedAgentId = button.getAttribute("data-agent-id");
+          if (selectedAgentId) {
+            chooseHealer(selectedAgentId);
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

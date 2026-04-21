@@ -1,6 +1,8 @@
 const { test, expect } = require("@playwright/test");
 
 test("intake submission routes to assistant and reaches guide-ready state", async ({ page }) => {
+  let requestedAgentId = null;
+
   await page.route("https://unpkg.com/@daily-co/daily-js", async (route) => {
     await route.fulfill({
       status: 200,
@@ -31,6 +33,9 @@ test("intake submission routes to assistant and reaches guide-ready state", asyn
   });
 
   await page.route("**/api/lemonslice/rooms", async (route) => {
+    const payload = route.request().postDataJSON() || {};
+    requestedAgentId = payload.agentId || null;
+
     await route.fulfill({
       status: 201,
       contentType: "application/json",
@@ -58,7 +63,14 @@ test("intake submission routes to assistant and reaches guide-ready state", asyn
   await expect(page.getByRole("button", { name: "Connect with AI Healer" })).toBeVisible();
   await expect(page.locator("#providersPanel")).toBeHidden();
   await page.getByRole("button", { name: "Connect with AI Healer" }).first().click();
+
+  await expect(page).toHaveURL(/\/ai-healer-choice\.html/);
+  await expect(page.getByRole("button", { name: "Continue with Sadhguru" })).toBeVisible();
+  await page.getByRole("button", { name: "Continue with Sadhguru" }).click();
+
   await expect(page).toHaveURL(/\/assistant\.html/);
+  await expect(page).toHaveURL(/agentId=agent_6194e41857189803/);
+  await expect.poll(() => requestedAgentId).toBe("agent_6194e41857189803");
 
   await expect(page.locator('source[src="visionBGvideo.mp4"]')).toHaveCount(0);
   await expect(page.locator(".overlay-bottom")).toHaveCount(0);

@@ -208,8 +208,8 @@
         if (agentId) next.set("agentId", agentId);
         const query = next.toString();
         window.location.href = query
-          ? `/assistant.html?${query}`
-          : "/assistant.html";
+          ? `/ai-healer-choice.html?${query}`
+          : "/ai-healer-choice.html";
       };
 
       showProvidersBtn.addEventListener("click", () => {

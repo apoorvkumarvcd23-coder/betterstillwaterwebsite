@@ -17,6 +17,7 @@ const THEMES = ["dark", "light"];
 
 const PUBLIC_ROUTES = [
   "/",
+  "/ai-healer-choice.html",
   "/auth.html",
   "/blog.html",
   "/care-path.html",
