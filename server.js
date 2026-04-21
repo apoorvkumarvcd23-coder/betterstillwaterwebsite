@@ -857,6 +857,24 @@ app.post(
   },
 );
 
+app.get("/intake.html", async (req, res) => {
+  if (!req.isAuthenticated || !req.isAuthenticated()) {
+    const returnTo = encodeURIComponent("/intake.html");
+    return res.redirect(`/auth.html?returnTo=${returnTo}`);
+  }
+
+  try {
+    const redirectUrl = await getDefaultPostAuthRedirectForUser(req.user);
+    if (redirectUrl === CUSTOMER_CARE_PATH_REDIRECT) {
+      return res.redirect(CUSTOMER_CARE_PATH_REDIRECT);
+    }
+  } catch (err) {
+    console.error("Failed to resolve intake guard redirect:", err);
+  }
+
+  return res.sendFile(path.join(__dirname, "intake.html"));
+});
+
 app.get("/portal.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "portal.html"));
 });

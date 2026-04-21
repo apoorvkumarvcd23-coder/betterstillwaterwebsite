@@ -408,10 +408,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         activeUser = user;
+        const intakeTarget =
+          typeof user.redirectUrl === "string" && user.redirectUrl.startsWith("/")
+            ? user.redirectUrl
+            : "/intake.html";
+        const intakeLabel =
+          intakeTarget === "/care-path.html"
+            ? "Continue Care Path"
+            : "Wellness Assessment";
         setAuthMenuLink(
           "authMenuIntake",
-          "/intake.html",
-          "Wellness Assessment",
+          intakeTarget,
+          intakeLabel,
         );
         if (user.role === "admin") {
           setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
