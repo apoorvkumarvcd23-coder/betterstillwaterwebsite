@@ -9,8 +9,16 @@
       body {
         min-height: 100vh;
         background:
-          radial-gradient(circle at 20% 10%, rgba(95, 179, 179, 0.16), transparent 40%),
-          radial-gradient(circle at 82% 84%, rgba(214, 187, 134, 0.14), transparent 42%),
+          radial-gradient(
+            circle at 20% 10%,
+            rgba(95, 179, 179, 0.16),
+            transparent 40%
+          ),
+          radial-gradient(
+            circle at 82% 84%,
+            rgba(214, 187, 134, 0.14),
+            transparent 42%
+          ),
           linear-gradient(180deg, #091618 0%, #0c1f21 100%);
       }
 
@@ -143,7 +151,9 @@
       .disclaimer-content {
         max-height: 0;
         overflow: hidden;
-        transition: max-height 0.3s ease, padding 0.3s ease;
+        transition:
+          max-height 0.3s ease,
+          padding 0.3s ease;
         padding: 0 1.5rem;
       }
 
@@ -157,6 +167,91 @@
         font-size: 0.9rem;
         line-height: 1.7;
         margin: 0;
+      }
+
+      /* Coming Soon Modal Styles */
+      .coming-soon-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        animation: fadeIn 0.3s ease;
+      }
+
+      .coming-soon-modal.active {
+        display: flex;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+
+      .coming-soon-content {
+        background: var(--color-bg-secondary);
+        border: 1px solid rgba(214, 187, 134, 0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        max-width: 480px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        animation: slideUp 0.4s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          transform: translateY(30px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .coming-soon-icon {
+        font-size: 3.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .coming-soon-title {
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        color: var(--color-text-primary);
+        margin-bottom: 0.8rem;
+      }
+
+      .coming-soon-text {
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.7;
+        margin-bottom: 2rem;
+      }
+
+      .coming-soon-close {
+        background: rgba(214, 187, 134, 0.15);
+        border: 1px solid rgba(214, 187, 134, 0.3);
+        color: rgba(214, 187, 134, 0.9);
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+      }
+
+      .coming-soon-close:hover {
+        background: rgba(214, 187, 134, 0.25);
       }
 
       @media (max-width: 900px) {
@@ -187,15 +282,21 @@
     <script src="js/shared.js"></script>
     <header class="header scrolled">
       <a href="index.html" class="header-logo">Stillwater</a>
-      <a href="care-path.html" id="backToCarePath" class="btn nav-back-btn">Consult with human healers &rarr;</a>
+      <a href="care-path.html" id="backToCarePath" class="btn nav-back-btn"
+        >Consult with human healers &rarr;</a
+      >
     </header>
 
     <main class="healer-shell">
       <section class="healer-head">
         <span class="text-caption">Your next step</span>
-        <h1 class="text-h2 healer-title">Speak to the AI avatars of holistic healers</h1>
+        <h1 class="text-h2 healer-title">
+          Speak to the AI avatars of holistic healers
+        </h1>
         <p>
-          Choose an AI guide attuned to your current need. Each avatar is shaped by the teachings, tone, and lived wisdom of a real-world holistic healer.
+          Choose an AI guide attuned to your current need. Each avatar is shaped
+          by the teachings, tone, and lived wisdom of a real-world holistic
+          healer.
         </p>
       </section>
 
@@ -205,16 +306,26 @@
           <h2 class="text-h2 healer-name">Sadhguru</h2>
           <p><em>Yogi &middot; Mystic &middot; Founder, Isha Foundation</em></p>
           <p>
-            Grounded, reflective guidance for inner clarity, emotional steadiness, and a conscious daily rhythm &mdash; drawing from decades of yogic insight and the science of inner engineering.
+            Grounded, reflective guidance for inner clarity, emotional
+            steadiness, and a conscious daily rhythm &mdash; drawing from
+            decades of yogic insight and the science of inner engineering.
           </p>
           <ul class="healer-highlights" aria-label="Sadhguru strengths">
             <li>Inner Engineering perspective on stress and mental noise</li>
-            <li>Breath-led centering and Shambhavi-inspired awareness prompts</li>
+            <li>
+              Breath-led centering and Shambhavi-inspired awareness prompts
+            </li>
             <li>Inquiry into karma, identity, and the source of suffering</li>
             <li>Yogic tools to bring stillness into everyday routine</li>
-            <li>Direct, sometimes humorous reframing of life's contradictions</li>
+            <li>
+              Direct, sometimes humorous reframing of life's contradictions
+            </li>
           </ul>
-          <button class="btn btn-solid" data-agent-id="agent_6194e41857189803" data-healer="Sadhguru">
+          <button
+            class="btn btn-solid"
+            data-agent-id="agent_6194e41857189803"
+            data-healer="Sadhguru"
+          >
             Continue with Sadhguru
           </button>
         </article>
@@ -222,18 +333,39 @@
         <article class="healer-card">
           <span class="healer-label">Stillwater Restoration</span>
           <h2 class="text-h2 healer-name">Captain Joseph</h2>
-          <p><em>Life Coach &middot; SHARAN Educator &middot; Heal with Pen</em></p>
           <p>
-            Warm, practical mentorship rooted in the plant-based whole-food lifestyle taught at SHARAN, founded by Dr. Nandita Shah &mdash; guiding emotional release, resilience, and reversing lifestyle conditions through everyday choices.
+            <em>Life Coach &middot; SHARAN Educator &middot; Heal with Pen</em>
+          </p>
+          <p>
+            Warm, practical mentorship rooted in the plant-based whole-food
+            lifestyle taught at SHARAN, founded by Dr. Nandita Shah &mdash;
+            guiding emotional release, resilience, and reversing lifestyle
+            conditions through everyday choices.
           </p>
           <ul class="healer-highlights" aria-label="Captain Joseph strengths">
-            <li>Plant-based whole-food guidance grounded in SHARAN principles</li>
-            <li>Heal with Pen journaling practice for clarity and emotional release</li>
-            <li>Lifestyle coaching to reverse diabetes, hypertension, and metabolic strain</li>
-            <li>Compassionate reframing for difficult moments and life transitions</li>
-            <li>Daily rituals for nervous-system ease and sustainable habit change</li>
+            <li>
+              Plant-based whole-food guidance grounded in SHARAN principles
+            </li>
+            <li>
+              Heal with Pen journaling practice for clarity and emotional
+              release
+            </li>
+            <li>
+              Lifestyle coaching to reverse diabetes, hypertension, and
+              metabolic strain
+            </li>
+            <li>
+              Compassionate reframing for difficult moments and life transitions
+            </li>
+            <li>
+              Daily rituals for nervous-system ease and sustainable habit change
+            </li>
           </ul>
-          <button class="btn" data-agent-id="agent_f73a6b270bf8bc6f" data-healer="Captain Joseph">
+          <button
+            class="btn"
+            data-agent-id="agent_f73a6b270bf8bc6f"
+            data-healer="Captain Joseph"
+          >
             Continue with Captain Joseph
           </button>
         </article>
@@ -251,11 +383,36 @@
         </button>
         <div class="disclaimer-content" id="disclaimerContent">
           <p class="disclaimer-text">
-            The AI avatars presented on this page are <strong>digitally-created representations</strong> designed to emulate the teachings and communication style of their corresponding real-world practitioners. These AI guides are <strong>not</strong> the actual individuals and should not be confused with them. The AI avatars are provided for educational and wellness purposes only and do not constitute professional medical advice. While inspired by the wisdom and methodologies of real practitioners, the AI responses are generated by machine learning algorithms and may not perfectly reflect their actual views or advice. Users acknowledge that they are interacting with artificial intelligence and assume full responsibility for any decisions made based on AI guidance. Stillwater and its operators are not liable for any outcomes resulting from the use of these AI services.
+            The AI avatars presented on this page are
+            <strong>digitally-created representations</strong> designed to
+            emulate the teachings and communication style of their corresponding
+            real-world practitioners. These AI guides are
+            <strong>not</strong> the actual individuals and should not be
+            confused with them. The AI avatars are provided for educational and
+            wellness purposes only and do not constitute professional medical
+            advice. While inspired by the wisdom and methodologies of real
+            practitioners, the AI responses are generated by machine learning
+            algorithms and may not perfectly reflect their actual views or
+            advice. Users acknowledge that they are interacting with artificial
+            intelligence and assume full responsibility for any decisions made
+            based on AI guidance. Stillwater and its operators are not liable
+            for any outcomes resulting from the use of these AI services.
           </p>
         </div>
       </div>
     </main>
+
+    <!-- Coming Soon Modal -->
+    <div class="coming-soon-modal" id="comingSoonModal">
+      <div class="coming-soon-content">
+        <div class="coming-soon-icon">✨</div>
+        <h2 class="coming-soon-title">Coming Soon</h2>
+        <p class="coming-soon-text">
+          Human healer consultations are launching soon. We're preparing an exceptional experience for you. Thank you for your patience!
+        </p>
+        <button class="coming-soon-close" id="closeComingSoonModal">Close</button>
+      </div>
+    </div>
 
     <script>
       const params = new URLSearchParams(window.location.search);
@@ -264,13 +421,39 @@
       const backToCarePath = document.getElementById("backToCarePath");
 
       if (backToCarePath) {
-        const backParams = new URLSearchParams();
-        if (submissionId) backParams.set("submissionId", submissionId);
-        if (existingAgentId) backParams.set("agentId", existingAgentId);
-        const backQuery = backParams.toString();
-        backToCarePath.href = backQuery
-          ? `/care-path.html?${backQuery}`
-          : "/care-path.html";
+        backToCarePath.addEventListener("click", (e) => {
+          e.preventDefault();
+          showComingSoonModal();
+        });
+      }
+
+      const showComingSoonModal = () => {
+        const modal = document.getElementById("comingSoonModal");
+        if (modal) {
+          modal.classList.add("active");
+        }
+      };
+
+      const closeComingSoonModal = () => {
+        const modal = document.getElementById("comingSoonModal");
+        if (modal) {
+          modal.classList.remove("active");
+        }
+      };
+
+      const closeButton = document.getElementById("closeComingSoonModal");
+      if (closeButton) {
+        closeButton.addEventListener("click", closeComingSoonModal);
+      }
+
+      // Close modal when clicking outside
+      const modal = document.getElementById("comingSoonModal");
+      if (modal) {
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) {
+            closeComingSoonModal();
+          }
+        });
       }
 
       const chooseHealer = (agentId) => {
