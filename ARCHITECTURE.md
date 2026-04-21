@@ -83,7 +83,7 @@ This monorepo powers the Stillwater Digital Sanctuary, combining a Node.js/Expre
 
 **Format:**
 ```
-postgresql://stillwater:<REDACTED>@dpg-d6si9aa4d50c73bobar0-a.oregon-postgres.render.com/stillwater_swqw
+bro really thought
 ```
 
 
