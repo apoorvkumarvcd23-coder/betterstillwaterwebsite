@@ -65,6 +65,38 @@
         margin-top: var(--spacing-xl);
       }
 
+      .application-section form {
+        max-width: 600px;
+        margin: 0 auto;
+        text-align: left;
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .application-section .form-group {
+        position: static;
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 0.45rem;
+        margin-bottom: 0;
+      }
+
+      .application-section .form-label {
+        position: static;
+        top: auto;
+        left: auto;
+        display: block;
+        font-size: 0.75rem;
+        color: var(--color-accent);
+      }
+
+      .application-section .form-input:focus ~ .form-label,
+      .application-section .form-input:not(:placeholder-shown) ~ .form-label {
+        top: auto;
+        font-size: 0.75rem;
+        color: var(--color-accent);
+      }
+
       @media (max-width: 767px) {
         .page-hero {
           padding-top: 7.1rem;
@@ -89,30 +121,6 @@
         .application-section {
           padding: 4rem 4.5%;
           margin-top: 4rem;
-        }
-
-        /* Mobile fallback: keep labels in normal flow to avoid overlap */
-        .application-section .form-group {
-          position: static;
-          display: flex;
-          flex-direction: column-reverse;
-          gap: 0.45rem;
-          margin-bottom: 1.25rem;
-        }
-
-        .application-section .form-label {
-          position: static;
-          top: auto;
-          left: auto;
-          font-size: 0.75rem;
-          color: var(--color-accent);
-        }
-
-        .application-section .form-input:focus ~ .form-label,
-        .application-section .form-input:not(:placeholder-shown) ~ .form-label {
-          top: auto;
-          font-size: 0.75rem;
-          color: var(--color-accent);
         }
       }
 
