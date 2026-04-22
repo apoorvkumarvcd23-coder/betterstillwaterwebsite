@@ -1842,22 +1842,40 @@ app.get(
   async (req, res) => {
     try {
       const phoneFilter = String(req.query.phone || "").trim();
+      const searchFilter = String(req.query.q || req.query.query || "").trim();
       const limitRaw = parseInt(String(req.query.limit || "100"), 10);
       const limit = Number.isFinite(limitRaw)
         ? Math.max(1, Math.min(limitRaw, 500))
         : 100;
 
       const params = [];
-      let whereClause = "";
+      const whereParts = [];
       if (phoneFilter) {
         params.push(phoneFilter);
-        whereClause = `WHERE phone = $${params.length}`;
+        whereParts.push(`phone = $${params.length}`);
+      }
+
+      if (searchFilter) {
+        params.push(`%${searchFilter}%`);
+        const searchParam = `$${params.length}`;
+        whereParts.push(`(
+          CAST(id AS TEXT) ILIKE ${searchParam}
+          OR name ILIKE ${searchParam}
+          OR phone ILIKE ${searchParam}
+          OR CAST(age AS TEXT) ILIKE ${searchParam}
+          OR relation ILIKE ${searchParam}
+          OR eye_power ILIKE ${searchParam}
+          OR chronic_conditions ILIKE ${searchParam}
+        )`);
       }
 
       params.push(limit);
+      const whereClause = whereParts.length
+        ? `WHERE ${whereParts.join(" AND ")}`
+        : "";
 
       const result = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
        FROM intake_submissions
        ${whereClause}
        ORDER BY created_at DESC
@@ -1871,6 +1889,88 @@ app.get(
       return res
         .status(500)
         .json({ error: "Failed to fetch intake submissions" });
+    }
+  },
+);
+
+app.get(
+  "/api/admin/intake-submissions/:id",
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const submissionId = parseInt(String(req.params.id || ""), 10);
+      if (!Number.isInteger(submissionId) || submissionId < 1) {
+        return res.status(400).json({ error: "Valid submission id is required" });
+      }
+
+      const submissionResult = await pool.query(
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
+         FROM intake_submissions
+         WHERE id = $1
+         LIMIT 1`,
+        [submissionId],
+      );
+
+      const item = submissionResult.rows[0] || null;
+      if (!item) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      const historyResult = await pool.query(
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
+         FROM intake_submissions
+         WHERE phone = $1
+         ORDER BY created_at DESC
+         LIMIT 12`,
+        [item.phone],
+      );
+
+      let linkedUser = null;
+      if (item.auth_user_type === "phone" && item.auth_user_id) {
+        const userResult = await pool.query(
+          `SELECT id, name, phone, role, created_at
+           FROM users_phone
+           WHERE id = $1
+           LIMIT 1`,
+          [item.auth_user_id],
+        );
+        if (userResult.rows[0]) {
+          linkedUser = { type: "phone", ...userResult.rows[0] };
+        }
+      } else if (item.auth_user_type === "oauth" && item.auth_user_id) {
+        const userResult = await pool.query(
+          `SELECT id, name, email, role
+           FROM users
+           WHERE id = $1
+           LIMIT 1`,
+          [item.auth_user_id],
+        );
+        if (userResult.rows[0]) {
+          linkedUser = { type: "oauth", ...userResult.rows[0] };
+        }
+      }
+
+      const aiUsageResult = await pool.query(
+        `SELECT id, lemonslice_session_id, auth_user_type, auth_user_id, submission_id, agent_id, room_url, session_started_at, session_ended_at, duration_seconds, end_reason
+         FROM ai_usage_sessions
+         WHERE submission_id = $1::text
+            OR (auth_user_type = $2 AND auth_user_id = $3)
+         ORDER BY session_started_at DESC
+         LIMIT 8`,
+        [String(item.id), item.auth_user_type, item.auth_user_id],
+      );
+
+      return res.json({
+        item,
+        linkedUser,
+        history: historyResult.rows,
+        aiUsage: aiUsageResult.rows,
+      });
+    } catch (err) {
+      console.error("Failed to fetch intake submission detail:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch intake submission detail" });
     }
   },
 );

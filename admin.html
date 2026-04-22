@@ -3,1001 +3,1476 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>The Bridge | Stillwater Command Center</title>
+    <title>The Bridge | Stillwater Intake Review</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
     <style>
-      /* Admin Tabs */
-      .admin-tabs {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        border-bottom: 1px solid rgba(201, 169, 110, 0.2);
-        padding-bottom: 1rem;
-      }
-      .admin-tab-btn {
-        background: none;
-        border: none;
-        color: var(--color-text-secondary);
-        font-family: var(--font-heading);
-        font-size: 1.25rem;
-        cursor: pointer;
-        padding: 0.5rem 1rem;
-        transition: var(--transition-smooth);
-      }
-      .admin-tab-btn:hover {
+      body.admin-review-page {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 10% 10%, rgba(201, 169, 110, 0.16), transparent 30%),
+          radial-gradient(circle at 88% 0%, rgba(95, 179, 179, 0.14), transparent 28%),
+          radial-gradient(circle at 82% 82%, rgba(201, 169, 110, 0.08), transparent 34%),
+          linear-gradient(180deg, #061113 0%, #081819 42%, #050d0e 100%);
         color: var(--color-text-primary);
-      }
-      .admin-tab-btn.active {
-        color: var(--color-accent);
-        border-bottom: 2px solid var(--color-accent);
-      }
-      .tab-content {
-        display: none;
-      }
-      .tab-content.active {
-        display: block;
-        animation: fadeIn 0.4s ease;
-      }
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
       }
 
-      /* Admin Table */
-      .admin-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 1rem;
-        font-size: 0.875rem;
+      .admin-shell {
+        max-width: 1500px;
+        margin: 0 auto;
+        padding: 1.1rem 5% 2.5rem;
       }
-      .admin-table th {
-        text-align: left;
-        padding: 1rem;
-        border-bottom: 1px solid rgba(201, 169, 110, 0.2);
+
+      .admin-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 5% 0.75rem;
+        margin: 0 -5%;
+        background: linear-gradient(180deg, rgba(6, 17, 19, 0.98), rgba(6, 17, 19, 0.76));
+        border-bottom: 1px solid rgba(245, 242, 238, 0.08);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+      }
+
+      .admin-topbar .header-logo {
+        position: static;
+        margin-left: 0;
+      }
+
+      .admin-topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .admin-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        border: 1px solid rgba(201, 169, 110, 0.25);
         color: var(--color-accent);
-        font-weight: 500;
+        background: rgba(201, 169, 110, 0.08);
+        letter-spacing: 0.12em;
+        font-size: 0.67rem;
+        text-transform: uppercase;
       }
-      .admin-table td {
+
+      .admin-hero {
+        padding: 2rem 0 1rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1.25rem;
+        align-items: end;
+      }
+
+      .admin-hero h1 {
+        font-family: var(--font-heading);
+        font-size: clamp(2.4rem, 5vw, 4.6rem);
+        line-height: 0.95;
+        margin-top: 0.8rem;
+        color: #f6f2eb;
+      }
+
+      .admin-hero p {
+        margin-top: 1rem;
+        max-width: 68ch;
+        color: var(--color-text-secondary);
+        font-size: 1.05rem;
+      }
+
+      .live-status {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.95rem 1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(201, 169, 110, 0.18);
+        background: rgba(8, 24, 25, 0.72);
+        box-shadow: 0 16px 42px rgba(1, 7, 8, 0.25);
+        color: var(--color-text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .live-status-dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 999px;
+        background: #6cf0d1;
+        box-shadow: 0 0 0 6px rgba(108, 240, 209, 0.08);
+        flex: 0 0 auto;
+      }
+
+      .metric-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.95rem;
+      }
+
+      .metric-card,
+      .panel,
+      .drawer-panel {
+        border: 1px solid rgba(245, 242, 238, 0.1);
+        background: rgba(7, 21, 22, 0.76);
+        box-shadow: 0 18px 42px rgba(2, 7, 8, 0.3);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+      }
+
+      .metric-card {
+        border-radius: 22px;
+        padding: 1rem 1.05rem;
+      }
+
+      .metric-label {
+        color: var(--color-text-secondary);
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .metric-value {
+        margin-top: 0.55rem;
+        font-family: var(--font-heading);
+        font-size: 1.9rem;
+        color: #f6f2eb;
+      }
+
+      .metric-note {
+        margin-top: 0.45rem;
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .controls-panel {
+        margin-top: 1rem;
         padding: 1rem;
-        border-bottom: 1px solid rgba(240, 248, 255, 0.05);
+        border-radius: 26px;
+      }
+
+      .controls-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.9fr) minmax(0, 0.55fr) auto;
+        gap: 0.75rem;
+        align-items: end;
+      }
+
+      .field {
+        display: grid;
+        gap: 0.4rem;
+      }
+
+      .field-label,
+      .panel-title,
+      .drawer-label,
+      .section-title {
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+      }
+
+      .field-label,
+      .drawer-label {
+        color: var(--color-accent);
+      }
+
+      .field-input,
+      .field-select {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(245, 242, 238, 0.14);
+        background: rgba(10, 26, 27, 0.86);
+        color: var(--color-text-primary);
+        padding: 0.95rem 1rem;
+        font-family: var(--font-body);
+        font-size: 0.95rem;
+        outline: none;
+        transition:
+          border-color 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+
+      .field-input::placeholder {
+        color: rgba(245, 242, 238, 0.4);
+      }
+
+      .field-input:focus,
+      .field-select:focus {
+        border-color: rgba(201, 169, 110, 0.55);
+        box-shadow: 0 0 0 4px rgba(201, 169, 110, 0.12);
+      }
+
+      .actions-row {
+        display: flex;
+        gap: 0.65rem;
+        flex-wrap: wrap;
+      }
+
+      .filter-summary {
+        margin-top: 0.85rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .summary-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.38rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 242, 238, 0.12);
+        background: rgba(8, 20, 21, 0.7);
+      }
+
+      .workbench {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1.55fr) minmax(330px, 0.95fr);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .table-panel,
+      .drawer-panel {
+        border-radius: 28px;
+      }
+
+      .table-panel {
+        overflow: hidden;
+      }
+
+      .table-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: end;
+        padding: 1.1rem 1.15rem 0.9rem;
+      }
+
+      .table-head h2,
+      .drawer-heading {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        color: #f6f2eb;
+      }
+
+      .table-head p,
+      .drawer-subtitle,
+      .drawer-empty,
+      .section-note,
+      .empty-table {
         color: var(--color-text-secondary);
       }
-      .admin-table tr:hover td {
-        background: rgba(201, 169, 110, 0.02);
+
+      .table-scroll {
+        overflow: auto;
+      }
+
+      .submission-table {
+        width: 100%;
+        min-width: 1080px;
+        border-collapse: collapse;
+      }
+
+      .submission-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: rgba(5, 14, 15, 0.95);
+        padding: 0.92rem 1rem;
+        text-align: left;
+        font-size: 0.71rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-accent);
+        border-bottom: 1px solid rgba(201, 169, 110, 0.18);
+      }
+
+      .submission-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(245, 242, 238, 0.06);
+        color: var(--color-text-secondary);
+        vertical-align: top;
+      }
+
+      .submission-row {
+        cursor: pointer;
+        transition:
+          background 0.2s ease,
+          transform 0.2s ease;
+      }
+
+      .submission-row:hover,
+      .submission-row.selected {
+        background: rgba(201, 169, 110, 0.06);
+      }
+
+      .submission-row:focus-visible {
+        outline: 2px solid rgba(201, 169, 110, 0.8);
+        outline-offset: -2px;
+      }
+
+      .submission-id {
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+
+      .submission-name {
         color: var(--color-text-primary);
+        font-weight: 500;
+      }
+
+      .chip-list,
+      .detail-chip-list,
+      .drawer-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.45rem;
+      }
+
+      .chip,
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 242, 238, 0.12);
+        background: rgba(9, 24, 25, 0.7);
+        color: var(--color-text-primary);
+        padding: 0.34rem 0.7rem;
+        font-size: 0.72rem;
+        line-height: 1.2;
+      }
+
+      .chip-accent {
+        border-color: rgba(201, 169, 110, 0.3);
+        color: var(--color-accent);
+      }
+
+      .chip-muted {
+        color: var(--color-text-secondary);
+      }
+
+      .drawer-panel {
+        position: sticky;
+        top: 5.2rem;
+        padding: 1.15rem;
+      }
+
+      .drawer-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .drawer-title {
+        font-family: var(--font-heading);
+        font-size: 1.7rem;
+        color: #f6f2eb;
+      }
+
+      .drawer-subtitle {
+        margin-top: 0.45rem;
+      }
+
+      .drawer-body {
+        display: grid;
+        gap: 0.95rem;
+        margin-top: 1rem;
+      }
+
+      .drawer-empty {
+        border: 1px dashed rgba(245, 242, 238, 0.16);
+        border-radius: 22px;
+        padding: 1.1rem;
+        background: rgba(9, 24, 25, 0.58);
+      }
+
+      .section {
+        border: 1px solid rgba(245, 242, 238, 0.1);
+        border-radius: 22px;
+        background: rgba(10, 24, 25, 0.62);
+        padding: 1rem;
+      }
+
+      .section-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: end;
+        margin-bottom: 0.75rem;
+      }
+
+      .section-title {
+        color: var(--color-accent);
+      }
+
+      .section-note {
+        font-size: 0.88rem;
+      }
+
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.7rem;
+      }
+
+      .info-card {
+        border-radius: 16px;
+        border: 1px solid rgba(245, 242, 238, 0.09);
+        background: rgba(7, 18, 19, 0.6);
+        padding: 0.85rem;
+      }
+
+      .info-label {
+        font-size: 0.68rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--color-accent);
+      }
+
+      .info-value {
+        margin-top: 0.35rem;
+        color: #f6f2eb;
+        word-break: break-word;
+      }
+
+      .history-list {
+        display: grid;
+        gap: 0.65rem;
+      }
+
+      .history-item {
+        width: 100%;
+        text-align: left;
+        border-radius: 16px;
+        border: 1px solid rgba(245, 242, 238, 0.1);
+        background: rgba(7, 18, 19, 0.62);
+        padding: 0.85rem;
+        color: var(--color-text-primary);
+        cursor: pointer;
+        transition:
+          border-color 0.2s ease,
+          background 0.2s ease;
+      }
+
+      .history-item:hover,
+      .history-item.active {
+        border-color: rgba(201, 169, 110, 0.35);
+        background: rgba(201, 169, 110, 0.08);
+      }
+
+      .history-item-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.7rem;
+        align-items: start;
+      }
+
+      .history-item-meta {
+        margin-top: 0.35rem;
+        color: var(--color-text-secondary);
+        font-size: 0.88rem;
+      }
+
+      .detail-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .empty-table {
+        text-align: center;
+        padding: 2rem 1rem;
+      }
+
+      @media (max-width: 1200px) {
+        .metric-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .workbench {
+          grid-template-columns: 1fr;
+        }
+
+        .drawer-panel {
+          position: static;
+        }
       }
 
       @media (max-width: 900px) {
-        .admin-tabs {
-          overflow-x: auto;
-          white-space: nowrap;
-          padding-bottom: 0.5rem;
-          gap: 0.5rem;
+        .controls-row {
+          grid-template-columns: 1fr 1fr;
         }
 
-        .admin-tab-btn {
-          flex: 0 0 auto;
-          font-size: 1rem;
-          padding: 0.45rem 0.7rem;
+        .actions-row {
+          grid-column: 1 / -1;
+        }
+
+        .table-head {
+          flex-direction: column;
+          align-items: start;
         }
       }
 
       @media (max-width: 767px) {
-        main.container {
-          margin-top: 7.25rem !important;
-          padding: 0 4.5%;
+        .admin-shell {
+          padding: 0.9rem 4.5% 2rem;
         }
 
-        .admin-tabs {
-          white-space: normal;
-          overflow-x: visible;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 0.5rem;
+        .admin-topbar {
+          padding-left: 4.5%;
+          padding-right: 4.5%;
+          margin-left: -4.5%;
+          margin-right: -4.5%;
         }
 
-        .admin-tab-btn {
-          flex: 1 1 calc(50% - 0.5rem);
-          min-width: 140px;
-          text-align: left;
+        .admin-hero {
+          grid-template-columns: 1fr;
         }
 
-        #dashboardTab .grid-2,
-        #dashboardTab form.grid-2 {
-          gap: 1rem !important;
+        .live-status {
+          justify-self: start;
         }
 
-        #dashboardTab .grid-2 > div,
-        #dashboardTab > .fade-up,
-        #careersTab > div,
-        #phoneUsersTab > div {
-          padding: 1.25rem !important;
+        .metric-grid {
+          grid-template-columns: 1fr;
         }
 
-        form[action="/admin/update-funds"],
-        form[action="/admin/update-waitlist"] {
+        .controls-row {
+          grid-template-columns: 1fr;
+        }
+
+        .actions-row .btn {
+          flex: 1 1 100%;
+        }
+
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .submission-table {
+          min-width: 960px;
+        }
+
+        .drawer-header {
           flex-direction: column;
-          max-width: none !important;
         }
 
-        form[action="/admin/update-funds"] .btn,
-        form[action="/admin/update-waitlist"] .btn {
+        .detail-actions .btn {
           width: 100%;
-          min-height: 44px;
-        }
-
-        #dashboardTab .text-h2 {
-          font-size: 1.2rem !important;
-        }
-
-        #dashboardTab p[style*="font-size: 2rem"] {
-          font-size: 1.35rem !important;
-        }
-
-        .settings-row {
-          flex-direction: column;
-          align-items: flex-start;
-        }
-
-        .admin-table {
-          font-size: 0.76rem;
-        }
-
-        .admin-table th,
-        .admin-table td {
-          padding: 0.55rem;
         }
       }
 
       @media (max-width: 480px) {
-        main.container {
-          margin-top: 6.8rem !important;
-          padding: 0 4%;
+        .admin-topbar-actions {
+          width: 100%;
+          justify-content: flex-start;
         }
 
-        .admin-tab-btn {
-          font-size: 0.92rem;
-          letter-spacing: 0.02em;
-          flex: 1 1 100%;
-          min-width: 0;
+        .admin-topbar {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .table-head h2,
+        .drawer-heading {
+          font-size: 1.25rem;
+        }
+
+        .submission-table thead th,
+        .submission-table tbody td {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
         }
       }
     </style>
   </head>
-  <body style="display: flex; flex-direction: column; min-height: 100vh">
-    <header class="header">
+  <body class="admin-review-page">
+    <script src="js/shared.js"></script>
+
+    <header class="admin-topbar">
       <a href="/" class="header-logo">Stillwater</a>
-      <a
-        href="/logout"
-        class="btn btn-solid"
-        style="
-          padding: 0.5rem 1.5rem;
-          font-size: 0.75rem;
-          position: absolute;
-          right: 5%;
-        "
-        >Logout</a
-      >
+      <div class="admin-topbar-actions">
+        <span class="admin-badge">Live intake review</span>
+        <a href="/portal.html" class="btn">Portal</a>
+        <a href="/logout" class="btn btn-solid">Logout</a>
+      </div>
     </header>
 
-    <main class="container text-center" style="margin-top: 10rem; flex: 1">
-      <span class="text-caption fade-up">Authorized Personnel Only</span>
-      <h1
-        class="text-display fade-up"
-        style="
-          margin-top: 1rem;
-          color: var(--color-accent);
-          font-size: clamp(2rem, 5vw, 4rem);
-        "
-      >
-        The Bridge
-      </h1>
-      <p
-        class="fade-up"
-        style="
-          max-width: 600px;
-          margin: 2rem auto 4rem;
-          color: var(--color-text-secondary);
-          font-size: 1.125rem;
-        "
-      >
-        Welcome to the Administrative Command Center. Here you can monitor
-        bio-resonance telemetry and manage the digital sanctuary.
-      </p>
-
-      <div class="admin-tabs fade-up" style="transition-delay: 0.1s">
-        <button class="admin-tab-btn active" data-tab="dashboardTab">
-          Dashboard Overview
-        </button>
-        <button class="admin-tab-btn" data-tab="careersTab" id="btnCareersTab">
-          Career Forms
-        </button>
-        <button class="admin-tab-btn" data-tab="loginsTab" id="btnLoginsTab">
-          Login Events
-        </button>
-        <button class="admin-tab-btn" data-tab="aiUsageTab" id="btnAiUsageTab">
-          AI Usage
-        </button>
-        <button
-          class="admin-tab-btn"
-          data-tab="phoneUsersTab"
-          id="btnPhoneUsersTab"
-        >
-          Phone Users
-        </button>
-      </div>
-
-      <!-- TAB 1: Dashboard Overview -->
-      <div id="dashboardTab" class="tab-content active">
-        <div class="grid-2 fade-up">
-          <div
-            style="
-              border: 1px solid rgba(201, 169, 110, 0.2);
-              padding: 3rem;
-              text-align: left;
-            "
-          >
-            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-              Active Sessions
-            </h3>
-            <p style="color: var(--color-text-secondary); font-size: 2rem">
-              243 Users in Recovery
-            </p>
-          </div>
-          <div
-            style="
-              border: 1px solid rgba(201, 169, 110, 0.2);
-              padding: 3rem;
-              text-align: left;
-            "
-          >
-            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-              System Status
-            </h3>
-            <p style="color: var(--color-accent); font-size: 1.25rem">
-              ● All Resonance Frequencies Nominal
-            </p>
-          </div>
-          <div
-            style="
-              border: 1px solid rgba(201, 169, 110, 0.2);
-              padding: 3rem;
-              text-align: left;
-            "
-          >
-            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-              Phone Users
-            </h3>
-            <p
-              id="phoneUserCount"
-              style="color: var(--color-text-secondary); font-size: 2rem"
-            >
-              0 Registered
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="grid-2 fade-up"
-          style="margin-top: 2rem; transition-delay: 0.2s"
-        >
-          <div
-            style="
-              border: 1px solid rgba(201, 169, 110, 0.2);
-              padding: 3rem;
-              text-align: left;
-              background: rgba(201, 169, 110, 0.05);
-            "
-          >
-            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-              Fundraising Override
-            </h3>
-            <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-              Manually update the public aggregate fundraising amount.
-            </p>
-            <form
-              action="/admin/update-funds"
-              method="POST"
-              style="display: flex; gap: 1rem; max-width: 500px"
-            >
-              <div class="form-group" style="flex: 1; margin: 0">
-                <input
-                  type="number"
-                  id="fundAmount"
-                  name="fundAmount"
-                  class="form-input"
-                  placeholder=" "
-                  required
-                />
-                <label
-                  for="fundAmount"
-                  class="form-label"
-                  style="background: var(--color-bg-primary)"
-                  >New Amount ($)</label
-                >
-              </div>
-              <button
-                type="submit"
-                class="btn btn-solid"
-                style="padding: 0 2rem; height: auto"
-              >
-                Update
-              </button>
-            </form>
-          </div>
-
-          <div
-            style="
-              border: 1px solid rgba(201, 169, 110, 0.2);
-              padding: 3rem;
-              text-align: left;
-              background: rgba(201, 169, 110, 0.05);
-            "
-          >
-            <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-              Waitlist Override
-            </h3>
-            <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-              Manually update the base waitlist counter on the homepage.
-            </p>
-            <form
-              action="/admin/update-waitlist"
-              method="POST"
-              style="display: flex; gap: 1rem; max-width: 500px"
-            >
-              <div class="form-group" style="flex: 1; margin: 0">
-                <input
-                  type="number"
-                  id="waitlistCount"
-                  name="waitlistCount"
-                  class="form-input"
-                  placeholder=" "
-                  required
-                />
-                <label
-                  for="waitlistCount"
-                  class="form-label"
-                  style="background: var(--color-bg-primary)"
-                  >New Count</label
-                >
-              </div>
-              <button
-                type="submit"
-                class="btn btn-solid"
-                style="padding: 0 2rem; height: auto"
-              >
-                Update
-              </button>
-            </form>
-          </div>
-        </div>
-        <div
-          class="fade-up"
-          style="
-            margin-top: 2rem;
-            transition-delay: 0.3s;
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            text-align: left;
-            background: rgba(201, 169, 110, 0.05);
-          "
-        >
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            Trust Indicators Override
-          </h3>
-          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-            Manually update the statistics displayed in the homepage trust
-            banner.
+    <main class="admin-shell">
+      <section class="admin-hero">
+        <div>
+          <span class="text-caption">Authorized Personnel Only</span>
+          <h1>Intake Review</h1>
+          <p>
+            Monitor the newest wellness assessment submissions in real time.
+            Open any row to inspect the intake snapshot, repeat history for the
+            same phone number, and the linked journey context when available.
           </p>
-
-          <form
-            action="/admin/update-trust-stats"
-            method="POST"
-            class="grid-2"
-            style="gap: 1.5rem"
-          >
-            <div class="form-group" style="margin: 0">
-              <input
-                type="text"
-                id="centresCount"
-                name="centresCount"
-                class="form-input"
-                placeholder=" "
-                required
-                value="40K+"
-              />
-              <label
-                for="centresCount"
-                class="form-label"
-                style="background: var(--color-bg-primary)"
-                >Wellness Centres</label
-              >
-            </div>
-            <div class="form-group" style="margin: 0">
-              <input
-                type="text"
-                id="touristsCount"
-                name="touristsCount"
-                class="form-input"
-                placeholder=" "
-                required
-                value="600K"
-              />
-              <label
-                for="touristsCount"
-                class="form-label"
-                style="background: var(--color-bg-primary)"
-                >Annual Tourists</label
-              >
-            </div>
-            <div class="form-group" style="margin: 0">
-              <input
-                type="text"
-                id="providersCount"
-                name="providersCount"
-                class="form-input"
-                placeholder=" "
-                required
-                value="4"
-              />
-              <label
-                for="providersCount"
-                class="form-label"
-                style="background: var(--color-bg-primary)"
-                >Verified Providers</label
-              >
-            </div>
-            <div class="form-group" style="margin: 0">
-              <input
-                type="text"
-                id="authenticityPct"
-                name="authenticityPct"
-                class="form-input"
-                placeholder=" "
-                required
-                value="100%"
-              />
-              <label
-                for="authenticityPct"
-                class="form-label"
-                style="background: var(--color-bg-primary)"
-                >Authenticity</label
-              >
-            </div>
-            <div style="grid-column: 1 / -1; margin-top: 1rem">
-              <button
-                type="submit"
-                class="btn btn-solid"
-                style="padding: 1rem 3rem"
-              >
-                Update Indicators
-              </button>
-            </div>
-          </form>
         </div>
+        <div class="live-status" aria-live="polite">
+          <span class="live-status-dot"></span>
+          <span id="liveStatusText">Loading latest submissions...</span>
+        </div>
+      </section>
 
-        <div class="settings-panel fade-up" style="transition-delay: 0.35s">
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            Dashboard Settings
-          </h3>
-          <div class="settings-row">
-            <p style="color: var(--color-text-secondary)">
-              Appearance preference for this browser session.
-            </p>
-            <div id="themeSettingsMount"></div>
+      <section class="metric-grid" aria-label="Submission summary">
+        <article class="metric-card">
+          <div class="metric-label">Visible records</div>
+          <div class="metric-value" id="metricVisibleCount">0</div>
+          <div class="metric-note">Rows currently loaded in the live feed.</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Unique phones</div>
+          <div class="metric-value" id="metricUniquePhones">0</div>
+          <div class="metric-note">Person-level grouping by mobile number.</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Latest submission</div>
+          <div class="metric-value" id="metricLatestId">-</div>
+          <div class="metric-note" id="metricLatestTime">Waiting for first refresh.</div>
+        </article>
+        <article class="metric-card">
+          <div class="metric-label">Last refresh</div>
+          <div class="metric-value" id="metricLastRefresh">-</div>
+          <div class="metric-note">Auto-refresh runs while the tab stays visible.</div>
+        </article>
+      </section>
+
+      <section class="panel controls-panel">
+        <form id="filterForm" class="controls-row">
+          <label class="field" for="searchInput">
+            <span class="field-label">Search</span>
+            <input
+              id="searchInput"
+              class="field-input"
+              type="search"
+              placeholder="Search name, phone, age, relation, or condition"
+              autocomplete="off"
+            />
+          </label>
+          <label class="field" for="phoneInput">
+            <span class="field-label">Phone filter</span>
+            <input
+              id="phoneInput"
+              class="field-input"
+              type="tel"
+              placeholder="Exact phone number"
+              autocomplete="off"
+            />
+          </label>
+          <label class="field" for="limitSelect">
+            <span class="field-label">Rows</span>
+            <select id="limitSelect" class="field-select">
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100" selected>100</option>
+              <option value="250">250</option>
+              <option value="500">500</option>
+            </select>
+          </label>
+          <div class="actions-row">
+            <button type="submit" class="btn btn-solid">Apply</button>
+            <button type="button" class="btn" id="refreshBtn">Refresh now</button>
+            <button type="button" class="btn" id="resetBtn">Reset</button>
           </div>
+        </form>
+
+        <div class="filter-summary" aria-live="polite">
+          <span class="summary-pill" id="activeFilterSummary">All submissions</span>
+          <span class="summary-pill" id="feedSummary">No records loaded yet</span>
         </div>
-      </div>
+      </section>
 
-      <!-- TAB 2: Career Forms -->
-      <div id="careersTab" class="tab-content">
-        <div
-          style="
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            text-align: left;
-            background: rgba(201, 169, 110, 0.02);
-            overflow-x: auto;
-          "
-        >
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            Submitted Career Applications
-          </h3>
-          <p style="color: var(--color-text-secondary); margin-bottom: 2rem">
-            All applications submitted through the careers portal.
-          </p>
-
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Applicant Name</th>
-                <th>Email</th>
-                <th>Role Applied For</th>
-                <th>LinkedIn</th>
-                <th>Message</th>
-              </tr>
-            </thead>
-            <tbody id="careersTableBody">
-              <tr>
-                <td colspan="6" style="text-align: center">
-                  Loading applications...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 3: Phone Users -->
-      <div id="phoneUsersTab" class="tab-content">
-        <div
-          style="
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            text-align: left;
-            background: rgba(201, 169, 110, 0.02);
-            overflow-x: auto;
-          "
-        >
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            Registered Phone Users
-          </h3>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-            <p style="color: var(--color-text-secondary); margin:0;">
-              All phone numbers that have registered or logged in.
-            </p>
-            <button id="exportPhoneUsersBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
+      <section class="workbench">
+        <article class="panel table-panel">
+          <div class="table-head">
+            <div>
+              <h2>Submission Feed</h2>
+              <p>
+                Newest-first view of the live intake table. Click a row to open
+                the person detail drawer.
+              </p>
+            </div>
+            <div class="summary-pill" id="feedCountSummary">0 records</div>
           </div>
 
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Role</th>
-              </tr>
-            </thead>
-            <tbody id="phoneUsersTableBody">
-              <tr>
-                <td colspan="4" style="text-align: center">
-                  Loading phone users...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 4: Login Events -->
-      <div id="loginsTab" class="tab-content">
-        <div
-          style="
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            text-align: left;
-            background: rgba(201, 169, 110, 0.02);
-            overflow-x: auto;
-          "
-        >
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            Login Events
-          </h3>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem;">
-            <p style="color: var(--color-text-secondary); margin:0;">
-              Historical record of user logins (Google and phone).
-            </p>
-            <button id="exportLoginsBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
+          <div class="table-scroll">
+            <table class="submission-table" aria-label="Intake submissions">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Age</th>
+                  <th>Chronic conditions</th>
+                  <th>Eyesight issues</th>
+                  <th>Eye power</th>
+                  <th>Relation</th>
+                  <th>Created at</th>
+                </tr>
+              </thead>
+              <tbody id="submissionTableBody">
+                <tr>
+                  <td colspan="9" class="empty-table">Loading latest submissions...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
+        </article>
 
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>User</th>
-                <th>Type</th>
-                <th>Method</th>
-                <th>Session</th>
-                <th>IP</th>
-                <th>Accept-Language</th>
-                <th>Referer</th>
-                <th>User Agent</th>
-              </tr>
-            </thead>
-            <tbody id="loginsTableBody">
-              <tr>
-                <td colspan="9" style="text-align: center">
-                  Loading login events...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- TAB 5: AI Usage -->
-      <div id="aiUsageTab" class="tab-content">
-        <div
-          style="
-            border: 1px solid rgba(201, 169, 110, 0.2);
-            padding: 3rem;
-            text-align: left;
-            background: rgba(201, 169, 110, 0.02);
-            overflow-x: auto;
-          "
-        >
-          <h3 class="text-h2" style="font-size: 1.5rem; margin-bottom: 1rem">
-            AI Session Usage
-          </h3>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 1rem; gap: 1rem;">
-            <p style="color: var(--color-text-secondary); margin:0;">
-              Per-session usage tracking for the LemonSlice assistant.
-            </p>
-            <button id="exportAiUsageBtn" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.9rem;">Export CSV</button>
-          </div>
-
-          <div class="grid-2" style="gap: 1rem; margin-bottom: 1.5rem">
-            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
-              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Total Sessions</div>
-              <div id="aiUsageTotalSessions" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
-            </div>
-            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
-              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Distinct Users</div>
-              <div id="aiUsageDistinctUsers" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
-            </div>
-            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
-              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Total Duration</div>
-              <div id="aiUsageTotalDuration" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
-            </div>
-            <div style="border: 1px solid rgba(201, 169, 110, 0.2); padding: 1rem;">
-              <div style="color: var(--color-text-secondary); font-size: 0.85rem">Average Duration</div>
-              <div id="aiUsageAvgDuration" style="color: var(--color-text-primary); font-size: 1.4rem; margin-top: 0.35rem;">-</div>
+        <aside class="panel drawer-panel" aria-live="polite">
+          <div id="drawerRoot">
+            <div class="drawer-empty">
+              Select a submission to inspect the intake answers, repeated history,
+              and journey context.
             </div>
           </div>
-
-          <table class="admin-table">
-            <thead>
-              <tr>
-                <th>Start</th>
-                <th>End</th>
-                <th>Duration</th>
-                <th>User</th>
-                <th>Type</th>
-                <th>Agent</th>
-                <th>Submission</th>
-                <th>End Reason</th>
-                <th>Session ID</th>
-              </tr>
-            </thead>
-            <tbody id="aiUsageTableBody">
-              <tr>
-                <td colspan="9" style="text-align: center">
-                  Select the AI Usage tab to load data.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+        </aside>
+      </section>
     </main>
 
-    <footer class="footer container" style="margin-top: auto">
+    <footer class="footer container">
       <div class="footer-bottom">
-        <span
-          >&copy; 2026 Stillwater Digital Sanctuary. All rights reserved.</span
-        >
+        <span>&copy; 2026 Stillwater Digital Sanctuary. All rights reserved.</span>
       </div>
     </footer>
 
-    <script src="js/shared.js"></script>
     <script>
-      // Tab Navigation Logic
-      const tabBtns = document.querySelectorAll(".admin-tab-btn");
-      const tabContents = document.querySelectorAll(".tab-content");
+      const POLL_INTERVAL_MS = 15000;
 
-      tabBtns.forEach((btn) => {
-        btn.addEventListener("click", () => {
-          // Remove active class from all
-          tabBtns.forEach((b) => b.classList.remove("active"));
-          tabContents.forEach((c) => c.classList.remove("active"));
+      const state = {
+        submissions: [],
+        selectedId: null,
+        selectedDetail: null,
+        filters: {
+          q: "",
+          phone: "",
+          limit: 100,
+        },
+        lastUpdatedAt: null,
+        detailRequestId: 0,
+        refreshRequestId: 0,
+        pollTimer: null,
+      };
 
-          // Add active class to clicked tab
-          btn.classList.add("active");
-          const targetId = btn.getAttribute("data-tab");
-          document.getElementById(targetId).classList.add("active");
+      const elements = {
+        liveStatusText: document.getElementById("liveStatusText"),
+        metricVisibleCount: document.getElementById("metricVisibleCount"),
+        metricUniquePhones: document.getElementById("metricUniquePhones"),
+        metricLatestId: document.getElementById("metricLatestId"),
+        metricLatestTime: document.getElementById("metricLatestTime"),
+        metricLastRefresh: document.getElementById("metricLastRefresh"),
+        activeFilterSummary: document.getElementById("activeFilterSummary"),
+        feedSummary: document.getElementById("feedSummary"),
+        feedCountSummary: document.getElementById("feedCountSummary"),
+        filterForm: document.getElementById("filterForm"),
+        searchInput: document.getElementById("searchInput"),
+        phoneInput: document.getElementById("phoneInput"),
+        limitSelect: document.getElementById("limitSelect"),
+        refreshBtn: document.getElementById("refreshBtn"),
+        resetBtn: document.getElementById("resetBtn"),
+        submissionTableBody: document.getElementById("submissionTableBody"),
+        drawerRoot: document.getElementById("drawerRoot"),
+      };
 
-          // Fetch careers data if Career tab is clicked
-          if (targetId === "careersTab") {
-            loadCareersData();
+      const isFilePreview = window.location.protocol === "file:";
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function parseConditions(value) {
+        if (Array.isArray(value)) {
+          return value.map((item) => String(item).trim()).filter(Boolean);
+        }
+
+        if (typeof value === "string") {
+          const trimmed = value.trim();
+          if (!trimmed) return [];
+
+          try {
+            const parsed = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+              return parsed.map((item) => String(item).trim()).filter(Boolean);
+            }
+          } catch (_err) {
+            // fall through to comma-splitting below
           }
-          if (targetId === "phoneUsersTab") {
-            loadPhoneUsersData();
+
+          if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            return trimmed
+              .slice(1, -1)
+              .split(",")
+              .map((item) => item.replace(/^['\"]|['\"]$/g, "").trim())
+              .filter(Boolean);
           }
-          if (targetId === "loginsTab") {
-            loadLoginEventsData();
+
+          return trimmed
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean);
+        }
+
+        return [];
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "-";
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      function formatShortDate(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "-";
+        return new Intl.DateTimeFormat(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(date);
+      }
+
+      function toBooleanLabel(value) {
+        return value ? "Yes" : "No";
+      }
+
+      function updateStatus(message) {
+        elements.liveStatusText.textContent = message;
+      }
+
+      function updateFilterSummary() {
+        const parts = [];
+        if (state.filters.q) parts.push(`Search: ${state.filters.q}`);
+        if (state.filters.phone) parts.push(`Phone: ${state.filters.phone}`);
+        parts.push(`Rows: ${state.filters.limit}`);
+
+        elements.activeFilterSummary.textContent =
+          parts.length > 0 ? parts.join(" • ") : "All submissions";
+      }
+
+      function updateMetricCards() {
+        const total = state.submissions.length;
+        const uniquePhones = new Set(
+          state.submissions.map((item) => String(item.phone || "").trim()).filter(Boolean),
+        ).size;
+        const latest = state.submissions[0] || null;
+
+        elements.metricVisibleCount.textContent = String(total);
+        elements.metricUniquePhones.textContent = String(uniquePhones);
+        elements.metricLatestId.textContent = latest ? `#${latest.id}` : "-";
+        elements.metricLatestTime.textContent = latest
+          ? `Created ${formatDateTime(latest.created_at)}`
+          : "Waiting for first refresh.";
+        elements.feedCountSummary.textContent = `${total} record${total === 1 ? "" : "s"}`;
+        elements.feedSummary.textContent = uniquePhones
+          ? `${uniquePhones} unique phone${uniquePhones === 1 ? "" : "s"}`
+          : "No phone numbers yet";
+
+        if (state.lastUpdatedAt) {
+          elements.metricLastRefresh.textContent = formatShortDate(state.lastUpdatedAt);
+        }
+      }
+
+      function buildSubmissionRow(item) {
+        const tr = document.createElement("tr");
+        tr.className = "submission-row";
+        tr.tabIndex = 0;
+        tr.dataset.submissionId = String(item.id);
+        if (String(state.selectedId) === String(item.id)) {
+          tr.classList.add("selected");
+        }
+
+        const conditions = parseConditions(item.chronic_conditions);
+
+        const tdId = document.createElement("td");
+        tdId.innerHTML = `<span class="submission-id">#${escapeHtml(item.id)}</span>`;
+
+        const tdName = document.createElement("td");
+        tdName.innerHTML = `<div class="submission-name">${escapeHtml(item.name || "-")}</div>`;
+
+        const tdPhone = document.createElement("td");
+        tdPhone.textContent = item.phone || "-";
+
+        const tdAge = document.createElement("td");
+        tdAge.textContent = item.age ?? "-";
+
+        const tdConditions = document.createElement("td");
+        const chipList = document.createElement("div");
+        chipList.className = "chip-list";
+        if (conditions.length) {
+          conditions.slice(0, 4).forEach((condition) => {
+            const chip = document.createElement("span");
+            chip.className = "chip chip-accent";
+            chip.textContent = condition;
+            chipList.appendChild(chip);
+          });
+          if (conditions.length > 4) {
+            const chip = document.createElement("span");
+            chip.className = "chip chip-muted";
+            chip.textContent = `+${conditions.length - 4} more`;
+            chipList.appendChild(chip);
           }
-          if (targetId === "aiUsageTab") {
-            loadAiUsageData();
+        } else {
+          const chip = document.createElement("span");
+          chip.className = "chip chip-muted";
+          chip.textContent = "None reported";
+          chipList.appendChild(chip);
+        }
+        tdConditions.appendChild(chipList);
+
+        const tdEyesight = document.createElement("td");
+        tdEyesight.textContent = toBooleanLabel(item.eyesight_issues);
+
+        const tdEyePower = document.createElement("td");
+        tdEyePower.textContent = item.eye_power || "-";
+
+        const tdRelation = document.createElement("td");
+        tdRelation.textContent = item.relation || "self";
+
+        const tdCreated = document.createElement("td");
+        tdCreated.textContent = formatDateTime(item.created_at);
+
+        tr.append(
+          tdId,
+          tdName,
+          tdPhone,
+          tdAge,
+          tdConditions,
+          tdEyesight,
+          tdEyePower,
+          tdRelation,
+          tdCreated,
+        );
+
+        tr.addEventListener("click", () => selectSubmission(item.id));
+        tr.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            selectSubmission(item.id);
           }
         });
-      });
 
-      loadPhoneUsersData();
-
-      function formatDuration(totalSeconds) {
-        const seconds = Number.isFinite(Number(totalSeconds))
-          ? Math.max(0, Math.floor(Number(totalSeconds)))
-          : 0;
-        const hrs = Math.floor(seconds / 3600);
-        const mins = Math.floor((seconds % 3600) / 60);
-        const secs = seconds % 60;
-
-        if (hrs > 0) {
-          return `${hrs}h ${mins}m ${secs}s`;
-        }
-        if (mins > 0) {
-          return `${mins}m ${secs}s`;
-        }
-        return `${secs}s`;
+        return tr;
       }
 
-      // Fetch and populate career applications
-      async function loadCareersData() {
-        const tbody = document.getElementById("careersTableBody");
-        try {
-          const response = await fetch("/api/admin/careers");
-          const data = await response.json();
+      function renderTable() {
+        const tbody = elements.submissionTableBody;
+        tbody.innerHTML = "";
 
-          if (response.ok) {
-            if (data.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No applications found.</td></tr>';
-              return;
+        if (!state.submissions.length) {
+          const tr = document.createElement("tr");
+          const td = document.createElement("td");
+          td.colSpan = 9;
+          td.className = "empty-table";
+          td.textContent = "No intake submissions match the current filters.";
+          tr.appendChild(td);
+          tbody.appendChild(tr);
+          return;
+        }
+
+        state.submissions.forEach((item) => {
+          tbody.appendChild(buildSubmissionRow(item));
+        });
+      }
+
+      function renderDrawerBase(item, detailData = null) {
+        const historySource = Array.isArray(detailData?.history)
+          ? detailData.history
+          : state.submissions.filter(
+              (entry) => String(entry.phone || "") === String(item.phone || ""),
+            );
+
+        const linkedUser = detailData?.linkedUser || null;
+        const aiUsage = Array.isArray(detailData?.aiUsage) ? detailData.aiUsage : [];
+        const authType = item.auth_user_type || detailData?.item?.auth_user_type || null;
+        const authUserId = item.auth_user_id || detailData?.item?.auth_user_id || null;
+        const completedAt = item.completed_at || detailData?.item?.completed_at || null;
+        const conditions = parseConditions(item.chronic_conditions);
+
+        const historyHtml = historySource.length
+          ? historySource
+              .slice(0, 12)
+              .map((entry) => {
+                const isActive = String(entry.id) === String(item.id);
+                const historyConditions = parseConditions(entry.chronic_conditions);
+                return `
+                  <button class="history-item ${isActive ? "active" : ""}" type="button" data-history-id="${escapeHtml(entry.id)}">
+                    <div class="history-item-top">
+                      <strong>#${escapeHtml(entry.id)} · ${escapeHtml(entry.name || "-")}</strong>
+                      <span class="chip ${isActive ? "chip-accent" : "chip-muted"}">${isActive ? "Selected" : "Open"}</span>
+                    </div>
+                    <div class="history-item-meta">
+                      ${escapeHtml(formatShortDate(entry.created_at))} • ${escapeHtml(entry.phone || "-")} • Age ${escapeHtml(entry.age ?? "-")}
+                    </div>
+                    <div class="history-item-meta">
+                      ${escapeHtml(historyConditions.slice(0, 3).join(", ") || "No chronic conditions listed")}
+                    </div>
+                  </button>
+                `;
+              })
+              .join("")
+          : '<div class="drawer-empty">No other submissions were found for this phone number.</div>';
+
+        const linkedUserHtml = linkedUser
+          ? `
+            <div class="info-grid">
+              <div class="info-card">
+                <div class="info-label">Linked user</div>
+                <div class="info-value">${escapeHtml(linkedUser.name || linkedUser.email || linkedUser.phone || linkedUser.id || "-")}</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Auth type</div>
+                <div class="info-value">${escapeHtml(linkedUser.type || authType || "-")}</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Role</div>
+                <div class="info-value">${escapeHtml(linkedUser.role || "-")}</div>
+              </div>
+              <div class="info-card">
+                <div class="info-label">Auth user id</div>
+                <div class="info-value">${escapeHtml(linkedUser.id || authUserId || "-")}</div>
+              </div>
+            </div>
+          `
+          : `
+            <div class="drawer-empty">
+              ${authType || authUserId ? "This submission has auth linkage fields on the record, but no linked profile was returned yet." : "No linked authenticated profile is attached to this record in the current feed."}
+            </div>
+          `;
+
+        const aiUsageHtml = aiUsage.length
+          ? `
+            <div class="history-list">
+              ${aiUsage
+                .slice(0, 5)
+                .map((session) => {
+                  return `
+                    <div class="history-item" style="cursor: default;">
+                      <div class="history-item-top">
+                        <strong>${escapeHtml(session.agent_id || "Unknown agent")}</strong>
+                        <span class="chip chip-muted">${escapeHtml(session.end_reason || "ongoing")}</span>
+                      </div>
+                      <div class="history-item-meta">
+                        Session ${escapeHtml(session.lemonslice_session_id || "-")} • ${escapeHtml(formatShortDate(session.session_started_at))}
+                      </div>
+                    </div>
+                  `;
+                })
+                .join("")}
+            </div>
+          `
+          : '<div class="drawer-empty">No AI session activity is linked to this intake yet.</div>';
+
+        elements.drawerRoot.innerHTML = `
+          <div class="drawer-header">
+            <div>
+              <div class="drawer-label">Selected submission</div>
+              <div class="drawer-heading">${escapeHtml(item.name || "Unnamed submission")}</div>
+              <div class="drawer-subtitle">
+                Submission #${escapeHtml(item.id)} • ${escapeHtml(item.phone || "-")} • ${escapeHtml(formatDateTime(item.created_at))}
+              </div>
+            </div>
+            <div class="detail-actions">
+              <a class="btn btn-solid" href="/care-path.html?submissionId=${encodeURIComponent(item.id)}">Open care path</a>
+              <button class="btn" type="button" id="jumpLatestBtn">Jump latest</button>
+            </div>
+          </div>
+
+          <div class="drawer-body">
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Snapshot</div>
+                <div class="section-note">Core intake answers from the latest record</div>
+              </div>
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-label">Age</div>
+                  <div class="info-value">${escapeHtml(item.age ?? "-")}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Relation</div>
+                  <div class="info-value">${escapeHtml(item.relation || "self")}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Eyesight issues</div>
+                  <div class="info-value">${escapeHtml(toBooleanLabel(item.eyesight_issues))}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Eye power</div>
+                  <div class="info-value">${escapeHtml(item.eye_power || "-")}</div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Conditions</div>
+                <div class="section-note">Reported chronic conditions and tags</div>
+              </div>
+              <div class="detail-chip-list">
+                ${conditions.length
+                  ? conditions
+                      .map((condition) => `<span class="chip chip-accent">${escapeHtml(condition)}</span>`)
+                      .join("")
+                  : '<span class="chip chip-muted">No chronic conditions reported</span>'}
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Journey context</div>
+                <div class="section-note">Submission, auth, and care-path linkage</div>
+              </div>
+              <div class="info-grid">
+                <div class="info-card">
+                  <div class="info-label">Submission id</div>
+                  <div class="info-value">#${escapeHtml(item.id)}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Created at</div>
+                  <div class="info-value">${escapeHtml(formatDateTime(item.created_at))}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Auth type</div>
+                  <div class="info-value">${escapeHtml(authType || "-")}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Auth user id</div>
+                  <div class="info-value">${escapeHtml(authUserId || "-")}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Recorded completion time</div>
+                  <div class="info-value">${escapeHtml(completedAt ? formatDateTime(completedAt) : "-")}</div>
+                </div>
+                <div class="info-card">
+                  <div class="info-label">Same-phone records</div>
+                  <div class="info-value">${escapeHtml(historySource.length)}</div>
+                </div>
+              </div>
+              <p class="section-note" style="margin-top: 0.85rem;">
+                The drawer groups records by submission id for auditing and by
+                phone for person-level review. If the backend detail endpoint is
+                available, the linked auth profile appears here as well.
+              </p>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Phone history</div>
+                <div class="section-note">Most recent submissions for this number</div>
+              </div>
+              <div class="history-list">
+                ${historyHtml}
+              </div>
+            </section>
+
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Linked activity</div>
+                <div class="section-note">AI sessions and related handoff activity</div>
+              </div>
+              ${aiUsageHtml}
+            </section>
+          </div>
+        `;
+
+        const latestButton = document.getElementById("jumpLatestBtn");
+        if (latestButton) {
+          latestButton.addEventListener("click", () => {
+            const first = state.submissions[0];
+            if (first) {
+              selectSubmission(first.id, { scrollIntoView: true });
             }
+          });
+        }
 
-            tbody.innerHTML = "";
-            data.forEach((app) => {
-              const date = new Date(app.created_at).toLocaleDateString(
-                undefined,
-                { year: "numeric", month: "short", day: "numeric" },
-              );
-              const messagePreview = app.message
-                ? app.message.length > 60
-                  ? app.message.substring(0, 60) + "..."
-                  : app.message
-                : "-";
-              const linkedinLink = app.linkedin_url
-                ? `<a href="${app.linkedin_url}" target="_blank" style="color: var(--color-accent); text-decoration: underline;">View Profile</a>`
-                : "-";
-
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-              <td>${date}</td>
-              <td style="font-weight: 500; color: var(--color-text-primary);">${app.first_name} ${app.last_name}</td>
-              <td><a href="mailto:${app.email}">${app.email}</a></td>
-              <td><span style="background: rgba(201, 169, 110, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--color-accent);">${app.role}</span></td>
-              <td>${linkedinLink}</td>
-              <td title="${app.message || ""}">${messagePreview}</td>
-            `;
-              tbody.appendChild(tr);
+        elements.drawerRoot.querySelectorAll("[data-history-id]").forEach((button) => {
+          button.addEventListener("click", () => {
+            selectSubmission(button.getAttribute("data-history-id"), {
+              scrollIntoView: false,
             });
-          } else {
-            tbody.innerHTML =
-              '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Failed to load data.</td></tr>';
+          });
+        });
+      }
+
+      function renderDrawerLoading(item) {
+        elements.drawerRoot.innerHTML = `
+          <div class="drawer-header">
+            <div>
+              <div class="drawer-label">Selected submission</div>
+              <div class="drawer-heading">${escapeHtml(item.name || "Loading...")}</div>
+              <div class="drawer-subtitle">Loading complete detail and linked context...</div>
+            </div>
+            <div class="detail-actions">
+              <a class="btn btn-solid" href="/care-path.html?submissionId=${encodeURIComponent(item.id)}">Open care path</a>
+            </div>
+          </div>
+          <div class="drawer-body">
+            <div class="drawer-empty">Fetching the selected record...</div>
+          </div>
+        `;
+      }
+
+      function getSelectedRow() {
+        return state.submissions.find((item) => String(item.id) === String(state.selectedId)) || null;
+      }
+
+      async function selectSubmission(id, options = {}) {
+        const normalizedId = String(id || "");
+        if (!normalizedId) return;
+
+        state.selectedId = normalizedId;
+        state.selectedDetail = null;
+        renderTable();
+
+        const selected = getSelectedRow();
+        if (!selected) {
+          elements.drawerRoot.innerHTML = `
+            <div class="drawer-empty">The selected record is no longer available in the current feed.</div>
+          `;
+          return;
+        }
+
+        renderDrawerLoading(selected);
+
+        if (options.scrollIntoView) {
+          document.querySelector(".drawer-panel")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+
+        const requestId = ++state.detailRequestId;
+        try {
+          const response = await fetch(`/api/admin/intake-submissions/${encodeURIComponent(normalizedId)}`);
+          if (requestId !== state.detailRequestId) return;
+          if (!response.ok) {
+            state.selectedDetail = null;
+            renderDrawerBase(selected, null);
+            return;
           }
-        } catch (err) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Network error loading applications.</td></tr>';
+
+          const detail = await response.json();
+          if (requestId !== state.detailRequestId) return;
+          state.selectedDetail = detail;
+          renderDrawerBase(detail.item || selected, detail);
+        } catch (_err) {
+          if (requestId !== state.detailRequestId) return;
+          state.selectedDetail = null;
+          renderDrawerBase(selected, null);
         }
       }
 
-      async function loadPhoneUsersData() {
-        const tbody = document.getElementById("phoneUsersTableBody");
-        const countEl = document.getElementById("phoneUserCount");
-        try {
-          const response = await fetch("/api/admin/phone-users");
-          const data = await response.json();
-
-          if (response.ok) {
-            if (countEl) {
-              countEl.textContent = `${data.count} Registered`;
-            }
-
-            if (!data.users || data.users.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="4" style="text-align: center; padding: 2rem;">No phone users found.</td></tr>';
-              return;
-            }
-
-            tbody.innerHTML = "";
-            data.users.forEach((user) => {
-              const date = new Date(user.created_at).toLocaleDateString(
-                undefined,
-                { year: "numeric", month: "short", day: "numeric" },
-              );
-
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td>${date}</td>
-                <td style="font-weight: 500; color: var(--color-text-primary);">${user.name || "-"}</td>
-                <td>${user.phone}</td>
-                <td><span style="background: rgba(201, 169, 110, 0.1); padding: 0.2rem 0.5rem; border-radius: 4px; color: var(--color-accent);">${user.role}</span></td>
-              `;
-              tbody.appendChild(tr);
-            });
-          } else {
-            tbody.innerHTML =
-              '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Failed to load phone users.</td></tr>';
-          }
-        } catch (err) {
-          tbody.innerHTML =
-            '<tr><td colspan="4" style="text-align: center; color: #ff6b6b;">Network error loading phone users.</td></tr>';
-        }
+      function setTableLoading() {
+        elements.submissionTableBody.innerHTML = `
+          <tr>
+            <td colspan="9" class="empty-table">Loading latest submissions...</td>
+          </tr>
+        `;
       }
 
-      async function loadAiUsageData() {
-        const tbody = document.getElementById("aiUsageTableBody");
-        const totalSessionsEl = document.getElementById("aiUsageTotalSessions");
-        const distinctUsersEl = document.getElementById("aiUsageDistinctUsers");
-        const totalDurationEl = document.getElementById("aiUsageTotalDuration");
-        const avgDurationEl = document.getElementById("aiUsageAvgDuration");
+      function syncFiltersToUrl() {
+        const params = new URLSearchParams();
+        if (state.filters.q) params.set("q", state.filters.q);
+        if (state.filters.phone) params.set("phone", state.filters.phone);
+        params.set("limit", String(state.filters.limit));
+        const query = params.toString();
+        const nextUrl = query ? `${window.location.pathname}?${query}` : window.location.pathname;
+        window.history.replaceState({}, "", nextUrl);
+      }
+
+      function readFiltersFromInputs() {
+        state.filters.q = elements.searchInput.value.trim();
+        state.filters.phone = elements.phoneInput.value.trim();
+        state.filters.limit = parseInt(elements.limitSelect.value, 10) || 100;
+        syncFiltersToUrl();
+        updateFilterSummary();
+      }
+
+      function applyFiltersFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        state.filters.q = (params.get("q") || "").trim();
+        state.filters.phone = (params.get("phone") || "").trim();
+        state.filters.limit = parseInt(params.get("limit") || "100", 10) || 100;
+
+        elements.searchInput.value = state.filters.q;
+        elements.phoneInput.value = state.filters.phone;
+        elements.limitSelect.value = String(state.filters.limit);
+        updateFilterSummary();
+      }
+
+      async function refreshSubmissions(options = {}) {
+        const keepSelection = options.keepSelection !== false;
+        const silent = Boolean(options.silent);
+        const requestId = ++state.refreshRequestId;
+
+        if (isFilePreview) {
+          state.submissions = [];
+          state.selectedId = null;
+          state.selectedDetail = null;
+          state.lastUpdatedAt = new Date().toISOString();
+          updateMetricCards();
+          renderTable();
+          elements.drawerRoot.innerHTML = `
+            <div class="drawer-empty">
+              Open this page through the live server to load real intake submissions.
+            </div>
+          `;
+          updateStatus("Static preview mode. Connect the live server to load data.");
+          return;
+        }
+
+        if (!silent) {
+          updateStatus("Refreshing live submissions...");
+          setTableLoading();
+        }
+
+        const params = new URLSearchParams();
+        params.set("limit", String(state.filters.limit || 100));
+        if (state.filters.phone) params.set("phone", state.filters.phone);
+        if (state.filters.q) params.set("q", state.filters.q);
 
         try {
-          const response = await fetch("/api/admin/ai-usage");
-          const data = await response.json();
+          const response = await fetch(`/api/admin/intake-submissions?${params.toString()}`);
+          const payload = await response.json().catch(() => ({}));
+          if (requestId !== state.refreshRequestId) return;
 
           if (!response.ok) {
-            tbody.innerHTML =
-              '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Failed to load AI usage data.</td></tr>';
-            return;
+            throw new Error(payload.error || "Failed to load submissions");
           }
 
-          const summary = data.summary || {};
-          totalSessionsEl.textContent = String(summary.total_sessions || 0);
-          distinctUsersEl.textContent = String(summary.distinct_users || 0);
-          totalDurationEl.textContent = formatDuration(
-            summary.total_duration_seconds || 0,
-          );
-          avgDurationEl.textContent = formatDuration(
-            summary.avg_duration_seconds || 0,
-          );
+          state.submissions = Array.isArray(payload.items) ? payload.items : [];
+          state.lastUpdatedAt = new Date().toISOString();
 
-          if (!data.items || data.items.length === 0) {
-            tbody.innerHTML =
-              '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No AI usage sessions found.</td></tr>';
-            return;
+          updateMetricCards();
+
+          if (!keepSelection || !state.submissions.some((item) => String(item.id) === String(state.selectedId))) {
+            state.selectedId = state.submissions[0] ? String(state.submissions[0].id) : null;
           }
 
-          tbody.innerHTML = "";
-          data.items.forEach((row) => {
-            const start = row.session_started_at
-              ? new Date(row.session_started_at).toLocaleString()
-              : "-";
-            const end = row.session_ended_at
-              ? new Date(row.session_ended_at).toLocaleString()
-              : "-";
+          renderTable();
 
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td title="${row.session_started_at || ""}">${start}</td>
-              <td title="${row.session_ended_at || ""}">${end}</td>
-              <td>${formatDuration(row.duration_seconds || 0)}</td>
-              <td style="font-weight: 500; color: var(--color-text-primary);">${row.auth_user_id || "-"}</td>
-              <td>${row.auth_user_type || "-"}</td>
-              <td>${row.agent_id || "-"}</td>
-              <td>${row.submission_id || "-"}</td>
-              <td>${row.end_reason || "-"}</td>
-              <td title="${row.lemonslice_session_id || ""}">${row.lemonslice_session_id || "-"}</td>
-            `;
-            tbody.appendChild(tr);
-          });
-        } catch (_err) {
-          tbody.innerHTML =
-            '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Network error loading AI usage data.</td></tr>';
-        }
-      }
-
-      // Fetch and populate login events
-      async function loadLoginEventsData() {
-        const tbody = document.getElementById("loginsTableBody");
-        try {
-          const response = await fetch("/api/admin/logins");
-          const data = await response.json();
-
-          if (response.ok) {
-            if (!data.items || data.items.length === 0) {
-              tbody.innerHTML =
-                '<tr><td colspan="9" style="text-align: center; padding: 2rem;">No login events found.</td></tr>';
-              return;
-            }
-
-            tbody.innerHTML = "";
-            data.items.forEach((ev) => {
-              const date = new Date(ev.created_at).toLocaleString();
-              const userLabel = ev.identifier || ev.user_id || "-";
-              const userType = ev.user_type || "-";
-              // meta may be an object or a JSON string
-              let meta = ev.meta || {};
-              if (typeof meta === "string") {
-                try {
-                  meta = JSON.parse(meta);
-                } catch (e) {
-                  meta = {};
-                }
-              }
-
-              const sessionId = (meta && meta.session_id) || "-";
-              const acceptLang =
-                (meta && meta.headers && meta.headers.accept_language) || "-";
-              const referer =
-                (meta && meta.headers && meta.headers.referer) || "-";
-
-              const ua =
-                ev.user_agent ||
-                (meta && meta.headers && meta.headers.user_agent) ||
-                "-";
-              const uaPreview =
-                ua.length > 120 ? ua.substring(0, 120) + "..." : ua;
-
-              const tr = document.createElement("tr");
-              tr.innerHTML = `
-                <td title="${ev.created_at}">${date}</td>
-                <td style="font-weight: 500; color: var(--color-text-primary);">${userLabel}</td>
-                <td>${userType}</td>
-                <td>${ev.method || "-"}</td>
-                <td>${sessionId}</td>
-                <td>${ev.ip || "-"}</td>
-                <td>${acceptLang}</td>
-                <td>${referer}</td>
-                <td title="${ev.user_agent || ""}">${uaPreview}</td>
-              `;
-              tbody.appendChild(tr);
-            });
+          if (state.selectedId) {
+            await selectSubmission(state.selectedId, { scrollIntoView: false });
           } else {
-            tbody.innerHTML =
-              '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Failed to load login events.</td></tr>';
+            elements.drawerRoot.innerHTML = `
+              <div class="drawer-empty">No submission is selected yet.</div>
+            `;
           }
-        } catch (err) {
-          tbody.innerHTML =
-            '<tr><td colspan="9" style="text-align: center; color: #ff6b6b;">Network error loading login events.</td></tr>';
+
+          updateStatus(
+            `Loaded ${state.submissions.length} submission${state.submissions.length === 1 ? "" : "s"} at ${formatShortDate(state.lastUpdatedAt)}.`,
+          );
+        } catch (error) {
+          if (requestId !== state.refreshRequestId) return;
+          updateStatus(error.message || "Failed to refresh submissions");
+          elements.submissionTableBody.innerHTML = `
+            <tr>
+              <td colspan="9" class="empty-table">${escapeHtml(error.message || "Failed to refresh submissions")}</td>
+            </tr>
+          `;
         }
       }
 
-      // Export CSV buttons
-      const exportPhoneBtn = document.getElementById("exportPhoneUsersBtn");
-      if (exportPhoneBtn) {
-        exportPhoneBtn.addEventListener("click", () => {
-          // navigate to protected CSV endpoint which returns a file download
-          window.location.href = "/api/admin/export/phone-users";
-        });
+      function startPolling() {
+        stopPolling();
+        state.pollTimer = window.setInterval(() => {
+          if (!document.hidden) {
+            refreshSubmissions({ keepSelection: true, silent: true });
+          }
+        }, POLL_INTERVAL_MS);
       }
 
-      const exportLoginsBtn = document.getElementById("exportLoginsBtn");
-      if (exportLoginsBtn) {
-        exportLoginsBtn.addEventListener("click", () => {
-          window.location.href = "/api/admin/export/logins";
-        });
+      function stopPolling() {
+        if (state.pollTimer) {
+          window.clearInterval(state.pollTimer);
+          state.pollTimer = null;
+        }
       }
 
-      const exportAiUsageBtn = document.getElementById("exportAiUsageBtn");
-      if (exportAiUsageBtn) {
-        exportAiUsageBtn.addEventListener("click", () => {
-          window.location.href = "/api/admin/export/ai-usage";
-        });
-      }
+      elements.filterForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        readFiltersFromInputs();
+        await refreshSubmissions({ keepSelection: false });
+      });
+
+      elements.refreshBtn.addEventListener("click", () => {
+        readFiltersFromInputs();
+        refreshSubmissions({ keepSelection: true });
+      });
+
+      elements.resetBtn.addEventListener("click", async () => {
+        state.filters.q = "";
+        state.filters.phone = "";
+        state.filters.limit = 100;
+        elements.searchInput.value = "";
+        elements.phoneInput.value = "";
+        elements.limitSelect.value = "100";
+        syncFiltersToUrl();
+        updateFilterSummary();
+        await refreshSubmissions({ keepSelection: false });
+      });
+
+      elements.submissionTableBody.addEventListener("click", (event) => {
+        const row = event.target.closest(".submission-row");
+        if (row && row.dataset.submissionId) {
+          selectSubmission(row.dataset.submissionId, { scrollIntoView: false });
+        }
+      });
+
+      elements.submissionTableBody.addEventListener("keydown", (event) => {
+        const row = event.target.closest(".submission-row");
+        if (row && row.dataset.submissionId && (event.key === "Enter" || event.key === " ")) {
+          event.preventDefault();
+          selectSubmission(row.dataset.submissionId, { scrollIntoView: false });
+        }
+      });
+
+      document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+          refreshSubmissions({ keepSelection: true, silent: true });
+        }
+      });
+
+      window.addEventListener("focus", () => {
+        refreshSubmissions({ keepSelection: true, silent: true });
+      });
+
+      applyFiltersFromUrl();
+      updateFilterSummary();
+      updateMetricCards();
+      refreshSubmissions({ keepSelection: false });
+      startPolling();
     </script>
   </body>
 </html>

@@ -308,6 +308,34 @@ document.addEventListener("DOMContentLoaded", () => {
     const MAX_FULL_NAME_CHARS = 22;
     let activeUser = null;
 
+    const hasAdminRole = (user) => {
+      const role = String(user?.role || "")
+        .trim()
+        .toLowerCase();
+      return role === "admin";
+    };
+
+    const setAdminDrawerAccess = (isAdmin) => {
+      document.querySelectorAll(".menu-list").forEach((list) => {
+        const existing = list.querySelector("[data-admin-drawer-link='true']");
+        if (isAdmin) {
+          if (existing) return;
+          const item = document.createElement("li");
+          item.setAttribute("data-admin-drawer-link", "true");
+          const link = document.createElement("a");
+          link.href = "/admin.html";
+          link.textContent = "Admin Portal";
+          item.appendChild(link);
+          list.appendChild(item);
+          return;
+        }
+
+        if (existing) {
+          existing.remove();
+        }
+      });
+    };
+
     const clampLabel = (value, maxChars) => {
       if (value.length <= maxChars) return value;
       return `${value.slice(0, Math.max(1, maxChars - 3))}...`;
@@ -352,6 +380,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (authMenuButton) {
           authMenuButton.style.display = "none";
         }
+        setAdminDrawerAccess(false);
         return;
       }
 
@@ -386,8 +415,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (btnAdmin) {
         btnAdmin.style.display =
-          !isCompact && activeUser.role === "admin" ? "inline-flex" : "none";
+          !isCompact && hasAdminRole(activeUser) ? "inline-flex" : "none";
       }
+
+      setAdminDrawerAccess(hasAdminRole(activeUser));
 
       requestAnimationFrame(() => adjustHomeHeaderLayout());
     };
@@ -420,7 +451,7 @@ document.addEventListener("DOMContentLoaded", () => {
           btnIntake.href = intakeTarget;
           btnIntake.textContent = intakeLabel;
         }
-        if (user.role === "admin") {
+        if (hasAdminRole(user)) {
           setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
         } else {
           removeAuthMenuLink("authMenuAdmin");

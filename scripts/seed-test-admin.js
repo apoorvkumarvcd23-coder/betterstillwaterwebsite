@@ -10,7 +10,18 @@ const password = process.env.TEST_ADMIN_PASSWORD || "StillwaterAdmin#123";
 const name = process.env.TEST_ADMIN_NAME || "Test Admin";
 
 async function main() {
-  const pool = new Pool({ connectionString, ssl: false });
+  const databaseUrlRequiresSsl = /[?&]sslmode=require/i.test(
+    String(connectionString || ""),
+  );
+  const forceDbSsl = String(process.env.DB_SSL || "")
+    .trim()
+    .toLowerCase() === "true";
+  const useDbSsl = databaseUrlRequiresSsl || forceDbSsl;
+
+  const pool = new Pool({
+    connectionString,
+    ssl: useDbSsl ? { rejectUnauthorized: false } : false,
+  });
 
   try {
     await pool.query(`

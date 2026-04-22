@@ -445,4 +445,17 @@ test.describe("Mobile DOM QA - Seeded Admin", () => {
     expect(state.authActionsRight).toBeLessThanOrEqual(376);
     expect(state.authActionsLeft).toBeGreaterThanOrEqual(-1);
   });
+
+  test("admin desktop header exposes dashboard access on home", async ({ page }) => {
+    await ensureAdminSession(page);
+    await page.setViewportSize({ width: 1360, height: 1400 });
+    await page.goto("/", { waitUntil: "networkidle" });
+
+    const state = await readAuthHeaderState(page);
+
+    expect(state.hasCompactClass).toBeFalsy();
+    expect(state.adminVisibleInline).toBeTruthy();
+    expect(state.hasAdminMenuLink).toBeTruthy();
+    expect(state.authButtonText.length).toBeGreaterThan(0);
+  });
 });
