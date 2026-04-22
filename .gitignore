@@ -21,3 +21,6 @@ Thumbs.db
 playwright-report/
 test-results/
 tests/.auth/
+
+# Local reference notes
+ARCHITECTURE.md
