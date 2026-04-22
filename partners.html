@@ -135,12 +135,76 @@
         Menu
       </button>
       <a href="index.html" class="header-logo">Stillwater</a>
-      <a
-        href="auth.html"
-        class="btn btn-solid"
-        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
-        >Login</a
+      <div
+        id="authActions"
+        style="display: flex; gap: 0.75rem; align-items: center"
       >
+        <div id="authMenuWrap" style="position: relative; display: inline-flex">
+          <button
+            id="authMenuButton"
+            style="
+              padding: 0;
+              font-size: 0.85rem;
+              color: var(--color-text-primary);
+              background: transparent;
+              border: none;
+              cursor: pointer;
+              display: none;
+            "
+          >
+            Hi
+          </button>
+          <div
+            id="authMenu"
+            style="
+              position: absolute;
+              top: 2rem;
+              right: 0;
+              min-width: 160px;
+              background: var(--color-bg-secondary);
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              border-radius: 12px;
+              padding: 0.4rem;
+              display: none;
+              box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            "
+          >
+            <a
+              id="btnLogout"
+              href="/logout"
+              style="
+                display: block;
+                padding: 0.5rem 0.75rem;
+                color: var(--color-text-primary);
+                text-decoration: none;
+                font-size: 0.8rem;
+              "
+              >Log out</a
+            >
+          </div>
+        </div>
+        <a
+          href="auth.html"
+          id="btnLogin"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+          >Login/Sign up</a
+        >
+        <a
+          href="admin.html"
+          id="btnAdmin"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
+          >Admin Dashboard</a
+        >
+        <a
+          href="/intake.html"
+          id="btnIntake"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
+          >Wellness Assessment</a
+        >
+      </div>
     </header>
 
     <div class="menu-drawer">
@@ -206,7 +270,7 @@
             </p>
           </a>
           <a href="https://amareye.yoga" target="_blank" class="partner-card">
-            <div class="partner-logo" style="font-size: 1.8rem">
+            <div class="partner-logo">
               AMAR EYE YOGA
             </div>
             <p style="color: var(--color-text-secondary); margin-top: 1rem">

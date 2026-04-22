@@ -130,40 +130,104 @@
         <span class="menu-btn-label">Menu</span>
       </button>
       <a href="index.html" class="header-logo">Stillwater</a>
-      <a
-        href="auth.html"
-        class="btn btn-solid header-login-btn"
-        style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
-        aria-label="Login"
+      <div
+        id="authActions"
+        style="display: flex; gap: 0.75rem; align-items: center"
       >
-        <svg
-          class="btn-icon"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
+        <div id="authMenuWrap" style="position: relative; display: inline-flex">
+          <button
+            id="authMenuButton"
+            style="
+              padding: 0;
+              font-size: 0.85rem;
+              color: var(--color-text-primary);
+              background: transparent;
+              border: none;
+              cursor: pointer;
+              display: none;
+            "
+          >
+            Hi
+          </button>
+          <div
+            id="authMenu"
+            style="
+              position: absolute;
+              top: 2rem;
+              right: 0;
+              min-width: 160px;
+              background: var(--color-bg-secondary);
+              border: 1px solid rgba(255, 255, 255, 0.08);
+              border-radius: 12px;
+              padding: 0.4rem;
+              display: none;
+              box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+            "
+          >
+            <a
+              id="btnLogout"
+              href="/logout"
+              style="
+                display: block;
+                padding: 0.5rem 0.75rem;
+                color: var(--color-text-primary);
+                text-decoration: none;
+                font-size: 0.8rem;
+              "
+              >Log out</a
+            >
+          </div>
+        </div>
+        <a
+          href="auth.html"
+          id="btnLogin"
+          class="btn btn-solid header-login-btn"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
+          aria-label="Login"
         >
-          <path
-            d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-          <circle
-            cx="12"
-            cy="7"
-            r="4"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          />
-        </svg>
-        <span class="btn-label">Login</span>
-      </a>
+          <svg
+            class="btn-icon"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle
+              cx="12"
+              cy="7"
+              r="4"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          <span class="btn-label">Login</span>
+        </a>
+        <a
+          href="admin.html"
+          id="btnAdmin"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
+          >Admin Dashboard</a
+        >
+        <a
+          href="/intake.html"
+          id="btnIntake"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
+          >Wellness Assessment</a
+        >
+      </div>
     </header>
 
     <!-- Full Screen Drawer Menu -->
