@@ -30,7 +30,7 @@ const PUBLIC_ROUTES = [
 ];
 
 const CUSTOMER_ROUTES = ["/", "/portal.html", "/intake.html"];
-const ADMIN_ROUTES = ["/admin.html"];
+const ADMIN_ROUTES = ["/admin.html", "/ai-avatar-usage.html"];
 
 const OVERFLOW_SELECTORS = [
   "body",

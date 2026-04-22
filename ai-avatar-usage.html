@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Bridge | AI Avatar Time</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      body.avatar-usage-page {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 12% 8%, rgba(201, 169, 110, 0.16), transparent 28%),
+          radial-gradient(circle at 88% 0%, rgba(95, 179, 179, 0.15), transparent 30%),
+          linear-gradient(180deg, #061113 0%, #081819 46%, #050d0e 100%);
+        color: var(--color-text-primary);
+      }
+
+      .avatar-shell {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 1rem 5% 2.5rem;
+      }
+
+      .avatar-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1rem 5% 0.8rem;
+        background: linear-gradient(180deg, rgba(6, 17, 19, 0.98), rgba(6, 17, 19, 0.76));
+        border-bottom: 1px solid rgba(245, 242, 238, 0.08);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+      }
+
+      .avatar-brand {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        font-family: var(--font-heading);
+        font-size: 1.45rem;
+        letter-spacing: 0.18em;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #f6f2eb;
+        text-decoration: none;
+        line-height: 1;
+      }
+
+      .avatar-topbar-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .avatar-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        border: 1px solid rgba(201, 169, 110, 0.25);
+        color: var(--color-accent);
+        background: rgba(201, 169, 110, 0.08);
+        letter-spacing: 0.12em;
+        font-size: 0.67rem;
+        text-transform: uppercase;
+      }
+
+      .avatar-hero {
+        padding: 2rem 0 1rem;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 1.25rem;
+        align-items: end;
+      }
+
+      .avatar-hero h1 {
+        font-family: var(--font-heading);
+        font-size: clamp(2.3rem, 5vw, 4.4rem);
+        line-height: 0.96;
+        margin-top: 0.75rem;
+        color: #f6f2eb;
+      }
+
+      .avatar-hero p {
+        margin-top: 1rem;
+        max-width: 62ch;
+        color: var(--color-text-secondary);
+        font-size: 1.02rem;
+      }
+
+      .live-status {
+        justify-self: end;
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.95rem 1rem;
+        border-radius: 18px;
+        border: 1px solid rgba(201, 169, 110, 0.18);
+        background: rgba(8, 24, 25, 0.72);
+        box-shadow: 0 16px 42px rgba(1, 7, 8, 0.25);
+        color: var(--color-text-secondary);
+        font-size: 0.92rem;
+      }
+
+      .live-status-dot {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 999px;
+        background: #6cf0d1;
+        box-shadow: 0 0 0 6px rgba(108, 240, 209, 0.08);
+        flex: 0 0 auto;
+      }
+
+      .stat-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.95rem;
+      }
+
+      .stat-card,
+      .panel {
+        border: 1px solid rgba(245, 242, 238, 0.1);
+        background: rgba(7, 21, 22, 0.76);
+        box-shadow: 0 18px 42px rgba(2, 7, 8, 0.3);
+        -webkit-backdrop-filter: blur(16px);
+        backdrop-filter: blur(16px);
+      }
+
+      .stat-card {
+        border-radius: 22px;
+        padding: 1rem 1.05rem;
+      }
+
+      .stat-label {
+        color: var(--color-text-secondary);
+        font-size: 0.72rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+      }
+
+      .stat-value {
+        margin-top: 0.55rem;
+        font-family: var(--font-heading);
+        font-size: 1.8rem;
+        color: #f6f2eb;
+      }
+
+      .stat-note {
+        margin-top: 0.45rem;
+        color: var(--color-text-secondary);
+        font-size: 0.9rem;
+      }
+
+      .table-panel {
+        margin-top: 1rem;
+        border-radius: 28px;
+        overflow: hidden;
+      }
+
+      .table-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: end;
+        padding: 1.1rem 1.15rem 0.9rem;
+      }
+
+      .table-head h2 {
+        font-family: var(--font-heading);
+        font-size: 1.5rem;
+        color: #f6f2eb;
+      }
+
+      .table-head p,
+      .table-note,
+      .empty-state {
+        color: var(--color-text-secondary);
+      }
+
+      .summary-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.38rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 242, 238, 0.12);
+        background: rgba(8, 20, 21, 0.72);
+        color: #f6f2eb;
+        white-space: nowrap;
+      }
+
+      .table-scroll {
+        overflow: auto;
+      }
+
+      .session-table {
+        width: 100%;
+        min-width: 880px;
+        border-collapse: collapse;
+      }
+
+      .session-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: rgba(5, 14, 15, 0.95);
+        padding: 0.92rem 1rem;
+        text-align: left;
+        font-size: 0.71rem;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--color-accent);
+        border-bottom: 1px solid rgba(201, 169, 110, 0.18);
+      }
+
+      .session-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(245, 242, 238, 0.06);
+        color: var(--color-text-secondary);
+        vertical-align: top;
+      }
+
+      .session-row:hover {
+        background: rgba(201, 169, 110, 0.06);
+      }
+
+      .session-name {
+        color: var(--color-text-primary);
+        font-weight: 500;
+      }
+
+      .duration-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.34rem 0.72rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 242, 238, 0.12);
+        background: rgba(9, 24, 25, 0.7);
+        color: #f6f2eb;
+      }
+
+      .duration-pill.live {
+        border-color: rgba(108, 240, 209, 0.28);
+        color: #8ef2da;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 2rem 1rem;
+      }
+
+      .footer-space {
+        padding: 1.5rem 0 0;
+      }
+
+      @media (max-width: 1200px) {
+        .stat-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (max-width: 900px) {
+        .avatar-hero {
+          grid-template-columns: 1fr;
+        }
+
+        .live-status {
+          justify-self: start;
+        }
+
+        .table-head {
+          flex-direction: column;
+          align-items: start;
+        }
+      }
+
+      @media (max-width: 767px) {
+        .avatar-shell {
+          padding: 0.9rem 4.5% 2rem;
+        }
+
+        .avatar-topbar {
+          padding-left: 4.5%;
+          padding-right: 4.5%;
+        }
+
+        .avatar-brand {
+          font-size: 1.1rem;
+        }
+
+        .stat-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .session-table {
+          min-width: 760px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .avatar-topbar-actions {
+          width: 100%;
+          justify-content: flex-start;
+        }
+
+        .avatar-topbar {
+          align-items: start;
+          flex-direction: column;
+        }
+
+        .session-table thead th,
+        .session-table tbody td {
+          padding-left: 0.75rem;
+          padding-right: 0.75rem;
+        }
+      }
+    </style>
+  </head>
+  <body class="avatar-usage-page">
+    <header class="avatar-topbar">
+      <a href="/admin.html" class="avatar-brand">Stillwater</a>
+      <div class="avatar-topbar-actions">
+        <span class="avatar-badge">Assessment-linked sessions only</span>
+        <a href="/admin.html" class="btn">Intake review</a>
+        <a href="/portal.html" class="btn">Portal</a>
+        <a href="/logout" class="btn btn-solid">Logout</a>
+      </div>
+    </header>
+
+    <main class="avatar-shell">
+      <section class="avatar-hero">
+        <div>
+          <span class="text-caption">Admin view</span>
+          <h1>AI Avatar Time</h1>
+          <p>
+            Sessions below are only recorded when a completed intake assessment
+            flows into the AI avatar room. Each row uses the name captured in
+            the assessment form and the time spent in that session.
+          </p>
+        </div>
+        <div class="live-status" aria-live="polite">
+          <span class="live-status-dot"></span>
+          <span id="statusText">Loading assessment-linked sessions...</span>
+        </div>
+      </section>
+
+      <section class="stat-grid" aria-label="AI avatar session summary">
+        <article class="stat-card">
+          <div class="stat-label">Visible sessions</div>
+          <div class="stat-value" id="visibleSessions">0</div>
+          <div class="stat-note">Assessment-linked AI avatar visits loaded now.</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label">Tracked people</div>
+          <div class="stat-value" id="trackedPeople">0</div>
+          <div class="stat-note">Unique names from the intake form.</div>
+        </article>
+        <article class="stat-card">
+          <div class="stat-label">Total time</div>
+          <div class="stat-value" id="totalTime">0s</div>
+          <div class="stat-note">Combined time spent inside the AI avatar room.</div>
+        </article>
+      </section>
+
+      <section class="panel table-panel">
+        <div class="table-head">
+          <div>
+            <h2>Assessment-linked logs</h2>
+            <p>
+              One row per AI avatar session, grouped by the name captured in the
+              intake assessment.
+            </p>
+          </div>
+          <div class="summary-pill" id="feedSummary">0 sessions</div>
+        </div>
+
+        <div class="table-scroll">
+          <table class="session-table" aria-label="AI avatar time logs">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Time spent</th>
+                <th>Started</th>
+                <th>Ended</th>
+              </tr>
+            </thead>
+            <tbody id="sessionTableBody">
+              <tr>
+                <td colspan="4" class="empty-state">Loading assessment-linked sessions...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <div class="footer-space"></div>
+    </main>
+
+    <footer class="footer container">
+      <div class="footer-bottom">
+        <span>&copy; 2026 Stillwater Digital Sanctuary. All rights reserved.</span>
+      </div>
+    </footer>
+
+    <script>
+      const state = {
+        sessions: [],
+        lastUpdatedAt: null,
+      };
+
+      const elements = {
+        statusText: document.getElementById("statusText"),
+        visibleSessions: document.getElementById("visibleSessions"),
+        trackedPeople: document.getElementById("trackedPeople"),
+        totalTime: document.getElementById("totalTime"),
+        feedSummary: document.getElementById("feedSummary"),
+        sessionTableBody: document.getElementById("sessionTableBody"),
+      };
+
+      function escapeHtml(value) {
+        return String(value ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return "-";
+        return new Intl.DateTimeFormat(undefined, {
+          dateStyle: "medium",
+          timeStyle: "short",
+        }).format(date);
+      }
+
+      function formatDuration(seconds) {
+        const total = Number.isFinite(Number(seconds)) ? Math.max(0, Math.floor(Number(seconds))) : 0;
+        const hours = Math.floor(total / 3600);
+        const minutes = Math.floor((total % 3600) / 60);
+        const remaining = total % 60;
+
+        if (hours > 0) {
+          return `${hours}h ${minutes}m ${remaining}s`;
+        }
+
+        if (minutes > 0) {
+          return `${minutes}m ${remaining}s`;
+        }
+
+        return `${remaining}s`;
+      }
+
+      function updateStats() {
+        const sessions = state.sessions;
+        const totalTimeSeconds = sessions.reduce((sum, item) => sum + (Number(item.duration_seconds) || 0), 0);
+        const uniquePeople = new Set(
+          sessions
+            .map((item) => String(item.submission_name || "").trim())
+            .filter(Boolean),
+        ).size;
+
+        elements.visibleSessions.textContent = String(sessions.length);
+        elements.trackedPeople.textContent = String(uniquePeople);
+        elements.totalTime.textContent = formatDuration(totalTimeSeconds);
+        elements.feedSummary.textContent = `${sessions.length} session${sessions.length === 1 ? "" : "s"}`;
+      }
+
+      function renderTable() {
+        if (!state.sessions.length) {
+          elements.sessionTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="empty-state">No assessment-linked AI avatar sessions have been recorded yet.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        elements.sessionTableBody.innerHTML = state.sessions
+          .map((item) => {
+            const timeSpent = formatDuration(item.duration_seconds);
+            const endedLabel = item.session_ended_at ? formatDateTime(item.session_ended_at) : "Live";
+            const durationClass = item.session_ended_at ? "duration-pill" : "duration-pill live";
+
+            return `
+              <tr class="session-row">
+                <td class="session-name">${escapeHtml(item.submission_name || "-")}</td>
+                <td><span class="${durationClass}">${escapeHtml(timeSpent)}</span></td>
+                <td>${escapeHtml(formatDateTime(item.session_started_at))}</td>
+                <td>${escapeHtml(endedLabel)}</td>
+              </tr>
+            `;
+          })
+          .join("");
+      }
+
+      async function refreshSessions() {
+        try {
+          elements.statusText.textContent = "Loading assessment-linked sessions...";
+          const response = await fetch("/api/admin/ai-usage?limit=200&submission_only=1");
+          const payload = await response.json().catch(() => ({}));
+
+          if (!response.ok) {
+            throw new Error(payload.error || "Failed to load AI avatar sessions.");
+          }
+
+          state.sessions = Array.isArray(payload.items) ? payload.items : [];
+          state.lastUpdatedAt = new Date().toISOString();
+
+          updateStats();
+          renderTable();
+
+          elements.statusText.textContent = `Loaded ${state.sessions.length} session${state.sessions.length === 1 ? "" : "s"} at ${formatDateTime(state.lastUpdatedAt)}.`;
+        } catch (error) {
+          elements.statusText.textContent = error.message || "Failed to load AI avatar sessions.";
+          elements.sessionTableBody.innerHTML = `
+            <tr>
+              <td colspan="4" class="empty-state">${escapeHtml(error.message || "Failed to load AI avatar sessions.")}</td>
+            </tr>
+          `;
+        }
+      }
+
+      refreshSessions();
+    </script>
+  </body>
+</html>

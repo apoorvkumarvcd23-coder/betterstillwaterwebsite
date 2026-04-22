@@ -37,16 +37,24 @@
         justify-content: space-between;
         gap: 1rem;
         padding: 1rem 5% 0.75rem;
-        margin: 0 -5%;
         background: linear-gradient(180deg, rgba(6, 17, 19, 0.98), rgba(6, 17, 19, 0.76));
         border-bottom: 1px solid rgba(245, 242, 238, 0.08);
         -webkit-backdrop-filter: blur(18px);
         backdrop-filter: blur(18px);
       }
 
-      .admin-topbar .header-logo {
-        position: static;
-        margin-left: 0;
+      .admin-brand {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        font-family: var(--font-heading);
+        font-size: 1.45rem;
+        letter-spacing: 0.18em;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #f6f2eb;
+        text-decoration: none;
+        line-height: 1;
       }
 
       .admin-topbar-actions {
@@ -543,8 +551,6 @@
         .admin-topbar {
           padding-left: 4.5%;
           padding-right: 4.5%;
-          margin-left: -4.5%;
-          margin-right: -4.5%;
         }
 
         .admin-hero {
@@ -585,6 +591,10 @@
       }
 
       @media (max-width: 480px) {
+        .admin-brand {
+          font-size: 1.1rem;
+        }
+
         .admin-topbar-actions {
           width: 100%;
           justify-content: flex-start;
@@ -612,9 +622,10 @@
     <script src="js/shared.js"></script>
 
     <header class="admin-topbar">
-      <a href="/" class="header-logo">Stillwater</a>
+      <a href="/" class="admin-brand">Stillwater</a>
       <div class="admin-topbar-actions">
         <span class="admin-badge">Live intake review</span>
+        <a href="/ai-avatar-usage.html" class="btn">Avatar Time</a>
         <a href="/portal.html" class="btn">Portal</a>
         <a href="/logout" class="btn btn-solid">Logout</a>
       </div>

@@ -363,6 +363,7 @@
       const query = new URLSearchParams(window.location.search);
       const submissionId = query.get("submissionId") || "";
       const agentId = query.get("agentId") || "agent_6194e41857189803";
+      const assessmentRequired = !submissionId;
 
       let callFrame = null;
       let attemptCount = 0;
@@ -371,7 +372,7 @@
       let sessionEndInFlight = null;
       const MAX_ATTEMPTS = 2;
 
-      meetingMetaId.textContent = submissionId ? `#${submissionId}` : "Pending";
+      meetingMetaId.textContent = submissionId ? `#${submissionId}` : "Assessment Required";
 
       const setStatus = (line, message, state = "neutral") => {
         statusLineEl.textContent = line;
@@ -556,6 +557,15 @@
         }
       };
 
+      if (assessmentRequired) {
+        setStatus(
+          "Assessment Required",
+          "Complete the intake assessment before starting the AI avatar session.",
+          "error",
+        );
+        meetingMeta.dataset.live = "false";
+      }
+
       retryButton.addEventListener("click", async () => {
         attemptCount = 0;
         await startSession();
@@ -610,7 +620,9 @@
         }
       });
 
-      startSession();
+      if (!assessmentRequired) {
+        startSession();
+      }
     </script>
   </body>
 </html>

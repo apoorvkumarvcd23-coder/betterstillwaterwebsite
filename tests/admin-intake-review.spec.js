@@ -21,8 +21,16 @@ async function ensureAdminSession(page) {
 test("admin intake review loads the live feed and drawer", async ({ page }) => {
   await ensureAdminSession(page);
 
+  await page.setViewportSize({ width: 1360, height: 1000 });
+
   await page.goto("/admin.html", { waitUntil: "networkidle" });
   await expect(page).toHaveURL(/\/admin\.html/);
+
+  const brandBox = await page.locator(".admin-brand").boundingBox();
+  expect(brandBox).toBeTruthy();
+  expect(brandBox.x).toBeGreaterThanOrEqual(0);
+  expect(brandBox.y).toBeGreaterThanOrEqual(0);
+  expect(brandBox.x + brandBox.width).toBeLessThanOrEqual(1361);
 
   await expect.poll(async () => {
     const value = await page.locator("#metricVisibleCount").textContent();

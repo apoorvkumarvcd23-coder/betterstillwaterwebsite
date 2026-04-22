@@ -1046,7 +1046,30 @@ app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
 
     const authUserType = getAuthUserType(req.user);
     const authUserId = getAuthUserId(req.user);
-    const submissionId = String(req.body?.submissionId || "").trim() || null;
+    const submissionIdRaw = String(req.body?.submissionId || "").trim();
+
+    if (!submissionIdRaw) {
+      return res.status(400).json({
+        error:
+          "Complete the intake assessment before starting the AI avatar session.",
+      });
+    }
+
+    const submissionLookup = await pool.query(
+      `SELECT id, name, phone
+       FROM intake_submissions
+       WHERE id = $1
+       LIMIT 1`,
+      [submissionIdRaw],
+    );
+
+    if (submissionLookup.rowCount === 0) {
+      return res.status(404).json({
+        error: "Assessment submission not found.",
+      });
+    }
+
+    const submissionId = String(submissionLookup.rows[0].id);
 
     await pool.query(
       `INSERT INTO ai_usage_sessions (
@@ -1282,6 +1305,11 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
       : 100;
     const offsetRaw = parseInt(String(req.query.offset || "0"), 10);
     const offset = Number.isFinite(offsetRaw) ? Math.max(0, offsetRaw) : 0;
+    const submissionOnly =
+      String(req.query.submission_only || req.query.submissionOnly || "")
+        .trim()
+        .toLowerCase() === "true" ||
+      String(req.query.submission_only || req.query.submissionOnly || "") === "1";
 
     const userType = req.query.user_type ? String(req.query.user_type).trim() : null;
     const userId = req.query.user_id ? String(req.query.user_id).trim() : null;
@@ -1312,6 +1340,9 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
       baseParams.push(to);
       where.push(`session_started_at <= $${baseParams.length}`);
     }
+    if (submissionOnly) {
+      where.push(`submission_id IS NOT NULL AND submission_id <> ''`);
+    }
 
     const whereClause = where.length ? `WHERE ${where.join(" AND ")}` : "";
 
@@ -1327,6 +1358,8 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
          auth_user_type,
          auth_user_id,
          submission_id,
+         intake.name AS submission_name,
+         intake.phone AS submission_phone,
          agent_id,
          session_started_at,
          session_ended_at,
@@ -1334,6 +1367,8 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
          end_reason,
          created_at
        FROM ai_usage_sessions
+       LEFT JOIN intake_submissions intake
+         ON intake.id::text = ai_usage_sessions.submission_id
        ${whereClause}
        ORDER BY session_started_at DESC
        LIMIT $${limitPos} OFFSET $${offsetPos}`,
@@ -1369,6 +1404,58 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
   } catch (err) {
     console.error("Error fetching AI usage sessions:", err.message || err);
     return res.status(500).json({ error: "Failed to fetch AI usage sessions" });
+  }
+});
+
+app.get("/api/admin/ai-avatar-usage", requireRole("admin"), async (req, res) => {
+  try {
+    const limitRaw = parseInt(String(req.query.limit || "100"), 10);
+    const limit = Number.isFinite(limitRaw)
+      ? Math.max(1, Math.min(limitRaw, 500))
+      : 100;
+    const offsetRaw = parseInt(String(req.query.offset || "0"), 10);
+    const offset = Number.isFinite(offsetRaw) ? Math.max(0, offsetRaw) : 0;
+
+    const countResult = await pool.query(
+      `SELECT COUNT(*)::int AS total
+       FROM ai_usage_sessions ai
+       INNER JOIN intake_submissions intake
+         ON intake.id::text = ai.submission_id`,
+    );
+
+    const rowsResult = await pool.query(
+      `SELECT
+         ai.id,
+         ai.lemonslice_session_id,
+         ai.submission_id,
+         intake.name AS submission_name,
+         intake.phone AS submission_phone,
+         ai.agent_id,
+         ai.session_started_at,
+         ai.session_ended_at,
+         COALESCE(
+           ai.duration_seconds,
+           GREATEST(
+             0,
+             FLOOR(EXTRACT(EPOCH FROM (COALESCE(ai.session_ended_at, NOW()) - ai.session_started_at)))::INT
+           )
+         ) AS duration_seconds,
+         ai.end_reason
+       FROM ai_usage_sessions ai
+       INNER JOIN intake_submissions intake
+         ON intake.id::text = ai.submission_id
+       ORDER BY ai.session_started_at DESC
+       LIMIT $1 OFFSET $2`,
+      [limit, offset],
+    );
+
+    return res.json({
+      count: countResult.rows[0]?.total || 0,
+      items: rowsResult.rows,
+    });
+  } catch (err) {
+    console.error("Error fetching AI avatar usage sessions:", err.message || err);
+    return res.status(500).json({ error: "Failed to fetch AI avatar usage sessions" });
   }
 });
 
