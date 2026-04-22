@@ -1874,6 +1874,21 @@ app.get(
 
 // === STATIC & PUBLIC ROUTES ===
 
+// Intercept intake page access to prevent duplicate submissions
+app.get(['/intake.html', '/intake'], async (req, res, next) => {
+  if (req.isAuthenticated && req.isAuthenticated()) {
+    try {
+      const hasCompleted = await hasCompletedAssessmentForUser(req.user);
+      if (hasCompleted) {
+        return res.redirect("/care-path.html");
+      }
+    } catch (err) {
+      console.error("Error checking assessment status for intercept:", err);
+    }
+  }
+  next();
+});
+
 // Serve Static Assets (HTML/CSS/JS/Images)
 app.use(express.static(path.join(__dirname)));
 

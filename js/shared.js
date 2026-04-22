@@ -421,6 +421,10 @@ document.addEventListener("DOMContentLoaded", () => {
           intakeTarget,
           intakeLabel,
         );
+        if (btnIntake) {
+          btnIntake.href = intakeTarget;
+          btnIntake.textContent = intakeLabel;
+        }
         if (user.role === "admin") {
           setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
         } else {
