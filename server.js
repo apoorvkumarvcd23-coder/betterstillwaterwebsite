@@ -1712,10 +1712,12 @@ app.get("/api/auth/me", async (req, res) => {
   }
 
   let redirectUrl = "/admin.html";
+  let hasCompletedAssessment = false;
   try {
+    hasCompletedAssessment = await hasCompletedAssessmentForUser(req.user);
     redirectUrl = await getDefaultPostAuthRedirectForUser(req.user);
   } catch (err) {
-    console.error("Failed to compute auth/me redirect:", err);
+    console.error("Failed to compute auth/me redirect or assessment status:", err);
   }
 
   res.json({
@@ -1725,6 +1727,7 @@ app.get("/api/auth/me", async (req, res) => {
     email: req.user.email,
     role: req.user.role,
     redirectUrl,
+    hasCompletedAssessment,
   });
 });
 
