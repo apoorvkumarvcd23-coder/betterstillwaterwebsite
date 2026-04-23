@@ -264,14 +264,14 @@ const normalizeAiUsageEndReason = (value) => {
   return AI_USAGE_END_REASONS.has(normalized) ? normalized : "unknown";
 };
 
-const hasCompletedAssessmentForUser = async (user) => {
+const getLatestCompletedAssessmentForUser = async (user) => {
   if (!user || user.role === "admin") {
-    return false;
+    return null;
   }
 
   const authUserId = getAuthUserId(user);
   if (!authUserId) {
-    return false;
+    return null;
   }
 
   const authUserType = getAuthUserType(user);
@@ -287,7 +287,16 @@ const hasCompletedAssessmentForUser = async (user) => {
     [authUserType, authUserId, ASSESSMENT_V2_CUTOFF.toISOString()],
   );
 
-  return result.rowCount > 0;
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return result.rows[0];
+};
+
+const hasCompletedAssessmentForUser = async (user) => {
+  const latest = await getLatestCompletedAssessmentForUser(user);
+  return Boolean(latest && latest.id);
 };
 
 const getDefaultPostAuthRedirectForUser = async (user) => {
@@ -918,9 +927,11 @@ app.get("/intake.html", async (req, res) => {
   }
 
   try {
-    const redirectUrl = await getDefaultPostAuthRedirectForUser(req.user);
-    if (redirectUrl === CUSTOMER_CARE_PATH_REDIRECT) {
-      return res.redirect(CUSTOMER_CARE_PATH_REDIRECT);
+    const latestCompleted = await getLatestCompletedAssessmentForUser(req.user);
+    if (latestCompleted && latestCompleted.id) {
+      return res.redirect(
+        `/care-path.html?submissionId=${encodeURIComponent(String(latestCompleted.id))}`,
+      );
     }
   } catch (err) {
     console.error("Failed to resolve intake guard redirect:", err);
@@ -1048,7 +1059,14 @@ app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
     const authUserId = getAuthUserId(req.user);
     const submissionIdRaw = String(req.body?.submissionId || "").trim();
 
-    if (!submissionIdRaw) {
+    let resolvedSubmissionId = submissionIdRaw;
+
+    if (!resolvedSubmissionId) {
+      const latestCompleted = await getLatestCompletedAssessmentForUser(req.user);
+      resolvedSubmissionId = latestCompleted && latestCompleted.id ? String(latestCompleted.id) : "";
+    }
+
+    if (!resolvedSubmissionId) {
       return res.status(400).json({
         error:
           "Complete the intake assessment before starting the AI avatar session.",
@@ -1060,7 +1078,7 @@ app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
        FROM intake_submissions
        WHERE id = $1
        LIMIT 1`,
-      [submissionIdRaw],
+      [resolvedSubmissionId],
     );
 
     if (submissionLookup.rowCount === 0) {
@@ -1800,8 +1818,15 @@ app.get("/api/auth/me", async (req, res) => {
 
   let redirectUrl = "/admin.html";
   let hasCompletedAssessment = false;
+  let latestSubmissionId = null;
   try {
-    hasCompletedAssessment = await hasCompletedAssessmentForUser(req.user);
+    const latestCompletedAssessment = await getLatestCompletedAssessmentForUser(req.user);
+    hasCompletedAssessment = Boolean(
+      latestCompletedAssessment && latestCompletedAssessment.id,
+    );
+    latestSubmissionId = hasCompletedAssessment
+      ? String(latestCompletedAssessment.id)
+      : null;
     redirectUrl = await getDefaultPostAuthRedirectForUser(req.user);
   } catch (err) {
     console.error("Failed to compute auth/me redirect or assessment status:", err);
@@ -1815,6 +1840,7 @@ app.get("/api/auth/me", async (req, res) => {
     role: req.user.role,
     redirectUrl,
     hasCompletedAssessment,
+    latestSubmissionId,
   });
 });
 
@@ -2068,9 +2094,9 @@ app.get(
 app.get(['/intake.html', '/intake'], async (req, res, next) => {
   if (req.isAuthenticated && req.isAuthenticated()) {
     try {
-      const hasCompleted = await hasCompletedAssessmentForUser(req.user);
-      if (hasCompleted) {
-        return res.redirect("/care-path.html");
+      const latestCompleted = await getLatestCompletedAssessmentForUser(req.user);
+      if (latestCompleted && latestCompleted.id) {
+        return res.redirect(`/care-path.html?submissionId=${encodeURIComponent(String(latestCompleted.id))}`);
       }
     } catch (err) {
       console.error("Error checking assessment status for intercept:", err);

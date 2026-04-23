@@ -1,6 +1,16 @@
 const { test, expect } = require("@playwright/test");
 
 test("assistant avoids custom bottom overlap in connected state on mobile", async ({ page }) => {
+  const phone = `98${Date.now().toString().slice(-8)}`;
+  const loginRes = await page.request.post("/auth/login", {
+    form: {
+      phone,
+      password: "testpass123",
+      returnTo: "/assistant.html",
+    },
+  });
+  expect(loginRes.ok()).toBeTruthy();
+
   await page.route("https://unpkg.com/@daily-co/daily-js", async (route) => {
     await route.fulfill({
       status: 200,

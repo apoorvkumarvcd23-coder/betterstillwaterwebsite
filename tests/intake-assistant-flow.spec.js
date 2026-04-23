@@ -1,6 +1,16 @@
 const { test, expect } = require("@playwright/test");
 
 test("intake submission routes to assistant and reaches guide-ready state", async ({ page }) => {
+  const phone = `99${Date.now().toString().slice(-8)}`;
+  const loginRes = await page.request.post("/auth/login", {
+    form: {
+      phone,
+      password: "testpass123",
+      returnTo: "/intake.html",
+    },
+  });
+  expect(loginRes.ok()).toBeTruthy();
+
   let requestedAgentId = null;
 
   await page.route("https://unpkg.com/@daily-co/daily-js", async (route) => {

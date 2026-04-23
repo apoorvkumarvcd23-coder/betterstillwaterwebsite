@@ -439,7 +439,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         activeUser = user;
-        const intakeTarget = user.hasCompletedAssessment ? "/care-path.html" : "/intake.html";
+        const latestSubmissionId =
+          typeof user.latestSubmissionId === "string" && user.latestSubmissionId.trim()
+            ? user.latestSubmissionId.trim()
+            : "";
+        const intakeTarget = user.hasCompletedAssessment
+          ? latestSubmissionId
+            ? `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`
+            : "/care-path.html"
+          : "/intake.html";
         const intakeLabel = user.hasCompletedAssessment ? "Continue Care Path" : "Wellness Assessment";
         
         setAuthMenuLink(

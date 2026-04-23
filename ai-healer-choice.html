@@ -416,9 +416,27 @@
 
     <script>
       const params = new URLSearchParams(window.location.search);
-      const submissionId = params.get("submissionId") || "";
+      let submissionId = params.get("submissionId") || "";
       const existingAgentId = params.get("agentId") || "";
       const backToCarePath = document.getElementById("backToCarePath");
+
+      if (!submissionId) {
+        fetch("/api/auth/me", { credentials: "include" })
+          .then((res) => (res.ok ? res.json() : null))
+          .then((user) => {
+            if (
+              user &&
+              user.authenticated &&
+              typeof user.latestSubmissionId === "string" &&
+              user.latestSubmissionId.trim()
+            ) {
+              submissionId = user.latestSubmissionId.trim();
+            }
+          })
+          .catch(() => {
+            // Keep existing no-submission behavior; assistant API now has a server fallback.
+          });
+      }
 
       if (backToCarePath) {
         backToCarePath.addEventListener("click", (e) => {
