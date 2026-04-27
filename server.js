@@ -432,7 +432,7 @@ const TESTIMONIALS_TABLE_AMAR_EYE_YOGA = String(
   process.env.RAG_TESTIMONIALS_TABLE_AMAR_EYE_YOGA || "testimonials.testimonials_dim_amareye",
 ).trim();
 const TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES = String(
-  process.env.RAG_TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES || "testimonials_dim_sharan_other_diseases",
+  process.env.RAG_TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES || "testimonials.testimonials_dim_sharan_other_diseases",
 ).trim();
 const TESTIMONIALS_DATASET_CONFIG = {
   diabetes: {
@@ -494,6 +494,33 @@ const resolveDatasetConfig = (rawDataset) => {
     ragPool: config.pool,
     dbKey: config.dbKey,
   };
+};
+
+const splitQualifiedTableName = (tableName) => {
+  const normalized = String(tableName || "").trim();
+  const [first, second] = normalized.split(".");
+
+  if (first && second) {
+    return { schema: first.replace(/"/g, ""), table: second.replace(/"/g, "") };
+  }
+
+  return { schema: "public", table: normalized.replace(/"/g, "") };
+};
+
+const hasEmbeddingColumn = async (targetPool, tableName) => {
+  const { schema, table } = splitQualifiedTableName(tableName);
+  const result = await targetPool.query(
+    `SELECT EXISTS (
+       SELECT 1
+       FROM information_schema.columns
+       WHERE table_schema = $1
+         AND table_name = $2
+         AND column_name = 'embedding'
+     ) AS present`,
+    [schema, table],
+  );
+
+  return Boolean(result.rows[0] && result.rows[0].present);
 };
 
 const buildGeminiApiUrl = (model, action) => {
@@ -1750,12 +1777,20 @@ app.get(
 app.get("/api/rag/status", async (_req, res) => {
   try {
     const { dataset, table, ragPool, dbKey } = resolveDatasetConfig(_req.query?.dataset);
-    const stats = await ragPool.query(
-      `SELECT
-         COUNT(*)::int AS total_rows,
-         COUNT(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_rows
-       FROM ${table}`,
-    );
+    const embeddingPresent = await hasEmbeddingColumn(ragPool, table);
+    const stats = embeddingPresent
+      ? await ragPool.query(
+          `SELECT
+             COUNT(*)::int AS total_rows,
+             COUNT(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_rows
+           FROM ${table}`,
+        )
+      : await ragPool.query(
+          `SELECT
+             COUNT(*)::int AS total_rows,
+             0::int AS embedded_rows
+           FROM ${table}`,
+        );
 
     const providerSummary = getProviderSummary();
 
@@ -1764,6 +1799,7 @@ app.get("/api/rag/status", async (_req, res) => {
       dataset,
       table,
       db: dbKey,
+      retrievalMode: embeddingPresent ? "vector" : "text",
       provider: providerSummary.provider,
       configured: providerSummary.configured,
       chatModel: providerSummary.chatModel,
@@ -1798,21 +1834,43 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
       });
     }
 
-    const queryEmbedding = await embedText(query);
-    const vectorLiteral = toVectorLiteral(queryEmbedding);
+    const embeddingPresent = await hasEmbeddingColumn(ragPool, table);
+    const retrieval = embeddingPresent
+      ? await (async () => {
+          const queryEmbedding = await embedText(query);
+          const vectorLiteral = toVectorLiteral(queryEmbedding);
 
-    const retrieval = await ragPool.query(
-      `SELECT
-         title,
-         url,
-         testimonial,
-         1 - (embedding <=> $1::vector) AS score
-       FROM ${table}
-       WHERE embedding IS NOT NULL
-       ORDER BY embedding <=> $1::vector
-       LIMIT $2`,
-      [vectorLiteral, topK],
-    );
+          return ragPool.query(
+            `SELECT
+               title,
+               url,
+               testimonial,
+               1 - (embedding <=> $1::vector) AS score
+             FROM ${table}
+             WHERE embedding IS NOT NULL
+             ORDER BY embedding <=> $1::vector
+             LIMIT $2`,
+            [vectorLiteral, topK],
+          );
+        })()
+      : await ragPool.query(
+          `SELECT
+             title,
+             url,
+             testimonial,
+             NULL::double precision AS score
+           FROM ${table}
+           ORDER BY
+             CASE
+               WHEN LOWER(COALESCE(testimonial, '')) LIKE LOWER($1)
+                 OR LOWER(COALESCE(title, '')) LIKE LOWER($1)
+               THEN 0
+               ELSE 1
+             END,
+             LENGTH(COALESCE(testimonial, '')) DESC
+           LIMIT $2`,
+          [`%${query}%`, topK],
+        );
 
     const rows = retrieval.rows || [];
     if (!rows.length) {
@@ -1854,6 +1912,7 @@ ${context}`;
     return res.json({
       query,
       dataset,
+      retrievalMode: embeddingPresent ? "vector" : "text",
       answer,
       sources: rows.map((row) => ({
         title: row.title || "",

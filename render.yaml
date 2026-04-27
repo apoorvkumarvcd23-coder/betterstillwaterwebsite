@@ -48,4 +48,4 @@ services:
       - key: RAG_SHARAN_DATABASE_URL
         value: "postgresql://stillwater:VEPJF788P9G2fjd0azUpsAOwu8Nba50e@dpg-d6si9aa4d50c73bobar0-a/stillwater_swqw"
       - key: RAG_TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES
-        value: "testimonials_dim_sharan_other_diseases"
+        value: "testimonials.testimonials_dim_sharan_other_diseases"
