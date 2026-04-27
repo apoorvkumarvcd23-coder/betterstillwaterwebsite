@@ -61,6 +61,16 @@ const pool = new Pool({
   ssl: useDbSsl ? { rejectUnauthorized: false } : false,
 });
 
+const RAG_SHARAN_DATABASE_URL = String(process.env.RAG_SHARAN_DATABASE_URL || "").trim();
+const sharanDatabaseUrlRequiresSsl = /[?&]sslmode=require/i.test(String(RAG_SHARAN_DATABASE_URL || ""));
+const useSharanDbSsl = isProd || sharanDatabaseUrlRequiresSsl || forceDbSsl;
+const sharanRagPool = RAG_SHARAN_DATABASE_URL
+  ? new Pool({
+      connectionString: RAG_SHARAN_DATABASE_URL,
+      ssl: useSharanDbSsl ? { rejectUnauthorized: false } : false,
+    })
+  : null;
+
 const CUSTOMER_ASSESSMENT_REDIRECT = "/intake.html";
 const CUSTOMER_CARE_PATH_REDIRECT = "/care-path.html";
 const ASSESSMENT_V2_CUTOFF_ISO =
@@ -421,9 +431,25 @@ const TESTIMONIALS_TABLE_DIABETES = String(
 const TESTIMONIALS_TABLE_AMAR_EYE_YOGA = String(
   process.env.RAG_TESTIMONIALS_TABLE_AMAR_EYE_YOGA || "testimonials.testimonials_dim_amareye",
 ).trim();
-const TESTIMONIALS_DATASET_TABLES = {
-  diabetes: TESTIMONIALS_TABLE_DIABETES,
-  amar_eye_yoga: TESTIMONIALS_TABLE_AMAR_EYE_YOGA,
+const TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES = String(
+  process.env.RAG_TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES || "testimonials_dim_sharan_other_diseases",
+).trim();
+const TESTIMONIALS_DATASET_CONFIG = {
+  diabetes: {
+    table: TESTIMONIALS_TABLE_DIABETES,
+    pool,
+    dbKey: "primary",
+  },
+  amar_eye_yoga: {
+    table: TESTIMONIALS_TABLE_AMAR_EYE_YOGA,
+    pool,
+    dbKey: "primary",
+  },
+  sharan_other_diseases: {
+    table: TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES,
+    pool: sharanRagPool,
+    dbKey: "sharan",
+  },
 };
 
 const normalizeTestimonialsDataset = (rawDataset) => {
@@ -437,13 +463,37 @@ const normalizeTestimonialsDataset = (rawDataset) => {
     return "amar_eye_yoga";
   }
 
+  if (
+    [
+      "sharan_other_diseases",
+      "sharan-other-diseases",
+      "sharan",
+      "other_diseases",
+      "other-diseases",
+    ].includes(value)
+  ) {
+    return "sharan_other_diseases";
+  }
+
   return "diabetes";
 };
 
-const resolveDatasetTable = (rawDataset) => {
+const resolveDatasetConfig = (rawDataset) => {
   const dataset = normalizeTestimonialsDataset(rawDataset);
-  const table = TESTIMONIALS_DATASET_TABLES[dataset] || TESTIMONIALS_TABLE_DIABETES;
-  return { dataset, table };
+  const config = TESTIMONIALS_DATASET_CONFIG[dataset] || TESTIMONIALS_DATASET_CONFIG.diabetes;
+
+  if (dataset === "sharan_other_diseases" && !config.pool) {
+    throw new Error(
+      "RAG_SHARAN_DATABASE_URL is required for sharan_other_diseases dataset.",
+    );
+  }
+
+  return {
+    dataset,
+    table: config.table,
+    ragPool: config.pool,
+    dbKey: config.dbKey,
+  };
 };
 
 const buildGeminiApiUrl = (model, action) => {
@@ -955,6 +1005,10 @@ app.get("/testimonials-diabetes.html", requireAuth, (req, res) => {
 
 app.get("/testimonials-amar-eye-yoga.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "testimonials-amar-eye-yoga.html"));
+});
+
+app.get("/testimonials-sharan-other-diseases.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "testimonials-sharan-other-diseases.html"));
 });
 
 app.get("/careers.html", (_req, res) => {
@@ -1695,8 +1749,8 @@ app.get(
 
 app.get("/api/rag/status", async (_req, res) => {
   try {
-    const { dataset, table } = resolveDatasetTable(_req.query?.dataset);
-    const stats = await pool.query(
+    const { dataset, table, ragPool, dbKey } = resolveDatasetConfig(_req.query?.dataset);
+    const stats = await ragPool.query(
       `SELECT
          COUNT(*)::int AS total_rows,
          COUNT(*) FILTER (WHERE embedding IS NOT NULL)::int AS embedded_rows
@@ -1709,6 +1763,7 @@ app.get("/api/rag/status", async (_req, res) => {
       ok: true,
       dataset,
       table,
+      db: dbKey,
       provider: providerSummary.provider,
       configured: providerSummary.configured,
       chatModel: providerSummary.chatModel,
@@ -1730,7 +1785,7 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
   try {
     const query = String(req.body?.query || "").trim();
     const language = String(req.body?.language || "en").trim().toLowerCase();
-    const { dataset, table } = resolveDatasetTable(req.body?.dataset);
+    const { dataset, table, ragPool } = resolveDatasetConfig(req.body?.dataset);
     const topKRaw = Number.parseInt(String(req.body?.topK || "3"), 10);
     const topK = Number.isInteger(topKRaw) ? Math.max(1, Math.min(topKRaw, 5)) : 3;
 
@@ -1746,7 +1801,7 @@ app.post("/api/rag/chat", requireAuthApi, async (req, res) => {
     const queryEmbedding = await embedText(query);
     const vectorLiteral = toVectorLiteral(queryEmbedding);
 
-    const retrieval = await pool.query(
+    const retrieval = await ragPool.query(
       `SELECT
          title,
          url,

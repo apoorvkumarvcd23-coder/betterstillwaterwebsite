@@ -23,6 +23,18 @@ const SAMPLE_QUESTIONS_BY_DATASET = {
       "ट्रेनिंग, वातावरण और सपोर्ट का उनके रिकवरी सफर पर क्या असर पड़ा?",
     ],
   },
+  sharan_other_diseases: {
+    English: [
+      "Show testimonials where people improved chronic conditions other than diabetes.",
+      "What lifestyle changes are repeatedly mentioned in Sharan testimonials?",
+      "Find one testimonial showing measurable improvements after natural healing steps.",
+    ],
+    Hindi: [
+      "मधुमेह के अलावा अन्य पुरानी बीमारियों में सुधार वाले प्रशंसापत्र दिखाएं।",
+      "शरण के प्रशंसापत्र में बार-बार कौन से जीवनशैली परिवर्तन बताए गए हैं?",
+      "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
+    ],
+  },
 };
 
 const COPY = {
@@ -51,9 +63,11 @@ const COPY = {
     heroTitle: {
       diabetes: "StillWater Diabetes Testimonial AI",
       amar_eye_yoga: "Amar Eye Yoga Testimonials AI",
+      sharan_other_diseases: "Sharan Other Diseases Testimonials AI",
     },
     datasetDiabetes: "Diabetes",
     datasetAmar: "Amar Eye Yoga",
+    datasetSharan: "Sharan Other Diseases",
   },
   Hindi: {
     back: "वापस",
@@ -80,9 +94,11 @@ const COPY = {
     heroTitle: {
       diabetes: "स्टिलवॉटर डायबिटीज टेस्टिमोनियल एआई",
       amar_eye_yoga: "अमर आई योग टेस्टिमोनियल्स एआई",
+      sharan_other_diseases: "शरण अदर डिजीजेस टेस्टिमोनियल्स एआई",
     },
     datasetDiabetes: "डायबिटीज",
     datasetAmar: "अमर आई योग",
+    datasetSharan: "शरण अदर डिजीजेस",
   },
 };
 
@@ -100,6 +116,7 @@ const backLink = document.getElementById("backLink");
 const heroTitle = document.getElementById("heroTitle");
 const datasetDiabetesLabel = document.getElementById("datasetDiabetesLabel");
 const datasetAmarLabel = document.getElementById("datasetAmarLabel");
+const datasetSharanLabel = document.getElementById("datasetSharanLabel");
 const queryInput = document.getElementById("queryInput");
 const askButton = document.getElementById("askButton");
 const voiceButton = document.getElementById("voiceButton");
@@ -142,6 +159,7 @@ function applyLanguageCopy() {
   }
   if (datasetDiabetesLabel) datasetDiabetesLabel.textContent = copy.datasetDiabetes;
   if (datasetAmarLabel) datasetAmarLabel.textContent = copy.datasetAmar;
+  if (datasetSharanLabel) datasetSharanLabel.textContent = copy.datasetSharan;
   samplesLabel.textContent = copy.sampleQuestions;
   askLabel.textContent = copy.askLabel;
   queryInput.placeholder = copy.queryPlaceholder;
