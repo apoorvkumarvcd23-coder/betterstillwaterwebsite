@@ -1451,43 +1451,50 @@ app.get("/api/admin/ai-usage", requireRole("admin"), async (req, res) => {
     const offsetPos = rowsParams.length + 2;
     rowsParams.push(limit, offset);
 
+    const aiWhereClause = where.length
+      ? `WHERE ${where.map((clause) => clause.replace(/\bauth_user_type\b/g, "ai.auth_user_type").replace(/\bauth_user_id\b/g, "ai.auth_user_id").replace(/\bagent_id\b/g, "ai.agent_id").replace(/\bsession_started_at\b/g, "ai.session_started_at").replace(/\bsubmission_id\b/g, "ai.submission_id")).join(" AND ")}`
+      : "";
+
     const rowsResult = await pool.query(
       `SELECT
-         id,
-         lemonslice_session_id,
-         auth_user_type,
-         auth_user_id,
-         submission_id,
+         ai.id,
+         ai.lemonslice_session_id,
+         ai.auth_user_type,
+         ai.auth_user_id,
+         ai.submission_id,
          intake.name AS submission_name,
          intake.phone AS submission_phone,
-         agent_id,
-         session_started_at,
-         session_ended_at,
-         duration_seconds,
-         end_reason,
-         created_at
-       FROM ai_usage_sessions
+         u.email AS auth_user_email,
+         ai.agent_id,
+         ai.session_started_at,
+         ai.session_ended_at,
+         ai.duration_seconds,
+         ai.end_reason,
+         ai.created_at
+       FROM ai_usage_sessions ai
        LEFT JOIN intake_submissions intake
-         ON intake.id::text = ai_usage_sessions.submission_id
-       ${whereClause}
-       ORDER BY session_started_at DESC
+         ON intake.id::text = ai.submission_id
+       LEFT JOIN users u
+         ON ai.auth_user_type = 'oauth' AND u.id = ai.auth_user_id
+       ${aiWhereClause}
+       ORDER BY ai.session_started_at DESC
        LIMIT $${limitPos} OFFSET $${offsetPos}`,
       rowsParams,
     );
 
     const countResult = await pool.query(
-      `SELECT COUNT(*)::int AS total FROM ai_usage_sessions ${whereClause}`,
+      `SELECT COUNT(*)::int AS total FROM ai_usage_sessions ai ${aiWhereClause}`,
       baseParams,
     );
 
     const summaryResult = await pool.query(
       `SELECT
          COUNT(*)::int AS total_sessions,
-         COALESCE(SUM(duration_seconds), 0)::int AS total_duration_seconds,
-         COALESCE(AVG(duration_seconds), 0)::float8 AS avg_duration_seconds,
-         COUNT(DISTINCT auth_user_type || ':' || auth_user_id)::int AS distinct_users
-       FROM ai_usage_sessions
-       ${whereClause}`,
+         COALESCE(SUM(ai.duration_seconds), 0)::int AS total_duration_seconds,
+         COALESCE(AVG(ai.duration_seconds), 0)::float8 AS avg_duration_seconds,
+         COUNT(DISTINCT ai.auth_user_type || ':' || ai.auth_user_id)::int AS distinct_users
+       FROM ai_usage_sessions ai
+       ${aiWhereClause}`,
       baseParams,
     );
 

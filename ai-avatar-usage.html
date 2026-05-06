@@ -380,28 +380,30 @@
       <section class="panel table-panel">
         <div class="table-head">
           <div>
-            <h2>Assessment-linked logs</h2>
+            <h2>Usage per person</h2>
             <p>
-              One row per AI avatar session, grouped by the name captured in the
-              intake assessment.
+              One row per person who completed the intake assessment, totalling
+              the time they have spent with the AI avatar.
             </p>
           </div>
-          <div class="summary-pill" id="feedSummary">0 sessions</div>
+          <div class="summary-pill" id="feedSummary">0 people</div>
         </div>
 
         <div class="table-scroll">
-          <table class="session-table" aria-label="AI avatar time logs">
+          <table class="session-table" aria-label="AI avatar time per person">
             <thead>
               <tr>
                 <th>Name</th>
-                <th>Time spent</th>
-                <th>Started</th>
-                <th>Ended</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Total time</th>
+                <th>Sessions</th>
+                <th>Last session</th>
               </tr>
             </thead>
             <tbody id="sessionTableBody">
               <tr>
-                <td colspan="4" class="empty-state">Loading assessment-linked sessions...</td>
+                <td colspan="6" class="empty-state">Loading assessment-linked sessions...</td>
               </tr>
             </tbody>
           </table>
@@ -468,43 +470,72 @@
         return `${remaining}s`;
       }
 
+      function aggregateByPerson(sessions) {
+        const map = new Map();
+        for (const item of sessions) {
+          const name = String(item.submission_name || "").trim();
+          if (!name) continue;
+          const email = String(item.auth_user_email || "").trim().toLowerCase();
+          const key = `${name.toLowerCase()}|${email}`;
+          let row = map.get(key);
+          if (!row) {
+            row = {
+              name,
+              email: item.auth_user_email || "",
+              phone: item.submission_phone || "",
+              totalSeconds: 0,
+              sessionCount: 0,
+              lastSessionAt: null,
+              hasLive: false,
+            };
+            map.set(key, row);
+          }
+          row.totalSeconds += Number(item.duration_seconds) || 0;
+          row.sessionCount += 1;
+          if (!item.session_ended_at) row.hasLive = true;
+          const startedAt = item.session_started_at ? new Date(item.session_started_at).getTime() : 0;
+          const lastAt = row.lastSessionAt ? new Date(row.lastSessionAt).getTime() : 0;
+          if (startedAt > lastAt) row.lastSessionAt = item.session_started_at;
+          if (!row.email && item.auth_user_email) row.email = item.auth_user_email;
+          if (!row.phone && item.submission_phone) row.phone = item.submission_phone;
+        }
+        return Array.from(map.values()).sort((a, b) => b.totalSeconds - a.totalSeconds);
+      }
+
       function updateStats() {
         const sessions = state.sessions;
         const totalTimeSeconds = sessions.reduce((sum, item) => sum + (Number(item.duration_seconds) || 0), 0);
-        const uniquePeople = new Set(
-          sessions
-            .map((item) => String(item.submission_name || "").trim())
-            .filter(Boolean),
-        ).size;
+        const people = aggregateByPerson(sessions);
 
         elements.visibleSessions.textContent = String(sessions.length);
-        elements.trackedPeople.textContent = String(uniquePeople);
+        elements.trackedPeople.textContent = String(people.length);
         elements.totalTime.textContent = formatDuration(totalTimeSeconds);
-        elements.feedSummary.textContent = `${sessions.length} session${sessions.length === 1 ? "" : "s"}`;
+        elements.feedSummary.textContent = `${people.length} ${people.length === 1 ? "person" : "people"}`;
       }
 
       function renderTable() {
-        if (!state.sessions.length) {
+        const people = aggregateByPerson(state.sessions);
+        if (!people.length) {
           elements.sessionTableBody.innerHTML = `
             <tr>
-              <td colspan="4" class="empty-state">No assessment-linked AI avatar sessions have been recorded yet.</td>
+              <td colspan="6" class="empty-state">No assessment-linked AI avatar sessions have been recorded yet.</td>
             </tr>
           `;
           return;
         }
 
-        elements.sessionTableBody.innerHTML = state.sessions
-          .map((item) => {
-            const timeSpent = formatDuration(item.duration_seconds);
-            const endedLabel = item.session_ended_at ? formatDateTime(item.session_ended_at) : "Live";
-            const durationClass = item.session_ended_at ? "duration-pill" : "duration-pill live";
-
+        elements.sessionTableBody.innerHTML = people
+          .map((person) => {
+            const timeSpent = formatDuration(person.totalSeconds);
+            const durationClass = person.hasLive ? "duration-pill live" : "duration-pill";
             return `
               <tr class="session-row">
-                <td class="session-name">${escapeHtml(item.submission_name || "-")}</td>
+                <td class="session-name">${escapeHtml(person.name || "-")}</td>
+                <td>${escapeHtml(person.email || "-")}</td>
+                <td>${escapeHtml(person.phone || "-")}</td>
                 <td><span class="${durationClass}">${escapeHtml(timeSpent)}</span></td>
-                <td>${escapeHtml(formatDateTime(item.session_started_at))}</td>
-                <td>${escapeHtml(endedLabel)}</td>
+                <td>${escapeHtml(String(person.sessionCount))}</td>
+                <td>${escapeHtml(formatDateTime(person.lastSessionAt))}</td>
               </tr>
             `;
           })
@@ -532,7 +563,7 @@
           elements.statusText.textContent = error.message || "Failed to load AI avatar sessions.";
           elements.sessionTableBody.innerHTML = `
             <tr>
-              <td colspan="4" class="empty-state">${escapeHtml(error.message || "Failed to load AI avatar sessions.")}</td>
+              <td colspan="6" class="empty-state">${escapeHtml(error.message || "Failed to load AI avatar sessions.")}</td>
             </tr>
           `;
         }
