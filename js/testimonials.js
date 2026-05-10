@@ -174,9 +174,11 @@ function applyLanguageCopy() {
       (copy.heroTitle && copy.heroTitle.diabetes) ||
       "";
   }
-  if (datasetDiabetesLabel) datasetDiabetesLabel.textContent = copy.datasetDiabetes;
+  if (datasetDiabetesLabel)
+    datasetDiabetesLabel.textContent = copy.datasetDiabetes;
   if (datasetAmarLabel) datasetAmarLabel.textContent = copy.datasetAmar;
-  if (datasetHolisticLabel) datasetHolisticLabel.textContent = copy.datasetHolistic;
+  if (datasetHolisticLabel)
+    datasetHolisticLabel.textContent = copy.datasetHolistic;
   if (datasetSharanLabel) datasetSharanLabel.textContent = copy.datasetSharan;
   samplesLabel.textContent = copy.sampleQuestions;
   askLabel.textContent = copy.askLabel;
@@ -203,8 +205,9 @@ function applyLanguageCopy() {
 function renderSampleQuestions() {
   sampleQuestions.innerHTML = "";
 
-  const datasetQuestions = SAMPLE_QUESTIONS_BY_DATASET[testimonialDataset]
-    || SAMPLE_QUESTIONS_BY_DATASET.diabetes;
+  const datasetQuestions =
+    SAMPLE_QUESTIONS_BY_DATASET[testimonialDataset] ||
+    SAMPLE_QUESTIONS_BY_DATASET.diabetes;
   const questions = datasetQuestions[language] || datasetQuestions.English;
 
   questions.forEach((question) => {
@@ -255,7 +258,8 @@ function renderAnswer(answer) {
   let inList = false;
 
   lines.forEach((line) => {
-    const isBullet = line.startsWith("*") || line.startsWith("-") || /^\d+\./.test(line);
+    const isBullet =
+      line.startsWith("*") || line.startsWith("-") || /^\d+\./.test(line);
 
     if (isBullet) {
       if (!inList) {
@@ -289,7 +293,8 @@ function renderSources(sources) {
   }
 
   safeSources.forEach((source, index) => {
-    const title = source && source.title ? String(source.title) : `Source ${index + 1}`;
+    const title =
+      source && source.title ? String(source.title) : `Source ${index + 1}`;
     const url = source && source.url ? String(source.url) : "#";
     const score =
       source && typeof source.score !== "undefined"
@@ -358,7 +363,8 @@ async function askQuestion() {
 }
 
 function toggleVoiceInput() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRecognition) {
     setStatus(COPY[language].voiceUnsupported);
     return;

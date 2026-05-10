@@ -133,6 +133,19 @@ async function initDb() {
       eyesight_issues BOOLEAN NOT NULL DEFAULT FALSE,
       eye_power TEXT DEFAULT '',
       relation TEXT DEFAULT '',
+      diabetes_hba1c TEXT DEFAULT '',
+      diabetes_fasting_sugar TEXT DEFAULT '',
+      diabetes_medications TEXT DEFAULT '',
+      diabetes_on_insulin BOOLEAN,
+      diabetes_weight TEXT DEFAULT '',
+      diabetes_height TEXT DEFAULT '',
+      hypertension_systolic_bp TEXT DEFAULT '',
+      hypertension_diastolic_bp TEXT DEFAULT '',
+      hypertension_medications TEXT DEFAULT '',
+      sleep_medications TEXT DEFAULT '',
+      anxiety_medications TEXT DEFAULT '',
+      depression_medications TEXT DEFAULT '',
+      additional_notes TEXT DEFAULT '',
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `);
@@ -160,6 +173,71 @@ async function initDb() {
   await pool.query(`
     ALTER TABLE intake_submissions
     ADD COLUMN IF NOT EXISTS completed_at TIMESTAMPTZ
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_hba1c TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_fasting_sugar TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_on_insulin BOOLEAN
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_weight TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_height TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS hypertension_systolic_bp TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS hypertension_diastolic_bp TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS hypertension_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS sleep_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS anxiety_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS depression_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS additional_notes TEXT DEFAULT ''
   `);
 
   await pool.query(`
@@ -382,6 +460,7 @@ const ALLOWED_CHRONIC_CONDITIONS = new Set([
   "depression",
   "anxiety",
   "sleep_issues",
+  "none_of_the_above",
 ]);
 
 const toBoolean = (value) => {
@@ -2003,6 +2082,19 @@ app.post("/api/intake-submissions", async (req, res) => {
       eyePower,
       relation,
       isFamilyMember,
+      diabetesHba1c,
+      diabetesFastingSugar,
+      diabetesMedications,
+      diabetesOnInsulin,
+      diabetesWeight,
+      diabetesHeight,
+      hypertensionSystolicBp,
+      hypertensionDiastolicBp,
+      hypertensionMedications,
+      sleepMedications,
+      anxietyMedications,
+      depressionMedications,
+      additionalNotes,
     } = req.body || {};
 
     const cleanName = String(name || "").trim();
@@ -2014,10 +2106,19 @@ app.post("/api/intake-submissions", async (req, res) => {
     const relationText = String(relation || "").trim();
     const hasEyesightIssues = toBoolean(eyesightIssues);
     const cleanEyePower = String(eyePower || "").trim();
+    const cleanAdditionalNotes = String(additionalNotes || "").trim();
     const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
     const authUserType = isAuthenticated ? getAuthUserType(req.user) : null;
     const authUserId = isAuthenticated ? getAuthUserId(req.user) : null;
     const completedAt = isAuthenticated ? new Date().toISOString() : null;
+
+    const normalizeNumberString = (value) => {
+      const trimmed = String(value || "").trim();
+      if (!trimmed) return "";
+      const parsed = Number(trimmed);
+      if (!Number.isFinite(parsed)) return "";
+      return trimmed;
+    };
 
     if (!cleanName || cleanName.length > 120) {
       return res
@@ -2041,7 +2142,7 @@ app.post("/api/intake-submissions", async (req, res) => {
         ? [chronicConditions]
         : [];
 
-    const normalizedConditions = conditionsInput
+    let normalizedConditions = conditionsInput
       .map((item) => String(item).trim().toLowerCase())
       .filter(Boolean);
 
@@ -2053,6 +2154,42 @@ app.post("/api/intake-submissions", async (req, res) => {
       return res
         .status(400)
         .json({ error: "One or more chronic conditions are invalid." });
+    }
+
+    if (normalizedConditions.includes("none_of_the_above")) {
+      normalizedConditions = ["none_of_the_above"];
+    }
+
+    const hasDiabetes = normalizedConditions.includes("diabetes");
+    const hasHypertension = normalizedConditions.includes("hypertension");
+    const hasSleepIssues = normalizedConditions.includes("sleep_issues");
+    const hasAnxiety = normalizedConditions.includes("anxiety");
+    const hasDepression = normalizedConditions.includes("depression");
+
+    const cleanDiabetesHba1c = normalizeNumberString(diabetesHba1c);
+    const cleanDiabetesFasting = normalizeNumberString(diabetesFastingSugar);
+    const cleanDiabetesMedications = String(diabetesMedications || "").trim();
+    const diabetesOnInsulinProvided =
+      typeof diabetesOnInsulin !== "undefined" &&
+      String(diabetesOnInsulin).trim() !== "";
+    const cleanDiabetesOnInsulin = diabetesOnInsulinProvided
+      ? toBoolean(diabetesOnInsulin)
+      : null;
+    const cleanDiabetesWeight = normalizeNumberString(diabetesWeight);
+    const cleanDiabetesHeight = normalizeNumberString(diabetesHeight);
+
+    const cleanHypertensionSystolic = normalizeNumberString(hypertensionSystolicBp);
+    const cleanHypertensionDiastolic = normalizeNumberString(hypertensionDiastolicBp);
+    const cleanHypertensionMedications = String(hypertensionMedications || "").trim();
+
+    const cleanSleepMedications = String(sleepMedications || "").trim();
+    const cleanAnxietyMedications = String(anxietyMedications || "").trim();
+    const cleanDepressionMedications = String(depressionMedications || "").trim();
+
+    if (cleanAdditionalNotes.length > 1500) {
+      return res
+        .status(400)
+        .json({ error: "Additional notes must be 1500 characters or fewer." });
     }
 
     if (isForFamilyMember && !relationText) {
@@ -2067,10 +2204,82 @@ app.post("/api/intake-submissions", async (req, res) => {
       });
     }
 
+    if (hasDiabetes) {
+      if (!cleanDiabetesHba1c) {
+        return res.status(400).json({
+          error: "HbA1c is required when diabetes is selected.",
+        });
+      }
+      if (!cleanDiabetesFasting) {
+        return res.status(400).json({
+          error: "Fasting sugar level is required when diabetes is selected.",
+        });
+      }
+      if (!cleanDiabetesMedications) {
+        return res.status(400).json({
+          error: "Diabetes medications are required when diabetes is selected.",
+        });
+      }
+      if (!diabetesOnInsulinProvided) {
+        return res.status(400).json({
+          error: "Please specify whether insulin is taken when diabetes is selected.",
+        });
+      }
+      if (!cleanDiabetesWeight || !cleanDiabetesHeight) {
+        return res.status(400).json({
+          error: "Weight and height are required when diabetes is selected.",
+        });
+      }
+    }
+
+    if (hasHypertension) {
+      if (!cleanHypertensionSystolic || !cleanHypertensionDiastolic) {
+        return res.status(400).json({
+          error: "Systolic and diastolic BP are required when hypertension is selected.",
+        });
+      }
+      if (!cleanHypertensionMedications) {
+        return res.status(400).json({
+          error: "Hypertension medications are required when hypertension is selected.",
+        });
+      }
+    }
+
+    if (hasSleepIssues && !cleanSleepMedications) {
+      return res.status(400).json({
+        error: "Sleep medication details are required when sleep issues are selected.",
+      });
+    }
+
+    if (hasAnxiety && !cleanAnxietyMedications) {
+      return res.status(400).json({
+        error: "Anxiety medication details are required when anxiety is selected.",
+      });
+    }
+
+    if (hasDepression && !cleanDepressionMedications) {
+      return res.status(400).json({
+        error: "Depression medication details are required when depression is selected.",
+      });
+    }
+
+    const insertDiabetesHba1c = hasDiabetes ? cleanDiabetesHba1c : "";
+    const insertDiabetesFasting = hasDiabetes ? cleanDiabetesFasting : "";
+    const insertDiabetesMedications = hasDiabetes ? cleanDiabetesMedications : "";
+    const insertDiabetesOnInsulin = hasDiabetes ? cleanDiabetesOnInsulin : null;
+    const insertDiabetesWeight = hasDiabetes ? cleanDiabetesWeight : "";
+    const insertDiabetesHeight = hasDiabetes ? cleanDiabetesHeight : "";
+    const insertHypertensionSystolic = hasHypertension ? cleanHypertensionSystolic : "";
+    const insertHypertensionDiastolic = hasHypertension ? cleanHypertensionDiastolic : "";
+    const insertHypertensionMedications = hasHypertension ? cleanHypertensionMedications : "";
+    const insertSleepMedications = hasSleepIssues ? cleanSleepMedications : "";
+    const insertAnxietyMedications = hasAnxiety ? cleanAnxietyMedications : "";
+    const insertDepressionMedications = hasDepression ? cleanDepressionMedications : "";
+
     const result = await pool.query(
       `INSERT INTO intake_submissions
-      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
       RETURNING id, created_at`,
       [
         cleanName,
@@ -2080,6 +2289,19 @@ app.post("/api/intake-submissions", async (req, res) => {
         hasEyesightIssues,
         cleanEyePower,
         isForFamilyMember ? relationText : "self",
+        insertDiabetesHba1c,
+        insertDiabetesFasting,
+        insertDiabetesMedications,
+        insertDiabetesOnInsulin,
+        insertDiabetesWeight,
+        insertDiabetesHeight,
+        insertHypertensionSystolic,
+        insertHypertensionDiastolic,
+        insertHypertensionMedications,
+        insertSleepMedications,
+        insertAnxietyMedications,
+        insertDepressionMedications,
+        cleanAdditionalNotes,
         authUserType,
         authUserId,
         completedAt,
@@ -2127,6 +2349,19 @@ app.get(
           OR relation ILIKE ${searchParam}
           OR eye_power ILIKE ${searchParam}
           OR chronic_conditions ILIKE ${searchParam}
+          OR diabetes_hba1c ILIKE ${searchParam}
+          OR diabetes_fasting_sugar ILIKE ${searchParam}
+          OR diabetes_medications ILIKE ${searchParam}
+          OR CAST(diabetes_on_insulin AS TEXT) ILIKE ${searchParam}
+          OR diabetes_weight ILIKE ${searchParam}
+          OR diabetes_height ILIKE ${searchParam}
+          OR hypertension_systolic_bp ILIKE ${searchParam}
+          OR hypertension_diastolic_bp ILIKE ${searchParam}
+          OR hypertension_medications ILIKE ${searchParam}
+          OR sleep_medications ILIKE ${searchParam}
+          OR anxiety_medications ILIKE ${searchParam}
+          OR depression_medications ILIKE ${searchParam}
+          OR additional_notes ILIKE ${searchParam}
         )`);
       }
 
@@ -2136,7 +2371,7 @@ app.get(
         : "";
 
       const result = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
        FROM intake_submissions
        ${whereClause}
        ORDER BY created_at DESC
@@ -2165,7 +2400,7 @@ app.get(
       }
 
       const submissionResult = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
          FROM intake_submissions
          WHERE id = $1
          LIMIT 1`,
@@ -2178,7 +2413,7 @@ app.get(
       }
 
       const historyResult = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
          FROM intake_submissions
          WHERE phone = $1
          ORDER BY created_at DESC

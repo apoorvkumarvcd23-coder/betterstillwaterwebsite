@@ -196,6 +196,211 @@
                 />
                 Sleep Issues</label
               >
+              <label
+                ><input
+                  type="checkbox"
+                  name="chronicConditions"
+                  value="none_of_the_above"
+                />
+                None of the above</label
+              >
+            </div>
+          </div>
+
+          <div id="conditionDetails" style="margin-top: 1.5rem">
+            <p style="color: var(--color-text-primary)">
+              Based on your selection, please answer the following:
+            </p>
+
+            <div id="diabetesDetails" style="margin-top: 1rem; display: none">
+              <p style="color: var(--color-text-primary); font-weight: 600">
+                Diabetes details
+              </p>
+              <div class="intake-grid">
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="diabetesHba1c"
+                    name="diabetesHba1c"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="diabetesHba1c">HbA1c</label>
+                </div>
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="diabetesFastingSugar"
+                    name="diabetesFastingSugar"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="diabetesFastingSugar"
+                    >Fasting sugar level</label
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <input
+                  class="form-input"
+                  id="diabetesMedications"
+                  name="diabetesMedications"
+                  type="text"
+                  placeholder=" "
+                />
+                <label class="form-label" for="diabetesMedications"
+                  >Medications currently taken</label
+                >
+              </div>
+              <div class="form-group">
+                <div class="form-label">Are you taking insulin?</div>
+                <div class="inline-choice">
+                  <label
+                    ><input type="radio" name="diabetesOnInsulin" value="true" />
+                    Yes</label
+                  >
+                  <label
+                    ><input type="radio" name="diabetesOnInsulin" value="false" />
+                    No</label
+                  >
+                </div>
+              </div>
+              <div class="intake-grid">
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="diabetesWeight"
+                    name="diabetesWeight"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="diabetesWeight"
+                    >Weight (kg)</label
+                  >
+                </div>
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="diabetesHeight"
+                    name="diabetesHeight"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="diabetesHeight"
+                    >Height (cm)</label
+                  >
+                </div>
+              </div>
+            </div>
+
+            <div id="hypertensionDetails" style="margin-top: 1rem; display: none">
+              <p style="color: var(--color-text-primary); font-weight: 600">
+                Hypertension details
+              </p>
+              <div class="intake-grid">
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="hypertensionSystolic"
+                    name="hypertensionSystolic"
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="hypertensionSystolic"
+                    >Systolic BP</label
+                  >
+                </div>
+                <div class="form-group">
+                  <input
+                    class="form-input"
+                    id="hypertensionDiastolic"
+                    name="hypertensionDiastolic"
+                    type="number"
+                    step="1"
+                    min="0"
+                    placeholder=" "
+                  />
+                  <label class="form-label" for="hypertensionDiastolic"
+                    >Diastolic BP</label
+                  >
+                </div>
+              </div>
+              <div class="form-group">
+                <input
+                  class="form-input"
+                  id="hypertensionMedications"
+                  name="hypertensionMedications"
+                  type="text"
+                  placeholder=" "
+                />
+                <label class="form-label" for="hypertensionMedications"
+                  >Medications currently taken</label
+                >
+              </div>
+            </div>
+
+            <div id="sleepDetails" style="margin-top: 1rem; display: none">
+              <p style="color: var(--color-text-primary); font-weight: 600">
+                Sleep details
+              </p>
+              <div class="form-group">
+                <input
+                  class="form-input"
+                  id="sleepMedications"
+                  name="sleepMedications"
+                  type="text"
+                  placeholder=" "
+                />
+                <label class="form-label" for="sleepMedications"
+                  >Do they take any sleep medications?</label
+                >
+              </div>
+            </div>
+
+            <div id="anxietyDetails" style="margin-top: 1rem; display: none">
+              <p style="color: var(--color-text-primary); font-weight: 600">
+                Anxiety details
+              </p>
+              <div class="form-group">
+                <input
+                  class="form-input"
+                  id="anxietyMedications"
+                  name="anxietyMedications"
+                  type="text"
+                  placeholder=" "
+                />
+                <label class="form-label" for="anxietyMedications"
+                  >Are they on any medications?</label
+                >
+              </div>
+            </div>
+
+            <div id="depressionDetails" style="margin-top: 1rem; display: none">
+              <p style="color: var(--color-text-primary); font-weight: 600">
+                Depression details
+              </p>
+              <div class="form-group">
+                <input
+                  class="form-input"
+                  id="depressionMedications"
+                  name="depressionMedications"
+                  type="text"
+                  placeholder=" "
+                />
+                <label class="form-label" for="depressionMedications"
+                  >Are they on any medications?</label
+                >
+              </div>
             </div>
           </div>
 
@@ -274,6 +479,19 @@
             </div>
           </div>
 
+          <div class="form-group" style="margin-top: 1.5rem">
+            <textarea
+              class="form-input"
+              id="additionalNotes"
+              name="additionalNotes"
+              rows="4"
+              placeholder=" "
+            ></textarea>
+            <label class="form-label" for="additionalNotes"
+              >Any additional details you want to share</label
+            >
+          </div>
+
           <button
             type="submit"
             class="btn btn-solid"
@@ -293,6 +511,29 @@
       const eyePower = document.getElementById("eyePower");
       const relationWrap = document.getElementById("relationWrap");
       const relation = document.getElementById("relation");
+      const chronicConditionInputs = document.querySelectorAll(
+        'input[name="chronicConditions"]',
+      );
+      const noneOfAboveInput = document.querySelector(
+        'input[name="chronicConditions"][value="none_of_the_above"]',
+      );
+      const diabetesDetails = document.getElementById("diabetesDetails");
+      const hypertensionDetails = document.getElementById("hypertensionDetails");
+      const sleepDetails = document.getElementById("sleepDetails");
+      const anxietyDetails = document.getElementById("anxietyDetails");
+      const depressionDetails = document.getElementById("depressionDetails");
+      const diabetesHba1c = document.getElementById("diabetesHba1c");
+      const diabetesFastingSugar = document.getElementById("diabetesFastingSugar");
+      const diabetesMedications = document.getElementById("diabetesMedications");
+      const diabetesWeight = document.getElementById("diabetesWeight");
+      const diabetesHeight = document.getElementById("diabetesHeight");
+      const hypertensionSystolic = document.getElementById("hypertensionSystolic");
+      const hypertensionDiastolic = document.getElementById("hypertensionDiastolic");
+      const hypertensionMedications = document.getElementById("hypertensionMedications");
+      const sleepMedications = document.getElementById("sleepMedications");
+      const anxietyMedications = document.getElementById("anxietyMedications");
+      const depressionMedications = document.getElementById("depressionMedications");
+      const additionalNotes = document.getElementById("additionalNotes");
       const submitButton = intakeForm.querySelector('button[type="submit"]');
       const initialSubmitText = submitButton ? submitButton.textContent : "";
 
@@ -307,6 +548,104 @@
       function getRadioValue(name) {
         const checked = document.querySelector(`input[name="${name}"]:checked`);
         return checked ? checked.value : "";
+      }
+
+      function getSelectedConditions() {
+        return Array.from(chronicConditionInputs)
+          .filter((input) => input.checked)
+          .map((input) => input.value);
+      }
+
+      function setRadioGroupRequired(name, required) {
+        const radios = document.querySelectorAll(`input[name="${name}"]`);
+        radios.forEach((radio, index) => {
+          radio.required = required && index === 0;
+        });
+      }
+
+      function clearSectionInputs(section) {
+        if (!section) return;
+        section.querySelectorAll("input, textarea").forEach((input) => {
+          if (input.type === "checkbox" || input.type === "radio") {
+            input.checked = false;
+          } else {
+            input.value = "";
+          }
+          input.required = false;
+        });
+      }
+
+      function toggleSection(section, shouldShow) {
+        if (!section) return;
+        section.style.display = shouldShow ? "block" : "none";
+        if (!shouldShow) {
+          clearSectionInputs(section);
+        }
+      }
+
+      function applyConditionRequirements(hasCondition, fields, radioGroups = []) {
+        fields.forEach((field) => {
+          if (field) field.required = hasCondition;
+        });
+        radioGroups.forEach((groupName) => {
+          setRadioGroupRequired(groupName, hasCondition);
+        });
+      }
+
+      function updateConditionDetails() {
+        const selected = getSelectedConditions();
+        const hasNone = selected.includes("none_of_the_above");
+
+        const hasDiabetes = !hasNone && selected.includes("diabetes");
+        const hasHypertension = !hasNone && selected.includes("hypertension");
+        const hasSleepIssues = !hasNone && selected.includes("sleep_issues");
+        const hasAnxiety = !hasNone && selected.includes("anxiety");
+        const hasDepression = !hasNone && selected.includes("depression");
+
+        toggleSection(diabetesDetails, hasDiabetes);
+        applyConditionRequirements(
+          hasDiabetes,
+          [
+            diabetesHba1c,
+            diabetesFastingSugar,
+            diabetesMedications,
+            diabetesWeight,
+            diabetesHeight,
+          ],
+          ["diabetesOnInsulin"],
+        );
+
+        toggleSection(hypertensionDetails, hasHypertension);
+        applyConditionRequirements(
+          hasHypertension,
+          [hypertensionSystolic, hypertensionDiastolic, hypertensionMedications],
+        );
+
+        toggleSection(sleepDetails, hasSleepIssues);
+        applyConditionRequirements(hasSleepIssues, [sleepMedications]);
+
+        toggleSection(anxietyDetails, hasAnxiety);
+        applyConditionRequirements(hasAnxiety, [anxietyMedications]);
+
+        toggleSection(depressionDetails, hasDepression);
+        applyConditionRequirements(hasDepression, [depressionMedications]);
+      }
+
+      function handleConditionChange() {
+        const selected = getSelectedConditions();
+        const hasNone = selected.includes("none_of_the_above");
+
+        if (hasNone) {
+          chronicConditionInputs.forEach((input) => {
+            if (input.value !== "none_of_the_above") {
+              input.checked = false;
+            }
+          });
+        } else if (noneOfAboveInput && noneOfAboveInput.checked) {
+          noneOfAboveInput.checked = false;
+        }
+
+        updateConditionDetails();
       }
 
       function refreshConditionalFields() {
@@ -327,7 +666,12 @@
           el.addEventListener("change", refreshConditionalFields);
         });
 
+      chronicConditionInputs.forEach((input) => {
+        input.addEventListener("change", handleConditionChange);
+      });
+
       refreshConditionalFields();
+      updateConditionDetails();
 
       intakeForm.addEventListener("submit", async (event) => {
         event.preventDefault();
@@ -350,6 +694,19 @@
           eyePower: eyePower.value.trim(),
           isFamilyMember: getRadioValue("isFamilyMember") === "true",
           relation: relation.value.trim(),
+          diabetesHba1c: diabetesHba1c.value.trim(),
+          diabetesFastingSugar: diabetesFastingSugar.value.trim(),
+          diabetesMedications: diabetesMedications.value.trim(),
+          diabetesOnInsulin: getRadioValue("diabetesOnInsulin"),
+          diabetesWeight: diabetesWeight.value.trim(),
+          diabetesHeight: diabetesHeight.value.trim(),
+          hypertensionSystolicBp: hypertensionSystolic.value.trim(),
+          hypertensionDiastolicBp: hypertensionDiastolic.value.trim(),
+          hypertensionMedications: hypertensionMedications.value.trim(),
+          sleepMedications: sleepMedications.value.trim(),
+          anxietyMedications: anxietyMedications.value.trim(),
+          depressionMedications: depressionMedications.value.trim(),
+          additionalNotes: additionalNotes.value.trim(),
         };
 
         try {

@@ -854,6 +854,20 @@
         return [];
       }
 
+      const CONDITION_LABELS = {
+        none_of_the_above: "None of the above",
+        sleep_issues: "Sleep issues",
+      };
+
+      function formatConditionLabel(value) {
+        const normalized = String(value || "").trim();
+        if (!normalized) return "";
+        return (
+          CONDITION_LABELS[normalized] ||
+          normalized.replace(/_/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
+        );
+      }
+
       function formatDateTime(value) {
         if (!value) return "-";
         const date = new Date(value);
@@ -947,7 +961,7 @@
           conditions.slice(0, 4).forEach((condition) => {
             const chip = document.createElement("span");
             chip.className = "chip chip-accent";
-            chip.textContent = condition;
+            chip.textContent = formatConditionLabel(condition);
             chipList.appendChild(chip);
           });
           if (conditions.length > 4) {
@@ -1032,6 +1046,83 @@
         const authUserId = item.auth_user_id || detailData?.item?.auth_user_id || null;
         const completedAt = item.completed_at || detailData?.item?.completed_at || null;
         const conditions = parseConditions(item.chronic_conditions);
+        const hasDiabetes = conditions.includes("diabetes");
+        const hasHypertension = conditions.includes("hypertension");
+        const hasSleepIssues = conditions.includes("sleep_issues");
+        const hasAnxiety = conditions.includes("anxiety");
+        const hasDepression = conditions.includes("depression");
+
+        const conditionDetailCards = [];
+        const addDetailCard = (label, value) => {
+          if (value === null || typeof value === "undefined" || value === "") {
+            return;
+          }
+          conditionDetailCards.push(`
+            <div class="info-card">
+              <div class="info-label">${escapeHtml(label)}</div>
+              <div class="info-value">${escapeHtml(String(value))}</div>
+            </div>
+          `);
+        };
+
+        if (hasDiabetes) {
+          addDetailCard("HbA1c", item.diabetes_hba1c);
+          addDetailCard("Fasting sugar", item.diabetes_fasting_sugar);
+          addDetailCard("Diabetes medications", item.diabetes_medications);
+          if (typeof item.diabetes_on_insulin === "boolean") {
+            addDetailCard("On insulin", toBooleanLabel(item.diabetes_on_insulin));
+          }
+          addDetailCard("Weight (kg)", item.diabetes_weight);
+          addDetailCard("Height (cm)", item.diabetes_height);
+        }
+
+        if (hasHypertension) {
+          addDetailCard("Systolic BP", item.hypertension_systolic_bp);
+          addDetailCard("Diastolic BP", item.hypertension_diastolic_bp);
+          addDetailCard("Hypertension medications", item.hypertension_medications);
+        }
+
+        if (hasSleepIssues) {
+          addDetailCard("Sleep medications", item.sleep_medications);
+        }
+
+        if (hasAnxiety) {
+          addDetailCard("Anxiety medications", item.anxiety_medications);
+        }
+
+        if (hasDepression) {
+          addDetailCard("Depression medications", item.depression_medications);
+        }
+
+        const conditionDetailsSection = conditionDetailCards.length
+          ? `
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Condition details</div>
+                <div class="section-note">Extra answers captured based on selected conditions</div>
+              </div>
+              <div class="info-grid">
+                ${conditionDetailCards.join("")}
+              </div>
+            </section>
+          `
+          : "";
+
+        const additionalNotesSection = item.additional_notes
+          ? `
+            <section class="section">
+              <div class="section-head">
+                <div class="section-title">Additional notes</div>
+                <div class="section-note">Free-form context shared by the submitter</div>
+              </div>
+              <div class="info-grid">
+                <div class="info-card" style="grid-column: 1 / -1;">
+                  <div class="info-value">${escapeHtml(item.additional_notes)}</div>
+                </div>
+              </div>
+            </section>
+          `
+          : "";
 
         const historyHtml = historySource.length
           ? historySource
@@ -1049,7 +1140,7 @@
                       ${escapeHtml(formatShortDate(entry.created_at))} • ${escapeHtml(entry.phone || "-")} • Age ${escapeHtml(entry.age ?? "-")}
                     </div>
                     <div class="history-item-meta">
-                      ${escapeHtml(historyConditions.slice(0, 3).join(", ") || "No chronic conditions listed")}
+                      ${escapeHtml(historyConditions.slice(0, 3).map(formatConditionLabel).join(", ") || "No chronic conditions listed")}
                     </div>
                   </button>
                 `;
@@ -1156,11 +1247,15 @@
               <div class="detail-chip-list">
                 ${conditions.length
                   ? conditions
-                      .map((condition) => `<span class="chip chip-accent">${escapeHtml(condition)}</span>`)
+                      .map((condition) => `<span class="chip chip-accent">${escapeHtml(formatConditionLabel(condition))}</span>`)
                       .join("")
                   : '<span class="chip chip-muted">No chronic conditions reported</span>'}
               </div>
             </section>
+
+            ${conditionDetailsSection}
+
+            ${additionalNotesSection}
 
             <section class="section">
               <div class="section-head">
