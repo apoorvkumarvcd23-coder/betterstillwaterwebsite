@@ -23,6 +23,18 @@ const SAMPLE_QUESTIONS_BY_DATASET = {
       "ट्रेनिंग, वातावरण और सपोर्ट का उनके रिकवरी सफर पर क्या असर पड़ा?",
     ],
   },
+  holistic_wellness: {
+    English: [
+      "Give me testimonial of patient who reduced type 2 diabetes",
+      "What improvements do people notice after following the eye exercises and treatment?",
+      "Find one testimonial showing measurable improvements after natural healing steps.",
+    ],
+    Hindi: [
+      "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+      "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+      "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
+    ],
+  },
   sharan_other_diseases: {
     English: [
       "Show testimonials where people improved chronic conditions other than diabetes.",
@@ -63,10 +75,12 @@ const COPY = {
     heroTitle: {
       diabetes: "StillWater Diabetes Testimonial AI",
       amar_eye_yoga: "Amar Eye Yoga Testimonials AI",
+      holistic_wellness: "Holistic wellness AI",
       sharan_other_diseases: "Sharan Other Diseases Testimonials AI",
     },
     datasetDiabetes: "Diabetes",
     datasetAmar: "Amar Eye Yoga",
+    datasetHolistic: "Holistic wellness",
     datasetSharan: "Sharan Other Diseases",
   },
   Hindi: {
@@ -94,10 +108,12 @@ const COPY = {
     heroTitle: {
       diabetes: "स्टिलवॉटर डायबिटीज टेस्टिमोनियल एआई",
       amar_eye_yoga: "अमर आई योग टेस्टिमोनियल्स एआई",
+      holistic_wellness: "समग्र वेलनेस एआई",
       sharan_other_diseases: "शरण अदर डिजीजेस टेस्टिमोनियल्स एआई",
     },
     datasetDiabetes: "डायबिटीज",
     datasetAmar: "अमर आई योग",
+    datasetHolistic: "समग्र वेलनेस",
     datasetSharan: "शरण अदर डिजीजेस",
   },
 };
@@ -116,6 +132,7 @@ const backLink = document.getElementById("backLink");
 const heroTitle = document.getElementById("heroTitle");
 const datasetDiabetesLabel = document.getElementById("datasetDiabetesLabel");
 const datasetAmarLabel = document.getElementById("datasetAmarLabel");
+const datasetHolisticLabel = document.getElementById("datasetHolisticLabel");
 const datasetSharanLabel = document.getElementById("datasetSharanLabel");
 const queryInput = document.getElementById("queryInput");
 const askButton = document.getElementById("askButton");
@@ -159,6 +176,7 @@ function applyLanguageCopy() {
   }
   if (datasetDiabetesLabel) datasetDiabetesLabel.textContent = copy.datasetDiabetes;
   if (datasetAmarLabel) datasetAmarLabel.textContent = copy.datasetAmar;
+  if (datasetHolisticLabel) datasetHolisticLabel.textContent = copy.datasetHolistic;
   if (datasetSharanLabel) datasetSharanLabel.textContent = copy.datasetSharan;
   samplesLabel.textContent = copy.sampleQuestions;
   askLabel.textContent = copy.askLabel;
