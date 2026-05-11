@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*
+.vscode/mcp.json
 
 # Dependencies
 node_modules/
