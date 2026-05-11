@@ -95,9 +95,31 @@
         margin-top: 0.2rem;
       }
 
-      .nav-back-btn {
-        padding: 0.45rem 1.1rem;
+      .healer-portrait {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        object-fit: cover;
+        object-position: center top;
+        border: 1px solid rgba(245, 242, 238, 0.18);
+        margin: 0 auto 0.3rem;
+        display: block;
       }
+
+      .header-back {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-text-primary);
+        text-decoration: none;
+        opacity: 0.85;
+        transition: opacity 0.15s ease;
+      }
+      .header-back:hover { opacity: 1; }
+      .header-back svg { width: 22px; height: 22px; }
 
       /* Disclaimer Dropdown Styles */
       .disclaimer-tab {
@@ -281,10 +303,10 @@
   <body>
     <script src="js/shared.js"></script>
     <header class="header scrolled">
+      <a href="care-path.html" id="backToCarePath" class="header-back" aria-label="Back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      </a>
       <a href="index.html" class="header-logo">Stillwater</a>
-      <a href="care-path.html" id="backToCarePath" class="btn nav-back-btn"
-        >Consult with human healers &rarr;</a
-      >
     </header>
 
     <main class="healer-shell">
@@ -302,6 +324,7 @@
 
       <section class="healer-grid" aria-label="AI healer options">
         <article class="healer-card">
+          <img src="images/Sadhguru.jpeg" alt="Sadhguru" class="healer-portrait" />
           <span class="healer-label">Stillwater Presence</span>
           <h2 class="text-h2 healer-name">Sadhguru</h2>
           <p><em>Yogi &middot; Mystic &middot; Founder, Isha Foundation</em></p>
@@ -331,6 +354,7 @@
         </article>
 
         <article class="healer-card">
+          <img src="images/Captain.jpeg" alt="Captain Joseph" class="healer-portrait" />
           <span class="healer-label">Stillwater Restoration</span>
           <h2 class="text-h2 healer-name">Captain Joseph</h2>
           <p>
@@ -371,6 +395,7 @@
         </article>
 
         <article class="healer-card">
+          <img src="images/Guruji.jpeg" alt="Sri Sri Ravishankar (Guruji)" class="healer-portrait" />
           <span class="healer-label">Stillwater Calm</span>
           <h2 class="text-h2 healer-name">Sri Sri Ravishankar</h2>
           <p>
