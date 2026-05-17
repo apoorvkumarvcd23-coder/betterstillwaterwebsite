@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>The Bridge | Traffic & Journey</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/index.css" />
+    <style>
+      body.traffic-page {
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 12% 8%, rgba(201, 169, 110, 0.16), transparent 28%),
+          radial-gradient(circle at 88% 0%, rgba(95, 179, 179, 0.15), transparent 30%),
+          linear-gradient(180deg, #061113 0%, #081819 46%, #050d0e 100%);
+        color: var(--color-text-primary);
+        margin: 0;
+      }
+
+      .traffic-shell {
+        max-width: 1220px;
+        margin: 0 auto;
+        padding: 1rem 5% 3rem;
+      }
+
+      .traffic-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        padding: 1.25rem 5% 1rem;
+        border-bottom: 1px solid rgba(245, 242, 238, 0.08);
+      }
+
+      .traffic-brand {
+        font-family: var(--font-heading);
+        font-size: 1.4rem;
+        letter-spacing: 0.18em;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #f6f2eb;
+        text-decoration: none;
+      }
+
+      .traffic-actions {
+        display: flex;
+        gap: 0.6rem;
+        flex-wrap: wrap;
+      }
+
+      .traffic-actions a,
+      .range-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.45rem 0.95rem;
+        border-radius: 999px;
+        border: 1px solid rgba(245, 242, 238, 0.18);
+        color: #f6f2eb;
+        background: transparent;
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-family: var(--font-body);
+        cursor: pointer;
+      }
+
+      .range-btn.active {
+        background: #00e5ff;
+        color: #031418;
+        border-color: #00e5ff;
+        font-weight: 600;
+      }
+
+      h1.traffic-title {
+        font-family: var(--font-heading);
+        font-weight: 600;
+        font-size: 2.1rem;
+        margin: 1.6rem 0 0.2rem;
+      }
+
+      .traffic-sub {
+        color: rgba(245, 242, 238, 0.6);
+        font-size: 0.92rem;
+        margin-bottom: 1.4rem;
+      }
+
+      .range-row {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1.6rem;
+        flex-wrap: wrap;
+      }
+
+      .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .stat-card {
+        background: rgba(245, 242, 238, 0.04);
+        border: 1px solid rgba(245, 242, 238, 0.09);
+        border-radius: 16px;
+        padding: 1.25rem 1.4rem;
+      }
+
+      .stat-label {
+        font-size: 0.78rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: rgba(245, 242, 238, 0.55);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-family: var(--font-heading);
+        color: #f6f2eb;
+      }
+
+      .panel {
+        background: rgba(245, 242, 238, 0.035);
+        border: 1px solid rgba(245, 242, 238, 0.08);
+        border-radius: 18px;
+        padding: 1.4rem 1.5rem;
+        margin-bottom: 1.6rem;
+      }
+
+      .panel h2 {
+        font-family: var(--font-heading);
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin: 0 0 1rem;
+        color: #f6f2eb;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 0.65rem 0.6rem;
+        border-bottom: 1px solid rgba(245, 242, 238, 0.07);
+        vertical-align: top;
+      }
+
+      th {
+        color: rgba(245, 242, 238, 0.55);
+        font-weight: 500;
+        font-size: 0.76rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      td.num {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+
+      .journey-path {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.3rem;
+        align-items: center;
+      }
+
+      .crumb {
+        background: rgba(0, 229, 255, 0.1);
+        border: 1px solid rgba(0, 229, 255, 0.25);
+        color: #bdf4fb;
+        padding: 0.15rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.78rem;
+        word-break: break-all;
+      }
+
+      .crumb-sep {
+        color: rgba(245, 242, 238, 0.35);
+        font-size: 0.75rem;
+      }
+
+      .chip {
+        display: inline-block;
+        padding: 0.12rem 0.5rem;
+        border-radius: 999px;
+        font-size: 0.72rem;
+        background: rgba(201, 169, 110, 0.16);
+        color: #e7cf9f;
+      }
+
+      .muted {
+        color: rgba(245, 242, 238, 0.45);
+      }
+
+      #statusBar {
+        margin-bottom: 1.2rem;
+        font-size: 0.88rem;
+        color: rgba(245, 242, 238, 0.6);
+      }
+    </style>
+  </head>
+  <body class="traffic-page">
+    <header class="traffic-topbar">
+      <a href="/" class="traffic-brand">Stillwater</a>
+      <div class="traffic-actions">
+        <a href="/admin.html">&larr; Admin</a>
+        <a href="/ai-avatar-usage.html">Avatar Time</a>
+        <a href="/logout">Logout</a>
+      </div>
+    </header>
+
+    <main class="traffic-shell">
+      <h1 class="traffic-title">Traffic &amp; User Journey</h1>
+      <div class="traffic-sub">
+        First-party analytics &mdash; where visitors come from and how they
+        move through the site. Anonymous + authenticated, consent-aware.
+      </div>
+
+      <div class="range-row" id="rangeRow">
+        <button class="range-btn" data-days="7">Last 7 days</button>
+        <button class="range-btn active" data-days="30">Last 30 days</button>
+        <button class="range-btn" data-days="90">Last 90 days</button>
+      </div>
+
+      <div id="statusBar">Loading traffic data&hellip;</div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">Unique visitors</div>
+          <div class="stat-value" id="statVisitors">&mdash;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Page views</div>
+          <div class="stat-value" id="statViews">&mdash;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Visitors today</div>
+          <div class="stat-value" id="statVisitorsToday">&mdash;</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Views today</div>
+          <div class="stat-value" id="statViewsToday">&mdash;</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Traffic sources</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Source</th>
+              <th>Visitors</th>
+              <th>Views</th>
+            </tr>
+          </thead>
+          <tbody id="sourcesBody">
+            <tr><td colspan="3" class="muted">&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Top pages</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Path</th>
+              <th>Visitors</th>
+              <th>Views</th>
+            </tr>
+          </thead>
+          <tbody id="pagesBody">
+            <tr><td colspan="3" class="muted">&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h2>Recent visitor journeys</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Visitor</th>
+              <th>Source</th>
+              <th>User</th>
+              <th>Views</th>
+              <th>Path sequence</th>
+              <th>Last seen</th>
+            </tr>
+          </thead>
+          <tbody id="journeysBody">
+            <tr><td colspan="6" class="muted">&hellip;</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <script>
+      const escapeHtml = (value) =>
+        String(value == null ? "" : value).replace(/[&<>"']/g, (c) => ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c]);
+
+      const fmtNum = (n) => Number(n || 0).toLocaleString();
+
+      const fmtDate = (value) => {
+        if (!value) return "—";
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return "—";
+        return d.toLocaleString();
+      };
+
+      const shortId = (value) => {
+        const v = String(value || "");
+        return v.length > 12 ? v.slice(0, 12) + "…" : v || "—";
+      };
+
+      let currentDays = 30;
+
+      const renderRows = (tbody, rows, cols, builder) => {
+        if (!rows || !rows.length) {
+          tbody.innerHTML = `<tr><td colspan="${cols}" class="muted">No data in this range yet.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = rows.map(builder).join("");
+      };
+
+      async function loadTraffic(days) {
+        currentDays = days;
+        const statusBar = document.getElementById("statusBar");
+        statusBar.textContent = "Loading traffic data…";
+        try {
+          const res = await fetch(`/api/admin/traffic?days=${days}`, {
+            credentials: "include",
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            throw new Error(data.error || "Failed to load traffic.");
+          }
+
+          const s = data.summary || {};
+          document.getElementById("statVisitors").textContent = fmtNum(
+            s.total_visitors,
+          );
+          document.getElementById("statViews").textContent = fmtNum(
+            s.total_views,
+          );
+          document.getElementById("statVisitorsToday").textContent = fmtNum(
+            s.today_visitors,
+          );
+          document.getElementById("statViewsToday").textContent = fmtNum(
+            s.today_views,
+          );
+
+          renderRows(
+            document.getElementById("sourcesBody"),
+            data.sources,
+            3,
+            (r) =>
+              `<tr><td>${escapeHtml(r.source)}</td><td class="num">${fmtNum(
+                r.visitors,
+              )}</td><td class="num">${fmtNum(r.views)}</td></tr>`,
+          );
+
+          renderRows(
+            document.getElementById("pagesBody"),
+            data.pages,
+            3,
+            (r) =>
+              `<tr><td>${escapeHtml(r.path)}</td><td class="num">${fmtNum(
+                r.visitors,
+              )}</td><td class="num">${fmtNum(r.views)}</td></tr>`,
+          );
+
+          renderRows(
+            document.getElementById("journeysBody"),
+            data.journeys,
+            6,
+            (r) => {
+              const seq = Array.isArray(r.path_sequence)
+                ? r.path_sequence
+                : [];
+              const crumbs = seq
+                .map((p) => `<span class="crumb">${escapeHtml(p)}</span>`)
+                .join('<span class="crumb-sep">→</span>');
+              const user = r.auth_user_id
+                ? `<span class="chip">${escapeHtml(
+                    r.auth_user_type || "user",
+                  )} #${escapeHtml(r.auth_user_id)}</span>`
+                : '<span class="muted">anon</span>';
+              return `<tr>
+                <td title="${escapeHtml(r.visitor_id)}">${escapeHtml(
+                  shortId(r.visitor_id),
+                )}</td>
+                <td>${escapeHtml(r.source || "direct")}</td>
+                <td>${user}</td>
+                <td class="num">${fmtNum(r.views)}</td>
+                <td><div class="journey-path">${
+                  crumbs || '<span class="muted">—</span>'
+                }</div></td>
+                <td class="num">${fmtDate(r.last_seen)}</td>
+              </tr>`;
+            },
+          );
+
+          statusBar.textContent = `Showing last ${data.days} days · ${fmtNum(
+            s.total_views,
+          )} views from ${fmtNum(s.total_visitors)} visitors.`;
+        } catch (err) {
+          statusBar.textContent =
+            "Could not load traffic data: " + (err.message || "error");
+        }
+      }
+
+      document.getElementById("rangeRow").addEventListener("click", (e) => {
+        const btn = e.target.closest(".range-btn");
+        if (!btn) return;
+        document
+          .querySelectorAll(".range-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        loadTraffic(parseInt(btn.dataset.days, 10) || 30);
+      });
+
+      loadTraffic(currentDays);
+    </script>
+  </body>
+</html>

@@ -317,6 +317,46 @@ async function initDb() {
     ON ai_usage_sessions (agent_id, session_started_at DESC)
   `);
 
+  // First-party page view / user journey tracking (anonymous + authenticated)
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS page_views (
+      id BIGSERIAL PRIMARY KEY,
+      visitor_id TEXT,
+      session_id TEXT,
+      auth_user_type TEXT,
+      auth_user_id TEXT,
+      path TEXT,
+      page_title TEXT,
+      referrer TEXT,
+      referrer_host TEXT,
+      utm_source TEXT,
+      utm_medium TEXT,
+      utm_campaign TEXT,
+      utm_term TEXT,
+      utm_content TEXT,
+      is_landing BOOLEAN DEFAULT FALSE,
+      ip TEXT,
+      user_agent TEXT,
+      meta JSONB DEFAULT '{}'::jsonb,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_page_views_created_at
+    ON page_views (created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_page_views_visitor
+    ON page_views (visitor_id, created_at DESC)
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_page_views_session
+    ON page_views (session_id, created_at)
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
@@ -1032,11 +1072,30 @@ const requireAuthApi = (req, res, next) => {
   next();
 };
 
+// API guard for admin-only JSON endpoints (returns JSON, not an HTML redirect).
+const requireAdminApi = (req, res, next) => {
+  if (!req.isAuthenticated()) {
+    return res.status(401).json({ error: "Authentication required" });
+  }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({
+      error:
+        "The AI avatar guide is currently available to administrators only.",
+      code: "admin_only",
+    });
+  }
+  next();
+};
+
 // === PROTECTED ROUTES ===
 
 // These must be defined before express.static so that it intercepts the file delivery
 app.get("/admin.html", requireRole("admin"), (req, res) => {
   res.sendFile(path.join(__dirname, "admin.html"));
+});
+
+app.get("/traffic.html", requireRole("admin"), (req, res) => {
+  res.sendFile(path.join(__dirname, "traffic.html"));
 });
 
 app.get("/assistant.html", requireAuth, (req, res) => {
@@ -1224,7 +1283,76 @@ app.get("/api/trust-stats", async (req, res) => {
   }
 });
 
-app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
+// First-party page view tracking (public; called from js/shared.js).
+// Accepts anonymous + authenticated visits. No PII beyond IP/UA, which the
+// app already records for login_events.
+app.post("/api/track", async (req, res) => {
+  try {
+    const body = req.body || {};
+    const str = (value, max) => {
+      const out = String(value == null ? "" : value).trim();
+      return out.length > max ? out.slice(0, max) : out;
+    };
+
+    const path = str(body.path, 512);
+    if (!path) {
+      return res.status(400).json({ error: "path is required" });
+    }
+
+    const referrer = str(body.referrer, 1024);
+    let referrerHost = "";
+    if (referrer) {
+      try {
+        referrerHost = new URL(referrer).hostname.toLowerCase();
+      } catch (_err) {
+        referrerHost = "";
+      }
+    }
+
+    const forwarded = String(req.headers["x-forwarded-for"] || "")
+      .split(",")[0]
+      .trim();
+    const ip = forwarded || req.ip || "";
+    const userAgent = str(req.headers["user-agent"], 512);
+
+    const isAuthenticated = req.isAuthenticated && req.isAuthenticated();
+    const authUserType = isAuthenticated ? getAuthUserType(req.user) : null;
+    const authUserId = isAuthenticated ? getAuthUserId(req.user) : null;
+
+    await pool.query(
+      `INSERT INTO page_views (
+         visitor_id, session_id, auth_user_type, auth_user_id, path,
+         page_title, referrer, referrer_host, utm_source, utm_medium,
+         utm_campaign, utm_term, utm_content, is_landing, ip, user_agent
+       ) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)`,
+      [
+        str(body.visitorId, 64),
+        str(body.sessionId, 64),
+        authUserType,
+        authUserId,
+        path,
+        str(body.title, 256),
+        referrer,
+        referrerHost,
+        str(body.utmSource, 128),
+        str(body.utmMedium, 128),
+        str(body.utmCampaign, 128),
+        str(body.utmTerm, 128),
+        str(body.utmContent, 128),
+        Boolean(body.isLanding),
+        str(ip, 64),
+        userAgent,
+      ],
+    );
+
+    return res.status(204).end();
+  } catch (err) {
+    console.error("Failed to record page view:", err);
+    return res.status(500).json({ error: "Failed to record page view" });
+  }
+});
+
+app.post("/api/lemonslice/rooms", requireAdminApi, async (req, res) => {
   try {
     if (!LEMONSLICE_API_KEY) {
       return res.status(500).json({
@@ -1347,7 +1475,7 @@ app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
   }
 });
 
-app.post("/api/lemonslice/usage/end", requireAuthApi, async (req, res) => {
+app.post("/api/lemonslice/usage/end", requireAdminApi, async (req, res) => {
   try {
     const sessionId = String(req.body?.session_id || "").trim();
     const endReason = normalizeAiUsageEndReason(req.body?.end_reason);
@@ -2061,6 +2189,95 @@ ${context}`;
     return res.status(500).json({ error: "RAG chat failed", details: err.message });
   }
 });
+
+app.get(
+  "/api/admin/traffic",
+  requireRole("admin"),
+  async (req, res) => {
+    try {
+      const daysRaw = parseInt(String(req.query.days || "30"), 10);
+      const days = Number.isFinite(daysRaw)
+        ? Math.max(1, Math.min(daysRaw, 365))
+        : 30;
+      const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+      const sinceIso = since.toISOString();
+
+      const [summary, sources, pages, journeys, recent] = await Promise.all([
+        pool.query(
+          `SELECT
+             COUNT(*)::int AS total_views,
+             COUNT(DISTINCT visitor_id)::int AS total_visitors,
+             COUNT(*) FILTER (WHERE created_at >= date_trunc('day', NOW()))::int AS today_views,
+             COUNT(DISTINCT visitor_id) FILTER (WHERE created_at >= date_trunc('day', NOW()))::int AS today_visitors
+           FROM page_views
+           WHERE created_at >= $1`,
+          [sinceIso],
+        ),
+        pool.query(
+          `SELECT COALESCE(NULLIF(utm_source, ''), NULLIF(referrer_host, ''), 'direct') AS source,
+                  COUNT(*)::int AS views,
+                  COUNT(DISTINCT visitor_id)::int AS visitors
+           FROM page_views
+           WHERE created_at >= $1
+           GROUP BY 1
+           ORDER BY views DESC
+           LIMIT 25`,
+          [sinceIso],
+        ),
+        pool.query(
+          `SELECT path,
+                  COUNT(*)::int AS views,
+                  COUNT(DISTINCT visitor_id)::int AS visitors
+           FROM page_views
+           WHERE created_at >= $1
+           GROUP BY path
+           ORDER BY views DESC
+           LIMIT 25`,
+          [sinceIso],
+        ),
+        pool.query(
+          `SELECT visitor_id,
+                  MIN(created_at) AS first_seen,
+                  MAX(created_at) AS last_seen,
+                  COUNT(*)::int AS views,
+                  (ARRAY_AGG(path ORDER BY created_at))[1:30] AS path_sequence,
+                  MAX(auth_user_type) FILTER (WHERE auth_user_type IS NOT NULL) AS auth_user_type,
+                  MAX(auth_user_id) FILTER (WHERE auth_user_id IS NOT NULL) AS auth_user_id,
+                  (ARRAY_AGG(COALESCE(NULLIF(utm_source, ''), NULLIF(referrer_host, ''), 'direct') ORDER BY created_at))[1] AS source
+           FROM page_views
+           WHERE created_at >= $1 AND COALESCE(visitor_id, '') <> ''
+           GROUP BY visitor_id
+           ORDER BY last_seen DESC
+           LIMIT 50`,
+          [sinceIso],
+        ),
+        pool.query(
+          `SELECT visitor_id, path, page_title, referrer_host, utm_source,
+                  auth_user_type, auth_user_id, is_landing, created_at
+           FROM page_views
+           WHERE created_at >= $1
+           ORDER BY created_at DESC
+           LIMIT 100`,
+          [sinceIso],
+        ),
+      ]);
+
+      return res.json({
+        days,
+        summary: summary.rows[0] || {},
+        sources: sources.rows,
+        pages: pages.rows,
+        journeys: journeys.rows,
+        recent: recent.rows,
+      });
+    } catch (err) {
+      console.error("Failed to fetch traffic analytics:", err);
+      return res
+        .status(500)
+        .json({ error: "Failed to fetch traffic analytics" });
+    }
+  },
+);
 
 app.get("/api/auth/me", async (req, res) => {
   if (!req.isAuthenticated || !req.isAuthenticated()) {

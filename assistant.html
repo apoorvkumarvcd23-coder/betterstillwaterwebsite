@@ -564,6 +564,10 @@
         try {
           await joinSession();
         } catch (error) {
+          if (error && /administrators only/i.test(String(error.message))) {
+            showAdminLock();
+            return;
+          }
           if (attemptCount < MAX_ATTEMPTS) {
             await startSession();
             return;
@@ -634,7 +638,42 @@
         }
       });
 
+      const showAdminLock = () => {
+        setStatus(
+          "Admins Only",
+          "The AI avatar guide is currently available to administrators only. It will open to members soon.",
+          "error",
+        );
+        meetingMeta.dataset.live = "false";
+        meetingMetaId.textContent = "Locked";
+        topActions.hidden = true;
+        retryButton.hidden = true;
+      };
+
+      const isAdminUser = async () => {
+        try {
+          const response = await fetch("/api/auth/me", {
+            credentials: "include",
+          });
+          const user = await response.json().catch(() => null);
+          return !!(
+            response.ok &&
+            user &&
+            user.authenticated &&
+            String(user.role || "").toLowerCase() === "admin"
+          );
+        } catch (_err) {
+          return false;
+        }
+      };
+
       const bootstrapSession = async () => {
+        // The avatar guide is restricted to administrators (server-enforced).
+        if (!(await isAdminUser())) {
+          showAdminLock();
+          return;
+        }
+
         await resolveSubmissionId();
 
         if (!submissionId) {

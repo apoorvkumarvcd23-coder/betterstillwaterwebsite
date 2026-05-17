@@ -289,11 +289,116 @@ document.addEventListener("DOMContentLoaded", () => {
           localStorage.setItem("stillwater_cookie_consent", "true");
           banner.classList.remove("show");
           setTimeout(() => banner.remove(), 600); // Remove from DOM after animation
+          // Flush the page view now that consent has been granted.
+          if (typeof window.__swTrackFlush === "function") {
+            window.__swTrackFlush();
+          }
         });
     }
   };
 
   initCookieConsent();
+
+  // First-party page-view / user-journey tracking (consent-aware).
+  (function initPageTracking() {
+    const CONSENT_KEY = "stillwater_cookie_consent";
+    const VISITOR_KEY = "sw_visitor_id";
+    const SESSION_KEY = "sw_session_id";
+    const ATTR_KEY = "sw_first_touch";
+
+    const uuid = () => {
+      if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+      return (
+        "v-" +
+        Date.now().toString(36) +
+        "-" +
+        Math.random().toString(36).slice(2, 10)
+      );
+    };
+
+    // Capture acquisition source immediately into sessionStorage (no network,
+    // no consent needed for a same-tab value) so first-touch referrer/UTM
+    // survive even if consent is granted a few page views later.
+    let firstTouch = null;
+    try {
+      firstTouch = JSON.parse(sessionStorage.getItem(ATTR_KEY) || "null");
+    } catch (_e) {
+      firstTouch = null;
+    }
+    let isLanding = false;
+    if (!firstTouch) {
+      isLanding = true;
+      const qp = new URLSearchParams(window.location.search);
+      firstTouch = {
+        referrer: document.referrer || "",
+        utmSource: qp.get("utm_source") || "",
+        utmMedium: qp.get("utm_medium") || "",
+        utmCampaign: qp.get("utm_campaign") || "",
+        utmTerm: qp.get("utm_term") || "",
+        utmContent: qp.get("utm_content") || "",
+      };
+      try {
+        sessionStorage.setItem(ATTR_KEY, JSON.stringify(firstTouch));
+      } catch (_e) {}
+    }
+
+    const hasConsent = () => localStorage.getItem(CONSENT_KEY) === "true";
+
+    const stableId = (store, key) => {
+      let value = null;
+      try {
+        value = store.getItem(key);
+      } catch (_e) {}
+      if (!value) {
+        value = uuid();
+        try {
+          store.setItem(key, value);
+        } catch (_e) {}
+      }
+      return value;
+    };
+
+    let sent = false;
+    const sendPageView = () => {
+      if (sent || !hasConsent()) return;
+      sent = true;
+      const payload = {
+        visitorId: stableId(localStorage, VISITOR_KEY),
+        sessionId: stableId(sessionStorage, SESSION_KEY),
+        path: window.location.pathname + window.location.search,
+        title: document.title || "",
+        referrer: firstTouch.referrer,
+        utmSource: firstTouch.utmSource,
+        utmMedium: firstTouch.utmMedium,
+        utmCampaign: firstTouch.utmCampaign,
+        utmTerm: firstTouch.utmTerm,
+        utmContent: firstTouch.utmContent,
+        isLanding: isLanding,
+      };
+      try {
+        const blob = new Blob([JSON.stringify(payload)], {
+          type: "application/json",
+        });
+        if (navigator.sendBeacon && navigator.sendBeacon("/api/track", blob)) {
+          return;
+        }
+      } catch (_e) {}
+      fetch("/api/track", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true,
+        credentials: "include",
+      }).catch(() => {});
+    };
+
+    // Exposed so the cookie-consent accept handler can flush immediately.
+    window.__swTrackFlush = sendPageView;
+
+    if (hasConsent()) {
+      sendPageView();
+    }
+  })();
 
   // Auth-aware header actions (main site)
   const authActions = document.getElementById("authActions");
