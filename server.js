@@ -139,12 +139,16 @@ async function initDb() {
       diabetes_on_insulin BOOLEAN,
       diabetes_weight TEXT DEFAULT '',
       diabetes_height TEXT DEFAULT '',
+      diabetes_insulin_units TEXT DEFAULT '',
       hypertension_systolic_bp TEXT DEFAULT '',
       hypertension_diastolic_bp TEXT DEFAULT '',
       hypertension_medications TEXT DEFAULT '',
       sleep_medications TEXT DEFAULT '',
+      sleep_hours TEXT DEFAULT '',
       anxiety_medications TEXT DEFAULT '',
+      anxiety_doctor BOOLEAN,
       depression_medications TEXT DEFAULT '',
+      depression_doctor BOOLEAN,
       additional_notes TEXT DEFAULT '',
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
@@ -233,6 +237,26 @@ async function initDb() {
   await pool.query(`
     ALTER TABLE intake_submissions
     ADD COLUMN IF NOT EXISTS depression_medications TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS diabetes_insulin_units TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS sleep_hours TEXT DEFAULT ''
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS anxiety_doctor BOOLEAN
+  `);
+
+  await pool.query(`
+    ALTER TABLE intake_submissions
+    ADD COLUMN IF NOT EXISTS depression_doctor BOOLEAN
   `);
 
   await pool.query(`
@@ -2086,14 +2110,18 @@ app.post("/api/intake-submissions", async (req, res) => {
       diabetesFastingSugar,
       diabetesMedications,
       diabetesOnInsulin,
+      diabetesInsulinUnits,
       diabetesWeight,
       diabetesHeight,
       hypertensionSystolicBp,
       hypertensionDiastolicBp,
       hypertensionMedications,
       sleepMedications,
+      sleepHours,
       anxietyMedications,
+      anxietyDoctor,
       depressionMedications,
+      depressionDoctor,
       additionalNotes,
     } = req.body || {};
 
@@ -2177,14 +2205,28 @@ app.post("/api/intake-submissions", async (req, res) => {
       : null;
     const cleanDiabetesWeight = normalizeNumberString(diabetesWeight);
     const cleanDiabetesHeight = normalizeNumberString(diabetesHeight);
+    const cleanDiabetesInsulinUnits = String(diabetesInsulinUnits || "").trim();
 
     const cleanHypertensionSystolic = normalizeNumberString(hypertensionSystolicBp);
     const cleanHypertensionDiastolic = normalizeNumberString(hypertensionDiastolicBp);
     const cleanHypertensionMedications = String(hypertensionMedications || "").trim();
 
     const cleanSleepMedications = String(sleepMedications || "").trim();
+    const cleanSleepHours = String(sleepHours || "").trim();
     const cleanAnxietyMedications = String(anxietyMedications || "").trim();
+    const anxietyDoctorProvided =
+      typeof anxietyDoctor !== "undefined" &&
+      String(anxietyDoctor).trim() !== "";
+    const cleanAnxietyDoctor = anxietyDoctorProvided
+      ? toBoolean(anxietyDoctor)
+      : null;
     const cleanDepressionMedications = String(depressionMedications || "").trim();
+    const depressionDoctorProvided =
+      typeof depressionDoctor !== "undefined" &&
+      String(depressionDoctor).trim() !== "";
+    const cleanDepressionDoctor = depressionDoctorProvided
+      ? toBoolean(depressionDoctor)
+      : null;
 
     if (cleanAdditionalNotes.length > 1500) {
       return res
@@ -2269,17 +2311,22 @@ app.post("/api/intake-submissions", async (req, res) => {
     const insertDiabetesOnInsulin = hasDiabetes ? cleanDiabetesOnInsulin : null;
     const insertDiabetesWeight = hasDiabetes ? cleanDiabetesWeight : "";
     const insertDiabetesHeight = hasDiabetes ? cleanDiabetesHeight : "";
+    const insertDiabetesInsulinUnits =
+      hasDiabetes && cleanDiabetesOnInsulin ? cleanDiabetesInsulinUnits : "";
     const insertHypertensionSystolic = hasHypertension ? cleanHypertensionSystolic : "";
     const insertHypertensionDiastolic = hasHypertension ? cleanHypertensionDiastolic : "";
     const insertHypertensionMedications = hasHypertension ? cleanHypertensionMedications : "";
     const insertSleepMedications = hasSleepIssues ? cleanSleepMedications : "";
+    const insertSleepHours = hasSleepIssues ? cleanSleepHours : "";
     const insertAnxietyMedications = hasAnxiety ? cleanAnxietyMedications : "";
+    const insertAnxietyDoctor = hasAnxiety ? cleanAnxietyDoctor : null;
     const insertDepressionMedications = hasDepression ? cleanDepressionMedications : "";
+    const insertDepressionDoctor = hasDepression ? cleanDepressionDoctor : null;
 
     const result = await pool.query(
       `INSERT INTO intake_submissions
-      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23)
+      (name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, diabetes_insulin_units, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, sleep_hours, anxiety_medications, anxiety_doctor, depression_medications, depression_doctor, additional_notes, auth_user_type, auth_user_id, completed_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27)
       RETURNING id, created_at`,
       [
         cleanName,
@@ -2295,12 +2342,16 @@ app.post("/api/intake-submissions", async (req, res) => {
         insertDiabetesOnInsulin,
         insertDiabetesWeight,
         insertDiabetesHeight,
+        insertDiabetesInsulinUnits,
         insertHypertensionSystolic,
         insertHypertensionDiastolic,
         insertHypertensionMedications,
         insertSleepMedications,
+        insertSleepHours,
         insertAnxietyMedications,
+        insertAnxietyDoctor,
         insertDepressionMedications,
+        insertDepressionDoctor,
         cleanAdditionalNotes,
         authUserType,
         authUserId,
@@ -2355,12 +2406,16 @@ app.get(
           OR CAST(diabetes_on_insulin AS TEXT) ILIKE ${searchParam}
           OR diabetes_weight ILIKE ${searchParam}
           OR diabetes_height ILIKE ${searchParam}
+          OR diabetes_insulin_units ILIKE ${searchParam}
           OR hypertension_systolic_bp ILIKE ${searchParam}
           OR hypertension_diastolic_bp ILIKE ${searchParam}
           OR hypertension_medications ILIKE ${searchParam}
           OR sleep_medications ILIKE ${searchParam}
+          OR sleep_hours ILIKE ${searchParam}
           OR anxiety_medications ILIKE ${searchParam}
+          OR CAST(anxiety_doctor AS TEXT) ILIKE ${searchParam}
           OR depression_medications ILIKE ${searchParam}
+          OR CAST(depression_doctor AS TEXT) ILIKE ${searchParam}
           OR additional_notes ILIKE ${searchParam}
         )`);
       }
@@ -2371,7 +2426,7 @@ app.get(
         : "";
 
       const result = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, diabetes_insulin_units, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, sleep_hours, anxiety_medications, anxiety_doctor, depression_medications, depression_doctor, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
        FROM intake_submissions
        ${whereClause}
        ORDER BY created_at DESC
@@ -2400,7 +2455,7 @@ app.get(
       }
 
       const submissionResult = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, diabetes_insulin_units, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, sleep_hours, anxiety_medications, anxiety_doctor, depression_medications, depression_doctor, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
          FROM intake_submissions
          WHERE id = $1
          LIMIT 1`,
@@ -2413,7 +2468,7 @@ app.get(
       }
 
       const historyResult = await pool.query(
-        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, anxiety_medications, depression_medications, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
+        `SELECT id, name, phone, age, chronic_conditions, eyesight_issues, eye_power, relation, diabetes_hba1c, diabetes_fasting_sugar, diabetes_medications, diabetes_on_insulin, diabetes_weight, diabetes_height, diabetes_insulin_units, hypertension_systolic_bp, hypertension_diastolic_bp, hypertension_medications, sleep_medications, sleep_hours, anxiety_medications, anxiety_doctor, depression_medications, depression_doctor, additional_notes, auth_user_type, auth_user_id, completed_at, created_at
          FROM intake_submissions
          WHERE phone = $1
          ORDER BY created_at DESC

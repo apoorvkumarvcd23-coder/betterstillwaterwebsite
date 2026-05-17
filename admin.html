@@ -1072,6 +1072,7 @@
           if (typeof item.diabetes_on_insulin === "boolean") {
             addDetailCard("On insulin", toBooleanLabel(item.diabetes_on_insulin));
           }
+          addDetailCard("Insulin units", item.diabetes_insulin_units);
           addDetailCard("Weight (kg)", item.diabetes_weight);
           addDetailCard("Height (cm)", item.diabetes_height);
         }
@@ -1083,14 +1084,21 @@
         }
 
         if (hasSleepIssues) {
+          addDetailCard("Sleep hours", item.sleep_hours);
           addDetailCard("Sleep medications", item.sleep_medications);
         }
 
         if (hasAnxiety) {
+          if (typeof item.anxiety_doctor === "boolean") {
+            addDetailCard("Consulted a doctor", toBooleanLabel(item.anxiety_doctor));
+          }
           addDetailCard("Anxiety medications", item.anxiety_medications);
         }
 
         if (hasDepression) {
+          if (typeof item.depression_doctor === "boolean") {
+            addDetailCard("Consulted a doctor", toBooleanLabel(item.depression_doctor));
+          }
           addDetailCard("Depression medications", item.depression_medications);
         }
 
