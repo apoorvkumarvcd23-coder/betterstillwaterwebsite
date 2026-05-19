@@ -581,6 +581,10 @@ const TESTIMONIALS_TABLE_HOLISTIC_WELLNESS = String(
 const TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES = String(
   process.env.RAG_TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES || "testimonials.testimonials_dim_sharan_other_diseases",
 ).trim();
+const TESTIMONIALS_TABLE_AA_WELLNESS = String(
+  process.env.RAG_TESTIMONIALS_TABLE_AA_WELLNESS ||
+    "testimonials.testimonials_dim_sharandiabetes_sharanallotherprogram_amareye",
+).trim();
 const TESTIMONIALS_DATASET_CONFIG = {
   diabetes: {
     table: TESTIMONIALS_TABLE_DIABETES,
@@ -601,6 +605,11 @@ const TESTIMONIALS_DATASET_CONFIG = {
     table: TESTIMONIALS_TABLE_SHARAN_OTHER_DISEASES,
     pool: sharanRagPool,
     dbKey: "sharan",
+  },
+  aa_wellness: {
+    table: TESTIMONIALS_TABLE_AA_WELLNESS,
+    pool,
+    dbKey: "primary",
   },
 };
 
@@ -638,6 +647,19 @@ const normalizeTestimonialsDataset = (rawDataset) => {
     ].includes(value)
   ) {
     return "holistic_wellness";
+  }
+
+  if (
+    [
+      "aa_wellness",
+      "aa-wellness",
+      "aawellness",
+      "aa",
+      "aa_wellness_ai",
+      "aa-wellness-ai",
+    ].includes(value)
+  ) {
+    return "aa_wellness";
   }
 
   return "diabetes";
@@ -1210,6 +1232,10 @@ app.get("/testimonials-holistic-wellness.html", requireAuth, (req, res) => {
 
 app.get("/testimonials-sharan-other-diseases.html", requireAuth, (req, res) => {
   res.sendFile(path.join(__dirname, "testimonials-sharan-other-diseases.html"));
+});
+
+app.get("/testimonials-aa-wellness.html", requireAuth, (req, res) => {
+  res.sendFile(path.join(__dirname, "testimonials-aa-wellness.html"));
 });
 
 app.get("/careers.html", (_req, res) => {

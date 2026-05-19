@@ -47,6 +47,16 @@ const SAMPLE_QUESTIONS_BY_DATASET = {
       "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
     ],
   },
+  aa_wellness: {
+    English: [
+      "Find testimonials where people reduced diabetes medicine after switching to plant-based diet",
+      "Find one testimonial showing measurable improvements after natural healing steps.",
+    ],
+    Hindi: [
+      "पौधा-आधारित आहार अपनाने के बाद जिन लोगों ने मधुमेह की दवाएं कम कीं, ऐसे प्रशंसापत्र दिखाएं",
+      "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
+    ],
+  },
 };
 
 const COPY = {
@@ -77,11 +87,13 @@ const COPY = {
       amar_eye_yoga: "Amar Eye Yoga Testimonials AI",
       holistic_wellness: "Holistic wellness AI",
       sharan_other_diseases: "Sharan Other Diseases Testimonials AI",
+      aa_wellness: "AA Wellness AI",
     },
     datasetDiabetes: "Diabetes",
     datasetAmar: "Amar Eye Yoga",
     datasetHolistic: "Holistic wellness",
     datasetSharan: "Sharan Other Diseases",
+    datasetAa: "AA Wellness",
   },
   Hindi: {
     back: "वापस",
@@ -110,11 +122,13 @@ const COPY = {
       amar_eye_yoga: "अमर आई योग टेस्टिमोनियल्स एआई",
       holistic_wellness: "समग्र वेलनेस एआई",
       sharan_other_diseases: "शरण अदर डिजीजेस टेस्टिमोनियल्स एआई",
+      aa_wellness: "एए वेलनेस एआई",
     },
     datasetDiabetes: "डायबिटीज",
     datasetAmar: "अमर आई योग",
     datasetHolistic: "समग्र वेलनेस",
     datasetSharan: "शरण अदर डिजीजेस",
+    datasetAa: "एए वेलनेस",
   },
 };
 
@@ -134,6 +148,7 @@ const datasetDiabetesLabel = document.getElementById("datasetDiabetesLabel");
 const datasetAmarLabel = document.getElementById("datasetAmarLabel");
 const datasetHolisticLabel = document.getElementById("datasetHolisticLabel");
 const datasetSharanLabel = document.getElementById("datasetSharanLabel");
+const datasetAaLabel = document.getElementById("datasetAaLabel");
 const queryInput = document.getElementById("queryInput");
 const askButton = document.getElementById("askButton");
 const voiceButton = document.getElementById("voiceButton");
@@ -180,6 +195,7 @@ function applyLanguageCopy() {
   if (datasetHolisticLabel)
     datasetHolisticLabel.textContent = copy.datasetHolistic;
   if (datasetSharanLabel) datasetSharanLabel.textContent = copy.datasetSharan;
+  if (datasetAaLabel) datasetAaLabel.textContent = copy.datasetAa;
   samplesLabel.textContent = copy.sampleQuestions;
   askLabel.textContent = copy.askLabel;
   queryInput.placeholder = copy.queryPlaceholder;
