@@ -1072,20 +1072,6 @@ const requireAuthApi = (req, res, next) => {
   next();
 };
 
-// API guard for admin-only JSON endpoints (returns JSON, not an HTML redirect).
-const requireAdminApi = (req, res, next) => {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ error: "Authentication required" });
-  }
-  if (req.user.role !== "admin") {
-    return res.status(403).json({
-      error:
-        "The AI avatar guide is currently available to administrators only.",
-      code: "admin_only",
-    });
-  }
-  next();
-};
 
 // === PROTECTED ROUTES ===
 
@@ -1352,7 +1338,7 @@ app.post("/api/track", async (req, res) => {
   }
 });
 
-app.post("/api/lemonslice/rooms", requireAdminApi, async (req, res) => {
+app.post("/api/lemonslice/rooms", requireAuthApi, async (req, res) => {
   try {
     if (!LEMONSLICE_API_KEY) {
       return res.status(500).json({
@@ -1475,7 +1461,7 @@ app.post("/api/lemonslice/rooms", requireAdminApi, async (req, res) => {
   }
 });
 
-app.post("/api/lemonslice/usage/end", requireAdminApi, async (req, res) => {
+app.post("/api/lemonslice/usage/end", requireAuthApi, async (req, res) => {
   try {
     const sessionId = String(req.body?.session_id || "").trim();
     const endReason = normalizeAiUsageEndReason(req.body?.end_reason);
