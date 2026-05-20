@@ -548,18 +548,37 @@ document.addEventListener("DOMContentLoaded", () => {
           typeof user.latestSubmissionId === "string" && user.latestSubmissionId.trim()
             ? user.latestSubmissionId.trim()
             : "";
-        const intakeTarget = user.hasCompletedAssessment
-          ? latestSubmissionId
-            ? `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`
-            : "/care-path.html"
-          : "/intake.html";
-        const intakeLabel = user.hasCompletedAssessment ? "Continue Care Path" : "Wellness Assessment";
+        // When the user is already on the care-path page, swap the primary
+        // header button to "Home" so they can jump back to the main site.
+        // On every other page it stays "Continue Care Path" (or "Wellness
+        // Assessment" if no assessment is completed yet).
+        const currentPath = (window.location.pathname || "").toLowerCase();
+        const onCarePath =
+          currentPath === "/care-path.html" ||
+          currentPath === "/care-path" ||
+          currentPath.endsWith("/care-path.html");
+        let intakeTarget;
+        let intakeLabel;
+        if (user.hasCompletedAssessment) {
+          if (onCarePath) {
+            intakeTarget = "/";
+            intakeLabel = "Home";
+          } else {
+            intakeTarget = latestSubmissionId
+              ? `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`
+              : "/care-path.html";
+            intakeLabel = "Continue Care Path";
+          }
+        } else {
+          intakeTarget = "/intake.html";
+          intakeLabel = "Wellness Assessment";
+        }
         
-        setAuthMenuLink(
-          "authMenuIntake",
-          intakeTarget,
-          intakeLabel,
-        );
+        // The Continue Care Path / Home / Wellness Assessment link is already
+        // shown as the prominent header button (btnIntake) — keep the auth
+        // dropdown free of duplicates so it only contains Log out (and Admin
+        // Dashboard for admins, since btnAdmin is hidden on mobile).
+        removeAuthMenuLink("authMenuIntake");
         if (btnIntake) {
           btnIntake.href = intakeTarget;
           btnIntake.textContent = intakeLabel;
