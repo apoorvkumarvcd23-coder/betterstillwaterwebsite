@@ -457,10 +457,13 @@ const getDefaultPostAuthRedirectForUser = async (user) => {
     return "/admin.html";
   }
 
-  const hasCompletedAssessment = await hasCompletedAssessmentForUser(user);
-  return hasCompletedAssessment
-    ? CUSTOMER_CARE_PATH_REDIRECT
-    : CUSTOMER_ASSESSMENT_REDIRECT;
+  // Include submissionId so care-path.html can fetch the saved flags and
+  // render the matching recommendation cards on repeat logins.
+  const latest = await getLatestCompletedAssessmentForUser(user);
+  if (latest && latest.id) {
+    return `${CUSTOMER_CARE_PATH_REDIRECT}?submissionId=${encodeURIComponent(String(latest.id))}`;
+  }
+  return CUSTOMER_ASSESSMENT_REDIRECT;
 };
 
 const resolvePostAuthRedirect = async (value, user) => {
@@ -2751,6 +2754,68 @@ app.get(
       return res
         .status(500)
         .json({ error: "Failed to fetch intake submission detail" });
+    }
+  },
+);
+
+// Returns saved recommendation flags for one of the current user's own submissions.
+// Used by care-path.html on repeat visits when URL flags are absent.
+app.get(
+  "/api/intake-submissions/:id/flags",
+  requireAuth,
+  async (req, res) => {
+    try {
+      const submissionId = parseInt(String(req.params.id || ""), 10);
+      if (!Number.isInteger(submissionId) || submissionId < 1) {
+        return res.status(400).json({ error: "Valid submission id is required" });
+      }
+
+      const authUserId = getAuthUserId(req.user);
+      const authUserType = getAuthUserType(req.user);
+      if (!authUserId || !authUserType) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      const result = await pool.query(
+        `SELECT chronic_conditions, eyesight_issues
+         FROM intake_submissions
+         WHERE id = $1
+           AND auth_user_type = $2
+           AND auth_user_id = $3
+         LIMIT 1`,
+        [submissionId, authUserType, authUserId],
+      );
+
+      const row = result.rows[0];
+      if (!row) {
+        return res.status(404).json({ error: "Submission not found" });
+      }
+
+      let conditions = row.chronic_conditions;
+      if (typeof conditions === "string") {
+        try {
+          conditions = JSON.parse(conditions);
+        } catch (_) {
+          conditions = [];
+        }
+      }
+      if (!Array.isArray(conditions)) {
+        conditions = [];
+      }
+      const conditionSet = new Set(conditions.map((c) => String(c).toLowerCase()));
+
+      const OTHER_CONDITIONS = ["diabetes", "hypertension", "depression", "anxiety", "sleep_issues"];
+      const HOLISTIC_CONDITIONS = ["depression", "anxiety", "sleep_issues"];
+
+      return res.json({
+        submissionId,
+        hasOther: OTHER_CONDITIONS.some((c) => conditionSet.has(c)),
+        hasEye: Boolean(row.eyesight_issues),
+        hasHolistic: HOLISTIC_CONDITIONS.some((c) => conditionSet.has(c)),
+      });
+    } catch (err) {
+      console.error("Failed to fetch submission flags:", err);
+      return res.status(500).json({ error: "Failed to fetch submission flags" });
     }
   },
 );

@@ -288,7 +288,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Book
           </button>
-          <a class="icon-link" href="sharan.html" title="Know more about SHARAN">
+          <a class="icon-link" href="testimonials-diabetes.html" title="StillWater Diabetes Testimonial AI">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             Know more
           </a>
@@ -319,11 +319,37 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
             Book
           </button>
-          <a class="icon-link" href="AmarEyeYoga.html" title="Know more about Amar Eye Yoga">
+          <a class="icon-link" href="testimonials-amar-eye-yoga.html" title="Amar Eye Yoga Testimonials AI">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             Know more
           </a>
           <button class="icon-link" type="button" data-share="aey" title="Share Amar Eye Yoga">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+            Share
+          </button>
+        </div>
+      </section>
+
+      <section class="reco-block" id="healyReco" hidden>
+        <div class="reco-head">
+          <img src="images/logo_healy.png" alt="Healy logo" class="reco-logo" />
+          <div>
+            <h2><a href="healy.html">Healy</a></h2>
+          </div>
+        </div>
+        <p>
+          Frequency-based holistic wellness for sleep, stress, anxiety and overall balance — complements lifestyle and natural-healing journeys.
+        </p>
+        <div class="reco-actions">
+          <a class="icon-link" href="healy.html" title="Chat with the Healy AI">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Chat
+          </a>
+          <a class="icon-link" href="testimonials-holistic-wellness.html" title="Holistic wellness AI">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Know more
+          </a>
+          <button class="icon-link" type="button" data-share="healy" title="Share Healy">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
             Share
           </button>
@@ -358,15 +384,60 @@
 
     <script>
       const params = new URLSearchParams(window.location.search);
-      const hasOther = params.get("hasOther") === "1";
-      const hasEye = params.get("hasEye") === "1";
+      const submissionId = (params.get("submissionId") || "").trim();
+      // URL flags are the authoritative source on first submission (intake redirect).
+      // On repeat visits the server redirects with only submissionId, so we fall back
+      // to fetching the saved flags for the current user's own submission.
+      const hasFlagInUrl =
+        params.has("hasOther") || params.has("hasEye") || params.has("hasHolistic");
 
-      if (hasOther) {
-        document.getElementById("sharanReco").hidden = false;
-      }
-      if (hasEye) {
-        document.getElementById("eyeReco").hidden = false;
-      }
+      const applyFlags = ({ hasOther, hasEye, hasHolistic }) => {
+        if (hasOther) document.getElementById("sharanReco").hidden = false;
+        if (hasEye) document.getElementById("eyeReco").hidden = false;
+        if (hasHolistic) document.getElementById("healyReco").hidden = false;
+      };
+
+      // Tag each "Know more" link so the testimonial AI page can send the user
+      // back to the same care-path (preserving submissionId) instead of the
+      // testimonials chooser. Targets only links pointing at testimonials-*.html
+      // inside a recommendation card, which is exclusively the Know more link.
+      const backParams = new URLSearchParams();
+      backParams.set("from", "care-path");
+      if (submissionId) backParams.set("submissionId", submissionId);
+      const knowMoreSuffix = `?${backParams.toString()}`;
+      document
+        .querySelectorAll('.reco-actions a[href^="testimonials-"]')
+        .forEach((link) => {
+          const base = (link.getAttribute("href") || "").split("?")[0];
+          link.setAttribute("href", `${base}${knowMoreSuffix}`);
+        });
+
+      (async () => {
+        if (hasFlagInUrl) {
+          applyFlags({
+            hasOther: params.get("hasOther") === "1",
+            hasEye: params.get("hasEye") === "1",
+            hasHolistic: params.get("hasHolistic") === "1",
+          });
+          return;
+        }
+        if (!submissionId) return;
+        try {
+          const res = await fetch(
+            `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
+            { credentials: "same-origin" },
+          );
+          if (!res.ok) return;
+          const data = await res.json();
+          applyFlags({
+            hasOther: Boolean(data.hasOther),
+            hasEye: Boolean(data.hasEye),
+            hasHolistic: Boolean(data.hasHolistic),
+          });
+        } catch (_) {
+          // network error — leave cards hidden; UI degrades gracefully
+        }
+      })();
 
       const SHARE_CONFIG = {
         sharan: {
@@ -378,6 +449,11 @@
           title: "Amar Eye Yoga",
           text: "Natural eye health through Eye Yoga — Auroville, near Pondicherry.",
           url: new URL("AmarEyeYoga.html", window.location.href).toString(),
+        },
+        healy: {
+          title: "Healy",
+          text: "Frequency-based holistic wellness for sleep, stress and overall balance.",
+          url: new URL("healy.html", window.location.href).toString(),
         },
       };
 

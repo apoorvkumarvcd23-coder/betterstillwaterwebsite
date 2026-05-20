@@ -143,6 +143,26 @@ const langButton = document.getElementById("langButton");
 const langCurrent = document.getElementById("langCurrent");
 const langMenu = document.getElementById("langMenu");
 const backLink = document.getElementById("backLink");
+// Context-aware back link: when launched from a recommendation card on
+// care-path.html, the URL carries ?from=care-path[&submissionId=X] so we
+// can return to the same care-path instead of the testimonials chooser.
+(() => {
+  if (!backLink) return;
+  try {
+    const navParams = new URLSearchParams(window.location.search);
+    if (navParams.get("from") !== "care-path") return;
+    const back = new URLSearchParams();
+    const sid = navParams.get("submissionId");
+    if (sid) back.set("submissionId", sid);
+    const query = back.toString();
+    backLink.setAttribute(
+      "href",
+      query ? `/care-path.html?${query}` : "/care-path.html",
+    );
+  } catch (_) {
+    // leave default href (testimonials chooser) on any parse error
+  }
+})();
 const heroTitle = document.getElementById("heroTitle");
 const datasetDiabetesLabel = document.getElementById("datasetDiabetesLabel");
 const datasetAmarLabel = document.getElementById("datasetAmarLabel");
