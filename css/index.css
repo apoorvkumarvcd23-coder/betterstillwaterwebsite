@@ -777,10 +777,26 @@ footer.footer .header-logo,
 
 .compliance-links {
   display: flex;
-  flex-direction: column;
-  gap: 0.7rem;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
   color: var(--color-text-secondary);
   list-style: none;
+  align-items: center;
+}
+
+.compliance-links li {
+  position: relative;
+}
+
+.compliance-links li + li::before {
+  content: "·";
+  position: absolute;
+  left: -0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-border-soft);
+  pointer-events: none;
 }
 
 .provider-row {

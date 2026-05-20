@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <li><a href="privacy-policy.html">Privacy Policy</a></li>
           <li><a href="terms-of-use.html">Terms of Use</a></li>
           <li><a href="medical-disclaimer.html">Health Warning / Medical Disclaimer</a></li>
-          <li><a href="careers.html">Careers</a></li>
+          <!-- <li><a href="careers.html">Careers</a></li> -->
         </ul>
       `;
         box.appendChild(compliance);
