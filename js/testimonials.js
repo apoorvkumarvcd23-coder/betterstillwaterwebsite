@@ -83,8 +83,8 @@ const COPY = {
     noAnswer: "No answer returned.",
     noSources: "No sources returned.",
     heroTitle: {
-      diabetes: "StillWater Diabetes Testimonial AI",
-      amar_eye_yoga: "Amar Eye Yoga Testimonials AI",
+      diabetes: "Sharan Diabetes Mate AI",
+      amar_eye_yoga: "Amar Eye Vision Mate AI",
       holistic_wellness: "Holistic wellness AI",
       sharan_other_diseases: "Sharan Other Diseases Testimonials AI",
       aa_wellness: "AA Wellness AI",
