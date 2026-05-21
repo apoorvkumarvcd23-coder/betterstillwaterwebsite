@@ -248,6 +248,264 @@
         color: var(--color-text-primary);
         font-weight: 500;
       }
+
+      /* Practice Yoga Asanas with AI (Beta) */
+      .yoga-beta {
+        margin-top: 1.75rem;
+        padding: 1.5rem 1.25rem 1.25rem;
+        border-radius: 18px;
+        background:
+          radial-gradient(circle at 0% 0%, rgba(95, 179, 179, 0.16), transparent 55%),
+          linear-gradient(180deg, rgba(245, 242, 238, 0.04), rgba(245, 242, 238, 0.02));
+        border: 1px solid rgba(245, 242, 238, 0.10);
+      }
+      .yoga-beta-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.6rem;
+      }
+      .yoga-beta-head h2 {
+        margin: 0;
+        font-size: 1.15rem;
+        letter-spacing: 0.01em;
+      }
+      .yoga-beta-badge {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        background: rgba(95, 179, 179, 0.18);
+        color: #9bd0d0;
+        border: 1px solid rgba(95, 179, 179, 0.35);
+      }
+      .yoga-beta p {
+        margin: 0.55rem 0 1rem;
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+        line-height: 1.55;
+      }
+      .yoga-beta-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.55rem 1.1rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background: rgba(95, 179, 179, 0.18);
+        color: var(--color-text-primary);
+        border: 1px solid rgba(95, 179, 179, 0.45);
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.1s ease;
+      }
+      .yoga-beta-cta:hover {
+        background: rgba(95, 179, 179, 0.28);
+      }
+      .yoga-beta-cta svg {
+        width: 14px;
+        height: 14px;
+      }
+
+      .yoga-modal-overlay {
+        padding: 1rem;
+      }
+      .yoga-modal-card {
+        position: relative;
+        width: min(960px, 100%);
+        max-width: 100%;
+        max-height: 92vh;
+        background: #0d1f20;
+        border: 1px solid rgba(245, 242, 238, 0.18);
+        border-radius: 18px;
+        padding: 1.25rem 1.25rem 1.5rem;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .yoga-modal-card.yoga-modal-fullbleed {
+        padding: 0;
+        width: min(1200px, 100%);
+        max-width: 100%;
+        height: 92vh;
+        max-height: 92vh;
+      }
+      .yoga-stage[hidden] {
+        display: none;
+      }
+      .yoga-stage {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.9rem;
+        min-height: 0;
+        flex: 1 1 auto;
+      }
+      .yoga-video {
+        width: 100%;
+        max-height: 70vh;
+        border-radius: 12px;
+        background: #000;
+        outline: none;
+      }
+      .yoga-stage-caption {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        color: var(--color-text-secondary);
+        font-size: 0.88rem;
+        text-align: center;
+      }
+      .yoga-stage-caption strong {
+        color: var(--color-text-primary);
+        font-weight: 500;
+      }
+
+      .yoga-choice {
+        align-items: center;
+        text-align: center;
+        padding: 1.5rem 0.5rem 0.5rem;
+      }
+      .yoga-choice-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(95, 179, 179, 0.15);
+        color: #9bd0d0;
+        margin-bottom: 0.25rem;
+      }
+      .yoga-choice-icon svg { width: 28px; height: 28px; }
+      .yoga-choice h3 {
+        margin: 0;
+        font-size: 1.25rem;
+        letter-spacing: 0.01em;
+      }
+      .yoga-choice p {
+        margin: 0;
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+      }
+      .yoga-choice-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+        width: 100%;
+        max-width: 280px;
+        margin-top: 0.6rem;
+      }
+      .yoga-choice-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
+      }
+      .yoga-choice-primary svg { width: 14px; height: 14px; }
+      .yoga-choice-secondary {
+        background: transparent;
+        color: var(--color-text-secondary);
+        border: 1px solid rgba(245, 242, 238, 0.18);
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+      .yoga-choice-secondary:hover {
+        color: var(--color-text-primary);
+        border-color: rgba(245, 242, 238, 0.4);
+      }
+
+      .yoga-frame-stage {
+        padding: 0;
+        gap: 0;
+        height: 100%;
+      }
+      .yoga-frame {
+        width: 100%;
+        flex: 1 1 auto;
+        border: 0;
+        background: #fff;
+        border-radius: 0;
+      }
+
+      /* Back / Skip / Back-to-care-path pills */
+      .yoga-back,
+      .yoga-back-carepath,
+      .yoga-skip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.35rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        background: rgba(13, 31, 32, 0.85);
+        border: 1px solid rgba(245, 242, 238, 0.22);
+        border-radius: 999px;
+        cursor: pointer;
+        z-index: 5;
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+      }
+      .yoga-back svg,
+      .yoga-skip svg {
+        width: 14px;
+        height: 14px;
+      }
+      .yoga-back {
+        position: absolute;
+        top: 0.75rem;
+        left: 0.85rem;
+      }
+      .yoga-back-carepath {
+        position: absolute;
+        top: 0.75rem;
+        left: 6rem;
+      }
+      .yoga-skip {
+        position: absolute;
+        top: 0.75rem;
+        right: 3.25rem;
+      }
+      .yoga-back:hover,
+      .yoga-back-carepath:hover,
+      .yoga-skip:hover {
+        background: rgba(245, 242, 238, 0.16);
+      }
+      .yoga-back[hidden],
+      .yoga-back-carepath[hidden],
+      .yoga-skip[hidden] {
+        display: none;
+      }
+
+      /* Stage 1 (video) needs top padding so the controls don't sit
+         behind the back/skip pills. */
+      #yogaStageVideo {
+        padding-top: 2.25rem;
+      }
+
+      /* Fullbleed (iframe) tweaks — pills float over the iframe corners */
+      .yoga-modal-fullbleed .yoga-back,
+      .yoga-modal-fullbleed .yoga-back-carepath,
+      .yoga-modal-fullbleed .modal-close {
+        top: 0.75rem;
+      }
+      .yoga-modal-fullbleed .modal-close {
+        right: 0.75rem;
+        background: rgba(13, 31, 32, 0.85);
+        border: 1px solid rgba(245, 242, 238, 0.22);
+        border-radius: 999px;
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        padding: 0;
+      }
     </style>
   </head>
   <body>
@@ -459,7 +717,80 @@
       <div class="link-block">
         <a href="ai-healer-choice.html">AI Avatars of Spiritual Gurus</a>
       </div>
+
+      <section class="yoga-beta">
+        <div class="yoga-beta-head">
+          <h2>Practice Yoga Asanas with AI</h2>
+          <span class="yoga-beta-badge">Beta Feature</span>
+        </div>
+        <p>
+          We are building an AI avatar that will help you practice yoga asanas for managing chronic conditions. Please share your feedback and suggestions for improvement.
+        </p>
+        <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Try the AI Coach
+        </button>
+      </section>
     </main>
+
+    <div class="modal-overlay yoga-modal-overlay" id="yogaModal" hidden>
+      <div class="yoga-modal-card" id="yogaModalCard">
+        <button type="button" class="yoga-back" id="yogaBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span id="yogaBackLabel">Back</span>
+        </button>
+        <button type="button" class="yoga-back-carepath" id="yogaBackCarepath" hidden>
+          Back to Care Path
+        </button>
+        <button type="button" class="modal-close" id="yogaModalClose" aria-label="Close">&times;</button>
+
+        <div class="yoga-stage" id="yogaStageVideo">
+          <button type="button" class="yoga-skip" id="yogaSkip" aria-label="Skip Guide">
+            Skip Guide
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <video
+            id="yogaVideo"
+            class="yoga-video"
+            playsinline
+            controls
+            preload="metadata"
+            src="videos/tadasana-guide.mp4"
+          ></video>
+          <div class="yoga-stage-caption">
+            <strong>Tadasana &mdash; Mountain Pose</strong>
+            <span>Watch the short guide, then choose how you&rsquo;d like to continue.</span>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-choice" id="yogaStageChoice" hidden>
+          <div class="yoga-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <h3>What&rsquo;s next?</h3>
+          <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
+          <div class="yoga-choice-actions">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="yogaPracticeNow">
+              Practice Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaRestart">
+              Restart Video
+            </button>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-frame-stage" id="yogaStageFrame" hidden>
+          <iframe
+            id="yogaFrame"
+            class="yoga-frame"
+            title="Practice Tadasana with AI pose detection"
+            allow="camera; microphone; fullscreen"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </div>
 
     <div class="modal-overlay" id="bookModal" hidden>
       <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="bookModalTitle">
@@ -672,6 +1003,114 @@
         modalSuccess.textContent = "Thanks — opening your email to send the request. We'll be in touch shortly.";
         modalSuccess.hidden = false;
       });
+
+      // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
+      (function () {
+        const POSE_APP_URL =
+          "https://static-tadasha-pose-detection-c3tk.onrender.com/";
+
+        const openBtn = document.getElementById("yogaBetaOpen");
+        const overlay = document.getElementById("yogaModal");
+        const card = document.getElementById("yogaModalCard");
+        const closeBtn = document.getElementById("yogaModalClose");
+        const backBtn = document.getElementById("yogaBack");
+        const backLabel = document.getElementById("yogaBackLabel");
+        const backCarepathBtn = document.getElementById("yogaBackCarepath");
+        const skipBtn = document.getElementById("yogaSkip");
+        const stageVideo = document.getElementById("yogaStageVideo");
+        const stageChoice = document.getElementById("yogaStageChoice");
+        const stageFrame = document.getElementById("yogaStageFrame");
+        const video = document.getElementById("yogaVideo");
+        const frame = document.getElementById("yogaFrame");
+        const practiceBtn = document.getElementById("yogaPracticeNow");
+        const restartBtn = document.getElementById("yogaRestart");
+
+        if (!openBtn || !overlay) return;
+
+        let currentStage = "video";
+
+        const showStage = (which) => {
+          currentStage = which;
+          stageVideo.hidden = which !== "video";
+          stageChoice.hidden = which !== "choice";
+          stageFrame.hidden = which !== "frame";
+          card.classList.toggle("yoga-modal-fullbleed", which === "frame");
+
+          // Per-stage label for the Back pill so users know where they'll land
+          if (which === "video") backLabel.textContent = "Back to Care Path";
+          else if (which === "choice") backLabel.textContent = "Back";
+          else if (which === "frame") backLabel.textContent = "Back";
+
+          // The "Back to Care Path" pill is only useful on the iframe page,
+          // where Back (one step) goes to the choice popup — users need an
+          // explicit shortcut to fully exit.
+          backCarepathBtn.hidden = which !== "frame";
+
+          // Skip only makes sense while the guide video is playing.
+          skipBtn.hidden = which !== "video";
+        };
+
+        const openModal = () => {
+          overlay.hidden = false;
+          showStage("video");
+          document.body.style.overflow = "hidden";
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const closeModal = () => {
+          overlay.hidden = true;
+          document.body.style.overflow = "";
+          try { video.pause(); } catch (_e) {}
+          frame.removeAttribute("src");
+        };
+
+        const restartVideo = () => {
+          showStage("video");
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const launchPractice = () => {
+          frame.src = POSE_APP_URL;
+          showStage("frame");
+        };
+
+        const handleBack = () => {
+          if (currentStage === "video") {
+            closeModal();
+          } else if (currentStage === "choice") {
+            restartVideo();
+          } else if (currentStage === "frame") {
+            // One step back to the choice popup; iframe is discarded so it
+            // re-loads fresh if the user picks Practice Now again.
+            frame.removeAttribute("src");
+            showStage("choice");
+          }
+        };
+
+        openBtn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        backBtn.addEventListener("click", handleBack);
+        backCarepathBtn.addEventListener("click", closeModal);
+        skipBtn.addEventListener("click", () => {
+          try { video.pause(); } catch (_e) {}
+          showStage("choice");
+        });
+        video.addEventListener("ended", () => showStage("choice"));
+        restartBtn.addEventListener("click", restartVideo);
+        practiceBtn.addEventListener("click", launchPractice);
+
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) closeModal();
+        });
+      })();
     </script>
   </body>
 </html>
