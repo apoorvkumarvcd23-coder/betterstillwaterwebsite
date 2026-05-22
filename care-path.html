@@ -14,11 +14,13 @@
           linear-gradient(180deg, #0a1718 0%, #0d1f20 100%);
       }
 
-      /* Header: lay logo out in-flow so it never overlaps the auth /
-         action buttons (the base .header-logo is absolutely centered). */
+      /* Header: MENU + logo on the left, action buttons on the right.
+         The base .header-logo is absolutely centered — lay it back in
+         flow so it never overlaps the auth / action buttons. */
       .header {
-        justify-content: space-between;
-        gap: 1rem;
+        justify-content: flex-start;
+        gap: 1.25rem;
+        flex-wrap: wrap;
       }
       .header-logo {
         position: static;
@@ -26,10 +28,12 @@
         left: auto;
         top: auto;
         flex: 0 0 auto;
+        margin-right: auto;
       }
       #authActions {
         flex-wrap: wrap;
         justify-content: flex-end;
+        gap: 0.6rem;
       }
 
       .care-shell {
@@ -749,7 +753,7 @@
         </svg>
         Menu
       </button>
-      <a href="index.html" class="header-logo">Stillwater</a>
+      <a href="index.html" class="header-logo">Stilwater</a>
       <div
         id="authActions"
         style="display: flex; gap: 0.75rem; align-items: center"

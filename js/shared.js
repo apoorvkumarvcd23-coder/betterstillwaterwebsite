@@ -167,7 +167,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const brandElements = document.querySelectorAll(".header-logo");
     brandElements.forEach((element) => {
       const text = (element.textContent || "").trim();
-      if (!text || !text.toLowerCase().includes("stillwater")) return;
+      const lower = text.toLowerCase();
+      // Accept both "Stilwater" (current brand) and the legacy "Stillwater".
+      if (!text || (!lower.includes("stilwater") && !lower.includes("stillwater"))) return;
       if (element.querySelector(".stillwater-logo-mark")) return;
 
       element.classList.add("stillwater-brand");
@@ -179,7 +181,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const logo = document.createElement("img");
       logo.className = "stillwater-logo-mark";
       logo.src = "images/new-stilwater-logo.png";
-      logo.alt = "Stillwater logo";
+      logo.alt = "Stilwater logo";
 
       element.textContent = "";
       element.appendChild(logo);
