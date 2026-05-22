@@ -1413,6 +1413,7 @@
 
         let attachments = []; // File objects queued for the next message
         let busy = false;
+        const history = []; // prior {role, text} turns for conversation context
 
         const BOT_ICON =
           '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10z"/></svg>';
@@ -1502,6 +1503,7 @@
 
           const form = new FormData();
           form.append("message", text);
+          form.append("history", JSON.stringify(history));
           attachments.forEach((f) => form.append("files", f, f.name));
           attachments = [];
           renderAttachments();
@@ -1518,10 +1520,15 @@
             clearTyping();
             if (res.ok) {
               const data = await res.json();
-              addMessage("bot", data.reply || "…");
+              const reply = data.reply || "…";
+              addMessage("bot", reply);
+              history.push({ role: "user", text: text });
+              history.push({ role: "assistant", text: reply });
             } else if (res.status === 503) {
+              const data = await res.json().catch(() => ({}));
               addMessage("bot",
-                "I'm not connected to my AI service yet — the team is adding the API key. Please check back shortly.");
+                data.error ||
+                "I'm not connected to my AI service yet. Please check back shortly.");
             } else {
               addMessage("bot", "Sorry, something went wrong. Please try again.");
             }

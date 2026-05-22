@@ -10,6 +10,9 @@ const path = require("path");
 const cors = require("cors");
 const { Pool } = require("pg");
 const PgSession = require("connect-pg-simple")(session);
+const multer = require("multer");
+const mammoth = require("mammoth");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -2206,21 +2209,151 @@ ${context}`;
 });
 
 // ── Maitry chat ────────────────────────────────────────────────────────
-// ChatGPT-style AI health companion. The full Anthropic-powered handler
-// (streaming, PDF/image/Word ingestion) is wired once ANTHROPIC_API_KEY is
-// configured. Until then this responds 503 so the UI shows a clear
-// "not connected yet" message instead of erroring.
-app.post("/api/maitry/chat", requireAuthApi, (req, res) => {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return res
-      .status(503)
-      .json({ error: "Maitry AI is not configured yet (missing ANTHROPIC_API_KEY)." });
-  }
-  // TODO: replace with the Anthropic SDK call once the key is in place.
-  return res
-    .status(503)
-    .json({ error: "Maitry AI handler pending — key configured, implementation next." });
+// ChatGPT-style AI health companion powered by Claude. Accepts a text
+// message plus optional file attachments (PDF, image, txt, Word) and a
+// short conversation history, and returns Maitry's reply.
+const anthropicClient = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+const maitryUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 24 * 1024 * 1024, files: 5 }, // 24 MB/file, 5 files
 });
+
+const MAITRY_SYSTEM_PROMPT = `You are Maitry, a warm and encouraging AI companion for personal health on the Stilwater platform.
+
+Stilwater helps people living with chronic conditions — especially diabetes and hypertension — manage their health through everyday diet, lifestyle, and exercise.
+
+Your role:
+- Offer practical, personalized guidance on diet, daily routine, physical activity, sleep, and stress management.
+- When the user shares a meal photo, lab report, or document, read it carefully and give clear, specific, supportive feedback.
+- Keep answers concise, friendly, and easy to act on. Use simple language and short paragraphs or small bullet lists.
+- Be encouraging and non-judgmental. Celebrate small wins.
+
+Important boundaries:
+- You are not a doctor. You do not diagnose, prescribe, or treat. You complement — never replace — the user's medical care.
+- For anything concerning (very high or low readings, chest pain, severe or sudden symptoms), tell the user to contact their doctor or seek urgent care.
+- Never tell anyone to change their medication. If asked, direct them to their care team.
+
+Always reply in the same language the user writes in.`;
+
+app.post(
+  "/api/maitry/chat",
+  requireAuthApi,
+  maitryUpload.array("files", 5),
+  async (req, res) => {
+    if (!anthropicClient) {
+      return res
+        .status(503)
+        .json({ error: "Maitry AI is not configured yet (missing ANTHROPIC_API_KEY)." });
+    }
+
+    try {
+      const userText = String(req.body?.message || "").trim();
+      const files = Array.isArray(req.files) ? req.files : [];
+
+      let history = [];
+      try {
+        const parsed = JSON.parse(req.body?.history || "[]");
+        if (Array.isArray(parsed)) history = parsed;
+      } catch (_e) {
+        history = [];
+      }
+
+      // Build the content blocks for the current user message.
+      const content = [];
+      for (const file of files) {
+        const name = file.originalname || "file";
+        const lower = name.toLowerCase();
+        const mime = file.mimetype || "";
+        const b64 = file.buffer.toString("base64");
+
+        if (mime === "application/pdf" || lower.endsWith(".pdf")) {
+          content.push({
+            type: "document",
+            source: { type: "base64", media_type: "application/pdf", data: b64 },
+          });
+        } else if (mime.startsWith("image/")) {
+          const allowed = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+          content.push({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: allowed.includes(mime) ? mime : "image/png",
+              data: b64,
+            },
+          });
+        } else if (lower.endsWith(".docx")) {
+          const extracted = await mammoth.extractRawText({ buffer: file.buffer });
+          content.push({
+            type: "text",
+            text: `[Attached Word document: ${name}]\n${(extracted.value || "").slice(0, 100000)}`,
+          });
+        } else if (mime.startsWith("text/") || lower.endsWith(".txt")) {
+          content.push({
+            type: "text",
+            text: `[Attached file: ${name}]\n${file.buffer.toString("utf8").slice(0, 100000)}`,
+          });
+        } else {
+          content.push({
+            type: "text",
+            text: `[Attached file "${name}" — this file type can't be read directly.]`,
+          });
+        }
+      }
+      if (userText) content.push({ type: "text", text: userText });
+      if (!content.length) {
+        return res.status(400).json({ error: "Please type a message or attach a file." });
+      }
+
+      // Prior turns (text only) → Claude messages, then the current turn.
+      const messages = [];
+      for (const turn of history.slice(-20)) {
+        const role = turn && turn.role;
+        const text = turn && typeof turn.text === "string" ? turn.text : "";
+        if ((role === "user" || role === "assistant") && text) {
+          messages.push({ role, content: text });
+        }
+      }
+      messages.push({ role: "user", content });
+
+      const response = await anthropicClient.messages.create({
+        model: "claude-opus-4-7",
+        max_tokens: 2048,
+        system: MAITRY_SYSTEM_PROMPT,
+        messages,
+      });
+
+      const reply = (response.content || [])
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("\n")
+        .trim();
+
+      return res.json({
+        reply: reply || "I'm here — could you rephrase that for me?",
+      });
+    } catch (err) {
+      console.error("Maitry chat failed:", err);
+      const msg = String(err && err.message ? err.message : "");
+      if (err instanceof Anthropic.APIError && err.status === 429) {
+        return res
+          .status(503)
+          .json({ error: "Maitry is busy right now. Please try again in a moment." });
+      }
+      if (/credit balance/i.test(msg)) {
+        return res.status(503).json({
+          error:
+            "Maitry is temporarily unavailable — the AI service needs account credits. Please try again later.",
+        });
+      }
+      return res
+        .status(500)
+        .json({ error: "Maitry chat failed", details: err.message });
+    }
+  },
+);
 
 app.get(
   "/api/admin/traffic",
