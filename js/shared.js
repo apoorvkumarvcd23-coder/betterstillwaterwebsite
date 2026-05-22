@@ -586,6 +586,12 @@ document.addEventListener("DOMContentLoaded", () => {
           btnIntake.href = intakeTarget;
           btnIntake.textContent = intakeLabel;
         }
+        // Page CTAs marked [data-care-cta] (e.g. the home-page hero
+        // button) mirror the header's care-path button exactly.
+        document.querySelectorAll("[data-care-cta]").forEach((el) => {
+          el.setAttribute("href", intakeTarget);
+          el.textContent = intakeLabel;
+        });
         if (hasAdminRole(user)) {
           setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
         } else {
