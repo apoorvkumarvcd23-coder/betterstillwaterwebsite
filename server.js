@@ -2205,6 +2205,23 @@ ${context}`;
   }
 });
 
+// ── Maitry chat ────────────────────────────────────────────────────────
+// ChatGPT-style AI health companion. The full Anthropic-powered handler
+// (streaming, PDF/image/Word ingestion) is wired once ANTHROPIC_API_KEY is
+// configured. Until then this responds 503 so the UI shows a clear
+// "not connected yet" message instead of erroring.
+app.post("/api/maitry/chat", requireAuthApi, (req, res) => {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return res
+      .status(503)
+      .json({ error: "Maitry AI is not configured yet (missing ANTHROPIC_API_KEY)." });
+  }
+  // TODO: replace with the Anthropic SDK call once the key is in place.
+  return res
+    .status(503)
+    .json({ error: "Maitry AI handler pending — key configured, implementation next." });
+});
+
 app.get(
   "/api/admin/traffic",
   requireRole("admin"),
