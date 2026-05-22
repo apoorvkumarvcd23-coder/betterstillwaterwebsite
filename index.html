@@ -141,8 +141,7 @@
   .welcome-card{position:relative;width:100%;max-width:430px;background:var(--paper);border:1px solid var(--line);border-radius:26px;padding:46px 38px 38px;text-align:center;box-shadow:var(--shadow);transform:translateY(18px) scale(.97);transition:transform .42s cubic-bezier(.2,.7,.2,1);}
   .welcome-overlay.show .welcome-card{transform:translateY(0) scale(1);}
   .welcome-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:var(--ink-soft);cursor:pointer;line-height:1;}
-  .welcome-avatar{width:74px;height:74px;margin:0 auto 22px;border-radius:50%;background:radial-gradient(circle at 35% 30%,var(--sage),var(--moss));display:grid;place-items:center;box-shadow:0 14px 30px -12px rgba(47,72,66,.55);}
-  .welcome-avatar svg{width:36px;height:36px;stroke:var(--paper);fill:none;stroke-width:1.5;}
+  .welcome-logo{width:180px;height:auto;margin:0 auto 18px;display:block;}
   .welcome-card .eyebrow{justify-content:center;margin-bottom:14px;}
   .welcome-card h2{font-family:var(--display);font-weight:400;font-size:1.7rem;color:var(--moss);line-height:1.2;margin-bottom:12px;}
   .welcome-card h2 .em{display:inline;}
@@ -298,9 +297,7 @@
 <div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="welcome-card">
     <button class="welcome-close" id="welcomeClose" aria-label="Close">&times;</button>
-    <div class="welcome-avatar">
-      <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10z"/></svg>
-    </div>
+    <img class="welcome-logo" src="images/logo.png" alt="Stilwater" />
     <div class="eyebrow">Your AI companion</div>
     <h2 id="welcomeTitle">Hello, I'm <span class="em">Maitry</span> &mdash; your AI companion for personal health.</h2>
     <p>To start, please log in.</p>
