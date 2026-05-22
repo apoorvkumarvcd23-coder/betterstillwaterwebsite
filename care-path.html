@@ -597,6 +597,21 @@
           >Admin Dashboard</a
         >
         <a
+          href="partners.html"
+          id="btnProviders"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.1rem; font-size: 0.75rem"
+          >Wellness providers</a
+        >
+        <button
+          type="button"
+          id="btnYoga"
+          class="btn btn-solid"
+          style="padding: 0.5rem 1.1rem; font-size: 0.75rem; cursor: pointer"
+        >
+          Practice yoga with AI
+        </button>
+        <a
           href="/intake.html"
           id="btnIntake"
           class="btn btn-solid"
@@ -718,28 +733,35 @@
         </div>
       </section>
 
-      <div class="link-block">
-        <a href="partners.html">Explore other Verified Holistic Healers on Stillwater</a>
-      </div>
+      <!-- "Explore other Verified Holistic Healers" moved to the
+           "Wellness providers" header button (-> partners.html). -->
 
+      <!-- AI Avatars of Spiritual Gurus — hidden for now, kept for later.
       <div class="link-block">
         <a href="ai-healer-choice.html">AI Avatars of Spiritual Gurus</a>
       </div>
-
-      <section class="yoga-beta">
-        <div class="yoga-beta-head">
-          <h2>Practice Yoga Asanas with AI</h2>
-          <span class="yoga-beta-badge">Beta Feature</span>
-        </div>
-        <p>
-          We are building an AI avatar that will help you practice yoga asanas for managing chronic conditions. Please share your feedback and suggestions for improvement.
-        </p>
-        <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-          Try the AI Coach
-        </button>
-      </section>
+      -->
     </main>
+
+    <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
+    <div class="modal-overlay" id="yogaIntroModal" hidden>
+      <div class="modal-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
+        <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
+        <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
+          <div class="yoga-beta-head">
+            <h2>Practice Yoga Asanas with AI</h2>
+            <span class="yoga-beta-badge">Beta Feature</span>
+          </div>
+          <p>
+            We are building an AI avatar that will help you practice yoga asanas for managing chronic conditions. Please share your feedback and suggestions for improvement.
+          </p>
+          <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Try the AI Coach
+          </button>
+        </section>
+      </div>
+    </div>
 
     <div class="modal-overlay yoga-modal-overlay" id="yogaModal" hidden>
       <div class="yoga-modal-card" id="yogaModalCard">
@@ -1118,6 +1140,19 @@
         overlay.addEventListener("click", (event) => {
           if (event.target === overlay) closeModal();
         });
+      })();
+
+      // ── "Practice yoga with AI" header button -> yoga intro modal ────
+      (function () {
+        const btn = document.getElementById("btnYoga");
+        const modal = document.getElementById("yogaIntroModal");
+        const close = document.getElementById("yogaIntroClose");
+        if (!btn || !modal) return;
+        const open = () => { modal.hidden = false; };
+        const hide = () => { modal.hidden = true; };
+        btn.addEventListener("click", open);
+        close.addEventListener("click", hide);
+        modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
       })();
     </script>
   </body>
