@@ -14,6 +14,24 @@
           linear-gradient(180deg, #0a1718 0%, #0d1f20 100%);
       }
 
+      /* Header: lay logo out in-flow so it never overlaps the auth /
+         action buttons (the base .header-logo is absolutely centered). */
+      .header {
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .header-logo {
+        position: static;
+        transform: none;
+        left: auto;
+        top: auto;
+        flex: 0 0 auto;
+      }
+      #authActions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
       .care-shell {
         max-width: 720px;
         margin: 6rem auto 3rem;

@@ -178,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const logo = document.createElement("img");
       logo.className = "stillwater-logo-mark";
-      logo.src = "images/logo.png";
+      logo.src = "images/new-stilwater-logo.png";
       logo.alt = "Stillwater logo";
 
       element.textContent = "";
