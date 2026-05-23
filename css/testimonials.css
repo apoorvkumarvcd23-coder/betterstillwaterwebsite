@@ -1,13 +1,13 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
 
 :root {
-  --bg-deep: #050508;
-  --glass: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --accent-glow: #22c55e;
-  --text-primary: #ffffff;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --bg-deep: #f4f1ea;
+  --glass: rgba(255, 255, 255, 0.75);
+  --glass-border: rgba(47, 72, 66, 0.14);
+  --accent-glow: #5f7d72;
+  --text-primary: #1c2a2a;
+  --text-secondary: #5f7d72;
+  --text-muted: rgba(28, 42, 42, 0.55);
 }
 
 * {
@@ -32,8 +32,8 @@ body {
   inset: 0;
   z-index: 0;
   background:
-    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.15) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 40%);
+    radial-gradient(circle at 20% 18%, rgba(138, 163, 153, 0.22) 0%, transparent 46%),
+    radial-gradient(circle at 82% 84%, rgba(192, 132, 87, 0.14) 0%, transparent 46%);
 }
 
 .page-shell {
@@ -49,12 +49,11 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 1rem;
 }
 
 .top-brand {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  order: -1;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -62,18 +61,18 @@ body {
   color: var(--text-primary);
 }
 
-.top-brand-logo {
-  width: 34px;
-  height: 34px;
-  object-fit: contain;
-  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.35));
-}
+.top-brand-logo { display: none; }
 
 .top-brand-text {
-  font-size: 22px;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 700;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.45rem;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  color: #2f4842;
+}
+
+.top-brand-tail {
+  color: #c08457;
 }
 
 .home-link {
@@ -112,10 +111,11 @@ body {
   top: calc(100% + 10px);
   width: 150px;
   border: 1px solid var(--glass-border);
-  background: #111827;
+  background: #ffffff;
   border-radius: 12px;
   padding: 8px;
   display: none;
+  box-shadow: 0 16px 40px -20px rgba(28, 42, 42, 0.4);
   gap: 6px;
 }
 
@@ -140,7 +140,7 @@ body {
 
 .lang-item:hover,
 .lang-item.is-active {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.66);
   color: var(--accent-glow);
 }
 
@@ -172,7 +172,7 @@ body {
 }
 
 .text-gradient {
-  background: linear-gradient(to bottom, #ffffff, #94a3b8);
+  background: linear-gradient(to bottom, #2f4842, #5f7d72);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -201,7 +201,7 @@ body {
 
 .sample-pill:hover {
   color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(47, 72, 66, 0.3);
 }
 
 .dataset-switch {
@@ -223,13 +223,13 @@ body {
 
 .dataset-pill:hover {
   color: var(--text-primary);
-  border-color: rgba(255, 255, 255, 0.32);
+  border-color: rgba(47, 72, 66, 0.3);
 }
 
 .dataset-pill.is-active {
   color: #fff;
-  border-color: rgba(34, 197, 94, 0.7);
-  box-shadow: 0 0 14px rgba(34, 197, 94, 0.35);
+  background: var(--accent-glow);
+  border-color: var(--accent-glow);
 }
 
 .input-shell {
@@ -261,7 +261,7 @@ body {
   height: 48px;
   border-radius: 14px;
   border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.66);
   color: var(--text-primary);
   cursor: pointer;
 }
@@ -285,7 +285,7 @@ body {
   padding: 10px 18px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 0 16px rgba(34, 197, 94, 0.45);
+  box-shadow: 0 0 16px rgba(95, 125, 114, 0.3);
 }
 
 .ask-button:disabled {
@@ -359,7 +359,7 @@ body {
 
 .voice-action {
   border: 1px solid var(--glass-border);
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.66);
   color: var(--text-primary);
   border-radius: 999px;
   padding: 9px 16px;
@@ -401,7 +401,7 @@ body {
 
 .chooser-card:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.32);
+  border-color: rgba(47, 72, 66, 0.3);
 }
 
 .chooser-card h2 {

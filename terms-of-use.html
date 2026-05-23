@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
@@ -26,8 +26,8 @@
   </head>
   <body>
     <main class="container" style="padding: 6rem 5% 4rem">
-      <span class="text-caption">Legal</span>
-      <h1 class="text-h1" style="margin: 1rem 0 2rem">Terms of Use</h1>
+      <span class="text-caption" data-i18n="legal.captionLegal">Legal</span>
+      <h1 class="text-h1" style="margin: 1rem 0 2rem" data-i18n="terms.title">Terms of Use</h1>
       <div
         style="
           max-width: 900px;
@@ -36,26 +36,14 @@
           color: var(--color-text-secondary);
         "
       >
-        <p>
-          Stillwater provides guidance-oriented wellness content and community
-          pathways for educational and supportive purposes.
-        </p>
-        <p>
-          You agree to provide accurate information in forms and avoid misuse of
-          the platform.
-        </p>
-        <p>
-          Partner recommendations are shared to support informed wellbeing
-          choices and do not replace professional diagnosis or emergency care.
-        </p>
-        <p>
-          Stillwater may update product features, forms, and policies to improve
-          safety, quality, and user experience.
-        </p>
-        <p>Continued use of this site indicates acceptance of these terms.</p>
+        <p data-i18n="terms.p1">Stillwater provides guidance-oriented wellness content and community pathways for educational and supportive purposes.</p>
+        <p data-i18n="terms.p2">You agree to provide accurate information in forms and avoid misuse of the platform.</p>
+        <p data-i18n="terms.p3">Partner recommendations are shared to support informed wellbeing choices and do not replace professional diagnosis or emergency care.</p>
+        <p data-i18n="terms.p4">Stillwater may update product features, forms, and policies to improve safety, quality, and user experience.</p>
+        <p data-i18n="terms.p5">Continued use of this site indicates acceptance of these terms.</p>
       </div>
       <div style="margin-top: 2.5rem">
-        <a href="index.html" class="btn">Back to Home</a>
+        <a href="index.html" class="btn" data-i18n="common.backHome">Back to Home</a>
       </div>
     </main>
     <script src="js/shared.js"></script>

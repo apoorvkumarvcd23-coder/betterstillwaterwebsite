@@ -1,1421 +1,369 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stillwater | Holistic Healing & Stress Management</title>
-    <meta
-      name="description"
-      content="Discover a premium holistic healing platform for stress management, inner peace, and wellness."
-    />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="css/index.css" />
-    <style>
-      /* Home Page Specific Styles */
-      .home-landing .header {
-        justify-content: flex-start;
-        padding: 1.3rem 2.6rem;
-        min-height: 76px;
-      }
-
-      .home-landing .header-logo {
-        position: relative;
-        left: auto;
-        transform: none;
-        font-size: 1.35rem;
-        letter-spacing: 0.24em;
-        z-index: 3;
-        flex: 0 0 auto;
-        margin-left: clamp(5.6rem, 8.4vw, 7.2rem);
-      }
-
-      .home-nav-links {
-        display: none;
-        align-items: center;
-        gap: 1.8rem;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        z-index: 1;
-        pointer-events: auto;
-        max-width: 48vw;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-
-      .home-nav-links a {
-        font-size: 0.62rem;
-        letter-spacing: 0.2em;
-        text-transform: uppercase;
-        color: rgba(245, 242, 238, 0.72);
-      }
-
-      .home-nav-links a:hover {
-        color: #ffffff;
-      }
-
-      .hero {
-        height: 100vh;
-        position: relative;
-        background-image: url("images/hero-bg.png");
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        text-align: center;
-        overflow: hidden;
-      }
-
-      .hero-video {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        z-index: 0;
-      }
-
-      .hero::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background:
-          linear-gradient(
-            to bottom,
-            rgba(11, 24, 24, 0.5) 0%,
-            rgba(11, 24, 24, 0.18) 38%,
-            rgba(11, 24, 24, 0.75) 100%
-          ),
-          radial-gradient(
-            circle at 85% 45%,
-            rgba(255, 255, 255, 0.12),
-            transparent 50%
-          );
-        z-index: 5;
-      }
-
-      .hero-content {
-        position: relative;
-        z-index: 10;
-        max-width: 980px;
-        padding: 0 5%;
-        margin-top: clamp(7.2rem, 13vh, 9.6rem);
-      }
-
-      .hero-line {
-        display: block;
-        font-family: var(--font-heading);
-      }
-
-      .hero-headline {
-        font-family: var(--font-heading);
-        font-size: clamp(2.6rem, 6.8vw, 6.1rem);
-        line-height: 1.06;
-        font-weight: 300;
-        max-width: 920px;
-        margin-left: auto;
-        margin-right: auto;
-      }
-
-      .hero-headline em {
-        font-style: italic;
-        color: rgba(245, 242, 238, 0.76);
-      }
-
-      .hero-descriptor {
-        margin: 2rem auto 0;
-        font-size: 0.78rem;
-        letter-spacing: 0.1em;
-        line-height: 1.9;
-        color: rgba(245, 242, 238, 0.66);
-        max-width: 560px;
-      }
-
-      .hero-seekers {
-        margin-top: 2.1rem;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        font-size: 0.66rem;
-        letter-spacing: 0.16em;
-        color: rgba(245, 242, 238, 0.6);
-      }
-
-      .hero-seekers-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--color-accent-soft);
-        box-shadow: 0 0 0 0 rgba(95, 179, 179, 0.55);
-        animation: heroPulse 2.6s ease-in-out infinite;
-      }
-
-      @keyframes heroPulse {
-        0%,
-        100% {
-          box-shadow: 0 0 0 0 rgba(95, 179, 179, 0.55);
-        }
-        50% {
-          box-shadow: 0 0 0 8px rgba(95, 179, 179, 0);
-        }
-      }
-
-      .hero-cta {
-        margin-top: 2rem;
-      }
-
-      .hero-cta .btn {
-        border-color: rgba(245, 242, 238, 0.62);
-      }
-
-      .home-landing .hero-content,
-      .home-landing .hero-content .text-caption,
-      .home-landing .hero-content h1,
-      .home-landing .hero-content p {
-        color: #ffffff !important;
-        text-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
-      }
-
-      .home-landing .header,
-      .home-landing .header-logo,
-      .home-landing .menu-btn,
-      .home-landing #authMenuButton {
-        color: #ffffff !important;
-      }
-
-      .home-landing .theme-toggle {
-        border-color: rgba(245, 242, 238, 0.38) !important;
-        background: rgba(11, 24, 24, 0.52) !important;
-      }
-
-      .home-landing .header.scrolled,
-      .home-landing .header.scrolled .header-logo,
-      .home-landing .header.scrolled .menu-btn,
-      .home-landing .header.scrolled #authMenuButton {
-        color: #112629 !important;
-      }
-
-      .home-landing .header.scrolled .theme-toggle {
-        color: #000000 !important;
-        border-color: rgba(0, 0, 0, 0.35) !important;
-        background: transparent;
-      }
-
-      .home-landing .hero .btn,
-      .home-landing .hero .btn-solid {
-        border-color: rgba(245, 242, 238, 0.62);
-        background-color: transparent;
-        color: #ffffff;
-      }
-
-      .hero-subtitle {
-        display: block;
-        margin-bottom: 1.5rem;
-        color: var(--color-accent) !important;
-      }
-
-      .home-landing #authActions {
-        gap: 0.55rem !important;
-        max-width: min(44vw, 620px);
-        overflow: visible;
-        flex-wrap: nowrap;
-        z-index: 5;
-      }
-
-      .home-landing.auth-actions-compact #authActions {
-        max-width: min(54vw, 240px);
-        gap: 0.35rem !important;
-      }
-
-      .home-landing #authMenuWrap {
-        max-width: 220px;
-        flex: 0 1 auto;
-      }
-
-      .home-landing.auth-actions-compact #authMenuWrap {
-        max-width: 118px;
-      }
-
-      .home-landing #authMenuButton {
-        max-width: 210px;
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        display: block;
-      }
-
-      .home-landing.auth-actions-compact #authMenuButton {
-        max-width: 112px;
-        font-size: 0.7rem !important;
-        letter-spacing: 0.06em;
-      }
-
-      .home-landing #authMenu {
-        top: calc(100% + 0.55rem) !important;
-        right: 0;
-        z-index: 20;
-      }
-
-      .home-landing .header-theme-toggle-inline {
-        order: -3;
-      }
-
-      .home-landing #btnIntake {
-        order: -2;
-        font-size: 0.58rem !important;
-        letter-spacing: 0.16em;
-        padding: 0 0.9rem !important;
-      }
-
-      .home-landing #authMenuWrap {
-        order: -1;
-      }
-
-      .home-landing #btnLogin {
-        letter-spacing: 0.22em;
-        font-size: 0.62rem !important;
-        white-space: nowrap;
-        background: rgba(11, 24, 24, 0.58) !important;
-        -webkit-backdrop-filter: blur(4px);
-        backdrop-filter: blur(4px);
-        isolation: isolate;
-      }
-
-      .home-landing #authActions .btn {
-        height: 32px;
-        padding: 0 1.25rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        align-self: center;
-        line-height: 1;
-      }
-
-      .home-landing #btnLogin::after,
-      .home-landing #btnAdmin::after,
-      .home-landing #btnIntake::after {
-        content: none !important;
-      }
-
-      .home-landing #btnAdmin,
-      .home-landing #btnIntake {
-        display: none;
-      }
-
-      .home-landing.auth-actions-compact #btnIntake,
-      .home-landing.auth-actions-compact #btnAdmin {
-        display: none !important;
-      }
-
-      @media (min-width: 1360px) {
-        .home-nav-links {
-          display: flex;
-        }
-
-        .home-landing .menu-btn {
-          display: none;
-        }
-
-        .home-landing.home-nav-collapsed .home-nav-links {
-          display: none;
-        }
-
-        .home-landing.home-nav-collapsed .menu-btn {
-          display: flex;
-        }
-
-        .home-landing:not(.home-nav-collapsed) .header-logo {
-          margin-left: 0;
-        }
-      }
-
-      @media (max-width: 1039px) {
-        .home-landing .header {
-          padding: 1rem 5%;
-          min-height: 64px;
-        }
-
-        .home-landing .header-logo {
-          position: absolute;
-          left: 50%;
-          transform: translateX(-50%);
-          font-size: 1.1rem;
-          letter-spacing: 0.16em;
-          margin-left: 0;
-        }
-
-        .home-landing #btnLogin,
-        .home-landing #btnAdmin {
-          display: none !important;
-        }
-
-        .hero-headline {
-          font-size: clamp(2.4rem, 10.5vw, 4.6rem);
-        }
-
-        .hero-content {
-          margin-top: clamp(6.2rem, 10vh, 7.8rem);
-        }
-
-        .home-landing #authActions {
-          max-width: 78%;
-          gap: 0.45rem !important;
-        }
-
-        .home-landing #authMenuWrap {
-          max-width: 180px;
-        }
-
-        .home-landing #authMenuButton {
-          max-width: 170px;
-          font-size: 0.76rem;
-        }
-      }
-
-      .vision-section {
-        background-color: var(--color-bg-primary);
-        position: relative;
-      }
-
-      .vision-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 4rem;
-        align-items: center;
-      }
-
-      @media (min-width: 992px) {
-        .vision-grid {
-          grid-template-columns: 5fr 7fr;
-          gap: 8rem;
-        }
-      }
-
-      .vision-image-wrapper {
-        position: relative;
-        width: 100%;
-        height: 600px;
-        overflow: hidden;
-      }
-
-      .vision-image {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: brightness(0.98);
-        transition: filter 1s var(--transition-smooth);
-      }
-
-      .vision-image-wrapper:hover .vision-image {
-        filter: brightness(1);
-      }
-
-      .info-card {
-        border-left: 1px solid var(--color-accent);
-        padding-left: 2rem;
-        margin-top: 3rem;
-      }
-
-      /* Partners Section Styles */
-      .partners-section {
-        background-color: var(--color-bg-primary);
-        padding-top: 6rem;
-        padding-bottom: 6rem;
-        border-top: 1px solid rgba(240, 248, 255, 0.05);
-      }
-
-      .partners-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 2rem;
-        margin-top: 4rem;
-        align-items: start;
-      }
-
-      @media (min-width: 992px) {
-        .partners-grid {
-          grid-template-columns: repeat(2, 1fr);
-        }
-      }
-
-      .partner-card {
-        background-color: var(--color-bg-secondary);
-        padding: 3rem;
-        text-align: left;
-        transition: var(--transition-smooth);
-        border: 1px solid transparent;
-        display: flex;
-        flex-direction: column;
-        height: fit-content;
-        text-decoration: none;
-      }
-
-      .partner-card:hover {
-        border-color: var(--color-accent);
-        transform: translateY(-5px);
-      }
-
-      .partner-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        margin-bottom: 0.5rem;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-
-      .partner-logo {
-        font-family: var(--font-heading);
-        font-size: 2rem;
-        color: var(--color-accent);
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        margin: 0;
-      }
-
-      .partner-badge {
-        background: rgba(201, 169, 110, 0.1);
-        color: var(--color-accent);
-        padding: 0.4rem 1rem;
-        border-radius: 100px;
-        font-size: 0.8rem;
-        font-weight: 500;
-      }
-
-      .partner-subtitle {
-        font-size: 1.1rem;
-        color: var(--color-text-primary);
-        font-weight: 500;
-        letter-spacing: 0.02em;
-        margin-bottom: 0;
-      }
-
-      .partner-details {
-        max-height: 0;
-        opacity: 0;
-        overflow: hidden;
-        transition:
-          max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-          opacity 0.4s ease,
-          margin-top 0.4s ease;
-        transition-delay: 0s;
-        margin-top: 0;
-        display: flex;
-        flex-direction: column;
-      }
-
-      .partner-card:hover .partner-details {
-        max-height: 600px;
-        opacity: 1;
-        margin-top: 1.5rem;
-        transition-delay: 0.3s;
-      }
-
-      .partner-meta {
-        display: flex;
-        flex-direction: column;
-        gap: 0.6rem;
-        margin-bottom: 1.5rem;
-        font-size: 0.95rem;
-        color: var(--color-text-secondary);
-      }
-
-      .partner-desc {
-        color: var(--color-text-secondary);
-        line-height: 1.6;
-        margin-bottom: 2rem;
-        flex-grow: 1;
-      }
-
-      .partner-conditions {
-        background: rgba(255, 255, 255, 0.03);
-        padding: 1.25rem;
-        border-radius: 4px;
-        font-size: 0.95rem;
-        color: var(--color-text-secondary);
-        border-left: 2px solid var(--color-accent);
-      }
-
-      .partner-conditions strong {
-        color: var(--color-text-primary);
-      }
-      /* Fix background-attachment: fixed on mobile (broken on iOS Safari) */
-      @media (max-width: 767px) {
-        .hero {
-          height: auto;
-          min-height: 100svh;
-          background-attachment: scroll;
-        }
-
-        .home-landing .header {
-          padding: 0.85rem 4.5%;
-          min-height: 60px;
-        }
-
-        .home-landing #authActions {
-          max-width: 72%;
-          gap: 0.35rem !important;
-        }
-
-        .home-landing.auth-actions-compact #authActions {
-          max-width: min(52vw, 208px);
-        }
-
-        .home-landing #authMenuWrap {
-          max-width: 148px;
-        }
-
-        .home-landing.auth-actions-compact #authMenuWrap {
-          max-width: 102px;
-        }
-
-        .home-landing #authMenuButton {
-          max-width: 142px;
-        }
-
-        .home-landing.auth-actions-compact #authMenuButton {
-          max-width: 96px;
-          font-size: 0.66rem !important;
-        }
-
-        .hero-content {
-          margin-top: clamp(5.8rem, 10vh, 6.8rem);
-          padding: 0 4.5%;
-        }
-
-        .hero-descriptor {
-          font-size: 0.72rem;
-          line-height: 1.75;
-        }
-
-        .hero-seekers {
-          margin-top: 1.3rem;
-          font-size: 0.62rem;
-          letter-spacing: 0.12em;
-        }
-
-        .home-nav-links {
-          max-width: 70vw;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .home-landing .header {
-          padding: 0.78rem 4%;
-          min-height: 56px;
-        }
-
-        .home-landing .header-logo {
-          font-size: 0.98rem;
-          letter-spacing: 0.1em;
-        }
-
-        .home-landing #authActions {
-          max-width: 68%;
-        }
-
-        .home-landing.auth-actions-compact #authActions {
-          max-width: min(49vw, 188px);
-          gap: 0.3rem !important;
-        }
-
-        .hero {
-          min-height: 94svh;
-        }
-
-        .hero-headline {
-          font-size: clamp(2rem, 11vw, 3rem);
-        }
-
-        .hero-content {
-          padding: 0 4%;
-        }
-      }
-    </style>
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-3YFE71RLJZ');
-    </script>
-  </head>
-  <body class="home-landing">
-    <!-- Navigation -->
-    <header class="header">
-      <button class="menu-btn" aria-label="Open navigation menu">
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M3 12H21"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M3 6H21"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-          <path
-            d="M3 18H21"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-          />
-        </svg>
-        <span class="menu-btn-label">Menu</span>
-      </button>
-      <a href="index.html" class="header-logo">Stillwater</a>
-      <nav class="home-nav-links" aria-label="Primary">
-        <a href="index.html">Vision</a>
-        <a href="testimonials.html">Testimonials</a>
-      </nav>
-      <div
-        id="authActions"
-        style="display: flex; gap: 0.75rem; align-items: center"
-      >
-        <div id="authMenuWrap" style="position: relative; display: inline-flex">
-          <button
-            id="authMenuButton"
-            style="
-              padding: 0;
-              font-size: 0.85rem;
-              color: var(--color-text-primary);
-              background: transparent;
-              border: none;
-              cursor: pointer;
-              display: none;
-            "
-          >
-            Hi
-          </button>
-          <div
-            id="authMenu"
-            style="
-              position: absolute;
-              top: 2rem;
-              right: 0;
-              min-width: 160px;
-              background: var(--color-bg-secondary);
-              border: 1px solid rgba(255, 255, 255, 0.08);
-              border-radius: 12px;
-              padding: 0.4rem;
-              display: none;
-              box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
-            "
-          >
-            <a
-              id="btnLogout"
-              href="/logout"
-              style="
-                display: block;
-                padding: 0.5rem 0.75rem;
-                color: var(--color-text-primary);
-                text-decoration: none;
-                font-size: 0.8rem;
-              "
-              >Log out</a
-            >
-          </div>
-        </div>
-        <a
-          href="auth.html"
-          id="btnLogin"
-          class="btn btn-solid"
-          style="padding: 0.5rem 1.5rem; font-size: 0.75rem"
-          >Login/Sign up</a
-        >
-        <a
-          href="admin.html"
-          id="btnAdmin"
-          class="btn btn-solid"
-          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
-          >Admin Dashboard</a
-        >
-        <a
-          href="/intake.html"
-          id="btnIntake"
-          class="btn btn-solid"
-          style="padding: 0.5rem 1.5rem; font-size: 0.75rem; display: none"
-          >Wellness Assessment</a
-        >
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stilwater | Your AI Companion for Personal Health</title>
+<meta name="description" content="Stilwater is an AI companion for personal health. Share your conditions and routine, and get a personalized diet, lifestyle, and exercise plan — with recipe links — to help manage chronic conditions like diabetes and hypertension." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet" />
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-3YFE71RLJZ');
+</script>
+<style>
+  :root{
+    --ink:#1c2a2a;--ink-soft:#42514f;--paper:#f4f1ea;--paper-warm:#ece6da;
+    --sage:#8aa399;--sage-deep:#5f7d72;--moss:#2f4842;--clay:#c08457;--clay-soft:#d9a679;
+    --mist:#dde6e2;--line:rgba(47,72,66,.14);--shadow:0 20px 60px -28px rgba(28,42,42,.45);
+    --display:'Fraunces',Georgia,serif;--body:'Outfit',-apple-system,sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{font-family:var(--body);color:var(--ink);background:var(--paper);line-height:1.6;font-weight:300;-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+  .em{font-style:italic;color:var(--sage-deep);}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;opacity:.035;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+
+  nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,5vw,64px);background:rgba(244,241,234,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
+  .brand{font-family:var(--display);font-size:1.45rem;font-weight:500;letter-spacing:.5px;color:var(--moss);text-decoration:none;}
+  .brand span{color:var(--clay);}
+  .nav-links{display:flex;gap:28px;align-items:center;}
+  .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:.92rem;letter-spacing:.3px;transition:color .25s;}
+  .nav-links a:hover{color:var(--moss);}
+  .nav-cta{background:var(--moss);color:var(--paper)!important;padding:11px 24px;border-radius:100px;font-size:.9rem;transition:transform .25s,box-shadow .25s;}
+  .nav-cta:hover{transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(47,72,66,.5);}
+  .menu-btn{display:none !important;}
+  @media(max-width:820px){
+    .nav-links{display:none;}
+    /* Compact auth zone on mobile so brand + user icon + hamburger fit */
+    #authActions{gap:8px;}
+    #btnLogin{font-size:.85rem;border-bottom:none;}
+    #authMenuButton{max-width:44px;min-width:36px;padding:0;border-radius:50%;overflow:hidden;justify-content:center;}
+    #authMenuButton .auth-btn-label{display:none;}
+    #authMenuButton .auth-btn-icon{display:block;width:22px;height:22px;}
+  }
+
+  /* Auth actions (wired by js/shared.js) */
+  #authActions{display:flex;gap:14px;align-items:center;}
+  #btnLogin{color:var(--moss);text-decoration:none;font-size:.92rem;letter-spacing:.3px;border-bottom:1px solid var(--clay);padding-bottom:2px;transition:color .25s;}
+  #btnLogin:hover{color:var(--clay);}
+  #authMenuWrap{position:relative;display:inline-flex;}
+  #authMenuButton{background:none;border:none;cursor:pointer;font-family:var(--body);font-size:.92rem;color:var(--moss);display:none;align-items:center;gap:6px;}
+  #authMenu{position:absolute;top:30px;right:0;min-width:170px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:6px;display:none;box-shadow:var(--shadow);}
+  #authMenu a{display:block;padding:9px 12px;color:var(--ink-soft);text-decoration:none;font-size:.88rem;border-radius:9px;}
+  #authMenu a:hover{background:var(--mist);color:var(--moss);}
+  #btnAdmin,#btnIntake{background:var(--moss);color:var(--paper)!important;padding:9px 18px;border-radius:100px;font-size:.86rem;text-decoration:none;display:none;}
+  #btnAdmin:hover,#btnIntake:hover{transform:translateY(-2px);}
+
+  /* Mobile menu panel */
+  .mobile-menu{display:none;position:fixed;top:0;right:0;bottom:0;width:min(82vw,320px);z-index:1100;background:var(--paper);border-left:1px solid var(--line);box-shadow:-20px 0 60px -30px rgba(28,42,42,.5);padding:84px 30px 40px;flex-direction:column;gap:6px;transform:translateX(100%);transition:transform .32s cubic-bezier(.2,.7,.2,1);}
+  .mobile-menu.open{display:flex;transform:translateX(0);}
+  .mobile-menu a{color:var(--ink);text-decoration:none;font-size:1.05rem;padding:13px 0;border-bottom:1px solid var(--line);}
+  .mobile-menu a.mm-cta{margin-top:18px;background:var(--moss);color:var(--paper);text-align:center;border-radius:100px;padding:13px 0;border:none;}
+  .mobile-menu-close{position:absolute;top:24px;right:26px;background:none;border:none;font-size:1.6rem;color:var(--moss);cursor:pointer;line-height:1;}
+  .menu-scrim{display:none;position:fixed;inset:0;background:rgba(28,42,42,.4);z-index:1050;}
+  .menu-scrim.open{display:block;}
+
+  header{position:relative;min-height:100vh;display:flex;align-items:center;padding:140px clamp(20px,5vw,64px) 90px;background:radial-gradient(120% 90% at 80% 10%, rgba(138,163,153,.32), transparent 60%),radial-gradient(90% 80% at 0% 100%, rgba(192,132,87,.16), transparent 55%),var(--paper);overflow:hidden;}
+  .ripple{position:absolute;border:1px solid rgba(95,125,114,.22);border-radius:50%;top:8%;right:-12%;width:640px;height:640px;animation:breathe 9s ease-in-out infinite;}
+  .ripple.two{width:460px;height:460px;top:18%;right:-2%;border-color:rgba(192,132,87,.22);animation-delay:.6s;}
+  .ripple.three{width:300px;height:300px;top:28%;right:8%;border-color:rgba(95,125,114,.3);animation-delay:1.2s;}
+  @keyframes breathe{0%,100%{transform:scale(1);opacity:.7;}50%{transform:scale(1.06);opacity:1;}}
+  .hero-inner{position:relative;z-index:2;max-width:780px;}
+  .eyebrow{display:inline-flex;align-items:center;gap:10px;font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--sage-deep);margin-bottom:28px;font-weight:500;}
+  .eyebrow::before{content:"";width:30px;height:1px;background:var(--sage-deep);}
+  h1{font-family:var(--display);font-weight:400;font-size:clamp(2.5rem,6vw,4.4rem);line-height:1.05;color:var(--moss);letter-spacing:-.5px;margin-bottom:26px;}
+  .hero-sub{font-size:clamp(1.05rem,2vw,1.25rem);color:var(--ink-soft);max-width:580px;margin-bottom:38px;}
+  .hero-actions{display:flex;gap:18px;align-items:center;flex-wrap:wrap;}
+  .btn-primary{background:var(--moss);color:var(--paper);padding:16px 38px;border-radius:100px;font-size:1rem;text-decoration:none;transition:transform .25s,box-shadow .25s;box-shadow:var(--shadow);border:none;cursor:pointer;font-family:var(--body);}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 28px 50px -20px rgba(47,72,66,.6);}
+  .btn-ghost{color:var(--moss);text-decoration:none;font-size:1rem;border-bottom:1px solid var(--clay);padding-bottom:3px;background:none;border-top:none;border-left:none;border-right:none;cursor:pointer;font-family:var(--body);}
+  .reveal{opacity:0;transform:translateY(26px);animation:rise .9s cubic-bezier(.2,.7,.2,1) forwards;}
+  .reveal.d1{animation-delay:.08s;}.reveal.d2{animation-delay:.2s;}.reveal.d3{animation-delay:.34s;}.reveal.d4{animation-delay:.5s;}
+  @keyframes rise{to{opacity:1;transform:translateY(0);}}
+
+  section{padding:clamp(70px,10vw,120px) clamp(20px,5vw,64px);position:relative;}
+  .kicker{font-size:.78rem;letter-spacing:.22em;text-transform:uppercase;color:var(--clay);font-weight:500;margin-bottom:18px;}
+  .section-title{font-family:var(--display);font-weight:400;font-size:clamp(1.9rem,4vw,2.9rem);color:var(--moss);line-height:1.1;letter-spacing:-.4px;max-width:760px;}
+  .section-lead{font-size:1.08rem;color:var(--ink-soft);max-width:620px;margin-top:20px;}
+
+  /* HOW IT WORKS */
+  .how{background:var(--paper-warm);}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;margin-top:58px;}
+  .step{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:38px 34px;transition:transform .35s,box-shadow .35s;}
+  .step:hover{transform:translateY(-6px);box-shadow:var(--shadow);}
+  .step .num{font-family:var(--display);font-size:2.2rem;color:var(--clay);line-height:1;}
+  .step h3{font-family:var(--display);font-weight:500;font-size:1.35rem;color:var(--moss);margin:16px 0 10px;}
+  .step p{font-size:.98rem;color:var(--ink-soft);}
+
+  /* FEATURES */
+  .features{background:var(--paper);}
+  .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:26px;margin-top:56px;}
+  .feat{border:1px solid var(--line);border-radius:20px;padding:34px 30px;transition:transform .35s,box-shadow .35s;background:var(--paper);}
+  .feat:hover{transform:translateY(-5px);box-shadow:var(--shadow);}
+  .glyph{width:48px;height:48px;border-radius:13px;background:var(--mist);display:grid;place-items:center;margin-bottom:22px;}
+  .glyph svg{width:24px;height:24px;stroke:var(--sage-deep);fill:none;stroke-width:1.6;}
+  .feat h3{font-family:var(--display);font-weight:500;font-size:1.25rem;color:var(--moss);margin-bottom:10px;}
+  .feat p{font-size:.95rem;color:var(--ink-soft);}
+
+  /* CTA */
+  .final{background:radial-gradient(90% 80% at 50% 0%, rgba(138,163,153,.28), transparent 60%),var(--paper);text-align:center;}
+  .final h2{font-family:var(--display);font-weight:400;font-size:clamp(2rem,5vw,3.2rem);color:var(--moss);max-width:680px;margin:0 auto 22px;line-height:1.1;}
+  .final p{color:var(--ink-soft);max-width:520px;margin:0 auto 36px;font-size:1.05rem;}
+  .disclaimer{max-width:740px;margin:54px auto 0;padding:20px 28px;border-radius:16px;background:rgba(95,125,114,.07);border:1px solid var(--line);font-size:.85rem;color:var(--ink-soft);line-height:1.55;text-align:center;}
+
+  /* FOOTER — social left, pages right */
+  footer{background:var(--moss);color:rgba(244,241,234,.82);padding:60px clamp(20px,5vw,64px) 32px;}
+  .footer-top{display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;align-items:flex-start;max-width:1180px;margin:0 auto;}
+  .footer-left{max-width:380px;}
+  .footer-left .brand{color:var(--paper);}
+  .footer-left .brand span{color:var(--clay-soft);}
+  .footer-left p{font-size:.92rem;color:rgba(244,241,234,.7);margin:14px 0 22px;}
+  .footer-social{display:flex;gap:14px;}
+  .footer-social a{width:40px;height:40px;border-radius:50%;border:1px solid rgba(244,241,234,.28);display:grid;place-items:center;color:rgba(244,241,234,.8);transition:background .25s,color .25s,transform .25s;}
+  .footer-social a:hover{background:rgba(244,241,234,.12);color:var(--paper);transform:translateY(-2px);}
+  .footer-social svg{width:18px;height:18px;}
+  .footer-right{display:flex;flex-direction:column;gap:6px;min-width:180px;}
+  .footer-right h4{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:var(--clay-soft);margin-bottom:10px;font-weight:500;}
+  .footer-right a{color:rgba(244,241,234,.78);text-decoration:none;font-size:.93rem;padding:5px 0;transition:color .25s;}
+  .footer-right a:hover{color:var(--paper);}
+  .footer-bottom{margin-top:42px;padding-top:24px;border-top:1px solid rgba(244,241,234,.16);font-size:.84rem;color:rgba(244,241,234,.6);text-align:center;}
+  @media(max-width:620px){.footer-top{flex-direction:column;gap:34px;}}
+
+  /* Cookie consent banner (created by js/shared.js) */
+  .cookie-banner{position:fixed;bottom:0;left:0;width:100%;background:var(--paper-warm);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:1.4rem clamp(20px,5vw,64px);display:flex;flex-direction:column;gap:1rem;z-index:9000;transform:translateY(100%);transition:transform .5s cubic-bezier(.2,.7,.2,1);}
+  @media(min-width:768px){.cookie-banner{flex-direction:row;align-items:center;justify-content:space-between;}}
+  .cookie-banner.show{transform:translateY(0);}
+  .cookie-text{flex:1;color:var(--ink-soft);font-size:.86rem;}
+  .cookie-buttons{display:flex;gap:1rem;align-items:center;}
+  .btn-cookie,#btnAcceptCookies{background:var(--moss);color:var(--paper);border:none;padding:.6rem 1.5rem;border-radius:100px;font-size:.82rem;cursor:pointer;font-family:var(--body);}
+
+  /* Aria welcome popup */
+  .welcome-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(28,42,42,.42);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:opacity .4s ease;}
+  .welcome-overlay.show{opacity:1;pointer-events:auto;}
+  .welcome-card{position:relative;width:100%;max-width:430px;background:var(--paper);border:1px solid var(--line);border-radius:26px;padding:46px 38px 38px;text-align:center;box-shadow:var(--shadow);transform:translateY(18px) scale(.97);transition:transform .42s cubic-bezier(.2,.7,.2,1);}
+  .welcome-overlay.show .welcome-card{transform:translateY(0) scale(1);}
+  .welcome-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:var(--ink-soft);cursor:pointer;line-height:1;}
+  .welcome-logo{width:180px;height:auto;margin:0 auto 18px;display:block;}
+  .welcome-brand{font-family:var(--display);font-size:2rem;font-weight:500;letter-spacing:.5px;color:var(--moss);margin:0 0 18px;}
+  .welcome-brand span{color:var(--clay);}
+  .welcome-card .eyebrow{justify-content:center;margin-bottom:14px;}
+  .welcome-card h2{font-family:var(--display);font-weight:400;font-size:1.7rem;color:var(--moss);line-height:1.2;margin-bottom:12px;}
+  .welcome-card h2 .em{display:inline;}
+  .welcome-card p{font-size:.98rem;color:var(--ink-soft);margin-bottom:26px;}
+  .btn-google{display:inline-flex;align-items:center;justify-content:center;gap:11px;width:100%;background:var(--moss);color:var(--paper);border:none;padding:14px 22px;border-radius:100px;font-size:.98rem;font-family:var(--body);text-decoration:none;cursor:pointer;transition:transform .25s,box-shadow .25s;}
+  .btn-google:hover{transform:translateY(-2px);box-shadow:0 16px 30px -14px rgba(47,72,66,.6);}
+  .btn-google .g-badge{width:22px;height:22px;border-radius:50%;background:#fff;display:grid;place-items:center;}
+  .btn-google .g-badge svg{width:14px;height:14px;}
+  .welcome-later{display:inline-block;margin-top:16px;background:none;border:none;color:var(--ink-soft);font-size:.85rem;cursor:pointer;font-family:var(--body);text-decoration:underline;text-underline-offset:3px;}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">Stil<span>water</span></a>
+  <div class="nav-links">
+    <a href="#how" data-i18n="nav.howItWorks">How it works</a>
+    <a href="#features" data-i18n="nav.features">Features</a>
+  </div>
+  <div id="authActions">
+    <div id="authMenuWrap">
+      <button id="authMenuButton" aria-label="Account menu">Hi</button>
+      <div id="authMenu">
+        <a id="btnLogout" href="/logout" data-i18n="auth.logout">Log out</a>
       </div>
-    </header>
-
-    <!-- Full Screen Drawer Menu -->
-    <div class="menu-drawer">
-      <button class="menu-drawer-close">Close &#10005;</button>
-      <div class="menu-drawer-left">
-        <ul class="menu-list">
-          <li><a href="index.html">Vision</a></li>
-          <li><a href="testimonials.html">Testimonials</a></li>
-          <li><a href="auth.html">Waitlist</a></li>
-        </ul>
-      </div>
-      <div
-        class="menu-drawer-right"
-        style="background-image: url(&quot;images/e.png&quot;)"
-      ></div>
     </div>
+    <a href="auth.html" id="btnLogin" data-i18n="auth.login">Login / Sign up</a>
+    <a href="admin.html" id="btnAdmin" data-i18n="auth.adminDashboard">Admin Dashboard</a>
+    <a href="/intake.html" id="btnIntake">Continue Care Path</a>
+  </div>
+  <button class="menu-btn" id="menuBtn" aria-label="Open menu">&#9776;</button>
+</nav>
 
-    <!-- Hero Section -->
-    <section class="hero">
-      <video
-        class="hero-video"
-        id="heroVideo"
-        autoplay
-        loop
-        muted
-        playsinline
-        webkit-playsinline
-      >
-        <source src="visionBGvideo.mp4" type="video/mp4" />
-      </video>
-      <div class="hero-content">
-        <span class="text-caption hero-subtitle fade-up"
-          >The Global Community of Holistic Healing</span
-        >
-        <h1
-          class="hero-headline fade-up"
-          style="transition-delay: 0.2s; margin-bottom: 1.5rem"
-        >
-          <span class="hero-line">Healing rooted in</span>
-          <span class="hero-line"><em>ancient Indian tradition,</em></span>
-          <span class="hero-line">clinically proven through</span>
-          <span class="hero-line"><em>scientific methods.</em></span>
-        </h1>
-        <p
-          class="hero-descriptor fade-up"
-          style="margin-bottom: 2rem; transition-delay: 0.3s"
-        >
-          Where timeless wisdom meets evidence-based practice.<br />
-          Your journey to wholeness begins here.
-        </p>
-        <div class="hero-seekers fade-up" style="transition-delay: 0.37s">
-          <span class="hero-seekers-dot"></span>
-          <span
-            ><span id="waitlistCount">195</span> seekers have already joined the
-            waiting list</span
-          >
-        </div>
-        <div class="hero-cta fade-up" style="transition-delay: 0.45s">
-          <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
-        </div>
-      </div>
-    </section>
+<!-- Mobile menu -->
+<div class="menu-scrim" id="menuScrim"></div>
+<aside class="mobile-menu" id="mobileMenu" aria-label="Mobile navigation">
+  <button class="mobile-menu-close" id="mobileMenuClose" aria-label="Close menu">&times;</button>
+  <a href="#how">How it works</a>
+  <a href="#features">Features</a>
+  <a href="auth.html" id="mmLogin">Login / Sign up</a>
+</aside>
 
-    <section class="provider-row">
-      <div class="text-center fade-up">
-        <span class="text-caption">Trusted Partners</span>
-        <h2 class="text-h2" style="margin-top: 0.8rem">
-          Holistic Health Providers in the Stillwater Community
-        </h2>
-      </div>
-      <div class="provider-row-grid fade-up" style="transition-delay: 0.12s">
-        <article class="provider-card">
-          <span class="provider-tag">Plant Nutrition</span>
-          <h3>SHARAN</h3>
-          <p>
-            Trusted holistic partner for whole-food, plant-based guidance that
-            supports metabolic health, emotional resilience, and sustainable
-            lifestyle routines.
-          </p>
-        </article>
-        <article class="provider-card">
-          <span class="provider-tag">Eye Wellness</span>
-          <h3>Amar Eye Yoga</h3>
-          <p>
-            Trusted holistic partner blending yogic eye practices and mindful
-            routines for visual comfort, screen-strain reduction, and daily
-            focus support.
-          </p>
-        </article>
-        <article class="provider-card">
-          <span class="provider-tag">Ayurveda Retreat</span>
-          <h3>Divine Veda</h3>
-          <p>
-            Trusted holistic partner offering restorative programs with
-            Ayurveda, movement, and nature-based experiences that nurture calm
-            and overall wellbeing.
-          </p>
-        </article>
-        <article class="provider-card">
-          <span class="provider-tag">Frequency Support</span>
-          <h3>Frequency-Based Healing Devices</h3>
-          <p>
-            Trusted holistic partner using frequency-oriented wellness devices
-            to support relaxation, recovery routines, and balance-focused daily
-            care plans.
-          </p>
-        </article>
-      </div>
+<header>
+  <div class="ripple"></div><div class="ripple two"></div><div class="ripple three"></div>
+  <div class="hero-inner">
+    <div class="eyebrow reveal" data-i18n="home.heroEyebrow">Your AI companion for personal health</div>
+    <h1 class="reveal d1"><span data-i18n="home.heroTitleA">Managing a chronic condition,</span><br><span class="em" data-i18n="home.heroTitleB">one good day at a time.</span></h1>
+    <p class="hero-sub reveal d2" data-i18n="home.heroSub">Living with diabetes or hypertension? Stilwater builds you a personalized diet, lifestyle, and exercise routine &mdash; complete with recipe links &mdash; so you can take steady, daily steps toward managing your condition and living well.</p>
+    <div class="hero-actions reveal d3">
+      <a href="care-path.html" class="btn-primary" data-care-cta>Continue Care Path</a>
+      <a href="#how" class="btn-ghost" data-i18n="home.seeHowItWorks">See how it works &rarr;</a>
+    </div>
+  </div>
+</header>
 
-      <div
-        class="text-center fade-up"
-        style="margin-top: 2.25rem; transition-delay: 0.2s"
-      >
-        <a href="auth.html" class="btn btn-solid">Join The Waitlist</a>
-      </div>
-    </section>
+<!-- HOW IT WORKS -->
+<section class="how" id="how">
+  <div class="kicker reveal" data-i18n="home.howKicker">How it works</div>
+  <h2 class="section-title reveal d1" data-i18n="home.howTitle">Your plan, shaped around your life.</h2>
+  <div class="steps">
+    <div class="step reveal d1">
+      <div class="num">1</div>
+      <h3 data-i18n="home.step1.title">Share where you are</h3>
+      <p data-i18n="home.step1.body">Tell Stilwater your current conditions and your everyday diet and lifestyle. The more it knows, the better it understands you.</p>
+    </div>
+    <div class="step reveal d2">
+      <div class="num">2</div>
+      <h3 data-i18n="home.step2.title">Get your regimen</h3>
+      <p data-i18n="home.step2.body">The AI creates a personalized diet, lifestyle, and exercise routine &mdash; with recipe links &mdash; designed to be easy to follow, day after day.</p>
+    </div>
+    <div class="step reveal d3">
+      <div class="num">3</div>
+      <h3 data-i18n="home.step3.title">Follow &amp; refine</h3>
+      <p data-i18n="home.step3.body">As you check in, Stilwater keeps learning your preferences and adjusts your meal plans and routines to fit you better over time.</p>
+    </div>
+  </div>
+</section>
 
-    <!-- Trust Indicators Banner -->
-    <section class="trust-banner">
-      <div class="stats-grid">
-        <div class="trust-item fade-up" style="transition-delay: 0.1s">
-          <span class="trust-value" id="trustProviders">...</span>
-          <span class="trust-label">Verified Providers</span>
-        </div>
-        <div class="trust-item fade-up" style="transition-delay: 0.2s">
-          <span class="trust-value" id="trustAuthenticity">...</span>
-          <span class="trust-label">Authentic</span>
-        </div>
-      </div>
-    </section>
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="kicker reveal" data-i18n="home.featKicker">What you can do</div>
+  <h2 class="section-title reveal d1" data-i18n="home.featTitle">A companion you can talk to, any time.</h2>
+  <div class="feat-grid">
+    <div class="feat reveal d1">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg></div>
+      <h3 data-i18n="home.feat1.title">Chat any time</h3>
+      <p data-i18n="home.feat1.body">Ask questions whenever they come up and get clear, personalized answers &mdash; no waiting for an appointment.</p>
+    </div>
+    <div class="feat reveal d2">
+      <div class="glyph"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="12" cy="12" r="3"/><path d="M8 5l1.5-2h5L16 5"/></svg></div>
+      <h3 data-i18n="home.feat2.title">Snap your food</h3>
+      <p data-i18n="home.feat2.body">Upload a photo of a meal and ask whether it's the right choice for you. Get an answer in seconds.</p>
+    </div>
+    <div class="feat reveal d3">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 11h8M8 15h5"/></svg></div>
+      <h3 data-i18n="home.feat3.title">Keep a journal</h3>
+      <p data-i18n="home.feat3.body">Upload your daily journals and Stilwater learns your preferences, tailoring suggestions to what actually works for you.</p>
+    </div>
+    <div class="feat reveal d4">
+      <div class="glyph"><svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10z"/></svg></div>
+      <h3 data-i18n="home.feat4.title">Meals &amp; movement</h3>
+      <p data-i18n="home.feat4.body">Receive easy daily meal plans and exercise routines you can genuinely keep up with, refined as you go.</p>
+    </div>
+  </div>
+</section>
 
-    <!-- Vision Section -->
-    <section id="vision" class="section vision-section container">
-      <div class="vision-grid">
-        <div class="vision-text fade-up">
-          <span class="text-caption">The Concept</span>
-          <h2 class="text-h1" style="margin: 1.5rem 0">
-            Escaping the<br />Modern Stress.
-          </h2>
-          <p
-            style="
-              color: var(--color-text-secondary);
-              margin-bottom: 2rem;
-              font-size: 1.125rem;
-            "
-          >
-            In an era defined by constant connectivity and pressure, we have
-            lost touch with our natural state of being. Stillwater is not just a
-            destination; it's a movement towards intentional living, holistic
-            healing, and profound stress relief.
-          </p>
+<!-- CTA -->
+<section class="final" id="waitlist">
+  <h2 data-i18n="home.finalTitle">Steadier days start here.</h2>
+  <p data-i18n="home.finalBody">Join the waitlist and be among the first to meet Stilwater &mdash; your personalized companion for living well with a chronic condition.</p>
+  <a href="care-path.html" class="btn-primary" data-care-cta>Continue Care Path</a>
+  <div class="disclaimer"><strong data-i18n="home.disclaimerLabel">A note on care:</strong> <span data-i18n="home.disclaimerBody">Stilwater offers personalized lifestyle, diet, and exercise guidance to support you alongside your medical care. It does not diagnose, treat, or cure any disease and does not replace advice from your doctor. Always consult your care team before changing your diet, medication, or exercise, and seek immediate medical attention in an emergency.</span></div>
+</section>
 
-          <div class="info-card fade-up">
-            <h3
-              class="text-h2"
-              style="
-                font-size: 1.5rem;
-                margin-bottom: 1rem;
-                color: var(--color-accent);
-              "
-            >
-              Holistic Approach
-            </h3>
-            <p style="color: var(--color-text-secondary)">
-              Integrating mind, body, and spirit through clinically backed
-              practices and ancient wisdom. From sound baths and meditation to
-              deep tissue restoration.
-            </p>
-          </div>
-        </div>
-
-        <div
-          class="vision-image-wrapper fade-up"
-          style="transition-delay: 0.2s"
-        >
-          <img
-            src="images/c.png"
-            alt="Calm wellness landscape"
-            class="vision-image"
-          />
-        </div>
-      </div>
-    </section>
-
-    <!-- Mission & Vision Section -->
-    <section
-      class="section"
-      style="
-        background-color: var(--color-bg-secondary);
-        border-top: 1px solid rgba(201, 169, 110, 0.1);
-        border-bottom: 1px solid rgba(201, 169, 110, 0.1);
-      "
-    >
-      <div class="container">
-        <div class="grid-2">
-          <!-- Mission -->
-          <div class="fade-up" style="padding: 2rem 0">
-            <span class="text-caption">What Drives Us</span>
-            <h2
-              class="text-h1"
-              style="margin: 1.5rem 0; font-size: clamp(1.75rem, 3vw, 2.5rem)"
-            >
-              Our Mission
-            </h2>
-            <p
-              style="
-                color: var(--color-text-secondary);
-                font-size: 1.05rem;
-                line-height: 1.85;
-              "
-            >
-              To help individuals understand the deeper causes of stress,
-              emotional imbalance, and mental fatigue &mdash; and to support
-              them in building a healthier relationship with their mind and
-              body.
-            </p>
-          </div>
-          <!-- Vision -->
-          <div
-            class="fade-up"
-            style="
-              padding: 2rem 0;
-              border-left: 1px solid rgba(201, 169, 110, 0.15);
-              padding-left: 3rem;
-            "
-            class="fade-up"
-          >
-            <span class="text-caption">Where We're Headed</span>
-            <h2
-              class="text-h1"
-              style="margin: 1.5rem 0; font-size: clamp(1.75rem, 3vw, 2.5rem)"
-            >
-              Our Vision
-            </h2>
-            <p
-              style="
-                color: var(--color-text-secondary);
-                font-size: 1.05rem;
-                line-height: 1.85;
-              "
-            >
-              A world where mental and emotional well-being are approached with
-              understanding, compassion, and awareness &mdash; where people feel
-              empowered to take meaningful steps toward lasting balance and
-              inner clarity.
-            </p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Verified Healing Partners Section -->
-    <section id="partners" class="section partners-section container">
-      <div class="text-center fade-up">
-        <span class="text-caption">Our Ecosystem</span>
-        <h2 class="text-h1" style="margin-top: 1rem">
-          Verified Healing Partners
-        </h2>
-        <p
-          style="
-            max-width: 600px;
-            margin: 1.5rem auto 0;
-            color: var(--color-text-secondary);
-            font-size: 1.125rem;
-          "
-        >
-          We collaborate with world-renowned practitioners and organizations to
-          deliver a comprehensive holistic healing experience.
-        </p>
-      </div>
-
-      <div class="partners-grid fade-up" style="transition-delay: 0.2s">
-        <!-- SHARAN -->
-        <a
-          href="/sharan.html"
-          class="partner-card"
-        >
-          <div class="partner-header">
-            <h3 class="partner-logo">SHARAN</h3>
-            <span class="partner-badge">Nari Shakti Award Winner</span>
-          </div>
-          <p class="partner-subtitle">
-            Plant-Based Nutrition & Disease Reversal
-          </p>
-          <div class="partner-details">
-            <p class="partner-desc">
-              Dr. Nandita Shah's pioneering organization supports long-term
-              wellbeing through whole-food plant-based nutrition, lifestyle
-              guidance, and compassionate community support.
-            </p>
-            <div class="partner-conditions">
-              <strong>Conditions:</strong> Diabetes, Heart Disease, Obesity,
-              Autoimmune
-            </div>
-          </div>
+<footer>
+  <div class="footer-top">
+    <div class="footer-left">
+      <a href="index.html" class="brand">Stil<span>water</span></a>
+      <p data-i18n="footer.tagline">Your AI companion for personal health &mdash; personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.</p>
+      <div class="footer-social">
+        <a href="https://www.instagram.com/Stilwater_Official" target="_blank" rel="noopener" aria-label="Instagram">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
         </a>
-
-        <!-- Amar Eye Yoga -->
-        <a
-          href="/amar-eye-yoga.html"
-          class="partner-card"
-        >
-          <div class="partner-header">
-            <h3 class="partner-logo">Amar Eye Yoga</h3>
-            <span class="partner-badge">based in Auroville</span>
-          </div>
-          <p class="partner-subtitle">Eye Yoga & Vision Healing</p>
-          <div class="partner-details">
-            <p class="partner-desc">
-              Ancient yogic techniques combined with modern understanding to
-              support visual comfort and eye resilience in daily life,
-              especially for myopia, hyperopia, and eye strain routines.
-            </p>
-            <div class="partner-conditions">
-              <strong>Conditions:</strong> Myopia, Hyperopia, Eye Strain,
-              Computer Vision Syndrome
-            </div>
-          </div>
+        <a href="https://www.linkedin.com/company/Stilwater-Official" target="_blank" rel="noopener" aria-label="LinkedIn">
+          <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 17v-4c0-1.5 1-3 3-3s3 1.5 3 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="7.5" r="1" fill="currentColor"/></svg>
         </a>
-
-        <!-- Quantum Healing Devices -->
-        <a class="partner-card" href="/healy.html">
-          <div class="partner-header">
-            <h3 class="partner-logo">Healy Quantum</h3>
-            <span class="partner-badge">German Technology</span>
-          </div>
-          <p class="partner-subtitle">Bioenergetic Technology</p>
-          <div class="partner-details">
-            <p class="partner-desc">
-              Frequency programs designed to support pain-care routines, sleep
-              hygiene, and mental balance. A blend of modern technology and
-              holistic energy principles.
-            </p>
-            <div class="partner-conditions">
-              <strong>Conditions:</strong> Chronic Pain, Sleep Disorders,
-              Anxiety, Fatigue
-            </div>
-          </div>
+        <a href="https://www.Facebook.com/StilwaterOfficial" target="_blank" rel="noopener" aria-label="Facebook">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-
-        <!-- Divine Veda Retreat -->
-        <div class="partner-card">
-          <div class="partner-header">
-            <h3 class="partner-logo">Divine Veda Retreat</h3>
-            <span class="partner-badge">Top Rated Retreat</span>
-          </div>
-          <p class="partner-subtitle">Ayurveda & Wellness Retreat</p>
-          <div class="partner-details">
-            <p class="partner-desc">
-              Nestled in the serene forests of Kanakpura, Bengaluru. Immersive
-              Ayurvedic care, yoga, and sattvic meals in a nature sanctuary
-              designed to support restoration and mindful living.
-            </p>
-            <div class="partner-conditions">
-              <strong>Conditions:</strong> Stress, Detox, Spiritual Healing,
-              Lifestyle Reset
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section
-      class="section container"
-      style="text-align: center; max-width: 900px; padding-top: 5rem"
-    >
-      <h2 class="text-h2 fade-up">
-        "Healing is a matter of time, but it is sometimes also a matter of
-        opportunity."
-      </h2>
-      <span
-        class="text-caption fade-up"
-        style="display: block; margin-top: 2rem; transition-delay: 0.2s"
-        >&mdash; Hippocrates</span
-      >
-      <div style="margin-top: 4rem" class="fade-up">
-        <a href="auth.html" class="btn">Join The Waitlist</a>
-      </div>
-    </section>
-
-    <!-- Shared Footer -->
-    <footer class="footer container">
-      <div class="grid-2">
-        <div>
-          <h3 class="header-logo" style="margin-bottom: 1rem">Stillwater</h3>
-          <p style="color: var(--color-text-secondary); max-width: 300px">
-            Pioneering the future of holistic healing, stress management, and
-            premium digital wellness.
-          </p>
-        </div>
-        <div
-          style="
-            display: flex;
-            gap: 2rem;
-            justify-content: flex-end;
-            flex-wrap: wrap;
-          "
-        >
-          <!-- Explore and Connect columns removed — Legal & Compliance
-               column is injected here by js/shared.js -->
-        </div>
-      </div>
-      <!-- Social Links -->
-      <div class="social-links">
-        <!-- Instagram -->
-        <a
-          href="https://www.instagram.com/Stilwater_Official"
-          target="_blank"
-          rel="noopener"
-          aria-label="Instagram"
-          class="social-icon"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              x="2"
-              y="2"
-              width="20"
-              height="20"
-              rx="5"
-              ry="5"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <circle
-              cx="12"
-              cy="12"
-              r="4.5"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <circle cx="17.5" cy="6.5" r="1" fill="currentColor" />
-          </svg>
+        <a href="http://www.pinterest.com/stilwater-official" target="_blank" rel="noopener" aria-label="Pinterest">
+          <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 18l2-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 11c0-2 1.5-3.5 3.5-3.5s3.5 1.3 3.5 3.3-1.5 3.7-3.3 3.7c-1 0-1.7-.5-1.7-1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </a>
-        <!-- LinkedIn -->
-        <a
-          href="https://www.linkedin.com/company/Stilwater-Official"
-          target="_blank"
-          rel="noopener"
-          aria-label="LinkedIn"
-          class="social-icon"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <rect
-              x="2"
-              y="2"
-              width="20"
-              height="20"
-              rx="3"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <path
-              d="M7 10v7"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <path
-              d="M11 17v-4c0-1.5 1-3 3-3s3 1.5 3 3v4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <path
-              d="M11 10v7"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <circle cx="7" cy="7.5" r="1" fill="currentColor" />
-          </svg>
-        </a>
-        <!-- Facebook -->
-        <a
-          href="https://www.Facebook.com/StilwaterOfficial"
-          target="_blank"
-          rel="noopener"
-          aria-label="Facebook"
-          class="social-icon"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </a>
-        <!-- Pinterest -->
-        <a
-          href="http://www.pinterest.com/stilwater-official"
-          target="_blank"
-          rel="noopener"
-          aria-label="Pinterest"
-          class="social-icon"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <circle
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              stroke-width="1.5"
-            />
-            <path
-              d="M10.5 18l2-7"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-            <path
-              d="M9 11c0-2 1.5-3.5 3.5-3.5s3.5 1.3 3.5 3.3-1.5 3.7-3.3 3.7c-1 0-1.7-.5-1.7-1.5"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-        </a>
-        <!-- X (Twitter) -->
-        <a
-          href="https://x.com/StilWater_AI"
-          target="_blank"
-          rel="noopener"
-          aria-label="X / Twitter"
-          class="social-icon"
-        >
-          <svg
-            width="22"
-            height="22"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4 4l16 16M4 20L20 4"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-            />
-          </svg>
+        <a href="https://x.com/StilWater_AI" target="_blank" rel="noopener" aria-label="X / Twitter">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 4l16 16M4 20L20 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
         </a>
       </div>
+    </div>
+    <div class="footer-right">
+      <h4 data-i18n="footer.legal">Legal &amp; Compliance</h4>
+      <a href="privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+      <a href="terms-of-use.html" data-i18n="footer.terms">Terms of Use</a>
+      <a href="medical-disclaimer.html" data-i18n="footer.medical">Health Warning / Medical Disclaimer</a>
+      <a href="testimonials.html" data-i18n="footer.testimonials">Testimonials</a>
+    </div>
+  </div>
+  <div class="footer-bottom" data-i18n="footer.copyright">&copy; 2026 Stilwater. All rights reserved.</div>
+</footer>
 
-      <div class="footer-bottom">
-        <span>&copy; 2026 Stillwater. All rights reserved.</span>
-      </div>
-    </footer>
+<!-- Aria welcome popup -->
+<div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
+  <div class="welcome-card">
+    <button class="welcome-close" id="welcomeClose" aria-label="Close">&times;</button>
+    <div class="welcome-brand" aria-hidden="true">Stil<span>water</span></div>
+    <div class="eyebrow" data-i18n="welcome.eyebrow">Your AI companion</div>
+    <h2 id="welcomeTitle"><span data-i18n="welcome.titleA">Hello, I'm</span> <span class="em">Aria</span> <span data-i18n="welcome.titleB">&mdash; your AI companion for personal health.</span></h2>
+    <p data-i18n="welcome.subtitle">To start, please log in.</p>
+    <a href="/auth/google" class="btn-google" id="welcomeGoogle">
+      <span class="g-badge">
+        <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.6 12.2c0-.6-.1-1.2-.2-1.8H12v3.6h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3z"/><path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 1-3.4 1-2.6 0-4.8-1.7-5.6-4.1H3.1v2.6A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9z"/><path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6C7.2 7.6 9.4 5.9 12 5.9z"/></svg>
+      </span>
+      <span data-i18n="welcome.continueGoogle">Continue with Google</span>
+    </a>
+    <button class="welcome-later" id="welcomeLater" data-i18n="welcome.later">Maybe later</button>
+  </div>
+</div>
 
-    <script src="js/shared.js"></script>
-    <script>
-      // Force video autoplay on mobile browsers
-      (function () {
-        const video = document.getElementById("heroVideo");
-        if (!video) return;
-        // Attempt to play immediately
-        const playPromise = video.play();
-        if (playPromise !== undefined) {
-          playPromise.catch(() => {
-            // Autoplay blocked - try again on first user interaction
-            const tryPlay = () => {
-              video.play();
-              document.removeEventListener("touchstart", tryPlay);
-              document.removeEventListener("click", tryPlay);
-              document.removeEventListener("scroll", tryPlay);
-            };
-            document.addEventListener("touchstart", tryPlay, {
-              once: true,
-              passive: true,
-            });
-            document.addEventListener("click", tryPlay, { once: true });
-            document.addEventListener("scroll", tryPlay, {
-              once: true,
-              passive: true,
-            });
-          });
-        }
-      })();
-    </script>
-    <script>
-      document.addEventListener("DOMContentLoaded", async () => {
-        // Fetch Waitlist Count
-        try {
-          const waitlistResponse = await fetch("/api/waitlist");
-          const waitlistData = await waitlistResponse.json();
-          const waitlistCountEl = document.getElementById("waitlistCount");
-          if (waitlistCountEl) {
-            const parsed = Number.parseInt(waitlistData.count, 10);
-            waitlistCountEl.innerText = Number.isFinite(parsed)
-              ? parsed.toString()
-              : "195";
-          }
-        } catch (err) {
-          const waitlistCountEl = document.getElementById("waitlistCount");
-          if (waitlistCountEl) {
-            waitlistCountEl.innerText = "195";
-          }
-        }
+<script src="js/shared.js"></script>
+<script>
+  // Mobile menu toggle
+  (function () {
+    var btn = document.getElementById('menuBtn');
+    var menu = document.getElementById('mobileMenu');
+    var scrim = document.getElementById('menuScrim');
+    var closeBtn = document.getElementById('mobileMenuClose');
+    if (!btn || !menu) return;
+    var open = function () { menu.classList.add('open'); scrim.classList.add('open'); document.body.style.overflow = 'hidden'; };
+    var close = function () { menu.classList.remove('open'); scrim.classList.remove('open'); document.body.style.overflow = ''; };
+    btn.addEventListener('click', open);
+    closeBtn.addEventListener('click', close);
+    scrim.addEventListener('click', close);
+    menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
+  })();
 
-        // Fetch Trust Stats
-        try {
-          const statsResponse = await fetch("/api/trust-stats");
-          const statsData = await statsResponse.json();
+  // Aria welcome popup — dismissible, once per browser session, hidden for logged-in users
+  (function () {
+    var KEY = 'sw_welcome_seen';
+    var overlay = document.getElementById('welcomeOverlay');
+    if (!overlay) return;
+    var close = function () {
+      overlay.classList.remove('show');
+      try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+    };
+    document.getElementById('welcomeClose').addEventListener('click', close);
+    document.getElementById('welcomeLater').addEventListener('click', close);
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) close(); });
 
-          const trustProviders = document.getElementById("trustProviders");
-          const trustAuthenticity =
-            document.getElementById("trustAuthenticity");
+    var seen = false;
+    try { seen = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+    if (seen) return;
 
-          if (trustProviders) {
-            trustProviders.innerText = statsData.providers || "4";
-          }
-          if (trustAuthenticity) {
-            trustAuthenticity.innerText = statsData.authenticity || "100%";
-          }
-        } catch (err) {
-          console.error("Could not fetch trust stats:", err);
-          const trustProviders = document.getElementById("trustProviders");
-          const trustAuthenticity =
-            document.getElementById("trustAuthenticity");
-
-          if (trustProviders) {
-            trustProviders.innerText = "4";
-          }
-          if (trustAuthenticity) {
-            trustAuthenticity.innerText = "100%";
-          }
-        }
+    // Only show to visitors who are not logged in.
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (user) {
+        if (user && user.authenticated !== false) return; // already logged in
+        setTimeout(function () { overlay.classList.add('show'); }, 700);
+      })
+      .catch(function () {
+        setTimeout(function () { overlay.classList.add('show'); }, 700);
       });
-    </script>
-  </body>
+  })();
+</script>
+
+</body>
 </html>

@@ -19,56 +19,48 @@
 
     <div class="page-shell">
       <header class="topbar">
-        <a class="home-link" href="/index.html">Home</a>
-        <a class="top-brand" href="/index.html" aria-label="StillWater home">
-          <img
-            class="top-brand-logo"
-            src="images/logo.png"
-            alt="StillWater logo"
-          />
-          <span class="top-brand-text">StillWater</span>
-        </a>
+        <a class="home-link" href="/index.html" data-i18n="auth.home">Home</a>
+        <a class="top-brand" href="/index.html" aria-label="Stilwater home"><span class="top-brand-text">Stil<span class="top-brand-tail">water</span></span></a>
       </header>
 
       <main class="main-wrap">
         <section class="hero">
           <div class="brand-dot"></div>
-          <p class="brand-text">StillWater</p>
-          <h1 class="title text-gradient">Choose Your Testimonial AI</h1>
-          <p class="section-label chooser-subtitle">
-            Select which testimonial knowledge base you want to chat with.
-          </p>
+          <p class="brand-text">Stilwater</p>
+          <h1 class="title text-gradient" data-i18n="testimonials.title">Choose Your Testimonial AI</h1>
+          <p class="section-label chooser-subtitle" data-i18n="testimonials.subtitle">Select which testimonial knowledge base you want to chat with.</p>
         </section>
 
         <section class="chooser-grid" aria-label="Testimonials AI options">
           <a class="chooser-card" href="/testimonials-diabetes.html">
-            <h2>Sharan Diabetes Mate AI</h2>
-            <p>Uses diabetes-focused testimonials and outcomes.</p>
-            <span class="chooser-cta">Open AI</span>
+            <h2 data-i18n="testimonials.card.diabetes.title">Sharan Diabetes Mate AI</h2>
+            <p data-i18n="testimonials.card.diabetes.body">Uses diabetes-focused testimonials and outcomes.</p>
+            <span class="chooser-cta" data-i18n="testimonials.openAi">Open AI</span>
           </a>
 
           <a class="chooser-card" href="/testimonials-amar-eye-yoga.html">
-            <h2>Amar Eye Vision Mate AI</h2>
-            <p>Uses Amar Eye Yoga testimonial data.</p>
-            <span class="chooser-cta">Open AI</span>
+            <h2 data-i18n="testimonials.card.amarEye.title">Amar Eye Vision Mate AI</h2>
+            <p data-i18n="testimonials.card.amarEye.body">Uses Amar Eye Yoga testimonial data.</p>
+            <span class="chooser-cta" data-i18n="testimonials.openAi">Open AI</span>
           </a>
 
           <a
             class="chooser-card"
             href="/testimonials-sharan-other-diseases.html"
           >
-            <h2>Sharan Other Diseases Testimonials AI</h2>
-            <p>Uses Sharan testimonials for other chronic disease journeys.</p>
-            <span class="chooser-cta">Open AI</span>
+            <h2 data-i18n="testimonials.card.sharanOther.title">Sharan Other Diseases Testimonials AI</h2>
+            <p data-i18n="testimonials.card.sharanOther.body">Uses Sharan testimonials for other chronic disease journeys.</p>
+            <span class="chooser-cta" data-i18n="testimonials.openAi">Open AI</span>
           </a>
 
           <a class="chooser-card" href="/testimonials-holistic-wellness.html">
-            <h2>Holistic wellness AI</h2>
-            <p>Uses holistic wellness testimonials across multiple programs.</p>
-            <span class="chooser-cta">Open AI</span>
+            <h2 data-i18n="testimonials.card.holistic.title">Holistic wellness AI</h2>
+            <p data-i18n="testimonials.card.holistic.body">Uses holistic wellness testimonials across multiple programs.</p>
+            <span class="chooser-cta" data-i18n="testimonials.openAi">Open AI</span>
           </a>
         </section>
       </main>
     </div>
+    <script src="js/i18n.js" data-sw-i18n="1"></script>
   </body>
 </html>

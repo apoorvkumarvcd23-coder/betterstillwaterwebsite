@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Outfit:wght@300;400;500;600&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="css/index.css" />
@@ -26,10 +26,8 @@
   </head>
   <body>
     <main class="container" style="padding: 6rem 5% 4rem">
-      <span class="text-caption">Legal & Safety</span>
-      <h1 class="text-h1" style="margin: 1rem 0 2rem">
-        Health Warning / Medical Disclaimer
-      </h1>
+      <span class="text-caption" data-i18n="legal.captionSafety">Legal & Safety</span>
+      <h1 class="text-h1" style="margin: 1rem 0 2rem" data-i18n="medical.title">Health Warning / Medical Disclaimer</h1>
       <div
         style="
           max-width: 900px;
@@ -38,29 +36,14 @@
           color: var(--color-text-secondary);
         "
       >
-        <p>
-          Stillwater offers supportive wellness guidance focused on awareness,
-          balance, and lifestyle wellbeing.
-        </p>
-        <p>
-          Information on this website is not a substitute for medical diagnosis,
-          treatment, or emergency intervention.
-        </p>
-        <p>
-          If you have severe symptoms, urgent distress, or a medical emergency,
-          contact qualified healthcare professionals immediately.
-        </p>
-        <p>
-          Any provider listed in the community should be evaluated according to
-          your personal health context and clinician advice.
-        </p>
-        <p>
-          By using this platform, you acknowledge responsibility for your health
-          decisions and agree to seek professional medical care when needed.
-        </p>
+        <p data-i18n="medical.p1">Stillwater offers supportive wellness guidance focused on awareness, balance, and lifestyle wellbeing.</p>
+        <p data-i18n="medical.p2">Information on this website is not a substitute for medical diagnosis, treatment, or emergency intervention.</p>
+        <p data-i18n="medical.p3">If you have severe symptoms, urgent distress, or a medical emergency, contact qualified healthcare professionals immediately.</p>
+        <p data-i18n="medical.p4">Any provider listed in the community should be evaluated according to your personal health context and clinician advice.</p>
+        <p data-i18n="medical.p5">By using this platform, you acknowledge responsibility for your health decisions and agree to seek professional medical care when needed.</p>
       </div>
       <div style="margin-top: 2.5rem">
-        <a href="index.html" class="btn">Back to Home</a>
+        <a href="index.html" class="btn" data-i18n="common.backHome">Back to Home</a>
       </div>
     </main>
     <script src="js/shared.js"></script>

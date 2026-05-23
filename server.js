@@ -10,6 +10,9 @@ const path = require("path");
 const cors = require("cors");
 const { Pool } = require("pg");
 const PgSession = require("connect-pg-simple")(session);
+const multer = require("multer");
+const mammoth = require("mammoth");
+const Anthropic = require("@anthropic-ai/sdk");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -374,6 +377,31 @@ async function initDb() {
       ('authenticity_pct', '100%'),
       ('phone_user_count', '0')
     ON CONFLICT (key) DO NOTHING
+  `);
+
+  // ── Aria journal entries (data ingestion, no AI) ───────────────────
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS aria.journal_entries (
+      id          BIGSERIAL PRIMARY KEY,
+      user_id     TEXT NOT NULL,
+      user_type   TEXT,
+      user_email  TEXT,
+      user_name   TEXT,
+      category    TEXT NOT NULL CHECK (category IN ('food','exercise','sleep','mood')),
+      entry_text  TEXT,
+      has_photo   BOOLEAN NOT NULL DEFAULT FALSE,
+      client_lang TEXT,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_journal_user_created
+      ON aria.journal_entries (user_id, created_at DESC)
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_journal_category_created
+      ON aria.journal_entries (category, created_at DESC)
   `);
 }
 
@@ -2202,6 +2230,635 @@ ${context}`;
   } catch (err) {
     console.error("RAG chat failed:", err);
     return res.status(500).json({ error: "RAG chat failed", details: err.message });
+  }
+});
+
+// ── Aria chat ────────────────────────────────────────────────────────
+// ChatGPT-style AI health companion powered by Claude. Accepts a text
+// message plus optional file attachments (PDF, image, txt, Word) and a
+// short conversation history, and returns Aria's reply.
+const anthropicClient = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
+
+const ariaUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 24 * 1024 * 1024, files: 5 }, // 24 MB/file, 5 files
+});
+
+const MAITRY_SYSTEM_PROMPT = `You are Aria, a warm and encouraging AI companion for personal health on the Stilwater platform.
+
+Stilwater helps people living with chronic conditions — especially diabetes and hypertension — manage their health through everyday diet, lifestyle, and exercise.
+
+Your role:
+- Offer practical, personalized guidance on diet, daily routine, physical activity, sleep, and stress management.
+- When the user shares a meal photo, lab report, or document, read it carefully and give clear, specific, supportive feedback.
+- Keep answers concise, friendly, and easy to act on. Use simple language and short paragraphs or small bullet lists.
+- Be encouraging and non-judgmental. Celebrate small wins.
+
+Important boundaries:
+- You are not a doctor. You do not diagnose, prescribe, or treat. You complement — never replace — the user's medical care.
+- For anything concerning (very high or low readings, chest pain, severe or sudden symptoms), tell the user to contact their doctor or seek urgent care.
+- Never tell anyone to change their medication. If asked, direct them to their care team.
+
+Always reply in the same language the user writes in.`;
+
+app.post(
+  "/api/aria/chat",
+  requireAuthApi,
+  ariaUpload.array("files", 5),
+  async (req, res) => {
+    if (!anthropicClient) {
+      return res
+        .status(503)
+        .json({ error: "Aria AI is not configured yet (missing ANTHROPIC_API_KEY)." });
+    }
+
+    try {
+      const userText = String(req.body?.message || "").trim();
+      const language = String(req.body?.language || "en").trim();
+      const files = Array.isArray(req.files) ? req.files : [];
+
+      let history = [];
+      try {
+        const parsed = JSON.parse(req.body?.history || "[]");
+        if (Array.isArray(parsed)) history = parsed;
+      } catch (_e) {
+        history = [];
+      }
+
+      // Build the content blocks for the current user message.
+      const content = [];
+      for (const file of files) {
+        const name = file.originalname || "file";
+        const lower = name.toLowerCase();
+        const mime = file.mimetype || "";
+        const b64 = file.buffer.toString("base64");
+
+        if (mime === "application/pdf" || lower.endsWith(".pdf")) {
+          content.push({
+            type: "document",
+            source: { type: "base64", media_type: "application/pdf", data: b64 },
+          });
+        } else if (mime.startsWith("image/")) {
+          const allowed = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+          content.push({
+            type: "image",
+            source: {
+              type: "base64",
+              media_type: allowed.includes(mime) ? mime : "image/png",
+              data: b64,
+            },
+          });
+        } else if (lower.endsWith(".docx")) {
+          const extracted = await mammoth.extractRawText({ buffer: file.buffer });
+          content.push({
+            type: "text",
+            text: `[Attached Word document: ${name}]\n${(extracted.value || "").slice(0, 100000)}`,
+          });
+        } else if (mime.startsWith("text/") || lower.endsWith(".txt")) {
+          content.push({
+            type: "text",
+            text: `[Attached file: ${name}]\n${file.buffer.toString("utf8").slice(0, 100000)}`,
+          });
+        } else {
+          content.push({
+            type: "text",
+            text: `[Attached file "${name}" — this file type can't be read directly.]`,
+          });
+        }
+      }
+      if (userText) content.push({ type: "text", text: userText });
+      if (!content.length) {
+        return res.status(400).json({ error: "Please type a message or attach a file." });
+      }
+
+      // Prior turns (text only) → Claude messages, then the current turn.
+      const messages = [];
+      for (const turn of history.slice(-20)) {
+        const role = turn && turn.role;
+        const text = turn && typeof turn.text === "string" ? turn.text : "";
+        if ((role === "user" || role === "assistant") && text) {
+          messages.push({ role, content: text });
+        }
+      }
+      messages.push({ role: "user", content });
+
+      const response = await anthropicClient.messages.create({
+        model: "claude-opus-4-7",
+        max_tokens: 2048,
+        system: MAITRY_SYSTEM_PROMPT + "\n\n" + languageInstruction(language).trim(),
+        messages,
+      });
+
+      const reply = (response.content || [])
+        .filter((b) => b.type === "text")
+        .map((b) => b.text)
+        .join("\n")
+        .trim();
+
+      return res.json({
+        reply: reply || "I'm here — could you rephrase that for me?",
+      });
+    } catch (err) {
+      console.error("Aria chat failed:", err);
+      const msg = String(err && err.message ? err.message : "");
+      if (err instanceof Anthropic.APIError && err.status === 429) {
+        return res
+          .status(503)
+          .json({ error: "Aria is busy right now. Please try again in a moment." });
+      }
+      if (/credit balance/i.test(msg)) {
+        return res.status(503).json({
+          error:
+            "Aria is temporarily unavailable — the AI service needs account credits. Please try again later.",
+        });
+      }
+      return res
+        .status(500)
+        .json({ error: "Aria chat failed", details: err.message });
+    }
+  },
+);
+
+// ── Aria meal plan + recipes (OpenRouter gpt-oss-120b) ─────────────────
+// Strip ```json fences and any prose around a JSON object/array so we can
+// JSON.parse the model's reply reliably.
+function extractJson(text) {
+  if (!text) return null;
+  let s = String(text).trim();
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Find the first { or [ and the matching last } or ].
+  const firstObj = s.indexOf("{");
+  const firstArr = s.indexOf("[");
+  let start = -1;
+  if (firstObj === -1) start = firstArr;
+  else if (firstArr === -1) start = firstObj;
+  else start = Math.min(firstObj, firstArr);
+  if (start === -1) return null;
+  const last = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
+  if (last === -1 || last < start) return null;
+  try {
+    return JSON.parse(s.slice(start, last + 1));
+  } catch (_e) {
+    return null;
+  }
+}
+
+async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
+  if (!OPENROUTER_API_KEY) {
+    const err = new Error("OPENROUTER_API_KEY is not configured.");
+    err.status = 503;
+    throw err;
+  }
+  // Fail fast instead of waiting 90+ seconds when a provider is hung.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+  try {
+    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: buildOpenRouterHeaders(),
+      signal: controller.signal,
+      body: JSON.stringify({
+        // Aria meal-plan model. Override via the ARIA_MODEL env var without
+        // touching code. Default chosen for JSON reliability, speed and cost.
+        model: String(process.env.ARIA_MODEL || "openai/gpt-4o-mini").trim(),
+        temperature: 0.2,
+        max_tokens: maxTokens,
+        // Force JSON-only output so the model can't drift into prose or
+        // markdown fences — eliminates most "couldn't parse" failures.
+        response_format: { type: "json_object" },
+        // Prefer faster, more reliable providers and skip any provider
+        // that times out on this request.
+        provider: {
+          sort: "throughput",
+          allow_fallbacks: true,
+        },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      const errText = await response.text();
+      const err = new Error(`OpenRouter request failed (${response.status}): ${errText}`);
+      err.status = response.status;
+      throw err;
+    }
+    const data = await response.json();
+    const choices = data && Array.isArray(data.choices) ? data.choices : [];
+    const content =
+      choices[0] && choices[0].message && typeof choices[0].message.content === "string"
+        ? choices[0].message.content
+        : "";
+    return content;
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      const e = new Error("OpenRouter request timed out (45s).");
+      e.status = 504;
+      throw e;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+const WEEKLY_PLAN_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const WEEKLY_PLAN_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
+
+// Append a language directive to Aria's chat system prompt so journaling
+// replies match the user's chosen language. For Hindi, dish names keep
+// their common English form in parentheses so YouTube search still resolves.
+function languageInstruction(code) {
+  const lang = String(code || "").toLowerCase();
+  if (lang === "hi") {
+    return " Reply entirely in Hindi (Devanagari script). For every dish name, write the Hindi name with the common English name in parentheses, e.g. \"मूंग दाल चीला (moong dal chilla)\".";
+  }
+  return " Reply in English.";
+}
+
+// Normalise a single meal value returned by the model into a bilingual
+// {en, hi} object. Accepts:
+//   - {en, hi} object (preferred)
+//   - {english, hindi} alias
+//   - plain string (fallback — same string used as both languages)
+function normaliseMealValue(v) {
+  if (v && typeof v === "object") {
+    const en = String(v.en || v.english || v.EN || "").trim();
+    const hi = String(v.hi || v.hindi || v.HI || "").trim();
+    if (en || hi) {
+      return { en: en || hi, hi: hi || en };
+    }
+  }
+  if (typeof v === "string" && v.trim()) {
+    const s = v.trim();
+    return { en: s, hi: s };
+  }
+  return { en: "Chef's plant-based pick", hi: "शेफ की प्लांट-बेस्ड पसंद (chef's plant-based pick)" };
+}
+
+// ── Aria journal entry ingestion (no AI; pure data save) ───────────────
+const ARIA_JOURNAL_CATEGORIES = new Set(["food", "exercise", "sleep", "mood"]);
+
+app.post("/api/aria/journal/entry", requireAuthApi, async (req, res) => {
+  try {
+    const userId = getAuthUserId(req.user);
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+    const category = String(req.body?.category || "").trim().toLowerCase();
+    if (!ARIA_JOURNAL_CATEGORIES.has(category)) {
+      return res.status(400).json({ error: "Invalid category." });
+    }
+    const entryTextRaw = String(req.body?.text || "").trim();
+    const entryText = entryTextRaw.length > 8000 ? entryTextRaw.slice(0, 8000) : entryTextRaw;
+    const hasPhoto = Boolean(req.body?.hasPhoto);
+    if (!entryText && !hasPhoto) {
+      return res.status(400).json({ error: "Empty entry." });
+    }
+    const clientLang = String(req.body?.language || "").trim().toLowerCase();
+    const userType = getAuthUserType(req.user);
+    const userEmail = req.user?.email ? String(req.user.email).slice(0, 320) : null;
+    const userName = req.user?.name ? String(req.user.name).slice(0, 200) : null;
+
+    const insert = await pool.query(
+      `INSERT INTO aria.journal_entries
+         (user_id, user_type, user_email, user_name, category, entry_text, has_photo, client_lang)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, created_at`,
+      [userId, userType, userEmail, userName, category, entryText || null, hasPhoto, clientLang || null],
+    );
+    const row = insert.rows[0];
+    return res.status(201).json({ id: row.id, createdAt: row.created_at });
+  } catch (err) {
+    console.error("Aria journal insert failed:", err);
+    return res.status(500).json({ error: "Couldn't save your entry. Please try again." });
+  }
+});
+
+app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
+  try {
+    const cuisine = String(req.body?.cuisine || "").trim();
+    const avoid = String(req.body?.avoid || "").trim();
+    const like = String(req.body?.like || "").trim();
+    // Language is no longer used to shape the response (we always send back
+    // both en + hi). Kept on req.body for forward compat.
+
+    const systemPrompt =
+      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
+      "You design weekly meal plans that are entirely plant-based whole foods, rich in " +
+      "vegetables, legumes, whole grains, fruits, nuts and seeds. You vary cuisines, " +
+      "textures and flavors across the week, respect avoidances strictly, and avoid ultra-processed " +
+      "ingredients. CRITICAL: every meal name you propose must be a well-known dish that you are " +
+      "confident has many cooking videos available on YouTube — use common, popular names (not " +
+      "invented or hyper-specific phrasings) so a user can easily find a video for it. " +
+      "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
+      "Also no sugary drinks or juices or tea coffee with sugar. " +
+      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food. " +
+      "ALWAYS reply with valid JSON only — no prose, no markdown code fences.";
+
+    const userPrompt = [
+      "Build a 7-day plant-based whole-food meal plan tailored to the user.",
+      `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
+      `Foods the user likes and wants more of: ${like || "none specified"}.`,
+      `Foods the user dislikes / wants to avoid (strict): ${avoid || "none"}.`,
+      "",
+      "Each day MUST have exactly these 5 meals in this order:",
+      "  1) Breakfast",
+      "  2) Snack",
+      "  3) Lunch",
+      "  4) Evening Snack",
+      "  5) Dinner",
+      "Do NOT include times of day in the meal names.",
+      "Each meal name MUST be a popular, well-known plant-based dish that has many cooking videos on YouTube",
+      "(e.g. \"Vegan chickpea curry with rice\", \"Banana oat smoothie bowl\", \"Lentil shepherd's pie\").",
+      "Use common dish names — avoid one-off creative phrasings that wouldn't return YouTube results.",
+      "Keep each meal name short (1 phrase, ideally 3-6 words).",
+      "Plenty of vegetables every day. No animal products.",
+      "",
+      "EVERY meal value MUST be a JSON object with BOTH languages so the UI can",
+      "switch instantly without regenerating:",
+      "  { \"en\": \"<English name>\", \"hi\": \"<Hindi (Devanagari) name with the common English in parentheses, e.g. मूंग दाल चीला (moong dal chilla)>\" }",
+      "",
+      "Return ONLY this exact JSON shape (no extra keys, no commentary):",
+      "{",
+      "  \"Monday\": {",
+      "    \"Breakfast\":     { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Snack\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Lunch\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Evening Snack\": { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Dinner\":        { \"en\": \"...\", \"hi\": \"...\" }",
+      "  },",
+      "  \"Tuesday\":   { ... same shape ... },",
+      "  \"Wednesday\": { ... },",
+      "  \"Thursday\":  { ... },",
+      "  \"Friday\":    { ... },",
+      "  \"Saturday\":  { ... },",
+      "  \"Sunday\":    { ... }",
+      "}",
+    ].join("\n");
+
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 3200);
+    const parsed = extractJson(raw);
+    if (!parsed || typeof parsed !== "object") {
+      console.error("Aria meal-plan-weekly: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
+      return res.status(502).json({ error: "Aria couldn't shape a valid weekly plan. Please try again." });
+    }
+
+    // Normalize: every slot becomes {en, hi}. Plain string from the model
+    // (or legacy) is mirrored into both languages so nothing ever blanks.
+    const plan = {};
+    for (const day of WEEKLY_PLAN_DAYS) {
+      const src = parsed[day] || {};
+      const dayPlan = {};
+      for (const slot of WEEKLY_PLAN_SLOTS) {
+        dayPlan[slot] = normaliseMealValue(src[slot]);
+      }
+      plan[day] = dayPlan;
+    }
+
+    return res.json({ plan });
+  } catch (err) {
+    console.error("Aria meal-plan-weekly failed:", err);
+    if (err && err.status === 503) {
+      return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    if (err && err.status === 504) {
+      return res.status(504).json({ error: "Aria took too long to respond. Please try again." });
+    }
+    return res.status(500).json({ error: "Aria couldn't generate the weekly plan right now. Please try again." });
+  }
+});
+
+app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
+  try {
+    const cuisine = String(req.body?.cuisine || "").trim();
+    const avoid = String(req.body?.avoid || "").trim();
+    const like = String(req.body?.like || "").trim();
+    const todayPreference = String(req.body?.todayPreference || "").trim();
+    const dayRaw = String(req.body?.day || "").trim();
+    const day = WEEKLY_PLAN_DAYS.includes(dayRaw) ? dayRaw : WEEKLY_PLAN_DAYS[0];
+    const excludeRaw = Array.isArray(req.body?.exclude) ? req.body.exclude : [];
+    const exclude = excludeRaw
+      .map((s) => String(s || "").trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+    const systemPrompt =
+      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
+      "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
+      "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly. " +
+      "CRITICAL: every meal name must be a well-known dish you're confident has many cooking videos on " +
+      "YouTube — use common, popular names (not invented or hyper-specific phrasings). " +
+      "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
+      "Also no sugary drinks or juices or tea coffee with sugar. " +
+      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food.";
+
+    const userPrompt = [
+      `Build a 1-day plant-based whole-food meal plan for ${day}.`,
+      `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
+      `Foods the user likes and wants more of: ${like || "none specified"}.`,
+      `Foods the user dislikes / wants to avoid (strict): ${avoid || "none"}.`,
+      todayPreference
+        ? `User's preference for today specifically: ${todayPreference}. Honour this preference strongly while still respecting all other constraints.`
+        : "",
+      exclude.length
+        ? `Make the meals DIFFERENT from these (pick fresh alternatives): ${exclude.join(", ")}.`
+        : "",
+      "",
+      "Return EXACTLY these 5 meals in this order, no times of day in the names:",
+      "  1) Breakfast",
+      "  2) Snack",
+      "  3) Lunch",
+      "  4) Evening Snack",
+      "  5) Dinner",
+      "Each meal name MUST be a popular, well-known plant-based dish that has many cooking videos on YouTube.",
+      "Keep each meal name short (1 phrase, ideally 3-6 words). Avoid hyper-specific phrasings.",
+      "",
+      "EVERY meal value MUST be a JSON object with BOTH languages so the UI can switch instantly:",
+      "  { \"en\": \"<English name>\", \"hi\": \"<Hindi (Devanagari) name with the common English in parentheses, e.g. मूंग दाल चीला (moong dal chilla)>\" }",
+      "",
+      "Return ONLY this JSON shape (no extra keys):",
+      "{",
+      "  \"Breakfast\":     { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Snack\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Lunch\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Evening Snack\": { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Dinner\":        { \"en\": \"...\", \"hi\": \"...\" }",
+      "}",
+    ].filter(Boolean).join("\n");
+
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 900);
+    const parsed = extractJson(raw);
+    if (!parsed || typeof parsed !== "object") {
+      console.error("Aria meal-plan-day: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
+      return res.status(502).json({ error: "Aria couldn't shape a valid one-day plan. Please try again." });
+    }
+    const dayPlan = {};
+    for (const slot of WEEKLY_PLAN_SLOTS) {
+      dayPlan[slot] = normaliseMealValue(parsed[slot]);
+    }
+    return res.json({ day, plan: dayPlan });
+  } catch (err) {
+    console.error("Aria meal-plan-day failed:", err);
+    if (err && err.status === 503) {
+      return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    if (err && err.status === 504) {
+      return res.status(504).json({ error: "Aria took too long to respond. Please try again." });
+    }
+    return res.status(500).json({ error: "Aria couldn't generate today's plan right now. Please try again." });
+  }
+});
+
+// Fetch a YouTube search page server-side and pull the first videoId out of
+// ytInitialData. Returns null if YouTube serves bot/consent content, the
+// request exceeds the per-call timeout, or there are no video results.
+async function firstYoutubeVideoId(query, excludeIds, opts = {}) {
+  const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 4000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const filter = opts.videosOnly === false ? "" : "&sp=EgIQAQ%253D%253D"; // videos-only by default
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${filter}`;
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        // Skip YouTube's EU consent interstitial.
+        Cookie: "CONSENT=YES+1; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
+      },
+    });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    const patterns = [
+      /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"compactVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"gridVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+    ];
+    for (const re of patterns) {
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        const id = m[1];
+        if (!excludeIds.has(id)) return id;
+      }
+    }
+    return null;
+  } catch (_e) {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Pull meaningful keywords from a dish name (drop stopwords and short bits).
+function dishKeywords(text) {
+  const stop = new Set([
+    "and","with","the","a","an","of","in","or","for","to","on","at","over",
+    "by","made","style","topped","drizzle","drizzled","fresh","my","your",
+  ]);
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !stop.has(w));
+}
+
+// Build a progressively-broader fallback chain for a dish/suggestion so we
+// (almost) always find SOMETHING playable — even if the model's specific
+// query has zero hits, we keep widening down to a single keyword.
+function recipeQueryChain(dish, suggestion) {
+  const title = (suggestion && suggestion.title) || dish;
+  const channel = (suggestion && suggestion.channel) || "";
+  const query = (suggestion && suggestion.query) || `${title} ${channel}`.trim();
+  const kws = dishKeywords(dish);
+  const top3 = kws.slice(0, 3).join(" ");
+  const top2 = kws.slice(0, 2).join(" ");
+  const top1 = kws[0] || dish;
+
+  // Each entry: [query string, videosOnly?]
+  return [
+    [query, true],
+    [`${title} ${channel} vegan recipe`.trim(), true],
+    [`${dish} ${channel} vegan recipe`.trim(), true],
+    [`${dish} vegan recipe`, true],
+    [`${dish} recipe`, true],
+    [dish, true],
+    [`${dish} recipe`, false],
+    [dish, false],
+    [`${top3} vegan recipe`, true],
+    [`${top3} recipe`, true],
+    [top3, true],
+    [`${top2} recipe`, true],
+    [top2, true],
+    [`${top1} recipe`, true],
+    [top1, true],
+  ].filter(([q]) => q && q.trim().length);
+}
+
+async function resolveYoutubeVideo(dish, suggestion, seenIds) {
+  for (const [q, videosOnly] of recipeQueryChain(dish, suggestion)) {
+    const id = await firstYoutubeVideoId(q, seenIds, { videosOnly });
+    if (id) return id;
+  }
+  return null;
+}
+
+// In-process cache for recipe lookups so repeat hits are instant.
+const recipeMemoCache = new Map(); // key -> { videos, ts }
+const RECIPE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
+app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
+  try {
+    const dish = String(req.body?.dish || "").trim();
+    if (!dish) {
+      return res.status(400).json({ error: "Please send a dish to search for." });
+    }
+
+    const cacheKey = dish.toLowerCase();
+    const cached = recipeMemoCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < RECIPE_CACHE_TTL_MS) {
+      return res.json({ videos: cached.videos });
+    }
+
+    // Skip the model entirely — the meal-plan prompts already produce
+    // popular video-friendly dish names, so we go straight to YouTube
+    // with a tight fallback chain. Each fetch has a 4s timeout, and we
+    // bail at the first hit. Worst case: ~12s on Render before falling
+    // back to a search URL; common case: < 1s on the first query.
+    const seen = new Set();
+    const queries = [
+      `${dish} vegan recipe`,
+      `${dish} recipe`,
+      dish,
+    ];
+    let id = null;
+    for (const q of queries) {
+      id = await firstYoutubeVideoId(q, seen, { timeoutMs: 4000 });
+      if (id) break;
+    }
+
+    const url = id
+      ? `https://www.youtube.com/watch?v=${id}`
+      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${dish} vegan recipe`)}`;
+
+    const videos = [
+      {
+        title: dish,
+        channel: id ? "YouTube" : "YouTube search",
+        url,
+      },
+    ];
+
+    recipeMemoCache.set(cacheKey, { videos, ts: Date.now() });
+    return res.json({ videos });
+  } catch (err) {
+    console.error("Aria recipes failed:", err);
+    return res.status(500).json({ error: "Aria couldn't fetch recipes right now. Please try again." });
   }
 });
 
