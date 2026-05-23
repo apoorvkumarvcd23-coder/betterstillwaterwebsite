@@ -1,12 +1,3 @@
-// Load i18n early so the dictionary is ready before everything else runs.
-(function () {
-  if (document.querySelector('script[data-sw-i18n]')) return;
-  const s = document.createElement("script");
-  s.src = "js/i18n.js";
-  s.setAttribute("data-sw-i18n", "1");
-  document.head ? document.head.appendChild(s) : document.body.appendChild(s);
-})();
-
 document.addEventListener("DOMContentLoaded", () => {
   const THEME_STORAGE_KEY = "stillwater_theme";
 

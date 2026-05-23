@@ -259,36 +259,6 @@ body {
   display: none !important;
 }
 
-/* Site-wide language toggle (en/hi) — injected by js/i18n.js */
-.sw-lang-toggle {
-  background: rgba(255, 255, 255, 0.7);
-  border: 1px solid var(--color-border-soft, rgba(47, 72, 66, 0.18));
-  border-radius: 999px;
-  padding: 6px 12px;
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  cursor: pointer;
-  color: var(--btn-hover-fill, #2f4842);
-  transition: background 0.18s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  min-height: 36px;
-  margin-right: 0.5rem;
-}
-.sw-lang-toggle:hover {
-  background: rgba(255, 255, 255, 0.95);
-}
-.sw-lang-toggle-floating {
-  position: fixed;
-  top: 0.8rem;
-  right: 0.8rem;
-  z-index: 10000;
-}
-
 #authActions {
   position: absolute;
   right: 5%;
