@@ -1525,6 +1525,20 @@ footer.footer .header-logo {
     max-width: 50px !important;
   }
 
+  /* The dropdown menu is absolutely positioned inside #authActions, which
+     has overflow:hidden on mobile — that clips the menu. Promote it to
+     position: fixed so it escapes the clip and stays anchored to the
+     top-right of the viewport, just below the header. */
+  #authMenu {
+    position: fixed !important;
+    top: 4rem !important;
+    right: 0.75rem !important;
+    bottom: auto !important;
+    left: auto !important;
+    min-width: 160px;
+    z-index: 200;
+  }
+
   /* Fix: For non-home pages the header uses .header > .btn
      (Login / Join) — prevent it from pushing the logo.      */
   .header > .btn {
