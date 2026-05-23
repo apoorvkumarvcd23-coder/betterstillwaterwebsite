@@ -1,3 +1,15 @@
+// Inject the site-wide i18n script as early as possible. It's defensive
+// (try/catch around everything) so even a failure cannot break the page.
+(function loadI18n() {
+  try {
+    if (document.querySelector('script[data-sw-i18n]')) return;
+    const s = document.createElement("script");
+    s.src = "js/i18n.js";
+    s.setAttribute("data-sw-i18n", "1");
+    (document.head || document.documentElement).appendChild(s);
+  } catch (_e) {}
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   const THEME_STORAGE_KEY = "stillwater_theme";
 
@@ -127,6 +139,84 @@ document.addEventListener("DOMContentLoaded", () => {
       });
   }
 
+  // Inject the unified home-style footer on any page that has the standard
+  // `<footer class="footer container">` placeholder. The home page renders
+  // its own footer inline and is skipped (it has class="footer" only via
+  // the no-class <footer> tag we don't touch).
+  function injectUnifiedFooter() {
+    try {
+      const candidates = document.querySelectorAll("footer.footer.container, footer.home-style-footer");
+      candidates.forEach((footer) => {
+        if (footer.getAttribute("data-sw-unified") === "1") return;
+        footer.className = "home-style-footer";
+        footer.setAttribute("data-sw-unified", "1");
+        footer.innerHTML = `
+          <div class="footer-top">
+            <div class="footer-left">
+              <a href="index.html" class="brand">Stil<span>water</span></a>
+              <p data-i18n="footer.tagline">Your AI companion for personal health — personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.</p>
+              <div class="footer-social">
+                <a href="https://www.instagram.com/Stilwater_Official" target="_blank" rel="noopener" aria-label="Instagram">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="5" ry="5" stroke="currentColor" stroke-width="1.5"/><circle cx="12" cy="12" r="4.5" stroke="currentColor" stroke-width="1.5"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+                </a>
+                <a href="https://www.linkedin.com/company/Stilwater-Official" target="_blank" rel="noopener" aria-label="LinkedIn">
+                  <svg viewBox="0 0 24 24" fill="none"><rect x="2" y="2" width="20" height="20" rx="3" stroke="currentColor" stroke-width="1.5"/><path d="M7 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 17v-4c0-1.5 1-3 3-3s3 1.5 3 3v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M11 10v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="7.5" r="1" fill="currentColor"/></svg>
+                </a>
+                <a href="https://www.Facebook.com/StilwaterOfficial" target="_blank" rel="noopener" aria-label="Facebook">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                <a href="http://www.pinterest.com/stilwater-official" target="_blank" rel="noopener" aria-label="Pinterest">
+                  <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/><path d="M10.5 18l2-7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M9 11c0-2 1.5-3.5 3.5-3.5s3.5 1.3 3.5 3.3-1.5 3.7-3.3 3.7c-1 0-1.7-.5-1.7-1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </a>
+                <a href="https://x.com/StilWater_AI" target="_blank" rel="noopener" aria-label="X / Twitter">
+                  <svg viewBox="0 0 24 24" fill="none"><path d="M4 4l16 16M4 20L20 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                </a>
+              </div>
+            </div>
+            <div class="footer-right">
+              <h4 data-i18n="footer.legal">Legal &amp; Compliance</h4>
+              <a href="privacy-policy.html" data-i18n="footer.privacy">Privacy Policy</a>
+              <a href="terms-of-use.html" data-i18n="footer.terms">Terms of Use</a>
+              <a href="medical-disclaimer.html" data-i18n="footer.medical">Health Warning / Medical Disclaimer</a>
+              <a href="testimonials.html" data-i18n="footer.testimonials">Testimonials</a>
+            </div>
+          </div>
+          <div class="footer-bottom" data-i18n="footer.copyright">&copy; 2026 Stilwater. All rights reserved.</div>
+        `;
+      });
+      // Re-apply i18n so freshly-injected data-i18n attrs translate immediately.
+      if (window.SwI18n && window.SwI18n.apply) window.SwI18n.apply();
+    } catch (_e) {}
+  }
+
+  // Make sure the unified-footer styles exist on pages that don't already
+  // ship them (any page outside index.html / partners.html).
+  function ensureFooterStyles() {
+    try {
+      if (document.getElementById("swUnifiedFooterStyles")) return;
+      const s = document.createElement("style");
+      s.id = "swUnifiedFooterStyles";
+      s.textContent =
+        ".home-style-footer{background:#2f4842;color:rgba(244,241,234,.82);padding:60px clamp(20px,5vw,64px) 32px;}" +
+        ".home-style-footer .footer-top{display:flex;flex-wrap:wrap;gap:40px;justify-content:space-between;align-items:flex-start;max-width:1180px;margin:0 auto;}" +
+        ".home-style-footer .footer-left{max-width:380px;}" +
+        ".home-style-footer .footer-left .brand{font-family:\"Fraunces\",Georgia,serif;font-size:1.45rem;font-weight:500;letter-spacing:.5px;color:#f4f1ea;text-decoration:none;}" +
+        ".home-style-footer .footer-left .brand span{color:#d9a679;}" +
+        ".home-style-footer .footer-left p{font-size:.92rem;color:rgba(244,241,234,.7);margin:14px 0 22px;}" +
+        ".home-style-footer .footer-social{display:flex;gap:14px;}" +
+        ".home-style-footer .footer-social a{width:40px;height:40px;border-radius:50%;border:1px solid rgba(244,241,234,.28);display:grid;place-items:center;color:rgba(244,241,234,.8);transition:background .25s,color .25s,transform .25s;}" +
+        ".home-style-footer .footer-social a:hover{background:rgba(244,241,234,.12);color:#f4f1ea;transform:translateY(-2px);}" +
+        ".home-style-footer .footer-social svg{width:18px;height:18px;}" +
+        ".home-style-footer .footer-right{display:flex;flex-direction:column;gap:6px;min-width:180px;}" +
+        ".home-style-footer .footer-right h4{font-size:.74rem;letter-spacing:.2em;text-transform:uppercase;color:#d9a679;margin-bottom:10px;font-weight:500;}" +
+        ".home-style-footer .footer-right a{color:rgba(244,241,234,.78);text-decoration:none;font-size:.93rem;padding:5px 0;transition:color .25s;}" +
+        ".home-style-footer .footer-right a:hover{color:#f4f1ea;}" +
+        ".home-style-footer .footer-bottom{margin-top:42px;padding-top:24px;border-top:1px solid rgba(244,241,234,.16);font-size:.84rem;color:rgba(244,241,234,.6);text-align:center;}" +
+        "@media (max-width:620px){.home-style-footer .footer-top{flex-direction:column;gap:34px;}}";
+      (document.head || document.documentElement).appendChild(s);
+    } catch (_e) {}
+  }
+
   function normalizeFooters() {
     const footerLists = document.querySelectorAll("footer ul");
     footerLists.forEach((list) => {
@@ -137,6 +227,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
     });
+
+    ensureFooterStyles();
+    injectUnifiedFooter();
 
     document
       .querySelectorAll("footer .grid-2 > div:last-child")
@@ -497,7 +590,8 @@ document.addEventListener("DOMContentLoaded", () => {
       const fullName = clampLabel(safeName, MAX_FULL_NAME_CHARS);
 
       if (authMenuButton) {
-        const greetingText = isCompact ? `Hi, ${compactName}` : `Hi, ${fullName}`;
+        const hiWord = (window.SwI18n && window.SwI18n.t) ? window.SwI18n.t("auth.greetingPrefix", "Hi") : "Hi";
+        const greetingText = isCompact ? `${hiWord}, ${compactName}` : `${hiWord}, ${fullName}`;
         authMenuButton.innerHTML = `
           <span class="auth-btn-label">${greetingText}</span>
           <svg class="auth-btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -554,45 +648,57 @@ document.addEventListener("DOMContentLoaded", () => {
           currentPath === "/care-path.html" ||
           currentPath === "/care-path" ||
           currentPath.endsWith("/care-path.html");
+        // Label is always "Continue Care Path" regardless of auth state;
+        // only the target changes (smart-routed to the right place).
         let intakeTarget;
-        let intakeLabel;
         if (user.hasCompletedAssessment) {
           if (onCarePath) {
             intakeTarget = "/";
-            intakeLabel = "Home";
           } else {
             intakeTarget = latestSubmissionId
               ? `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`
               : "/care-path.html";
-            intakeLabel = "Continue Care Path";
           }
         } else {
           intakeTarget = "/intake.html";
-          intakeLabel = "Wellness Assessment";
         }
-        
+        const intakeLabelKey = "auth.continueCarePath";
+        const tx = (k, fb) => (window.SwI18n && window.SwI18n.t) ? window.SwI18n.t(k, fb) : fb;
+
+        const applyIntakeButton = () => {
+          const lbl = tx(intakeLabelKey, "Continue Care Path");
+          if (btnIntake) {
+            btnIntake.href = intakeTarget;
+            btnIntake.textContent = lbl;
+          }
+          document.querySelectorAll("[data-care-cta]").forEach((el) => {
+            el.setAttribute("href", intakeTarget);
+            el.textContent = lbl;
+          });
+        };
+
         // The Continue Care Path / Home / Wellness Assessment link is already
         // shown as the prominent header button (btnIntake) — keep the auth
         // dropdown free of duplicates so it only contains Log out (and Admin
         // Dashboard for admins, since btnAdmin is hidden on mobile).
         removeAuthMenuLink("authMenuIntake");
-        if (btnIntake) {
-          btnIntake.href = intakeTarget;
-          btnIntake.textContent = intakeLabel;
-        }
-        // Page CTAs marked [data-care-cta] (e.g. the home-page hero
-        // button) mirror the header's care-path button exactly.
-        document.querySelectorAll("[data-care-cta]").forEach((el) => {
-          el.setAttribute("href", intakeTarget);
-          el.textContent = intakeLabel;
-        });
+        applyIntakeButton();
         if (hasAdminRole(user)) {
-          setAuthMenuLink("authMenuAdmin", "/admin.html", "Admin Dashboard");
+          setAuthMenuLink("authMenuAdmin", "/admin.html", tx("auth.adminDashboard", "Admin Dashboard"));
         } else {
           removeAuthMenuLink("authMenuAdmin");
         }
 
         applyAuthActionsLayout();
+
+        // Re-translate auth-related labels whenever the user toggles language.
+        window.addEventListener("sw:langchange", () => {
+          applyIntakeButton();
+          if (hasAdminRole(user)) {
+            setAuthMenuLink("authMenuAdmin", "/admin.html", tx("auth.adminDashboard", "Admin Dashboard"));
+          }
+          applyAuthActionsLayout();
+        });
 
         // Defer layout adjustment to allow DOM to render new button states
         requestAnimationFrame(() => adjustHomeHeaderLayout());

@@ -1,0 +1,352 @@
+// Lightweight site-wide i18n.
+//
+// HTML side: add data-i18n="key" (textContent), data-i18n-placeholder="key",
+// data-i18n-aria-label="key", or data-i18n-title="key" to any element. The
+// helper walks the DOM on load and on language change and replaces those
+// attributes from the dictionary.
+//
+// JS side: window.SwI18n.t("key", "fallback") returns the translated string.
+// Listen for the "sw:langchange" event on window to know when to re-render.
+//
+// The dropdown auto-mounts inside #authActions on every page; falls back to
+// a fixed pill in the top-right if the page has no auth zone.
+(function () {
+  const STORAGE_KEY = "sw_lang";
+  const SUPPORTED = ["en", "hi"];
+
+  // ── Dictionary ────────────────────────────────────────────────────────
+  // Keep every entry's hi value matching the en value exactly in meaning.
+  // If a key is missing in Hindi, the helper falls back to the English copy
+  // so the UI never shows the raw key.
+  const DICT = {
+    // Generic
+    "common.back": { en: "Back", hi: "वापस" },
+    "common.close": { en: "Close", hi: "बंद करें" },
+
+    // Nav (home page)
+    "nav.howItWorks": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "nav.features": { en: "Features", hi: "विशेषताएं" },
+
+    // Auth zone
+    "auth.login": { en: "Login / Sign up", hi: "लॉगिन / साइन अप" },
+    "auth.logout": { en: "Log out", hi: "लॉग आउट" },
+    "auth.adminDashboard": { en: "Admin Dashboard", hi: "एडमिन डैशबोर्ड" },
+    "auth.wellnessAssessment": { en: "Wellness Assessment", hi: "वेलनेस आकलन" },
+    "auth.continueCarePath": { en: "Continue Care Path", hi: "केयर पाथ जारी रखें" },
+    "auth.home": { en: "Home", hi: "होम" },
+    "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
+
+    // Home hero
+    "home.heroEyebrow": { en: "Your AI companion for personal health", hi: "व्यक्तिगत स्वास्थ्य के लिए आपकी AI साथी" },
+    "home.heroTitleA": { en: "Managing a chronic condition,", hi: "दीर्घकालिक स्थिति को संभालना —" },
+    "home.heroTitleB": { en: "one good day at a time.", hi: "एक-एक अच्छा दिन।" },
+    "home.heroSub": {
+      en: "Living with diabetes or hypertension? Stilwater builds you a personalized diet, lifestyle, and exercise routine — complete with recipe links — so you can take steady, daily steps toward managing your condition and living well.",
+      hi: "मधुमेह या उच्च रक्तचाप के साथ जी रहे हैं? Stilwater आपके लिए वैयक्तिकृत आहार, जीवनशैली और व्यायाम दिनचर्या तैयार करता है — रेसिपी लिंक के साथ — ताकि आप अपनी स्थिति को संभालने और अच्छे ढंग से जीने की दिशा में रोज़ छोटे, स्थिर कदम बढ़ा सकें।",
+    },
+    "home.seeHowItWorks": { en: "See how it works →", hi: "देखें कैसे काम करता है →" },
+
+    // Home — How it works
+    "home.howKicker": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "home.howTitle": { en: "Your plan, shaped around your life.", hi: "आपकी योजना, आपकी ज़िंदगी के अनुसार।" },
+    "home.step1.title": { en: "Share where you are", hi: "बताएं आप कहाँ हैं" },
+    "home.step1.body": { en: "Tell Stilwater your current conditions and your everyday diet and lifestyle. The more it knows, the better it understands you.", hi: "Stilwater को अपनी मौजूदा स्थितियाँ और रोज़ का खान-पान व जीवनशैली बताएं। जितना ज़्यादा जानेगा, उतना बेहतर समझेगा।" },
+    "home.step2.title": { en: "Get your regimen", hi: "अपनी दिनचर्या पाएं" },
+    "home.step2.body": { en: "The AI creates a personalized diet, lifestyle, and exercise routine — with recipe links — designed to be easy to follow, day after day.", hi: "AI एक वैयक्तिकृत आहार, जीवनशैली और व्यायाम दिनचर्या बनाता है — रेसिपी लिंक के साथ — जिसे रोज़ आसानी से अपनाया जा सके।" },
+    "home.step3.title": { en: "Follow & refine", hi: "अपनाएं और निखारें" },
+    "home.step3.body": { en: "As you check in, Stilwater keeps learning your preferences and adjusts your meal plans and routines to fit you better over time.", hi: "जैसे-जैसे आप चेक-इन करते हैं, Stilwater आपकी पसंद सीखता है और समय के साथ आपकी भोजन योजना व दिनचर्या को आपके अनुसार ढालता है।" },
+
+    // Home — Features
+    "home.featKicker": { en: "What you can do", hi: "आप क्या कर सकते हैं" },
+    "home.featTitle": { en: "A companion you can talk to, any time.", hi: "एक साथी जिससे आप कभी भी बात कर सकते हैं।" },
+    "home.feat1.title": { en: "Chat any time", hi: "कभी भी चैट करें" },
+    "home.feat1.body": { en: "Ask questions whenever they come up and get clear, personalized answers — no waiting for an appointment.", hi: "जब भी सवाल आए पूछें और स्पष्ट, वैयक्तिकृत जवाब पाएं — अपॉइंटमेंट का इंतज़ार नहीं।" },
+    "home.feat2.title": { en: "Snap your food", hi: "अपने खाने की फोटो लें" },
+    "home.feat2.body": { en: "Upload a photo of a meal and ask whether it's the right choice for you. Get an answer in seconds.", hi: "अपने भोजन की फोटो अपलोड करें और पूछें कि क्या यह आपके लिए सही है। सेकंडों में उत्तर पाएं।" },
+    "home.feat3.title": { en: "Keep a journal", hi: "जर्नल रखें" },
+    "home.feat3.body": { en: "Upload your daily journals and Stilwater learns your preferences, tailoring suggestions to what actually works for you.", hi: "अपनी रोज़ की जर्नल अपलोड करें — Stilwater आपकी पसंद सीखता है और आपके लिए कारगर सुझाव देता है।" },
+    "home.feat4.title": { en: "Meals & movement", hi: "भोजन और गति" },
+    "home.feat4.body": { en: "Receive easy daily meal plans and exercise routines you can genuinely keep up with, refined as you go.", hi: "रोज़ की आसान भोजन योजना और व्यायाम दिनचर्या पाएं जिन्हें आप वाकई निभा सकें, समय के साथ बेहतर होती हुई।" },
+
+    // Home — Final CTA
+    "home.finalTitle": { en: "Steadier days start here.", hi: "स्थिर दिनों की शुरुआत यहीं से।" },
+    "home.finalBody": { en: "Join the waitlist and be among the first to meet Stilwater — your personalized companion for living well with a chronic condition.", hi: "वेटलिस्ट में शामिल हों और Stilwater से मिलने वालों में पहले बनें — दीर्घकालिक स्थिति के साथ अच्छे ढंग से जीने के लिए आपका वैयक्तिकृत साथी।" },
+    "home.disclaimerLabel": { en: "A note on care:", hi: "देखभाल पर एक नोट:" },
+    "home.disclaimerBody": { en: "Stilwater offers personalized lifestyle, diet, and exercise guidance to support you alongside your medical care. It does not diagnose, treat, or cure any disease and does not replace advice from your doctor. Always consult your care team before changing your diet, medication, or exercise, and seek immediate medical attention in an emergency.", hi: "Stilwater आपकी चिकित्सकीय देखभाल के साथ-साथ वैयक्तिकृत जीवनशैली, आहार और व्यायाम मार्गदर्शन देता है। यह किसी बीमारी का निदान, उपचार या इलाज नहीं करता और आपके डॉक्टर की सलाह का स्थान नहीं लेता। आहार, दवा या व्यायाम बदलने से पहले हमेशा अपनी देखभाल टीम से सलाह लें, और आपात स्थिति में तुरंत चिकित्सकीय सहायता लें।" },
+
+    // Welcome popup (home)
+    "welcome.eyebrow": { en: "Your AI companion", hi: "आपकी AI साथी" },
+    "welcome.titleA": { en: "Hello, I'm", hi: "नमस्ते, मैं हूँ" },
+    "welcome.titleB": { en: "— your AI companion for personal health.", hi: "— व्यक्तिगत स्वास्थ्य के लिए आपकी AI साथी।" },
+    "welcome.subtitle": { en: "To start, please log in.", hi: "शुरू करने के लिए कृपया लॉगिन करें।" },
+    "welcome.continueGoogle": { en: "Continue with Google", hi: "Google से जारी रखें" },
+    "welcome.later": { en: "Maybe later", hi: "बाद में" },
+
+    // Cookie banner
+    "cookie.title": { en: "We respect your sanctuary.", hi: "हम आपकी निजता का सम्मान करते हैं।" },
+    "cookie.body": {
+      en: 'This website uses strictly necessary cookies (like express-session) to securely maintain your authentication state when accessing The Bridge and the Recovery Portal. By continuing or pressing "Accept Cookies", you consent to our use of these exact cookies.',
+      hi: 'यह वेबसाइट The Bridge और Recovery Portal में आपके लॉगिन को सुरक्षित रखने के लिए केवल आवश्यक कुकीज़ का उपयोग करती है। जारी रखकर या "कुकीज़ स्वीकारें" दबाकर आप इन कुकीज़ के उपयोग पर सहमति देते हैं।',
+    },
+    "cookie.accept": { en: "Accept Cookies", hi: "कुकीज़ स्वीकारें" },
+
+    // Footer (shared on most pages)
+    "footer.legal": { en: "Legal & Compliance", hi: "कानूनी एवं अनुपालन" },
+    "footer.privacy": { en: "Privacy Policy", hi: "गोपनीयता नीति" },
+    "footer.terms": { en: "Terms of Use", hi: "उपयोग की शर्तें" },
+    "footer.medical": { en: "Health Warning / Medical Disclaimer", hi: "स्वास्थ्य चेतावनी / चिकित्सकीय अस्वीकरण" },
+    "footer.testimonials": { en: "Testimonials", hi: "प्रशंसापत्र" },
+    "footer.copyright": { en: "© 2026 Stilwater. All rights reserved.", hi: "© 2026 Stilwater। सर्वाधिकार सुरक्षित।" },
+    "footer.tagline": {
+      en: "Your AI companion for personal health — personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.",
+      hi: "व्यक्तिगत स्वास्थ्य के लिए आपकी AI साथी — दीर्घकालिक स्थितियों के साथ अच्छे ढंग से जीने के लिए वैयक्तिकृत आहार, जीवनशैली और व्यायाम मार्गदर्शन।",
+    },
+
+    // Care-path sidebar
+    "carepath.yourPath": { en: "Your Care Path", hi: "आपका केयर पाथ" },
+    "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
+    "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
+
+    // Aria companion shell
+    "aria.greeting": { en: "Hi, Aria here", hi: "नमस्ते, मैं Aria हूँ" },
+    "aria.disclaimer": { en: "Aria offers lifestyle guidance and does not replace your doctor's advice.", hi: "Aria जीवनशैली मार्गदर्शन देती है और आपके डॉक्टर की सलाह का स्थान नहीं लेती।" },
+
+    // Aria modes
+    "aria.mode.mealplan": { en: "Meal Plan", hi: "भोजन योजना" },
+    "aria.mode.recipes": { en: "Recipes", hi: "व्यंजन" },
+    "aria.mode.journaling": { en: "Journaling", hi: "जर्नल" },
+    "aria.modeBlurb.mealplan": { en: "Plan your meals", hi: "अपने भोजन की योजना बनाएं" },
+    "aria.modeBlurb.recipes": { en: "Cook something good", hi: "कुछ अच्छा पकाएं" },
+    "aria.modeBlurb.journaling": { en: "Log your day", hi: "अपना दिन दर्ज करें" },
+
+    // Meal Plan
+    "aria.mp.title": { en: "Your meal plan", hi: "आपकी भोजन योजना" },
+    "aria.mp.intro": {
+      en: "Let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday.",
+      hi: "Stilwater को अपने स्वाद के अनुसार साप्ताहिक योजना बनाने दें, या कल जो खाया उस पर आधारित आज की योजना प्राप्त करें।",
+    },
+    "aria.mp.generateWeekly.title": { en: "Generate Stilwater weekly plan", hi: "Stilwater साप्ताहिक योजना बनाएं" },
+    "aria.mp.generateWeekly.body": { en: "Tell us your preferred cuisines and what to avoid — by voice or text.", hi: "हमें बताएं कि कौन से व्यंजन पसंद हैं और किनसे बचना है — आवाज़ या टेक्स्ट से।" },
+    "aria.mp.generateToday.title": { en: "Generate today's plan", hi: "आज की योजना बनाएं" },
+    "aria.mp.generateToday.body": { en: "Built from your plan and yesterday's journal.", hi: "आपकी योजना और कल की जर्नल के आधार पर।" },
+    "aria.mp.setupFirst": { en: "Set up a plan first", hi: "पहले एक योजना बनाएं" },
+    "aria.mp.weekly.title": { en: "Stilwater weekly plan", hi: "Stilwater साप्ताहिक योजना" },
+    "aria.mp.weekly.hint": { en: "Tell us what you like and what to skip. Tap the mic to speak, or just type.", hi: "हमें बताएं क्या पसंद है और क्या छोड़ना है। बोलने के लिए माइक दबाएं, या टाइप करें।" },
+    "aria.mp.cuisinesLabel": { en: "Cuisines you prefer", hi: "पसंदीदा व्यंजन" },
+    "aria.mp.cuisinesPlaceholder": { en: "e.g. Mediterranean, South Indian, Japanese", hi: "उदा. भारतीय, भूमध्यसागरीय, जापानी" },
+    "aria.mp.avoidLabel": { en: "Foods to avoid", hi: "जिनसे बचना है" },
+    "aria.mp.avoidPlaceholder": { en: "e.g. peanuts, shellfish, red meat", hi: "उदा. मूंगफली, अंडा, चीनी" },
+    "aria.mp.generateBtn": { en: "Generate weekly plan", hi: "साप्ताहिक योजना बनाएं" },
+    "aria.mp.generating": { en: "Generating…", hi: "बनाई जा रही है…" },
+    "aria.mp.editPrefs": { en: "Edit prefs", hi: "प्राथमिकताएं बदलें" },
+    "aria.mp.yourWeekly": { en: "Your weekly plan", hi: "आपकी साप्ताहिक योजना" },
+    "aria.mp.today.title": { en: "Today's plan", hi: "आज की योजना" },
+    "aria.mp.today.differentBtn": { en: "Generate a different plan for today", hi: "आज के लिए अलग योजना बनाएं" },
+    "aria.mp.today.error": { en: "Aria couldn't build a different plan. Please try again.", hi: "Aria अलग योजना नहीं बना पाई। फिर से कोशिश करें।" },
+    "aria.mp.weeklyError": { en: "Aria couldn't build the plan. Please try again.", hi: "Aria योजना नहीं बना पाई। फिर से कोशिश करें।" },
+    "aria.mp.unreachable": { en: "Couldn't reach Aria right now. Please try again.", hi: "अभी Aria तक नहीं पहुँच पा रहे। फिर से कोशिश करें।" },
+    "aria.mp.uploadBtn": { en: "Upload", hi: "अपलोड" },
+    "aria.mp.generateWeeklyShort": { en: "Generate weekly", hi: "साप्ताहिक बनाएं" },
+    "aria.mp.setupBody": {
+      en: "Today's plan builds on a plan you've uploaded or a Stilwater weekly plan. Add one to get started.",
+      hi: "आज की योजना आपकी अपलोड की हुई योजना या Stilwater साप्ताहिक योजना पर आधारित होती है। शुरू करने के लिए एक जोड़ें।",
+    },
+
+    // Day names
+    "day.Monday": { en: "Monday", hi: "सोमवार" },
+    "day.Tuesday": { en: "Tuesday", hi: "मंगलवार" },
+    "day.Wednesday": { en: "Wednesday", hi: "बुधवार" },
+    "day.Thursday": { en: "Thursday", hi: "गुरुवार" },
+    "day.Friday": { en: "Friday", hi: "शुक्रवार" },
+    "day.Saturday": { en: "Saturday", hi: "शनिवार" },
+    "day.Sunday": { en: "Sunday", hi: "रविवार" },
+
+    // Meal slot names
+    "slot.Breakfast": { en: "Breakfast", hi: "नाश्ता" },
+    "slot.Snack": { en: "Snack", hi: "स्नैक" },
+    "slot.Lunch": { en: "Lunch", hi: "दोपहर का भोजन" },
+    "slot.Evening Snack": { en: "Evening Snack", hi: "शाम का स्नैक" },
+    "slot.Dinner": { en: "Dinner", hi: "रात का भोजन" },
+
+    // Recipes
+    "aria.recipes.title": { en: "Recipes", hi: "व्यंजन" },
+    "aria.recipes.intro.withPlan": { en: "Cooking videos for each meal in today's plan, or search any dish below.", hi: "आज की योजना के हर भोजन के लिए कुकिंग वीडियो, या नीचे कोई व्यंजन खोजें।" },
+    "aria.recipes.intro.noPlan": { en: "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.", hi: "कुकिंग वीडियो के लिए कोई व्यंजन खोजें। हर भोजन के वीडियो स्वतः पाने के लिए Meal Plan में साप्ताहिक योजना बनाएं।" },
+    "aria.recipes.searchPlaceholder": { en: "Search any dish — e.g. paneer tikka", hi: "कोई व्यंजन खोजें — जैसे पनीर टिक्का" },
+    "aria.recipes.find": { en: "Find", hi: "खोजें" },
+    "aria.recipes.loading": { en: "Finding a recipe video…", hi: "रेसिपी वीडियो खोज रहे हैं…" },
+    "aria.recipes.footerNote": { en: "One plant-based cooking video per dish — click to open it on YouTube.", hi: "हर व्यंजन के लिए एक प्लांट-बेस्ड कुकिंग वीडियो — YouTube पर खोलने के लिए क्लिक करें।" },
+    "aria.recipes.cantReach": { en: "Couldn't reach Aria right now.", hi: "अभी Aria तक नहीं पहुँच पा रहे।" },
+
+    // Journaling
+    "aria.journal.greeting": {
+      en: "Hi, I'm Aria — your Stilwater companion. Pick what you'd like to journal, then type your entry, tap the mic to speak it, or the camera to add a photo. Just include the time and I'll capture it.",
+      hi: "नमस्ते, मैं Aria हूँ — आपकी Stilwater साथी। चुनें कि क्या जर्नल करना है, फिर अपनी प्रविष्टि टाइप करें, बोलने के लिए माइक दबाएं, या फोटो जोड़ने के लिए कैमरा दबाएं। बस समय शामिल करें और मैं उसे दर्ज कर लूँगी।",
+    },
+    "aria.journal.cat.food": { en: "Food", hi: "भोजन" },
+    "aria.journal.cat.exercise": { en: "Exercise", hi: "व्यायाम" },
+    "aria.journal.cat.sleep": { en: "Sleep", hi: "नींद" },
+    "aria.journal.cat.mood": { en: "Mood", hi: "मूड" },
+    "aria.journal.prompt.food": { en: "What did you eat, and when?", hi: "आपने क्या और कब खाया?" },
+    "aria.journal.prompt.exercise": { en: "What movement did you do, and when?", hi: "आपने क्या व्यायाम और कब किया?" },
+    "aria.journal.prompt.sleep": { en: "How did you sleep, and when?", hi: "आपने कैसे और कब सोया?" },
+    "aria.journal.prompt.mood": { en: "How are you feeling, and when?", hi: "आप कैसा महसूस कर रहे हैं, और कब?" },
+    "aria.journal.inputHint": { en: "Type, speak, or snap a photo — just include the time in your entry.", hi: "टाइप करें, बोलें, या फोटो लें — अपनी प्रविष्टि में समय शामिल करें।" },
+    "aria.journal.listening": { en: "Listening…", hi: "सुन रही हूँ…" },
+    "aria.journal.response.food": { en: "Logged to your food journal. 🍽️", hi: "आपके भोजन जर्नल में दर्ज। 🍽️" },
+    "aria.journal.response.exercise": { en: "Added to your exercise journal. 💪", hi: "आपके व्यायाम जर्नल में जोड़ा गया। 💪" },
+    "aria.journal.response.sleep": { en: "Noted in your sleep journal. 🌙", hi: "आपके नींद जर्नल में नोट किया। 🌙" },
+    "aria.journal.response.mood": { en: "Saved to your mood journal. Thanks for checking in.", hi: "आपके मूड जर्नल में सहेजा गया। चेक-इन के लिए धन्यवाद।" },
+    "aria.journal.photoNote": { en: " Photo saved with the entry.", hi: " फोटो प्रविष्टि के साथ सहेजी गई।" },
+    "aria.journal.voiceUnsupported": { en: "Voice input isn't supported in this browser, but you can type your entry instead.", hi: "इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है, लेकिन आप प्रविष्टि टाइप कर सकते हैं।" },
+
+    // Language dropdown
+    "lang.label": { en: "Language", hi: "भाषा" },
+    "lang.en": { en: "English", hi: "English" },
+    "lang.hi": { en: "हिंदी", hi: "हिंदी" },
+  };
+
+  function getLang() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved && SUPPORTED.indexOf(saved) !== -1) return saved;
+    } catch (_e) {}
+    const nav = String((navigator && navigator.language) || "en").toLowerCase();
+    return nav.indexOf("hi") === 0 ? "hi" : "en";
+  }
+
+  function setLang(lang) {
+    if (SUPPORTED.indexOf(lang) === -1) return;
+    try { localStorage.setItem(STORAGE_KEY, lang); } catch (_e) {}
+    document.documentElement.lang = lang;
+    apply();
+    try { window.dispatchEvent(new CustomEvent("sw:langchange", { detail: { lang } })); } catch (_e) {}
+  }
+
+  function t(key, fallback) {
+    const entry = DICT[key];
+    if (!entry) return fallback != null ? fallback : (key || "");
+    const lang = getLang();
+    return entry[lang] || entry.en || (fallback != null ? fallback : key);
+  }
+
+  function apply() {
+    try {
+      const lang = getLang();
+      document.documentElement.lang = lang;
+      document.querySelectorAll("[data-i18n]").forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        const val = t(key, null);
+        if (val != null) el.textContent = val;
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        const val = t(key, null);
+        if (val != null) el.setAttribute("placeholder", val);
+      });
+      document.querySelectorAll("[data-i18n-aria-label]").forEach((el) => {
+        const key = el.getAttribute("data-i18n-aria-label");
+        const val = t(key, null);
+        if (val != null) el.setAttribute("aria-label", val);
+      });
+      document.querySelectorAll("[data-i18n-title]").forEach((el) => {
+        const key = el.getAttribute("data-i18n-title");
+        const val = t(key, null);
+        if (val != null) el.setAttribute("title", val);
+      });
+      // Update dropdown selected value (in case lang was changed elsewhere).
+      const select = document.getElementById("swLangSelect");
+      if (select && select.value !== lang) select.value = lang;
+    } catch (_e) {
+      // Never throw — i18n should be additive, not breaking.
+    }
+  }
+
+  function ensureDropdownStyles() {
+    try {
+      if (document.getElementById("swLangStyles")) return;
+      const style = document.createElement("style");
+      style.id = "swLangStyles";
+      style.textContent =
+        ".sw-lang-wrap{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.7);border:1px solid rgba(47,72,66,.18);border-radius:999px;padding:4px 6px 4px 10px;margin-right:.5rem;color:#2f4842;font-family:inherit;font-size:.8rem;font-weight:600;line-height:1;cursor:pointer;transition:background .18s ease}" +
+        ".sw-lang-wrap:hover{background:rgba(255,255,255,.95)}" +
+        ".sw-lang-globe{display:inline-flex;align-items:center;color:inherit}" +
+        ".sw-lang-select{appearance:none;-webkit-appearance:none;border:none;background:transparent;color:inherit;font:inherit;padding:4px 18px 4px 4px;cursor:pointer;background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%232f4842' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\");background-repeat:no-repeat;background-position:right 4px center;background-size:10px 10px}" +
+        ".sw-lang-select:focus{outline:none}" +
+        ".sw-lang-wrap-floating{position:fixed;top:.8rem;right:.8rem;z-index:10000}" +
+        "@media (max-width:1039px){.sw-lang-wrap{padding:4px 4px 4px 8px;font-size:.74rem}.sw-lang-select{padding-right:14px;background-size:8px 8px}}";
+      (document.head || document.documentElement).appendChild(style);
+    } catch (_e) {}
+  }
+
+  function mountDropdown() {
+    try {
+      ensureDropdownStyles();
+      if (document.getElementById("swLangSelect")) return;
+
+      const wrap = document.createElement("label");
+      wrap.id = "swLangWrap";
+      wrap.className = "sw-lang-wrap";
+      wrap.setAttribute("aria-label", "Language / भाषा");
+      wrap.title = "Language / भाषा";
+
+      const globe = document.createElement("span");
+      globe.className = "sw-lang-globe";
+      globe.setAttribute("aria-hidden", "true");
+      globe.innerHTML =
+        '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+        '<circle cx="12" cy="12" r="9"/>' +
+        '<path d="M3 12h18"/>' +
+        '<path d="M12 3c2.5 3 2.5 15 0 18"/>' +
+        '<path d="M12 3c-2.5 3-2.5 15 0 18"/>' +
+        '</svg>';
+      wrap.appendChild(globe);
+
+      const select = document.createElement("select");
+      select.id = "swLangSelect";
+      select.className = "sw-lang-select";
+
+      const optEn = document.createElement("option");
+      optEn.value = "en";
+      optEn.textContent = "EN · English";
+      select.appendChild(optEn);
+
+      const optHi = document.createElement("option");
+      optHi.value = "hi";
+      optHi.textContent = "हिं · हिंदी";
+      select.appendChild(optHi);
+
+      select.value = getLang();
+      select.addEventListener("change", (e) => setLang(e.target.value));
+      wrap.appendChild(select);
+
+      // Best placement: just inside #authActions so it sits next to "Hi,
+      // [name]" / "Continue Care Path". Fallback: float top-right.
+      const auth = document.getElementById("authActions");
+      if (auth) {
+        auth.insertBefore(wrap, auth.firstChild);
+      } else {
+        wrap.classList.add("sw-lang-wrap-floating");
+        document.body.appendChild(wrap);
+      }
+    } catch (_e) {}
+  }
+
+  // Public API
+  window.SwI18n = { t, getLang, setLang, apply, mountDropdown, supported: SUPPORTED };
+
+  function init() {
+    apply();
+    mountDropdown();
+    // Re-apply after a tick in case shared.js injects auth elements
+    // (e.g. authActions content) after we first ran.
+    setTimeout(() => { apply(); if (!document.getElementById("swLangSelect")) mountDropdown(); }, 80);
+    setTimeout(apply, 400);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();

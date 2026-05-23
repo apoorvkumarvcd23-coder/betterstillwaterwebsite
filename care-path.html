@@ -1355,13 +1355,13 @@
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <div class="care-sidebar-title">Your Care Path</div>
+        <div class="care-sidebar-title" data-i18n="carepath.yourPath">Your Care Path</div>
         <a class="care-sidebar-item" href="partners.html">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
             <path d="M9 12l2 2 4-4"/>
             <circle cx="12" cy="12" r="10"/>
           </svg>
-          Verified Wellness Providers
+          <span data-i18n="carepath.providers">Verified Wellness Providers</span>
         </a>
         <button type="button" class="care-sidebar-item" id="btnYogaSidebar">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
@@ -1370,7 +1370,7 @@
             <path d="M5 11l7-2 7 2"/>
             <path d="M9 22l3-9 3 9"/>
           </svg>
-          Practice Yoga with AI
+          <span data-i18n="carepath.yoga">Practice Yoga with AI</span>
         </button>
       </aside>
       <div class="care-stage">
@@ -1498,7 +1498,7 @@
               <span class="mode-label" id="companionModeLabel">Journaling</span>
               <svg class="chev" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <span class="companion-greeting" id="companionGreeting">Hi, Aria here</span>
+            <span class="companion-greeting" id="companionGreeting" data-i18n="aria.greeting">Hi, Aria here</span>
           </header>
 
           <div class="companion-menu-scrim" id="companionMenuScrim" hidden></div>
@@ -1506,7 +1506,7 @@
 
           <div class="companion-body" id="companionBody"></div>
         </div>
-        <p class="companion-hint">Aria offers lifestyle guidance and does not replace your doctor's advice.</p>
+        <p class="companion-hint" data-i18n="aria.disclaimer">Aria offers lifestyle guidance and does not replace your doctor's advice.</p>
       </section>
       </div>
     </main>
@@ -2003,17 +2003,23 @@
             "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
           }[c]));
 
-        // ---- Modes & categories ----
+        // Safe accessors so the Aria UI still works even if i18n.js failed.
+        const T = (key, fallback) =>
+          (window.SwI18n && window.SwI18n.t) ? window.SwI18n.t(key, fallback) : (fallback != null ? fallback : key);
+        const LANG = () =>
+          (window.SwI18n && window.SwI18n.getLang) ? window.SwI18n.getLang() : "en";
+
+        // ---- Modes & categories (labels resolved at render time via T) ----
         const MODES = {
-          mealplan:   { label: "Meal Plan",  icon: "calendar", blurb: "Plan your meals" },
-          recipes:    { label: "Recipes",    icon: "chef",     blurb: "Cook something good" },
-          journaling: { label: "Journaling", icon: "notebook", blurb: "Log your day" },
+          mealplan:   { icon: "calendar", labelKey: "aria.mode.mealplan",   blurbKey: "aria.modeBlurb.mealplan" },
+          recipes:    { icon: "chef",     labelKey: "aria.mode.recipes",    blurbKey: "aria.modeBlurb.recipes" },
+          journaling: { icon: "notebook", labelKey: "aria.mode.journaling", blurbKey: "aria.modeBlurb.journaling" },
         };
         const CATEGORIES = {
-          food:     { label: "Food",     icon: "utensils", accent: "#c98a5e", soft: "#f3e3d4", prompt: "What did you eat, and when?" },
-          exercise: { label: "Exercise", icon: "dumbbell", accent: "#7d9471", soft: "#e3ebdc", prompt: "What movement did you do, and when?" },
-          sleep:    { label: "Sleep",    icon: "moon",     accent: "#6b7da3", soft: "#dfe5f0", prompt: "How did you sleep, and when?" },
-          mood:     { label: "Mood",     icon: "smile",    accent: "#caa44a", soft: "#f2ebd2", prompt: "How are you feeling, and when?" },
+          food:     { icon: "utensils", accent: "#c98a5e", soft: "#f3e3d4", labelKey: "aria.journal.cat.food",     promptKey: "aria.journal.prompt.food" },
+          exercise: { icon: "dumbbell", accent: "#7d9471", soft: "#e3ebdc", labelKey: "aria.journal.cat.exercise", promptKey: "aria.journal.prompt.exercise" },
+          sleep:    { icon: "moon",     accent: "#6b7da3", soft: "#dfe5f0", labelKey: "aria.journal.cat.sleep",    promptKey: "aria.journal.prompt.sleep" },
+          mood:     { icon: "smile",    accent: "#caa44a", soft: "#f2ebd2", labelKey: "aria.journal.cat.mood",     promptKey: "aria.journal.prompt.mood" },
         };
         const MEAL_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
         const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -2026,11 +2032,43 @@
         };
         const todayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
 
+        // ---- Persistence: keep meaningful Aria state across navigations,
+        // language toggles, and even logout/login on the same browser. We
+        // skip transient flags (listening, generating*, draft input, search)
+        // and File-object uploads which can't serialise.
+        const STATE_STORAGE_KEY = "sw_aria_state_v1";
+        function loadPersistedState() {
+          try {
+            const raw = localStorage.getItem(STATE_STORAGE_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed && typeof parsed === "object" ? parsed : null;
+          } catch (_e) { return null; }
+        }
+        function savePersistedState() {
+          try {
+            const slim = {
+              mode: state.mode,
+              messages: Array.isArray(state.messages) ? state.messages.slice(-50) : [],
+              activeCat: state.activeCat,
+              mpView: state.mpView,
+              cuisine: state.cuisine,
+              avoid: state.avoid,
+              weeklyPlan: state.weeklyPlan,
+              weeklyMeta: state.weeklyMeta,
+              todayPlan: state.todayPlan,
+              todayMeta: state.todayMeta,
+              searchedDish: state.searchedDish,
+            };
+            localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(slim));
+          } catch (_e) {}
+        }
+
         // ---- Shared state across modes ----
-        const state = {
+        const _defaults = {
           mode: "mealplan",
-          // journaling
-          messages: [{ from: "companion", text: "Hi, I'm Aria — your Stilwater companion. Pick what you'd like to journal, then type your entry, tap the mic to speak it, or the camera to add a photo. Just include the time and I'll capture it." }],
+          // journaling — greeting key resolves to the current language at render
+          messages: [{ from: "companion", textKey: "aria.journal.greeting" }],
           activeCat: "food",
           journalingDraft: "",
           listening: false,
@@ -2051,20 +2089,45 @@
           search: "",
           searchedDish: null,
         };
+        const _persisted = loadPersistedState() || {};
+        const state = Object.assign({}, _defaults, _persisted);
+        // Always re-derive transient flags fresh on load (never restore them).
+        state.journalingDraft = "";
+        state.listening = false;
+        state.uploaded = null;
+        state.uploadError = "";
+        state.listeningField = null;
+        state.generatingWeekly = false;
+        state.generatingToday = false;
+        state.search = "";
+        // Guarantee at least the greeting bubble if persisted messages was empty.
+        if (!Array.isArray(state.messages) || !state.messages.length) {
+          state.messages = [{ from: "companion", textKey: "aria.journal.greeting" }];
+        }
         const hasPlan = () => Boolean(state.uploaded || state.weeklyPlan);
         let activeRecognition = null;
 
         // ---- Render entry-points ----
         function renderMode() {
-          // Header icon + label
-          modeIcon.innerHTML = ICONS[MODES[state.mode].icon];
-          modeLabel.textContent = MODES[state.mode].label;
-          // Body
-          body.innerHTML = "";
-          if (state.mode === "journaling") body.appendChild(renderJournaling());
-          else if (state.mode === "mealplan") body.appendChild(renderMealPlan());
-          else body.appendChild(renderRecipes());
+          try {
+            modeIcon.innerHTML = ICONS[MODES[state.mode].icon];
+            modeLabel.textContent = T(MODES[state.mode].labelKey, state.mode);
+            body.innerHTML = "";
+            if (state.mode === "journaling") body.appendChild(renderJournaling());
+            else if (state.mode === "mealplan") body.appendChild(renderMealPlan());
+            else body.appendChild(renderRecipes());
+            // Re-apply data-i18n on any static markup inside the new body.
+            if (window.SwI18n && window.SwI18n.apply) window.SwI18n.apply();
+            // Snapshot after every render so the weekly plan, today's plan,
+            // cuisine/avoid prefs, last mode, etc. survive navigation.
+            savePersistedState();
+          } catch (err) {
+            console.error("Aria render failed:", err);
+          }
         }
+
+        // Re-render Aria whenever language changes.
+        window.addEventListener("sw:langchange", () => renderMode());
 
         // ---- Mode dropdown ----
         function renderMenu() {
@@ -2079,8 +2142,8 @@
             btn.innerHTML =
               '<span class="menu-tile">' + ico(m.icon) + '</span>' +
               '<span class="menu-text">' +
-                '<span class="menu-title">' + escapeHtml(m.label) + '</span>' +
-                '<span class="menu-blurb">' + escapeHtml(m.blurb) + '</span>' +
+                '<span class="menu-title">' + escapeHtml(T(m.labelKey, key)) + '</span>' +
+                '<span class="menu-blurb">' + escapeHtml(T(m.blurbKey, "")) + '</span>' +
               '</span>' +
               ico("check", 'class="menu-check"');
             btn.addEventListener("click", () => {
@@ -2130,7 +2193,7 @@
             b.className = "companion-cat-btn" + (state.activeCat === key ? " is-active" : "");
             b.style.setProperty("--cat-accent", c.accent);
             b.style.setProperty("--cat-soft", c.soft);
-            b.innerHTML = ico(c.icon) + escapeHtml(c.label);
+            b.innerHTML = ico(c.icon) + escapeHtml(T(c.labelKey, key));
             b.addEventListener("click", () => {
               state.activeCat = key;
               renderMode();
@@ -2177,7 +2240,7 @@
           const textarea = document.createElement("textarea");
           textarea.rows = 1;
           textarea.className = "companion-textarea";
-          textarea.placeholder = state.listening ? "Listening…" : active.prompt;
+          textarea.placeholder = state.listening ? T("aria.journal.listening", "Listening…") : T(active.promptKey, "");
           textarea.value = state.journalingDraft;
           const updateSend = () => {
             const has = textarea.value.trim().length > 0;
@@ -2206,7 +2269,7 @@
           foot.appendChild(inputRow);
           const hint = document.createElement("div");
           hint.className = "companion-input-hint";
-          hint.textContent = "Type, speak, or snap a photo — just include the time in your entry.";
+          hint.textContent = T("aria.journal.inputHint", "Type, speak, or snap a photo — just include the time in your entry.");
           foot.appendChild(hint);
           pane.appendChild(foot);
 
@@ -2233,7 +2296,7 @@
             const tag = document.createElement("div");
             tag.className = "companion-cat-tag";
             tag.style.color = cat.accent;
-            tag.innerHTML = ico(cat.icon) + escapeHtml(cat.label);
+            tag.innerHTML = ico(cat.icon) + escapeHtml(T(cat.labelKey, msg.category));
             row.appendChild(tag);
           }
           const bubble = document.createElement("div");
@@ -2248,7 +2311,11 @@
             img.alt = "journal entry";
             bubble.appendChild(img);
           } else {
-            bubble.textContent = msg.text || "";
+            // Prefer the translatable textKey when present so saved messages
+            // re-translate on language change. Optional extraKey appended.
+            let txt = msg.textKey ? T(msg.textKey, msg.text || "") : (msg.text || "");
+            if (msg.extraKey) txt += T(msg.extraKey, "");
+            bubble.textContent = txt;
           }
           row.appendChild(bubble);
           return row;
@@ -2256,20 +2323,18 @@
 
         function commitEntry(text, image) {
           state.messages.push({ from: "user", text: text || null, image: image || null, category: state.activeCat });
-          const base = {
-            food: "Logged to your food journal. 🍽️",
-            exercise: "Added to your exercise journal. 💪",
-            sleep: "Noted in your sleep journal. 🌙",
-            mood: "Saved to your mood journal. Thanks for checking in.",
-          }[state.activeCat];
-          const extra = image ? " Photo saved with the entry." : "";
-          state.messages.push({ from: "companion", text: base + extra });
+          // Store as a textKey so re-render in another language stays correct.
+          state.messages.push({
+            from: "companion",
+            textKey: "aria.journal.response." + state.activeCat,
+            extraKey: image ? "aria.journal.photoNote" : null,
+          });
         }
 
         function toggleVoiceJournal(textarea) {
           const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
           if (!SR) {
-            state.messages.push({ from: "companion", text: "Voice input isn't supported in this browser, but you can type your entry instead." });
+            state.messages.push({ from: "companion", textKey: "aria.journal.voiceUnsupported" });
             renderMode();
             return;
           }
@@ -2282,7 +2347,7 @@
           const rec = new SR();
           rec.continuous = false;
           rec.interimResults = true;
-          rec.lang = "en-US";
+          rec.lang = LANG() === "hi" ? "hi-IN" : "en-US";
           rec.onresult = (e) => {
             let t = "";
             for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
@@ -2341,22 +2406,22 @@
           wrap.style.display = "flex";
           wrap.style.flexDirection = "column";
           wrap.style.gap = "16px";
-          wrap.appendChild(intro("Your meal plan", "Let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday."));
+          wrap.appendChild(intro(T("aria.mp.title", "Your meal plan"), T("aria.mp.intro", "Let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday.")));
           // "Upload my plan" intentionally hidden for now — kept in the
           // code so we can re-enable it later by un-commenting this block.
           wrap.appendChild(choiceCard({
             icon: "sparkles", accent: "#7d9471",
-            title: "Generate Stilwater weekly plan",
-            body: "Tell us your preferred cuisines and what to avoid — by voice or text.",
+            title: T("aria.mp.generateWeekly.title", "Generate Stilwater weekly plan"),
+            body: T("aria.mp.generateWeekly.body", "Tell us your preferred cuisines and what to avoid — by voice or text."),
             badge: state.weeklyPlan ? "Ready" : null,
             onClick: () => { state.mpView = "weekly"; renderMode(); },
           }));
           wrap.appendChild(choiceCard({
             icon: "calendar", accent: "#6b7da3",
-            title: "Generate today's plan",
-            body: "Built from your plan and yesterday's journal.",
+            title: T("aria.mp.generateToday.title", "Generate today's plan"),
+            body: T("aria.mp.generateToday.body", "Built from your plan and yesterday's journal."),
             disabled: !hasPlan(),
-            hint: !hasPlan() ? "Set up a plan first" : null,
+            hint: !hasPlan() ? T("aria.mp.setupFirst", "Set up a plan first") : null,
             onClick: () => { state.mpView = "today"; renderMode(); },
           }));
           return wrap;
@@ -2368,7 +2433,7 @@
           const b = document.createElement("button");
           b.type = "button";
           b.className = "companion-back-btn";
-          b.innerHTML = ico("chevron") + 'Back';
+          b.innerHTML = ico("chevron") + escapeHtml(T("common.back", "Back"));
           b.addEventListener("click", () => { state.mpView = "choose"; renderMode(); });
           row.appendChild(b);
           const lab = document.createElement("span");
@@ -2497,7 +2562,7 @@
           const rec = new SR();
           rec.continuous = false;
           rec.interimResults = true;
-          rec.lang = "en-US";
+          rec.lang = LANG() === "hi" ? "hi-IN" : "en-US";
           rec.onresult = (e) => {
             let t = "";
             for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
@@ -2522,24 +2587,24 @@
           wrap.style.gap = "16px";
 
           if (!state.weeklyPlan) {
-            wrap.appendChild(backRow("Stilwater weekly plan"));
+            wrap.appendChild(backRow(T("aria.mp.weekly.title", "Stilwater weekly plan")));
             const note = document.createElement("p");
             note.className = "companion-intro-body";
             note.style.marginTop = "-6px";
-            note.textContent = "Tell us what you like and what to skip. Tap the mic to speak, or just type.";
+            note.textContent = T("aria.mp.weekly.hint", "Tell us what you like and what to skip. Tap the mic to speak, or just type.");
             wrap.appendChild(note);
             wrap.appendChild(voiceField({
-              label: "Cuisines you prefer", value: state.cuisine, field: "cuisine",
-              placeholder: "e.g. Mediterranean, South Indian, Japanese",
+              label: T("aria.mp.cuisinesLabel", "Cuisines you prefer"), value: state.cuisine, field: "cuisine",
+              placeholder: T("aria.mp.cuisinesPlaceholder", "e.g. Mediterranean, South Indian, Japanese"),
               onChange: (v) => { state.cuisine = v; },
             }));
             wrap.appendChild(voiceField({
-              label: "Foods to avoid", value: state.avoid, field: "avoid",
-              placeholder: "e.g. peanuts, shellfish, red meat",
+              label: T("aria.mp.avoidLabel", "Foods to avoid"), value: state.avoid, field: "avoid",
+              placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, shellfish, red meat"),
               onChange: (v) => { state.avoid = v; },
             }));
             wrap.appendChild(primaryBtn(
-              state.generatingWeekly ? "Generating…" : "Generate weekly plan",
+              state.generatingWeekly ? T("aria.mp.generating", "Generating…") : T("aria.mp.generateBtn", "Generate weekly plan"),
               state.generatingWeekly ? null : "sparkles",
               () => generateWeekly(),
               state.generatingWeekly,
@@ -2551,7 +2616,7 @@
               wrap.appendChild(err);
             }
           } else {
-            wrap.appendChild(backRow("Your weekly plan"));
+            wrap.appendChild(backRow(T("aria.mp.yourWeekly", "Your weekly plan")));
             const row = document.createElement("div");
             row.className = "companion-row";
             row.style.marginTop = "-6px";
@@ -2559,20 +2624,20 @@
             const edit = document.createElement("button");
             edit.type = "button";
             edit.className = "companion-edit-btn";
-            edit.textContent = "Edit prefs";
+            edit.textContent = T("aria.mp.editPrefs", "Edit prefs");
             edit.addEventListener("click", () => { state.weeklyPlan = null; state.todayPlan = null; state.todayMeta = ""; renderMode(); });
             row.appendChild(edit);
             wrap.appendChild(row);
             WEEK_DAYS.forEach((day) => {
               const card = document.createElement("div");
               card.className = "companion-day-card";
-              card.innerHTML = '<div class="companion-day-head">' + escapeHtml(day) + '</div>';
+              card.innerHTML = '<div class="companion-day-head">' + escapeHtml(T("day." + day, day)) + '</div>';
               const meals = document.createElement("div");
               meals.className = "companion-day-meals";
               MEAL_SLOTS.forEach((slot) => {
                 const mr = document.createElement("div");
                 mr.className = "companion-meal-row";
-                mr.innerHTML = '<span class="companion-meal-slot">' + escapeHtml(slot) + '</span><span class="companion-meal-name">' + escapeHtml(state.weeklyPlan[day][slot]) + '</span>';
+                mr.innerHTML = '<span class="companion-meal-slot">' + escapeHtml(T("slot." + slot, slot)) + '</span><span class="companion-meal-name">' + escapeHtml(state.weeklyPlan[day][slot]) + '</span>';
                 meals.appendChild(mr);
               });
               card.appendChild(meals);
@@ -2591,11 +2656,11 @@
               method: "POST",
               credentials: "same-origin",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid }),
+              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, language: LANG() }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.plan) {
-              state.weeklyError = data.error || "Aria couldn't build the plan. Please try again.";
+              state.weeklyError = data.error || T("aria.mp.weeklyError", "Aria couldn't build the plan. Please try again.");
               state.generatingWeekly = false;
               renderMode();
               return;
@@ -2609,7 +2674,7 @@
             const avoidLabel = state.avoid.trim() ? " · avoiding " + state.avoid.trim() : "";
             state.weeklyMeta = "Stilwater weekly plan · " + cuisineLabel + avoidLabel;
           } catch (_e) {
-            state.weeklyError = "Couldn't reach Aria right now. Please try again.";
+            state.weeklyError = T("aria.mp.unreachable", "Couldn't reach Aria right now. Please try again.");
           }
           state.generatingWeekly = false;
           renderMode();
@@ -2622,17 +2687,17 @@
           wrap.style.gap = "16px";
 
           if (!hasPlan()) {
-            wrap.appendChild(backRow("Today's plan"));
+            wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
             const empty = document.createElement("div");
             empty.className = "companion-empty-card";
             empty.innerHTML =
               '<div class="ec-tile">' + ico("calendar") + '</div>' +
-              '<div class="ec-title">Set up a plan first</div>' +
-              '<div class="ec-body">Today\'s plan builds on a plan you\'ve uploaded or a Stilwater weekly plan. Add one to get started.</div>';
+              '<div class="ec-title">' + escapeHtml(T("aria.mp.setupFirst", "Set up a plan first")) + '</div>' +
+              '<div class="ec-body">' + escapeHtml(T("aria.mp.setupBody", "Today's plan builds on a plan you've uploaded or a Stilwater weekly plan. Add one to get started.")) + '</div>';
             const actions = document.createElement("div");
             actions.className = "ec-actions";
-            actions.appendChild(primaryBtn("Upload", "upload", () => { state.mpView = "upload"; renderMode(); }));
-            actions.appendChild(primaryBtn("Generate weekly", "sparkles", () => { state.mpView = "weekly"; renderMode(); }));
+            actions.appendChild(primaryBtn(T("aria.mp.uploadBtn", "Upload"), "upload", () => { state.mpView = "upload"; renderMode(); }));
+            actions.appendChild(primaryBtn(T("aria.mp.generateWeeklyShort", "Generate weekly"), "sparkles", () => { state.mpView = "weekly"; renderMode(); }));
             empty.appendChild(actions);
             wrap.appendChild(empty);
             return wrap;
@@ -2652,7 +2717,7 @@
             state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
           }
 
-          wrap.appendChild(backRow("Today's plan"));
+          wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
           if (state.todayPlan) {
             const meta = document.createElement("div");
             meta.className = "companion-meta";
@@ -2664,12 +2729,12 @@
               card.className = "companion-today-card";
               const entry = state.todayPlan[slot];
               card.innerHTML =
-                '<div class="companion-today-slot">' + escapeHtml(slot) + '</div>' +
+                '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                 '<div class="companion-today-meal">' + escapeHtml(entry.meal) + '</div>';
               wrap.appendChild(card);
             });
             wrap.appendChild(primaryBtn(
-              state.generatingToday ? "Generating…" : "Generate a different plan for today",
+              state.generatingToday ? T("aria.mp.generating", "Generating…") : T("aria.mp.today.differentBtn", "Generate a different plan for today"),
               state.generatingToday ? null : "sparkles",
               () => generateDifferentToday(),
               state.generatingToday,
@@ -2697,11 +2762,11 @@
               method: "POST",
               credentials: "same-origin",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, day, exclude }),
+              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, day, exclude, language: LANG() }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.plan) {
-              state.todayError = data.error || "Aria couldn't build a different plan. Please try again.";
+              state.todayError = data.error || T("aria.mp.today.error", "Aria couldn't build a different plan. Please try again.");
             } else {
               const built = {};
               MEAL_SLOTS.forEach((slot) => {
@@ -2711,7 +2776,7 @@
               state.todayMeta = "Today's plan · " + day + ", freshly generated by Aria";
             }
           } catch (_e) {
-            state.todayError = "Couldn't reach Aria right now. Please try again.";
+            state.todayError = T("aria.mp.unreachable", "Couldn't reach Aria right now. Please try again.");
           }
           state.generatingToday = false;
           renderMode();
@@ -2740,11 +2805,11 @@
 
           const head = document.createElement("div");
           head.innerHTML =
-            '<h2 class="companion-intro-title">Recipes</h2>' +
+            '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
             '<p class="companion-intro-body">' +
-              (state.todayPlan
-                ? "Cooking videos for each meal in today's plan, or search any dish below."
-                : "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.") +
+              escapeHtml(state.todayPlan
+                ? T("aria.recipes.intro.withPlan", "Cooking videos for each meal in today's plan, or search any dish below.")
+                : T("aria.recipes.intro.noPlan", "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.")) +
             '</p>' +
             (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
           scroll.appendChild(head);
@@ -2755,7 +2820,7 @@
           searchRow.innerHTML = ico("search", 'class="search-ico"');
           const input = document.createElement("input");
           input.type = "text";
-          input.placeholder = "Search any dish — e.g. paneer tikka";
+          input.placeholder = T("aria.recipes.searchPlaceholder", "Search any dish — e.g. paneer tikka");
           input.value = state.search;
           input.addEventListener("input", () => {
             state.search = input.value;
@@ -2767,7 +2832,7 @@
           searchRow.appendChild(input);
           const findBtn = document.createElement("button");
           findBtn.type = "button";
-          findBtn.textContent = "Find";
+          findBtn.textContent = T("aria.recipes.find", "Find");
           if (state.search.trim()) findBtn.classList.add("is-active");
           findBtn.addEventListener("click", runSearch);
           searchRow.appendChild(findBtn);
@@ -2791,7 +2856,7 @@
 
           const note = document.createElement("div");
           note.className = "companion-footer-note";
-          note.textContent = "One plant-based cooking video per dish — click to open it on YouTube.";
+          note.textContent = T("aria.recipes.footerNote", "One plant-based cooking video per dish — click to open it on YouTube.");
           scroll.appendChild(note);
 
           pane.appendChild(scroll);
@@ -2844,12 +2909,12 @@
             if (isSearch) renderState(cached.error);
             else removeIfPerMeal();
           } else {
-            renderState("Finding a recipe video…");
+            renderState(T("aria.recipes.loading", "Finding a recipe video…"));
             fetch("/api/aria/recipes", {
               method: "POST",
               credentials: "same-origin",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ dish }),
+              body: JSON.stringify({ dish, language: LANG() }),
             })
               .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
               .then(({ ok, data }) => {
@@ -2864,7 +2929,7 @@
                 renderVideos(data.videos);
               })
               .catch(() => {
-                const errMsg = "Couldn't reach Aria right now.";
+                const errMsg = T("aria.recipes.cantReach", "Couldn't reach Aria right now.");
                 recipeCache[dish.toLowerCase()] = { error: errMsg };
                 if (isSearch) renderState(errMsg);
                 else removeIfPerMeal();

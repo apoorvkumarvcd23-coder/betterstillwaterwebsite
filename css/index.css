@@ -259,6 +259,52 @@ body {
   display: none !important;
 }
 
+/* Site-wide language dropdown — injected by js/i18n.js */
+.sw-lang-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--color-border-soft, rgba(47, 72, 66, 0.18));
+  border-radius: 999px;
+  padding: 4px 6px 4px 10px;
+  margin-right: 0.5rem;
+  color: var(--btn-hover-fill, #2f4842);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.18s ease;
+}
+.sw-lang-wrap:hover { background: rgba(255, 255, 255, 0.95); }
+.sw-lang-globe { display: inline-flex; align-items: center; color: inherit; }
+.sw-lang-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 4px 18px 4px 4px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%232f4842' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  background-size: 10px 10px;
+}
+.sw-lang-select:focus { outline: none; }
+.sw-lang-wrap-floating {
+  position: fixed;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 10000;
+}
+@media (max-width: 1039px) {
+  .sw-lang-wrap { padding: 4px 4px 4px 8px; font-size: 0.74rem; }
+  .sw-lang-select { padding-right: 14px; background-size: 8px 8px; }
+}
+
 #authActions {
   position: absolute;
   right: 5%;
