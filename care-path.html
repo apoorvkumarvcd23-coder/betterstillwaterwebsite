@@ -2005,9 +2005,9 @@
 
         // ---- Modes & categories ----
         const MODES = {
-          journaling: { label: "Journaling", icon: "notebook", blurb: "Log your day" },
           mealplan:   { label: "Meal Plan",  icon: "calendar", blurb: "Plan your meals" },
           recipes:    { label: "Recipes",    icon: "chef",     blurb: "Cook something good" },
+          journaling: { label: "Journaling", icon: "notebook", blurb: "Log your day" },
         };
         const CATEGORIES = {
           food:     { label: "Food",     icon: "utensils", accent: "#c98a5e", soft: "#f3e3d4", prompt: "What did you eat, and when?" },
@@ -2028,7 +2028,7 @@
 
         // ---- Shared state across modes ----
         const state = {
-          mode: "journaling",
+          mode: "mealplan",
           // journaling
           messages: [{ from: "companion", text: "Hi, I'm Aria — your Stilwater companion. Pick what you'd like to journal, then type your entry, tap the mic to speak it, or the camera to add a photo. Just include the time and I'll capture it." }],
           activeCat: "food",
@@ -2341,14 +2341,9 @@
           wrap.style.display = "flex";
           wrap.style.flexDirection = "column";
           wrap.style.gap = "16px";
-          wrap.appendChild(intro("Your meal plan", "Bring your own plan, let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday."));
-          wrap.appendChild(choiceCard({
-            icon: "upload", accent: "#c98a5e",
-            title: "Upload my plan",
-            body: "Add a PDF or image of the plan your nutritionist gave you.",
-            badge: state.uploaded ? "Added" : null,
-            onClick: () => { state.mpView = "upload"; renderMode(); },
-          }));
+          wrap.appendChild(intro("Your meal plan", "Let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday."));
+          // "Upload my plan" intentionally hidden for now — kept in the
+          // code so we can re-enable it later by un-commenting this block.
           wrap.appendChild(choiceCard({
             icon: "sparkles", accent: "#7d9471",
             title: "Generate Stilwater weekly plan",
