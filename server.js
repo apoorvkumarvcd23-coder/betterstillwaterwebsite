@@ -2423,7 +2423,7 @@ async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
         // Aria meal-plan model. Override via the ARIA_MODEL env var without
         // touching code. Default chosen for JSON reliability, speed and cost.
         model: String(process.env.ARIA_MODEL || "openai/gpt-4o-mini").trim(),
-        temperature: 0.4,
+        temperature: 0.2,
         max_tokens: maxTokens,
         // Force JSON-only output so the model can't drift into prose or
         // markdown fences — eliminates most "couldn't parse" failures.
@@ -2553,6 +2553,9 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "ingredients. CRITICAL: every meal name you propose must be a well-known dish that you are " +
       "confident has many cooking videos available on YouTube — use common, popular names (not " +
       "invented or hyper-specific phrasings) so a user can easily find a video for it. " +
+      "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
+      "Also no sugary drinks or juices or tea coffee with sugar. " +
+      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food. " +
       "ALWAYS reply with valid JSON only — no prose, no markdown code fences.";
 
     const userPrompt = [
@@ -2644,7 +2647,10 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
       "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly. " +
       "CRITICAL: every meal name must be a well-known dish you're confident has many cooking videos on " +
-      "YouTube — use common, popular names (not invented or hyper-specific phrasings).";
+      "YouTube — use common, popular names (not invented or hyper-specific phrasings). " +
+      "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
+      "Also no sugary drinks or juices or tea coffee with sugar. " +
+      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food.";
 
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
