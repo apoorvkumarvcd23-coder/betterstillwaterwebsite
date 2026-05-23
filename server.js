@@ -2251,6 +2251,7 @@ app.post(
 
     try {
       const userText = String(req.body?.message || "").trim();
+      const language = String(req.body?.language || "en").trim();
       const files = Array.isArray(req.files) ? req.files : [];
 
       let history = [];
@@ -2321,7 +2322,7 @@ app.post(
       const response = await anthropicClient.messages.create({
         model: "claude-opus-4-7",
         max_tokens: 2048,
-        system: MAITRY_SYSTEM_PROMPT,
+        system: MAITRY_SYSTEM_PROMPT + "\n\n" + languageInstruction(language),
         messages,
       });
 
@@ -2442,10 +2443,21 @@ async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
 const WEEKLY_PLAN_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const WEEKLY_PLAN_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
 
+// Map a request's language code to a human-readable instruction for the
+// model. Unknown / unsupported codes fall back to English.
+function languageInstruction(code) {
+  const lang = String(code || "").toLowerCase();
+  if (lang === "hi") {
+    return "Reply entirely in Hindi (Devanagari script). Translate every dish name into clear Hindi, but keep widely-recognized dish names in the form people actually search for (you can include the Hindi name and the English in parentheses, e.g. \"मूंग दाल चीला (moong dal chilla)\").";
+  }
+  return "Reply in English.";
+}
+
 app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
+    const language = String(req.body?.language || "en").trim();
 
     const systemPrompt =
       "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
@@ -2455,6 +2467,7 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "ingredients. CRITICAL: every meal name you propose must be a well-known dish that you are " +
       "confident has many cooking videos available on YouTube — use common, popular names (not " +
       "invented or hyper-specific phrasings) so a user can easily find a video for it. " +
+      languageInstruction(language) + " " +
       "Always reply with valid JSON only — no prose, no markdown code fences.";
 
     const userPrompt = [
@@ -2525,6 +2538,7 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     const avoid = String(req.body?.avoid || "").trim();
     const dayRaw = String(req.body?.day || "").trim();
     const day = WEEKLY_PLAN_DAYS.includes(dayRaw) ? dayRaw : WEEKLY_PLAN_DAYS[0];
+    const language = String(req.body?.language || "en").trim();
     const excludeRaw = Array.isArray(req.body?.exclude) ? req.body.exclude : [];
     const exclude = excludeRaw
       .map((s) => String(s || "").trim())
@@ -2536,7 +2550,8 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
       "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly. " +
       "CRITICAL: every meal name must be a well-known dish you're confident has many cooking videos on " +
-      "YouTube — use common, popular names (not invented or hyper-specific phrasings).";
+      "YouTube — use common, popular names (not invented or hyper-specific phrasings). " +
+      languageInstruction(language);
 
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
