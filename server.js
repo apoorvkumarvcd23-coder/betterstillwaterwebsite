@@ -2668,14 +2668,17 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
       return res.status(502).json({ error: "Aria couldn't find recipe matches. Please try again." });
     }
 
-    // For each suggestion, resolve to a real first YouTube video via a
-    // progressively-broader query chain so cards are never blank.
+    // For each suggestion, try to resolve to a real first YouTube videoId.
+    // YouTube blocks server-side scrapes from many data-center IPs (e.g.
+    // Render), so when that fails we still push a card with a focused
+    // YouTube *search* URL — guarantees no blank cards in any environment.
     const seenIds = new Set();
     const videos = [];
     for (const v of items.slice(0, 3)) {
       const title = String(v && v.title ? v.title : dish).trim();
       const channel = String(v && v.channel ? v.channel : "").trim();
-      const id = await resolveYoutubeVideo(dish, { title, channel, query: v && v.query }, seenIds);
+      const query = String(v && v.query ? v.query : `${title} ${channel}`.trim()).trim();
+      const id = await resolveYoutubeVideo(dish, { title, channel, query }, seenIds);
       if (id) {
         seenIds.add(id);
         videos.push({
@@ -2683,29 +2686,13 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
           channel: channel || "YouTube",
           url: `https://www.youtube.com/watch?v=${id}`,
         });
+      } else {
+        videos.push({
+          title,
+          channel: channel || "YouTube",
+          url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query || dish)}`,
+        });
       }
-    }
-
-    // If the model returned fewer than 3 usable picks (or some failed even
-    // after broadening), top up with bare-dish results so we always show 3.
-    while (videos.length < 3) {
-      const id = await resolveYoutubeVideo(dish, null, seenIds);
-      if (!id) break;
-      seenIds.add(id);
-      videos.push({
-        title: `${dish} — recipe`,
-        channel: "YouTube",
-        url: `https://www.youtube.com/watch?v=${id}`,
-      });
-    }
-
-    if (!videos.length) {
-      // Truly nothing matched; hand back a search link so the card isn't empty.
-      videos.push({
-        title: `Search YouTube for ${dish}`,
-        channel: "YouTube",
-        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(dish)}`,
-      });
     }
 
     return res.json({ videos });

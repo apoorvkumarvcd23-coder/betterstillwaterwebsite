@@ -2724,6 +2724,20 @@
 
         // ---- RECIPES ----
         function renderRecipes() {
+          // If a weekly plan exists but today's plan hasn't been built yet,
+          // derive it here from the matching weekday so Recipes can show
+          // per-meal cards without forcing the user to visit Today's Plan first.
+          if (!state.todayPlan && state.weeklyPlan) {
+            const day = todayName();
+            const source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
+            const built = {};
+            MEAL_SLOTS.forEach((slot) => {
+              built[slot] = { meal: (source && source[slot]) || "Plant-based whole-food option", why: "" };
+            });
+            state.todayPlan = built;
+            state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
+          }
+
           const pane = document.createElement("div");
           pane.className = "companion-pane";
           const scroll = document.createElement("div");
@@ -2735,7 +2749,7 @@
             '<p class="companion-intro-body">' +
               (state.todayPlan
                 ? "Cooking videos for each meal in today's plan, or search any dish below."
-                : "Search any dish for cooking videos. Generate today's plan in Meal Plan to get videos for each meal automatically.") +
+                : "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.") +
             '</p>' +
             (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
           scroll.appendChild(head);
@@ -2823,11 +2837,17 @@
             links.innerHTML = '<div style="padding: 14px 12px; font-size: 13px; color: var(--c-ink-soft);">' + escapeHtml(msg) + '</div>';
           };
 
+          // For per-meal cards (not the user's own search), hide the whole
+          // card if Aria can't find any usable recipe videos — no more
+          // "couldn't find" rows cluttering the list.
+          const removeIfPerMeal = () => { if (!isSearch) card.remove(); };
+
           const cached = recipeCache[dish.toLowerCase()];
           if (cached && cached.videos) {
             renderVideos(cached.videos);
           } else if (cached && cached.error) {
-            renderState(cached.error);
+            if (isSearch) renderState(cached.error);
+            else removeIfPerMeal();
           } else {
             renderState("Finding plant-based recipes…");
             fetch("/api/aria/recipes", {
@@ -2841,7 +2861,8 @@
                 if (!ok || !Array.isArray(data.videos) || !data.videos.length) {
                   const errMsg = (data && data.error) || "Aria couldn't find recipes for that dish.";
                   recipeCache[dish.toLowerCase()] = { error: errMsg };
-                  renderState(errMsg);
+                  if (isSearch) renderState(errMsg);
+                  else removeIfPerMeal();
                   return;
                 }
                 recipeCache[dish.toLowerCase()] = { videos: data.videos };
@@ -2850,7 +2871,8 @@
               .catch(() => {
                 const errMsg = "Couldn't reach Aria right now.";
                 recipeCache[dish.toLowerCase()] = { error: errMsg };
-                renderState(errMsg);
+                if (isSearch) renderState(errMsg);
+                else removeIfPerMeal();
               });
           }
           card.appendChild(links);
