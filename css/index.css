@@ -3,19 +3,23 @@
   Theme: Stillwater - Heritage Wellness (About-inspired)
 */
 :root {
-  --color-bg-primary: #0b1818;
-  --color-bg-secondary: #0e1f1f;
-  --color-surface: rgba(13, 30, 30, 0.86);
-  --color-text-primary: #f5f2ee;
-  --color-text-secondary: rgba(245, 242, 238, 0.78);
-  --color-accent: #d6bb86;
-  --color-accent-soft: #5fb3b3;
-  --color-border-soft: rgba(245, 242, 238, 0.14);
-  --btn-hover-fill: rgba(245, 242, 238, 0.22);
-  --btn-hover-text: #f5f2ee;
+  --color-bg-primary: #f4f1ea;
+  --color-bg-secondary: #ece6da;
+  --color-surface: rgba(255, 255, 255, 0.92);
+  --color-text-primary: #1c2a2a;
+  --color-text-secondary: rgba(28, 42, 42, 0.7);
+  --color-accent: #c08457;
+  --color-accent-soft: #5f7d72;
+  --color-border-soft: rgba(47, 72, 66, 0.14);
+  --btn-hover-fill: #2f4842;
+  --btn-hover-text: #f4f1ea;
 
-  --font-heading: "Cormorant Garamond", "Playfair Display", serif;
-  --font-body: "Jost", "Inter", sans-serif;
+  --color-moss: #2f4842;
+  --color-sage: #8aa399;
+  --color-clay: #c08457;
+
+  --font-heading: "Fraunces", Georgia, serif;
+  --font-body: "Outfit", -apple-system, sans-serif;
 
   --spacing-sm: 1rem;
   --spacing-md: 2rem;
@@ -143,26 +147,28 @@ button,
   }
 }
 
-/* Navigation (Sticky Header) */
+/* Navigation (Sticky Header) — matches the home page nav */
 .header {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  padding: 1.5rem 5%;
+  padding: 1.1rem clamp(20px, 5vw, 64px);
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  gap: 1rem;
   z-index: 100;
   transition: var(--transition-smooth);
-  background: linear-gradient(
-    to bottom,
-    rgba(7, 18, 18, 0.96) 0%,
-    rgba(7, 18, 18, 0.64) 68%,
-    rgba(7, 18, 18, 0.2) 100%
-  );
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgba(244, 241, 234, 0.82);
+  border-bottom: 1px solid var(--color-border-soft);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+/* Push page content below the fixed header so it doesn't hide. */
+body {
+  padding-top: 4.5rem;
 }
 
 /* COMMENTED OUT: Light theme - dark mode is default
@@ -222,59 +228,35 @@ button,
 
 .header-logo {
   font-family: var(--font-heading);
-  font-size: 1.6rem;
-  letter-spacing: 0.18em;
-  font-weight: 600;
-  text-transform: uppercase;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  font-size: 1.45rem;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+  text-transform: none;
+  position: static;
+  top: auto;
+  left: auto;
+  transform: none;
+  color: var(--btn-hover-fill);
+  text-decoration: none;
+  flex: 0 0 auto;
 }
+
+.header-logo > span,
+.header-logo .header-logo-tail {
+  color: var(--color-accent);
+}
+
+/* Legacy logo image — kept hidden in case any page still has it. */
+.stillwater-logo-mark { display: none !important; }
 
 .stillwater-brand {
   display: inline-flex;
   align-items: center;
-  gap: 0.6rem;
 }
-
-.stillwater-logo-mark {
-  width: clamp(40px, 2.2em, 56px);
-  height: clamp(40px, 2.2em, 56px);
-  object-fit: contain;
-  flex: 0 0 auto;
-  filter: drop-shadow(0 1px 6px rgba(0, 0, 0, 0.25));
-}
-
-.stillwater-brand-text {
-  display: inline-block;
-  color: var(--color-text-primary);
-  opacity: 1;
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.25);
-}
-
-.header.scrolled .stillwater-brand-text {
-  color: #112629 !important;
-}
-
-:root[data-theme="dark"] .header.scrolled .stillwater-brand-text {
-  color: #e0f2f1 !important;
-}
+.stillwater-brand-text { display: none !important; }
 
 .menu-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-primary);
-  font-family: var(--font-body);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  position: absolute;
-  left: 5%;
+  display: none !important;
 }
 
 #authActions {
@@ -579,20 +561,20 @@ body.auth-actions-compact #btnAdmin {
   align-items: center;
   justify-content: center;
   padding: 0.95rem 2.4rem;
-  border: 1px solid rgba(245, 242, 238, 0.52);
+  border: 1px solid rgba(47, 72, 66, 0.38);
   color: var(--color-text-primary);
   font-family: var(--font-body);
   text-transform: uppercase;
   letter-spacing: 0.22em;
   font-size: 0.7rem;
-  font-weight: 300;
+  font-weight: 400;
   cursor: pointer;
   background: transparent;
   position: relative;
   overflow: hidden;
   isolation: isolate;
   line-height: 1.1;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  border-radius: 100px;
 }
 
 .btn::before {
@@ -610,7 +592,7 @@ body.auth-actions-compact #btnAdmin {
 
 .btn:hover {
   color: var(--btn-hover-text);
-  border-color: rgba(245, 242, 238, 0.72);
+  border-color: var(--color-moss);
 }
 
 .btn:hover::before {
@@ -618,18 +600,18 @@ body.auth-actions-compact #btnAdmin {
 }
 
 .btn-solid {
-  border-color: rgba(245, 242, 238, 0.45);
-  background-color: transparent;
-  color: var(--color-text-primary);
+  border-color: var(--color-moss);
+  background-color: var(--color-moss);
+  color: #f4f1ea;
 }
 
 .btn-solid::before {
-  background-color: var(--btn-hover-fill);
+  background-color: rgba(255, 255, 255, 0.14);
 }
 
 .btn-solid:hover {
-  color: var(--btn-hover-text);
-  border-color: rgba(245, 242, 238, 0.78);
+  color: #f4f1ea;
+  border-color: var(--color-moss);
 }
 
 /* COMMENTED OUT: Light theme - dark mode is default
@@ -715,13 +697,9 @@ body.auth-actions-compact #btnAdmin {
 .footer {
   max-width: none;
   width: 100%;
-  background: linear-gradient(
-    180deg,
-    rgba(14, 31, 31, 0.55) 0%,
-    rgba(14, 31, 31, 0.85) 100%
-  );
+  background: var(--color-moss);
+  color: rgba(244, 241, 234, 0.82);
   border: none;
-  border-top: 1px solid var(--color-border-soft);
   border-radius: 0;
   padding: 2.5rem 5% 1.75rem;
   margin: var(--spacing-lg) 0 0;
@@ -776,9 +754,35 @@ footer.footer .header-logo,
 }
 
 .footer p {
-  color: var(--color-text-secondary);
+  color: rgba(244, 241, 234, 0.7);
   line-height: 1.6;
   margin: 0;
+}
+
+/* Footer sits on dark moss — force light text/links throughout. */
+.footer-bottom,
+.compliance-links {
+  color: rgba(244, 241, 234, 0.7);
+}
+.footer .text-caption,
+footer.footer .stillwater-brand-text,
+footer.footer .header-logo {
+  color: #f4f1ea;
+}
+.footer a {
+  color: rgba(244, 241, 234, 0.82);
+}
+.footer a:hover {
+  color: #f4f1ea;
+}
+.footer .social-icon {
+  color: rgba(244, 241, 234, 0.78);
+}
+.footer .social-icon:hover {
+  color: #f4f1ea;
+}
+.compliance-links li + li::before {
+  color: rgba(244, 241, 234, 0.4);
 }
 
 .footer ul {

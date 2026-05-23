@@ -7,9 +7,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function applyTheme(theme) {
-    const safeTheme = "dark";
-    document.documentElement.setAttribute("data-theme", safeTheme);
-    localStorage.setItem(THEME_STORAGE_KEY, safeTheme);
+    // The site ships a single light theme. Remove any data-theme attribute
+    // so neither the legacy dark nor the partial light override blocks apply.
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.setItem(THEME_STORAGE_KEY, "light");
     document.querySelectorAll("[data-theme-toggle]").forEach((toggle) => {
       const modeLabel = "Dark";
       toggle.setAttribute(
@@ -165,28 +166,21 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function injectStillwaterLogo() {
+    // Render the brand as the two-tone "Stilwater" wordmark the home page
+    // uses: "Stil" in moss, "water" in clay. No logo image, no box.
     const brandElements = document.querySelectorAll(".header-logo");
     brandElements.forEach((element) => {
       const text = (element.textContent || "").trim();
       const lower = text.toLowerCase();
-      // Accept both "Stilwater" (current brand) and the legacy "Stillwater".
       if (!text || (!lower.includes("stilwater") && !lower.includes("stillwater"))) return;
-      if (element.querySelector(".stillwater-logo-mark")) return;
-
-      element.classList.add("stillwater-brand");
-
-      const label = document.createElement("span");
-      label.className = "stillwater-brand-text";
-      label.textContent = text;
-
-      const logo = document.createElement("img");
-      logo.className = "stillwater-logo-mark";
-      logo.src = "images/new-stilwater-logo.png";
-      logo.alt = "Stilwater logo";
+      if (element.querySelector(".header-logo-tail")) return;
 
       element.textContent = "";
-      element.appendChild(logo);
-      element.appendChild(label);
+      element.appendChild(document.createTextNode("Stil"));
+      const tail = document.createElement("span");
+      tail.className = "header-logo-tail";
+      tail.textContent = "water";
+      element.appendChild(tail);
     });
   }
 

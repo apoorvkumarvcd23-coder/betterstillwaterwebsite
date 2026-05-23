@@ -2208,20 +2208,20 @@ ${context}`;
   }
 });
 
-// ── Maitry chat ────────────────────────────────────────────────────────
+// ── Aria chat ────────────────────────────────────────────────────────
 // ChatGPT-style AI health companion powered by Claude. Accepts a text
 // message plus optional file attachments (PDF, image, txt, Word) and a
-// short conversation history, and returns Maitry's reply.
+// short conversation history, and returns Aria's reply.
 const anthropicClient = process.env.ANTHROPIC_API_KEY
   ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
   : null;
 
-const maitryUpload = multer({
+const ariaUpload = multer({
   storage: multer.memoryStorage(),
   limits: { fileSize: 24 * 1024 * 1024, files: 5 }, // 24 MB/file, 5 files
 });
 
-const MAITRY_SYSTEM_PROMPT = `You are Maitry, a warm and encouraging AI companion for personal health on the Stilwater platform.
+const MAITRY_SYSTEM_PROMPT = `You are Aria, a warm and encouraging AI companion for personal health on the Stilwater platform.
 
 Stilwater helps people living with chronic conditions — especially diabetes and hypertension — manage their health through everyday diet, lifestyle, and exercise.
 
@@ -2239,14 +2239,14 @@ Important boundaries:
 Always reply in the same language the user writes in.`;
 
 app.post(
-  "/api/maitry/chat",
+  "/api/aria/chat",
   requireAuthApi,
-  maitryUpload.array("files", 5),
+  ariaUpload.array("files", 5),
   async (req, res) => {
     if (!anthropicClient) {
       return res
         .status(503)
-        .json({ error: "Maitry AI is not configured yet (missing ANTHROPIC_API_KEY)." });
+        .json({ error: "Aria AI is not configured yet (missing ANTHROPIC_API_KEY)." });
     }
 
     try {
@@ -2335,22 +2335,22 @@ app.post(
         reply: reply || "I'm here — could you rephrase that for me?",
       });
     } catch (err) {
-      console.error("Maitry chat failed:", err);
+      console.error("Aria chat failed:", err);
       const msg = String(err && err.message ? err.message : "");
       if (err instanceof Anthropic.APIError && err.status === 429) {
         return res
           .status(503)
-          .json({ error: "Maitry is busy right now. Please try again in a moment." });
+          .json({ error: "Aria is busy right now. Please try again in a moment." });
       }
       if (/credit balance/i.test(msg)) {
         return res.status(503).json({
           error:
-            "Maitry is temporarily unavailable — the AI service needs account credits. Please try again later.",
+            "Aria is temporarily unavailable — the AI service needs account credits. Please try again later.",
         });
       }
       return res
         .status(500)
-        .json({ error: "Maitry chat failed", details: err.message });
+        .json({ error: "Aria chat failed", details: err.message });
     }
   },
 );

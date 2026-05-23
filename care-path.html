@@ -9,30 +9,14 @@
       body {
         min-height: 100vh;
         background:
-          radial-gradient(circle at 15% 12%, rgba(95, 179, 179, 0.18), transparent 38%),
-          radial-gradient(circle at 85% 88%, rgba(214, 187, 134, 0.15), transparent 40%),
-          linear-gradient(180deg, #0a1718 0%, #0d1f20 100%);
+          radial-gradient(circle at 15% 12%, rgba(138, 163, 153, 0.20), transparent 42%),
+          radial-gradient(circle at 85% 88%, rgba(192, 132, 87, 0.12), transparent 44%),
+          #f4f1ea;
       }
 
-      /* Header: MENU + logo on the left, action buttons on the right.
-         The base .header-logo is absolutely centered — lay it back in
-         flow so it never overlaps the auth / action buttons. */
-      .header {
-        justify-content: flex-start;
-        gap: 1.25rem;
-        flex-wrap: wrap;
-      }
-      .header-logo {
-        position: static;
-        transform: none;
-        left: auto;
-        top: auto;
-        flex: 0 0 auto;
-        margin-right: auto;
-      }
+      /* Header uses the shared base style (flex space-between, logo left,
+         actions right) — no per-page overrides needed. */
       #authActions {
-        flex-wrap: wrap;
-        justify-content: flex-end;
         gap: 0.6rem;
       }
 
@@ -58,7 +42,7 @@
       .reco-block {
         margin-top: 1.75rem;
         padding-top: 1.25rem;
-        border-top: 1px solid rgba(245, 242, 238, 0.08);
+        border-top: 1px solid rgba(47, 72, 66, 0.08);
       }
 
       .reco-block[hidden] {
@@ -141,7 +125,7 @@
         letter-spacing: 0.02em;
         color: var(--color-text-primary);
         padding-top: 1.25rem;
-        border-top: 1px solid rgba(245, 242, 238, 0.08);
+        border-top: 1px solid rgba(47, 72, 66, 0.08);
       }
 
       .providers-list {
@@ -180,13 +164,13 @@
       .link-block {
         margin-top: 1.75rem;
         padding-top: 1.25rem;
-        border-top: 1px solid rgba(245, 242, 238, 0.08);
+        border-top: 1px solid rgba(47, 72, 66, 0.08);
         font-size: 0.95rem;
       }
       .link-block a {
         color: var(--color-text-primary);
         text-decoration: none;
-        border-bottom: 1px solid rgba(245, 242, 238, 0.25);
+        border-bottom: 1px solid rgba(47, 72, 66, 0.25);
         padding-bottom: 1px;
       }
       .link-block a:hover {
@@ -227,8 +211,8 @@
         position: relative;
         max-width: 520px;
         width: 100%;
-        background: #0d1f20;
-        border: 1px solid rgba(245, 242, 238, 0.18);
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.18);
         border-radius: 16px;
         padding: 1.5rem 1.5rem 1.25rem;
         max-height: 85vh;
@@ -278,8 +262,8 @@
         border-radius: 18px;
         background:
           radial-gradient(circle at 0% 0%, rgba(95, 179, 179, 0.16), transparent 55%),
-          linear-gradient(180deg, rgba(245, 242, 238, 0.04), rgba(245, 242, 238, 0.02));
-        border: 1px solid rgba(245, 242, 238, 0.10);
+          linear-gradient(180deg, rgba(47, 72, 66, 0.04), rgba(47, 72, 66, 0.02));
+        border: 1px solid rgba(47, 72, 66, 0.10);
       }
       .yoga-beta-head {
         display: flex;
@@ -338,8 +322,8 @@
         width: min(960px, 100%);
         max-width: 100%;
         max-height: 92vh;
-        background: #0d1f20;
-        border: 1px solid rgba(245, 242, 238, 0.18);
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.18);
         border-radius: 18px;
         padding: 1.25rem 1.25rem 1.5rem;
         overflow: hidden;
@@ -429,7 +413,7 @@
       .yoga-choice-secondary {
         background: transparent;
         color: var(--color-text-secondary);
-        border: 1px solid rgba(245, 242, 238, 0.18);
+        border: 1px solid rgba(47, 72, 66, 0.18);
         padding: 0.55rem 1rem;
         border-radius: 999px;
         font-size: 0.9rem;
@@ -437,7 +421,7 @@
       }
       .yoga-choice-secondary:hover {
         color: var(--color-text-primary);
-        border-color: rgba(245, 242, 238, 0.4);
+        border-color: rgba(47, 72, 66, 0.4);
       }
 
       .yoga-frame-stage {
@@ -464,8 +448,8 @@
         font-size: 0.8rem;
         font-weight: 500;
         color: var(--color-text-primary);
-        background: rgba(13, 31, 32, 0.85);
-        border: 1px solid rgba(245, 242, 238, 0.22);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(47, 72, 66, 0.22);
         border-radius: 999px;
         cursor: pointer;
         z-index: 5;
@@ -495,7 +479,7 @@
       .yoga-back:hover,
       .yoga-back-carepath:hover,
       .yoga-skip:hover {
-        background: rgba(245, 242, 238, 0.16);
+        background: rgba(47, 72, 66, 0.16);
       }
       .yoga-back[hidden],
       .yoga-back-carepath[hidden],
@@ -517,8 +501,8 @@
       }
       .yoga-modal-fullbleed .modal-close {
         right: 0.75rem;
-        background: rgba(13, 31, 32, 0.85);
-        border: 1px solid rgba(245, 242, 238, 0.22);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid rgba(47, 72, 66, 0.22);
         border-radius: 999px;
         width: 32px;
         height: 32px;
@@ -529,202 +513,516 @@
         padding: 0;
       }
 
-      /* ── Maitry chat ─────────────────────────────────────────────── */
-      .maitry-chat {
+      /* ── Stilwater Companion ─────────────────────────────────────── */
+      .companion-chat {
+        --c-bg: #f4f1ea;
+        --c-bg-deep: #ece7dc;
+        --c-ink: #2f3a32;
+        --c-ink-soft: #5d6b5e;
+        --c-sage: #7d9471;
+        --c-sage-deep: #5f7656;
+        --c-clay: #c98a5e;
+        --c-clay-deep: #b3713f;
+        --c-mist: #fbfaf6;
+        --c-border: #dcd6c8;
+        --c-blue: #6b7da3;
+
         margin-top: 2rem;
         padding-top: 1.5rem;
-        border-top: 1px solid rgba(245, 242, 238, 0.08);
+        border-top: 1px solid rgba(47, 72, 66, 0.12);
         display: flex;
         flex-direction: column;
+        font-family: var(--font-body, "Outfit", system-ui, sans-serif);
+        color: var(--c-ink);
       }
-      .maitry-shell {
-        display: flex;
-        flex-direction: column;
-        background:
-          radial-gradient(circle at 0% 0%, rgba(95, 179, 179, 0.10), transparent 60%),
-          rgba(13, 31, 32, 0.6);
-        border: 1px solid rgba(245, 242, 238, 0.12);
-        border-radius: 18px;
+      .companion-shell {
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        background: radial-gradient(120% 80% at 50% 0%, var(--c-mist) 0%, var(--c-bg) 45%, var(--c-bg-deep) 100%);
+        border: 1px solid var(--c-border);
+        border-radius: 20px;
         overflow: hidden;
-        height: 560px;
-        max-height: 78vh;
+        box-shadow: 0 12px 40px -28px rgba(47, 58, 50, 0.45);
+        display: flex;
+        flex-direction: column;
+        height: 640px;
+        max-height: 82vh;
+        position: relative;
       }
-      .maitry-head {
+      .companion-head {
         display: flex;
         align-items: center;
-        gap: 0.7rem;
-        padding: 0.9rem 1.1rem;
-        border-bottom: 1px solid rgba(245, 242, 238, 0.08);
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--c-border);
+        background: var(--c-mist);
         flex: 0 0 auto;
+        position: relative;
+        z-index: 20;
       }
-      .maitry-avatar {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        background: radial-gradient(circle at 35% 30%, #7fb6b6, #2f6b6b);
+      .companion-mark {
+        width: 40px;
+        height: 40px;
+        border-radius: 13px;
+        background: linear-gradient(140deg, var(--c-sage), var(--c-sage-deep));
         display: grid;
         place-items: center;
-        flex: 0 0 auto;
+        box-shadow: 0 6px 16px rgba(95, 118, 86, 0.3);
+        flex-shrink: 0;
       }
-      .maitry-avatar svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 1.6; }
-      .maitry-head-text { display: flex; flex-direction: column; line-height: 1.25; }
-      .maitry-head-text strong { font-size: 0.95rem; color: var(--color-text-primary); font-weight: 500; }
-      .maitry-head-text span { font-size: 0.74rem; color: var(--color-text-secondary); }
-
-      .maitry-messages {
-        flex: 1 1 auto;
-        overflow-y: auto;
-        padding: 1.2rem 1.1rem;
+      .companion-mark svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2.2; }
+      .companion-mode-btn {
         display: flex;
-        flex-direction: column;
-        gap: 0.9rem;
-      }
-      .maitry-empty {
-        margin: auto;
-        text-align: center;
-        color: var(--color-text-secondary);
-        max-width: 380px;
-      }
-      .maitry-empty h3 {
-        font-family: var(--font-heading, serif);
-        font-weight: 300;
-        font-size: 1.35rem;
-        color: var(--color-text-primary);
-        margin: 0 0 0.5rem;
-      }
-      .maitry-empty p { font-size: 0.9rem; line-height: 1.55; margin: 0 0 1.1rem; }
-      .maitry-suggestions { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
-      .maitry-suggestion {
-        background: rgba(245, 242, 238, 0.06);
-        border: 1px solid rgba(245, 242, 238, 0.14);
-        color: var(--color-text-secondary);
-        font: inherit;
-        font-size: 0.8rem;
-        padding: 0.45rem 0.8rem;
-        border-radius: 999px;
+        align-items: center;
+        gap: 9px;
+        padding: 8px 13px;
+        border-radius: 13px;
+        border: 1.5px solid var(--c-border);
+        background: var(--c-bg);
+        color: var(--c-ink);
         cursor: pointer;
-        transition: background 0.15s ease, color 0.15s ease;
+        font: inherit;
       }
-      .maitry-suggestion:hover { background: rgba(95, 179, 179, 0.18); color: var(--color-text-primary); }
+      .companion-mode-btn .mode-icon { width: 17px; height: 17px; stroke: var(--c-sage-deep); stroke-width: 2.3; fill: none; flex-shrink: 0; }
+      .companion-mode-btn .mode-label {
+        font-family: var(--font-heading, "Fraunces", serif);
+        font-size: 17px;
+        font-weight: 600;
+      }
+      .companion-mode-btn .chev {
+        width: 16px; height: 16px;
+        stroke: var(--c-ink-soft); stroke-width: 2.6; fill: none;
+        transition: transform 0.2s ease;
+      }
+      .companion-mode-btn.is-open .chev { transform: rotate(180deg); }
+      .companion-greeting {
+        margin-left: auto;
+        font-size: 13px;
+        color: var(--c-ink-soft);
+        font-weight: 600;
+      }
+      .companion-menu {
+        position: absolute;
+        top: 60px;
+        left: 68px;
+        width: 244px;
+        background: var(--c-mist);
+        border-radius: 16px;
+        border: 1.5px solid var(--c-border);
+        box-shadow: 0 18px 40px rgba(47, 58, 50, 0.16);
+        padding: 6px;
+        z-index: 30;
+        animation: companionPop 0.16s ease both;
+      }
+      .companion-menu[hidden] { display: none; }
+      .companion-menu-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 11px 12px;
+        border-radius: 11px;
+        border: none;
+        background: transparent;
+        cursor: pointer;
+        text-align: left;
+        font: inherit;
+        color: var(--c-ink);
+      }
+      .companion-menu-item.is-active { background: var(--c-bg); }
+      .companion-menu-item .menu-tile {
+        width: 34px; height: 34px;
+        border-radius: 10px;
+        background: var(--c-bg-deep);
+        display: grid;
+        place-items: center;
+        flex-shrink: 0;
+      }
+      .companion-menu-item.is-active .menu-tile { background: var(--c-sage); }
+      .companion-menu-item .menu-tile svg { width: 17px; height: 17px; stroke: var(--c-ink-soft); stroke-width: 2.3; fill: none; }
+      .companion-menu-item.is-active .menu-tile svg { stroke: #fff; }
+      .companion-menu-item .menu-text { flex: 1; min-width: 0; }
+      .companion-menu-item .menu-title { font-size: 14.5px; font-weight: 700; }
+      .companion-menu-item .menu-blurb { font-size: 12px; color: var(--c-ink-soft); }
+      .companion-menu-item .menu-check { width: 16px; height: 16px; stroke: var(--c-sage-deep); stroke-width: 3; fill: none; display: none; }
+      .companion-menu-item.is-active .menu-check { display: block; }
+      .companion-menu-scrim {
+        position: fixed; inset: 0; z-index: 10;
+      }
 
-      .maitry-msg { display: flex; gap: 0.6rem; max-width: 86%; }
-      .maitry-msg.user { align-self: flex-end; flex-direction: row-reverse; }
-      .maitry-bubble {
-        padding: 0.7rem 0.95rem;
-        border-radius: 14px;
-        font-size: 0.92rem;
-        line-height: 1.55;
+      .companion-body { flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+      .companion-pane { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+      .companion-scroll { flex: 1 1 auto; overflow-y: auto; padding: 20px 18px 8px; display: flex; flex-direction: column; gap: 14px; }
+      .companion-scroll.flow { padding: 20px 18px 24px; gap: 16px; }
+
+      /* Bubbles for journaling */
+      .companion-bubble-row { display: flex; flex-direction: column; animation: companionRise 0.32s ease both; }
+      .companion-bubble-row.user { align-items: flex-end; }
+      .companion-bubble-row.bot { align-items: flex-start; }
+      .companion-cat-tag {
+        display: inline-flex; align-items: center; gap: 5px;
+        margin-bottom: 4px; margin-right: 4px;
+        font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      }
+      .companion-cat-tag svg { width: 12px; height: 12px; stroke-width: 2.6; fill: none; }
+      .companion-bubble {
+        max-width: 82%;
+        padding: 11px 15px;
+        border: 1.5px solid var(--c-border);
+        background: var(--c-mist);
+        color: var(--c-ink);
+        font-size: 14.5px;
+        line-height: 1.5;
         white-space: pre-wrap;
         word-wrap: break-word;
       }
-      .maitry-msg.bot .maitry-bubble {
-        background: rgba(245, 242, 238, 0.07);
-        border: 1px solid rgba(245, 242, 238, 0.1);
-        color: var(--color-text-primary);
-        border-top-left-radius: 4px;
-      }
-      .maitry-msg.user .maitry-bubble {
-        background: rgba(95, 179, 179, 0.22);
-        border: 1px solid rgba(95, 179, 179, 0.4);
-        color: var(--color-text-primary);
-        border-top-right-radius: 4px;
-      }
-      .maitry-msg .mini-avatar {
-        width: 26px; height: 26px; border-radius: 50%; flex: 0 0 auto;
-        display: grid; place-items: center; font-size: 0.7rem;
-      }
-      .maitry-msg.bot .mini-avatar { background: radial-gradient(circle at 35% 30%, #7fb6b6, #2f6b6b); }
-      .maitry-msg.bot .mini-avatar svg { width: 14px; height: 14px; stroke: #fff; fill: none; stroke-width: 1.7; }
-      .maitry-msg.user .mini-avatar { background: rgba(245, 242, 238, 0.14); color: var(--color-text-primary); }
-      .maitry-msg-files { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.35rem; }
-      .maitry-msg-file {
-        font-size: 0.72rem; padding: 0.25rem 0.55rem; border-radius: 8px;
-        background: rgba(245, 242, 238, 0.1); color: var(--color-text-secondary);
-      }
+      .companion-bubble.bot { border-radius: 18px 18px 18px 5px; }
+      .companion-bubble.user { border-radius: 18px 18px 5px 18px; font-weight: 600; }
+      .companion-bubble.image { padding: 6px; }
+      .companion-bubble.image img { display: block; width: 100%; max-width: 240px; border-radius: 13px; }
 
-      .maitry-typing { display: inline-flex; gap: 4px; padding: 0.8rem 0.95rem; }
-      .maitry-typing span {
-        width: 6px; height: 6px; border-radius: 50%;
-        background: var(--color-text-secondary); opacity: 0.5;
-        animation: maitryBlink 1.2s infinite ease-in-out;
-      }
-      .maitry-typing span:nth-child(2) { animation-delay: 0.18s; }
-      .maitry-typing span:nth-child(3) { animation-delay: 0.36s; }
-      @keyframes maitryBlink { 0%,80%,100%{transform:scale(0.7);opacity:0.35;} 40%{transform:scale(1);opacity:0.9;} }
-
-      .maitry-attachments {
-        display: flex; flex-wrap: wrap; gap: 0.4rem;
-        padding: 0 1.1rem; margin-bottom: 0.5rem;
-      }
-      .maitry-attachments:empty { display: none; }
-      .maitry-chip {
-        display: inline-flex; align-items: center; gap: 0.4rem;
-        background: rgba(245, 242, 238, 0.08);
-        border: 1px solid rgba(245, 242, 238, 0.16);
-        border-radius: 9px; padding: 0.3rem 0.55rem;
-        font-size: 0.74rem; color: var(--color-text-secondary);
-      }
-      .maitry-chip button {
-        background: none; border: none; color: var(--color-text-secondary);
-        cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0;
-      }
-      .maitry-chip button:hover { color: var(--color-text-primary); }
-
-      .maitry-input {
+      /* Journaling input row */
+      .companion-foot {
         flex: 0 0 auto;
-        display: flex;
-        align-items: flex-end;
-        gap: 0.5rem;
-        padding: 0.8rem 1.1rem 1rem;
-        border-top: 1px solid rgba(245, 242, 238, 0.08);
+        border-top: 1px solid var(--c-border);
+        background: var(--c-mist);
+        padding: 12px 16px 18px;
       }
-      .maitry-textarea {
-        flex: 1 1 auto;
-        resize: none;
-        background: rgba(245, 242, 238, 0.05);
-        border: 1px solid rgba(245, 242, 238, 0.16);
-        border-radius: 12px;
-        color: var(--color-text-primary);
+      .companion-cats { display: flex; gap: 8px; margin-bottom: 12px; overflow-x: auto; }
+      .companion-cat-btn {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 8px 15px; border-radius: 999px;
+        border: 1.5px solid var(--c-border);
+        background: transparent;
+        color: var(--c-ink-soft);
         font: inherit;
-        font-size: 0.92rem;
-        line-height: 1.5;
-        padding: 0.6rem 0.8rem;
-        max-height: 140px;
-        outline: none;
+        font-weight: 700; font-size: 14px;
+        cursor: pointer; white-space: nowrap;
+        transition: all 0.18s ease;
       }
-      .maitry-textarea:focus { border-color: rgba(95, 179, 179, 0.5); }
-      .maitry-textarea::placeholder { color: var(--color-text-secondary); }
-      .maitry-icon-btn {
-        flex: 0 0 auto;
-        width: 40px; height: 40px;
-        border-radius: 11px;
-        background: rgba(245, 242, 238, 0.06);
-        border: 1px solid rgba(245, 242, 238, 0.16);
-        color: var(--color-text-secondary);
-        cursor: pointer;
+      .companion-cat-btn svg { width: 16px; height: 16px; stroke-width: 2.4; fill: none; }
+      .companion-cat-btn.is-active { border-color: var(--cat-accent, var(--c-sage)); background: var(--cat-soft, #e3ebdc); color: var(--cat-accent, var(--c-sage)); }
+
+      .companion-input-row {
+        display: flex; align-items: flex-end; gap: 8px;
+        background: var(--c-bg);
+        border-radius: 18px; padding: 7px;
+        border: 1.5px solid var(--cat-accent, var(--c-sage));
+      }
+      .companion-icon-btn {
+        width: 38px; height: 38px;
+        border-radius: 12px;
+        border: none; background: transparent;
         display: grid; place-items: center;
-        transition: background 0.15s ease, color 0.15s ease;
+        cursor: pointer; flex-shrink: 0;
+        transition: background 0.2s ease;
       }
-      .maitry-icon-btn:hover { background: rgba(245, 242, 238, 0.12); color: var(--color-text-primary); }
-      .maitry-icon-btn svg { width: 18px; height: 18px; }
-      .maitry-send {
-        background: rgba(95, 179, 179, 0.9);
-        border-color: rgba(95, 179, 179, 0.9);
-        color: #0a1718;
+      .companion-icon-btn svg { width: 19px; height: 19px; stroke: var(--c-ink-soft); stroke-width: 2.2; fill: none; }
+      .companion-icon-btn.is-listening { background: var(--c-clay); }
+      .companion-icon-btn.is-listening svg { stroke: #fff; }
+      .companion-textarea {
+        flex: 1; resize: none; border: none; outline: none;
+        background: transparent; font: inherit; font-size: 15px;
+        color: var(--c-ink); padding: 9px 4px; max-height: 120px; line-height: 1.4;
       }
-      .maitry-send:hover { background: #7fc4c4; color: #0a1718; }
-      .maitry-icon-btn.recording {
-        background: rgba(214, 120, 120, 0.25);
-        border-color: rgba(214, 120, 120, 0.6);
-        color: #e79b9b;
-        animation: maitryPulse 1.3s infinite;
+      .companion-textarea::placeholder { color: var(--c-ink-soft); }
+      .companion-send {
+        width: 40px; height: 40px; border-radius: 13px; border: none;
+        background: var(--c-border);
+        display: grid; place-items: center;
+        cursor: default; flex-shrink: 0;
       }
-      @keyframes maitryPulse { 0%,100%{box-shadow:0 0 0 0 rgba(214,120,120,0.4);} 50%{box-shadow:0 0 0 6px rgba(214,120,120,0);} }
-      .maitry-hint {
-        font-size: 0.72rem;
+      .companion-send.is-active {
+        background: linear-gradient(140deg, var(--c-sage), var(--c-sage-deep));
+        cursor: pointer;
+      }
+      .companion-send svg { width: 17px; height: 17px; stroke: #fff; stroke-width: 2.4; fill: none; }
+      .companion-input-hint {
+        font-size: 11.5px; color: var(--c-ink-soft);
+        margin-top: 8px; text-align: center; font-weight: 600;
+      }
+
+      /* Meal plan / Recipes shared */
+      .companion-intro-title {
+        font-family: var(--font-heading, "Fraunces", serif);
+        font-size: 24px; font-weight: 600; margin: 0 0 6px;
+      }
+      .companion-intro-body { font-size: 14px; color: var(--c-ink-soft); line-height: 1.5; margin: 0; }
+
+      .companion-choice {
+        display: flex; align-items: flex-start; gap: 14px;
+        padding: 16px; border-radius: 18px;
+        border: 1.5px solid var(--c-border);
+        background: var(--c-mist);
+        cursor: pointer; text-align: left;
+        font: inherit; color: var(--c-ink);
+        transition: transform 0.15s ease, border-color 0.15s ease;
+      }
+      .companion-choice:disabled { opacity: 0.55; cursor: default; }
+      .companion-choice:not(:disabled):hover { border-color: var(--c-sage); }
+      .companion-choice .choice-tile {
+        width: 44px; height: 44px; border-radius: 13px;
+        background: rgba(125, 148, 113, 0.13);
+        display: grid; place-items: center; flex-shrink: 0;
+      }
+      .companion-choice .choice-tile svg { width: 22px; height: 22px; stroke-width: 2.1; fill: none; }
+      .companion-choice .choice-text { flex: 1; }
+      .companion-choice .choice-head { display: flex; align-items: center; gap: 8px; margin-bottom: 3px; }
+      .companion-choice .choice-title { font-size: 16px; font-weight: 700; }
+      .companion-choice .choice-badge {
+        font-size: 10.5px; font-weight: 700; color: var(--c-sage-deep);
+        background: rgba(125, 148, 113, 0.18);
+        padding: 2px 7px; border-radius: 999px;
+        text-transform: uppercase; letter-spacing: 0.03em;
+      }
+      .companion-choice .choice-body { font-size: 13px; color: var(--c-ink-soft); line-height: 1.45; }
+      .companion-choice .choice-hint { font-size: 12px; color: var(--c-clay-deep); font-weight: 700; margin-top: 6px; }
+
+      .companion-back-row { display: flex; align-items: center; gap: 10px; }
+      .companion-back-btn {
+        border: 1.5px solid var(--c-border); background: var(--c-bg);
+        border-radius: 10px; padding: 6px 10px;
+        cursor: pointer; display: flex; align-items: center; gap: 5px;
+        font: inherit; font-size: 13px; font-weight: 700; color: var(--c-ink-soft);
+      }
+      .companion-back-btn svg { width: 15px; height: 15px; stroke-width: 2.6; fill: none; transform: rotate(90deg); }
+      .companion-back-label {
+        font-family: var(--font-heading, "Fraunces", serif);
+        font-size: 19px; font-weight: 600;
+      }
+
+      .companion-upload {
+        border: 2px dashed var(--c-border);
+        background: var(--c-bg);
+        border-radius: 18px;
+        padding: 44px 20px;
+        display: flex; flex-direction: column; align-items: center; gap: 12px;
+        cursor: pointer; color: var(--c-ink-soft);
+        font: inherit;
+        width: 100%;
+      }
+      .companion-upload.has-error { border-color: #c0584f; }
+      .companion-upload svg { width: 30px; height: 30px; stroke: var(--c-clay); stroke-width: 2; fill: none; }
+      .companion-upload .up-title { font-weight: 700; font-size: 15px; color: var(--c-ink); }
+      .companion-upload .up-sub { font-size: 12.5px; }
+      .companion-upload-error { font-size: 13px; color: #c0584f; font-weight: 700; text-align: center; }
+      .companion-uploaded {
+        border: 1.5px solid var(--c-border);
+        border-radius: 16px;
+        padding: 12px;
+        display: flex; align-items: center; gap: 12px;
+        background: var(--c-bg);
+      }
+      .companion-uploaded .up-thumb {
+        width: 54px; height: 54px;
+        border-radius: 11px; flex-shrink: 0;
+        overflow: hidden;
+        display: grid; place-items: center;
+        background: rgba(201, 138, 94, 0.13);
+      }
+      .companion-uploaded .up-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .companion-uploaded .up-thumb svg { width: 24px; height: 24px; stroke: var(--c-clay-deep); stroke-width: 2; fill: none; }
+      .companion-uploaded .up-name {
+        flex: 1; min-width: 0;
+        font-weight: 700; font-size: 14px; color: var(--c-ink);
+        overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      }
+      .companion-uploaded .up-meta { font-size: 12px; color: var(--c-ink-soft); margin-top: 2px; font-weight: 400; }
+      .companion-uploaded .up-x {
+        border: none; background: transparent; cursor: pointer; padding: 6px;
+      }
+      .companion-uploaded .up-x svg { width: 18px; height: 18px; stroke: var(--c-ink-soft); stroke-width: 2; fill: none; }
+
+      .companion-voice-field { display: flex; flex-direction: column; }
+      .companion-voice-field .vf-label { font-size: 13px; font-weight: 700; color: var(--c-ink); margin-bottom: 9px; }
+      .companion-voice-field .vf-input {
+        display: flex; align-items: flex-end; gap: 8px;
+        background: var(--c-bg); border-radius: 14px; padding: 7px;
+        border: 1.5px solid var(--c-border);
+        transition: border-color 0.2s ease;
+      }
+      .companion-voice-field .vf-input.is-listening { border-color: var(--c-clay); }
+      .companion-voice-field .vf-mic {
+        width: 36px; height: 36px; border-radius: 11px;
+        border: none; background: transparent;
+        display: grid; place-items: center; cursor: pointer; flex-shrink: 0;
+        transition: background 0.2s ease;
+      }
+      .companion-voice-field .vf-mic svg { width: 17px; height: 17px; stroke: var(--c-ink-soft); stroke-width: 2.3; fill: none; }
+      .companion-voice-field .vf-input.is-listening .vf-mic { background: var(--c-clay); }
+      .companion-voice-field .vf-input.is-listening .vf-mic svg { stroke: #fff; }
+      .companion-voice-field textarea {
+        flex: 1; resize: none; border: none; outline: none;
+        background: transparent; font: inherit; font-size: 14.5px;
+        color: var(--c-ink); padding: 8px 4px; max-height: 100px; line-height: 1.4;
+      }
+      .companion-voice-field textarea::placeholder { color: var(--c-ink-soft); }
+
+      .companion-primary {
+        display: inline-flex; align-items: center; justify-content: center;
+        gap: 9px; padding: 14px 20px; border-radius: 15px;
+        border: none; color: #fff;
+        font: inherit; font-size: 15.5px; font-weight: 700;
+        background: linear-gradient(140deg, var(--c-sage), var(--c-sage-deep));
+        cursor: pointer;
+        box-shadow: 0 8px 20px rgba(95, 118, 86, 0.3);
+      }
+      .companion-primary:disabled {
+        background: var(--c-border); cursor: default; box-shadow: none;
+      }
+      .companion-primary svg { width: 18px; height: 18px; stroke: #fff; stroke-width: 2.3; fill: none; }
+
+      .companion-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+      .companion-edit-btn {
+        border: 1.5px solid var(--c-border); background: var(--c-bg);
+        border-radius: 9px; padding: 5px 9px;
+        cursor: pointer; font: inherit; font-size: 12; font-weight: 700;
+        color: var(--c-ink-soft); white-space: nowrap;
+      }
+      .companion-meta { font-size: 12.5px; color: var(--c-ink-soft); font-weight: 600; }
+
+      .companion-day-card {
+        border: 1.5px solid var(--c-border); border-radius: 16px;
+        background: var(--c-mist); overflow: hidden;
+      }
+      .companion-day-head {
+        background: var(--c-bg); padding: 9px 14px;
+        font-family: var(--font-heading, "Fraunces", serif);
+        font-size: 15px; font-weight: 600; color: var(--c-ink);
+        border-bottom: 1px solid var(--c-border);
+      }
+      .companion-day-meals { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+      .companion-meal-row { display: flex; gap: 10px; align-items: baseline; }
+      .companion-meal-slot {
+        font-size: 10.5px; font-weight: 700; color: var(--c-clay-deep);
+        text-transform: uppercase; letter-spacing: 0.04em;
+        width: 64px; flex-shrink: 0;
+      }
+      .companion-meal-name { font-size: 13.5px; color: var(--c-ink); line-height: 1.4; }
+
+      .companion-today-card {
+        border: 1.5px solid var(--c-border); border-radius: 16px;
+        padding: 14px; background: var(--c-mist);
+      }
+      .companion-today-slot {
+        font-size: 11.5px; font-weight: 700; color: var(--c-clay-deep);
+        text-transform: uppercase; letter-spacing: 0.05em;
+      }
+      .companion-today-meal {
+        font-size: 15px; color: var(--c-ink); line-height: 1.45;
+        font-weight: 600; margin-top: 6px;
+      }
+      .companion-today-why {
+        display: flex; gap: 6px; align-items: flex-start;
+        margin-top: 8px; padding: 8px 10px;
+        background: rgba(107, 125, 163, 0.12); border-radius: 10px;
+      }
+      .companion-today-why svg { width: 13px; height: 13px; stroke: var(--c-blue); stroke-width: 2.4; fill: none; margin-top: 2px; flex-shrink: 0; }
+      .companion-today-why span { font-size: 12.5px; color: var(--c-ink-soft); line-height: 1.4; }
+
+      .companion-yesterday-card {
+        border: 1.5px solid var(--c-border); border-radius: 16px;
+        padding: 14px; background: var(--c-bg);
+      }
+      .companion-yesterday-card .y-label {
+        font-size: 11.5px; font-weight: 700; color: var(--c-ink-soft);
+        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px;
+      }
+      .companion-yesterday-card .y-item {
+        font-size: 13.5px; color: var(--c-ink); line-height: 1.5;
+      }
+
+      .companion-empty-card {
+        border: 1.5px solid var(--c-border); border-radius: 18px;
+        padding: 30px 20px; text-align: center; background: var(--c-bg);
+      }
+      .companion-empty-card .ec-tile {
+        width: 52px; height: 52px; border-radius: 16px;
+        background: rgba(107, 125, 163, 0.13);
+        display: grid; place-items: center; margin: 0 auto 14px;
+      }
+      .companion-empty-card .ec-tile svg { width: 26px; height: 26px; stroke: var(--c-blue); stroke-width: 2; fill: none; }
+      .companion-empty-card .ec-title { font-weight: 700; font-size: 16px; color: var(--c-ink); margin-bottom: 6px; }
+      .companion-empty-card .ec-body { font-size: 13.5px; color: var(--c-ink-soft); line-height: 1.5; margin-bottom: 18px; }
+      .companion-empty-card .ec-actions { display: flex; gap: 10px; justify-content: center; }
+
+      .companion-search-row {
+        display: flex; align-items: center; gap: 8px;
+        background: var(--c-bg); border-radius: 14px; padding: 7px;
+        border: 1.5px solid var(--c-border);
+      }
+      .companion-search-row svg.search-ico { width: 18px; height: 18px; stroke: var(--c-ink-soft); stroke-width: 2.2; fill: none; margin-left: 6px; flex-shrink: 0; }
+      .companion-search-row input {
+        flex: 1; border: none; outline: none; background: transparent;
+        font: inherit; font-size: 14.5px; color: var(--c-ink); padding: 8px 2px;
+      }
+      .companion-search-row button {
+        border: none; border-radius: 11px; padding: 9px 14px;
+        background: var(--c-border); color: #fff;
+        font: inherit; font-weight: 700; font-size: 13.5px;
+        cursor: default; flex-shrink: 0;
+      }
+      .companion-search-row button.is-active {
+        background: linear-gradient(140deg, var(--c-sage), var(--c-sage-deep));
+        cursor: pointer;
+      }
+
+      .companion-recipe-card {
+        border: 1.5px solid var(--c-border); border-radius: 16px;
+        background: var(--c-mist); overflow: hidden;
+      }
+      .companion-recipe-head {
+        padding: 12px 14px 10px;
+        border-bottom: 1px solid var(--c-border);
+        background: var(--c-bg);
+      }
+      .companion-recipe-slot {
+        font-size: 11px; font-weight: 700;
+        color: var(--c-clay-deep);
+        text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px;
+      }
+      .companion-recipe-slot.search { color: var(--c-sage-deep); }
+      .companion-recipe-name { font-size: 15px; font-weight: 700; color: var(--c-ink); line-height: 1.35; }
+      .companion-recipe-links { padding: 8px 10px; display: flex; flex-direction: column; }
+      .companion-recipe-link {
+        display: flex; align-items: center; gap: 11px;
+        padding: 9px 8px; border-radius: 11px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+      }
+      .companion-recipe-link:hover { background: var(--c-bg); }
+      .companion-recipe-link .yt-tile {
+        width: 44px; height: 44px; border-radius: 11px;
+        background: rgba(224, 50, 44, 0.08);
+        display: grid; place-items: center; flex-shrink: 0;
+      }
+      .companion-recipe-link .yt-tile svg { width: 22px; height: 22px; stroke: #e0322c; stroke-width: 2; fill: none; }
+      .companion-recipe-link .yt-text { flex: 1; min-width: 0; }
+      .companion-recipe-link .yt-title { font-size: 13.5px; font-weight: 700; color: var(--c-ink); line-height: 1.35; }
+      .companion-recipe-link .yt-chan { font-size: 12px; color: var(--c-ink-soft); }
+      .companion-recipe-link .yt-ext { width: 16px; height: 16px; stroke: var(--c-ink-soft); stroke-width: 2.2; fill: none; flex-shrink: 0; }
+
+      .companion-footer-note {
+        font-size: 12px; color: var(--c-ink-soft);
+        text-align: center; line-height: 1.5; margin-top: 2px;
+      }
+
+      .companion-hint {
+        font-size: 0.78rem;
         color: var(--color-text-secondary);
         text-align: center;
-        margin-top: 0.5rem;
+        margin: 0.75rem auto 0;
+        max-width: 640px;
+      }
+
+      @keyframes companionPop {
+        from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+      }
+      @keyframes companionRise {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
       }
     </style>
     <!-- Google tag (gtag.js) -->
@@ -962,50 +1260,27 @@
       </div>
       -->
 
-      <!-- ── Maitry chat ──────────────────────────────────────────── -->
-      <section class="maitry-chat">
-        <div class="maitry-shell">
-          <div class="maitry-head">
-            <div class="maitry-avatar" aria-hidden="true">
-              <svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10z"/></svg>
+      <!-- ── Stilwater Companion ──────────────────────────────────── -->
+      <section class="companion-chat" id="companionRoot">
+        <div class="companion-shell">
+          <header class="companion-head">
+            <div class="companion-mark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13H2a9 9 0 0 0 9 9v-2zM2 13h2C4 8.03 8.03 4 13 4V2C6.92 2 2 6.92 2 13z"/><path d="M19 6c-1.66 0-3 1.34-3 3 0 1.66 1.34 3 3 3s3-1.34 3-3c0-1.66-1.34-3-3-3z"/></svg>
             </div>
-            <div class="maitry-head-text">
-              <strong>Maitry</strong>
-              <span>Your AI companion for personal health</span>
-            </div>
-          </div>
-
-          <div class="maitry-messages" id="maitryMessages">
-            <div class="maitry-empty" id="maitryEmpty">
-              <h3>Hello, I'm Maitry.</h3>
-              <p>Ask me anything about managing your condition — diet, lifestyle, exercise, or your reports. You can also attach a file or use the mic.</p>
-              <div class="maitry-suggestions">
-                <button type="button" class="maitry-suggestion">What should I eat for breakfast?</button>
-                <button type="button" class="maitry-suggestion">Review my blood report</button>
-                <button type="button" class="maitry-suggestion">Suggest a daily routine</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="maitry-attachments" id="maitryAttachments"></div>
-
-          <div class="maitry-input">
-            <input type="file" id="maitryFile" multiple hidden
-                   accept=".pdf,.png,.jpg,.jpeg,.gif,.webp,.txt,.doc,.docx" />
-            <button type="button" class="maitry-icon-btn" id="maitryAttachBtn" title="Attach a file" aria-label="Attach a file">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3.5 3.5 0 0 1 4.95 4.95l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <button type="button" class="companion-mode-btn" id="companionModeBtn" aria-haspopup="true" aria-expanded="false">
+              <svg class="mode-icon" id="companionModeIcon" viewBox="0 0 24 24"></svg>
+              <span class="mode-label" id="companionModeLabel">Journaling</span>
+              <svg class="chev" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
-            <button type="button" class="maitry-icon-btn" id="maitryMicBtn" title="Voice input" aria-label="Voice input">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
-            </button>
-            <textarea class="maitry-textarea" id="maitryText" rows="1"
-                      placeholder="Message Maitry…"></textarea>
-            <button type="button" class="maitry-icon-btn maitry-send" id="maitrySend" title="Send" aria-label="Send">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
-            </button>
-          </div>
+            <span class="companion-greeting" id="companionGreeting">Hi, Aria here</span>
+          </header>
+
+          <div class="companion-menu-scrim" id="companionMenuScrim" hidden></div>
+          <div class="companion-menu" id="companionMenu" hidden role="menu"></div>
+
+          <div class="companion-body" id="companionBody"></div>
         </div>
-        <p class="maitry-hint">Maitry offers lifestyle guidance and does not replace your doctor's advice.</p>
+        <p class="companion-hint">Aria offers lifestyle guidance and does not replace your doctor's advice.</p>
       </section>
     </main>
 
@@ -1421,204 +1696,865 @@
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
       })();
 
-      // ── Maitry chat ──────────────────────────────────────────────────
+      // ── Stilwater Companion ──────────────────────────────────────────
       (function () {
-        const messages = document.getElementById("maitryMessages");
-        const empty = document.getElementById("maitryEmpty");
-        const textarea = document.getElementById("maitryText");
-        const sendBtn = document.getElementById("maitrySend");
-        const attachBtn = document.getElementById("maitryAttachBtn");
-        const fileInput = document.getElementById("maitryFile");
-        const attachWrap = document.getElementById("maitryAttachments");
-        const micBtn = document.getElementById("maitryMicBtn");
-        if (!messages || !textarea) return;
+        const root = document.getElementById("companionRoot");
+        if (!root) return;
+        const body = document.getElementById("companionBody");
+        const modeBtn = document.getElementById("companionModeBtn");
+        const modeIcon = document.getElementById("companionModeIcon");
+        const modeLabel = document.getElementById("companionModeLabel");
+        const menu = document.getElementById("companionMenu");
+        const scrim = document.getElementById("companionMenuScrim");
 
-        let attachments = []; // File objects queued for the next message
-        let busy = false;
-        const history = []; // prior {role, text} turns for conversation context
+        // ---- Icon library (inline SVG paths) ----
+        const ICONS = {
+          calendar: '<path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z" stroke="none" fill="currentColor"/>',
+          notebook: '<path d="M4 4h13a2 2 0 0 1 2 2v14H6a2 2 0 0 1-2-2V4z"/><line x1="8" y1="4" x2="8" y2="20"/><line x1="11" y1="9" x2="16" y2="9"/><line x1="11" y1="13" x2="16" y2="13"/>',
+          chef: '<path d="M6 13.87A4 4 0 1 1 7.41 6 5.11 5.11 0 0 1 12 4a5.11 5.11 0 0 1 4.59 2A4 4 0 1 1 18 13.87V21H6z"/><line x1="6" y1="17" x2="18" y2="17"/>',
+          utensils: '<path d="M3 2v7c0 1.1.9 2 2 2h0a2 2 0 0 0 2-2V2"/><line x1="7" y1="2" x2="7" y2="22"/><line x1="21" y1="15" x2="21" y2="22"/><path d="M18 2c-1.1 0-2 .9-2 2v4c0 1.1.9 2 2 2s2-.9 2-2V4c0-1.1-.9-2-2-2z"/>',
+          dumbbell: '<path d="M14.4 14.4 9.6 9.6"/><path d="M18.66 17.66 21 15.32a1 1 0 0 0 0-1.41l-2.83-2.83a1 1 0 0 0-1.41 0L14.42 13.34"/><path d="M9.58 6.34 6.34 9.58a1 1 0 0 1-1.41 0L3 7.66a1 1 0 0 1 0-1.41L4.41 4.83"/><path d="m21.66 20.24-2.12 2.12"/><path d="M2.34 3.76 4.46 1.64"/>',
+          moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
+          smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
+          camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
+          mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/>',
+          send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+          leaf: '<path d="M11 20A7 7 0 0 1 4 13H2a9 9 0 0 0 9 9v-2zM2 13h2C4 8.03 8.03 4 13 4V2C6.92 2 2 6.92 2 13z"/>',
+          check: '<polyline points="20 6 9 17 4 12"/>',
+          upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>',
+          sparkles: '<polygon points="12 2 14 8 20 9 15.5 13.5 17 20 12 16.5 7 20 8.5 13.5 4 9 10 8 12 2"/>',
+          x: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
+          fileText: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>',
+          youtube: '<path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/>',
+          externalLink: '<path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>',
+          search: '<circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>',
+          chevron: '<polyline points="6 9 12 15 18 9"/>',
+        };
 
-        const BOT_ICON =
-          '<svg viewBox="0 0 24 24"><path d="M12 21s-7-4.6-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.4-7 10-7 10z"/></svg>';
+        const ico = (name, attrs = "") =>
+          '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" ' + attrs + '>' + ICONS[name] + '</svg>';
 
         const escapeHtml = (s) =>
-          String(s).replace(/[&<>"']/g, (c) => ({
+          String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({
             "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
           }[c]));
 
-        const autoGrow = () => {
-          textarea.style.height = "auto";
-          textarea.style.height = Math.min(textarea.scrollHeight, 140) + "px";
+        // ---- Modes & categories ----
+        const MODES = {
+          journaling: { label: "Journaling", icon: "notebook", blurb: "Log your day" },
+          mealplan:   { label: "Meal Plan",  icon: "calendar", blurb: "Plan your meals" },
+          recipes:    { label: "Recipes",    icon: "chef",     blurb: "Cook something good" },
         };
-        textarea.addEventListener("input", autoGrow);
-
-        const scrollDown = () => { messages.scrollTop = messages.scrollHeight; };
-
-        const addMessage = (role, text, files) => {
-          if (empty && empty.parentNode) empty.remove();
-          const row = document.createElement("div");
-          row.className = "maitry-msg " + (role === "user" ? "user" : "bot");
-          const avatar = document.createElement("div");
-          avatar.className = "mini-avatar";
-          avatar.innerHTML = role === "user" ? "You" : BOT_ICON;
-          const bubble = document.createElement("div");
-          bubble.className = "maitry-bubble";
-          let html = "";
-          if (files && files.length) {
-            html += '<div class="maitry-msg-files">' +
-              files.map((f) => '<span class="maitry-msg-file">' + escapeHtml(f) + "</span>").join("") +
-              "</div>";
-          }
-          html += escapeHtml(text);
-          bubble.innerHTML = html;
-          row.appendChild(avatar);
-          row.appendChild(bubble);
-          messages.appendChild(row);
-          scrollDown();
-          return bubble;
+        const CATEGORIES = {
+          food:     { label: "Food",     icon: "utensils", accent: "#c98a5e", soft: "#f3e3d4", prompt: "What did you eat, and when?" },
+          exercise: { label: "Exercise", icon: "dumbbell", accent: "#7d9471", soft: "#e3ebdc", prompt: "What movement did you do, and when?" },
+          sleep:    { label: "Sleep",    icon: "moon",     accent: "#6b7da3", soft: "#dfe5f0", prompt: "How did you sleep, and when?" },
+          mood:     { label: "Mood",     icon: "smile",    accent: "#caa44a", soft: "#f2ebd2", prompt: "How are you feeling, and when?" },
         };
-
-        const showTyping = () => {
-          const row = document.createElement("div");
-          row.className = "maitry-msg bot";
-          row.id = "maitryTypingRow";
-          row.innerHTML =
-            '<div class="mini-avatar">' + BOT_ICON + "</div>" +
-            '<div class="maitry-bubble" style="padding:0;"><div class="maitry-typing"><span></span><span></span><span></span></div></div>';
-          messages.appendChild(row);
-          scrollDown();
+        const MEAL_SLOTS = ["Breakfast", "Lunch", "Dinner", "Snack"];
+        const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+        const STILWATER_WEEKLY = {
+          Monday:    { Breakfast: "Veggie omelette with whole-grain toast", Lunch: "Grilled chicken & quinoa bowl",  Dinner: "Baked salmon with roasted vegetables", Snack: "Greek yogurt with berries" },
+          Tuesday:   { Breakfast: "Overnight oats with banana & almonds",   Lunch: "Chickpea & spinach curry with brown rice", Dinner: "Stir-fried tofu with mixed greens", Snack: "Apple with peanut butter" },
+          Wednesday: { Breakfast: "Spinach & mushroom scramble",            Lunch: "Lentil soup with side salad",      Dinner: "Grilled fish tacos with slaw", Snack: "Handful of mixed nuts" },
+          Thursday:  { Breakfast: "Greek yogurt parfait with granola",      Lunch: "Turkey & avocado wrap",            Dinner: "Vegetable khichdi with curd", Snack: "Carrot sticks with hummus" },
+          Friday:    { Breakfast: "Smoothie bowl with seeds",               Lunch: "Paneer tikka with salad",          Dinner: "Chicken stew with sweet potato", Snack: "Dark chocolate & orange" },
+          Saturday:  { Breakfast: "Avocado toast with poached egg",         Lunch: "Buddha bowl with tahini dressing", Dinner: "Whole-wheat pasta with veggies", Snack: "Cottage cheese with cucumber" },
+          Sunday:    { Breakfast: "Pancakes with fruit compote",            Lunch: "Rajma with brown rice",            Dinner: "Grilled shrimp with asparagus", Snack: "Trail mix" },
         };
-        const clearTyping = () => {
-          const row = document.getElementById("maitryTypingRow");
-          if (row) row.remove();
+        const SAMPLE_YESTERDAY = {
+          notes: [
+            "Light on protein, especially at breakfast",
+            "Pasta and bread twice — heavier on refined carbs",
+            "No leafy greens or fruit logged",
+          ],
+          hadHeavyCarbs: true, lowProtein: true, lowVeg: true,
+        };
+        const todayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
+        const todayWhy = (slot, y) => {
+          if (slot === "Breakfast" && y.lowProtein)  return "More protein this morning — yesterday started light on it.";
+          if (slot === "Lunch"     && y.hadHeavyCarbs) return "Lighter on refined carbs to balance yesterday.";
+          if (slot === "Dinner"    && y.lowVeg)        return "Extra greens to fill yesterday's veggie gap.";
+          if (slot === "Snack") return "A fresh option for variety from yesterday.";
+          return "Tuned to balance out yesterday.";
         };
 
-        const renderAttachments = () => {
-          attachWrap.innerHTML = "";
-          attachments.forEach((file, idx) => {
-            const chip = document.createElement("span");
-            chip.className = "maitry-chip";
-            chip.innerHTML =
-              "<span>" + escapeHtml(file.name) + "</span>" +
-              '<button type="button" aria-label="Remove">&times;</button>';
-            chip.querySelector("button").addEventListener("click", () => {
-              attachments.splice(idx, 1);
-              renderAttachments();
+        // ---- Shared state across modes ----
+        const state = {
+          mode: "journaling",
+          // journaling
+          messages: [{ from: "companion", text: "Hi, I'm Aria — your Stilwater companion. Pick what you'd like to journal, then type your entry, tap the mic to speak it, or the camera to add a photo. Just include the time and I'll capture it." }],
+          activeCat: "food",
+          journalingDraft: "",
+          listening: false,
+          // meal plan
+          mpView: "choose", // choose | upload | weekly | today
+          uploaded: null,   // { name, kind, url }
+          uploadError: "",
+          cuisine: "",
+          avoid: "",
+          listeningField: null, // "cuisine" | "avoid" | null
+          weeklyPlan: null,
+          weeklyMeta: "",
+          generatingWeekly: false,
+          generatingToday: false,
+          todayPlan: null,
+          todayMeta: "",
+          // recipes
+          search: "",
+          searchedDish: null,
+        };
+        const hasPlan = () => Boolean(state.uploaded || state.weeklyPlan);
+        let activeRecognition = null;
+
+        // ---- Render entry-points ----
+        function renderMode() {
+          // Header icon + label
+          modeIcon.innerHTML = ICONS[MODES[state.mode].icon];
+          modeLabel.textContent = MODES[state.mode].label;
+          // Body
+          body.innerHTML = "";
+          if (state.mode === "journaling") body.appendChild(renderJournaling());
+          else if (state.mode === "mealplan") body.appendChild(renderMealPlan());
+          else body.appendChild(renderRecipes());
+        }
+
+        // ---- Mode dropdown ----
+        function renderMenu() {
+          menu.innerHTML = "";
+          Object.entries(MODES).forEach(([key, m]) => {
+            const on = state.mode === key;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "companion-menu-item" + (on ? " is-active" : "");
+            btn.setAttribute("role", "menuitemradio");
+            btn.setAttribute("aria-checked", on ? "true" : "false");
+            btn.innerHTML =
+              '<span class="menu-tile">' + ico(m.icon) + '</span>' +
+              '<span class="menu-text">' +
+                '<span class="menu-title">' + escapeHtml(m.label) + '</span>' +
+                '<span class="menu-blurb">' + escapeHtml(m.blurb) + '</span>' +
+              '</span>' +
+              ico("check", 'class="menu-check"');
+            btn.addEventListener("click", () => {
+              state.mode = key;
+              hideMenu();
+              renderMode();
             });
-            attachWrap.appendChild(chip);
-          });
-        };
-
-        attachBtn.addEventListener("click", () => fileInput.click());
-        fileInput.addEventListener("change", () => {
-          attachments = attachments.concat(Array.from(fileInput.files || []));
-          fileInput.value = "";
-          renderAttachments();
-        });
-
-        const send = async () => {
-          const text = textarea.value.trim();
-          if ((!text && !attachments.length) || busy) return;
-          busy = true;
-
-          const fileNames = attachments.map((f) => f.name);
-          addMessage("user", text, fileNames);
-
-          const form = new FormData();
-          form.append("message", text);
-          form.append("history", JSON.stringify(history));
-          attachments.forEach((f) => form.append("files", f, f.name));
-          attachments = [];
-          renderAttachments();
-          textarea.value = "";
-          autoGrow();
-          showTyping();
-
-          try {
-            const res = await fetch("/api/maitry/chat", {
-              method: "POST",
-              credentials: "same-origin",
-              body: form,
-            });
-            clearTyping();
-            if (res.ok) {
-              const data = await res.json();
-              const reply = data.reply || "…";
-              addMessage("bot", reply);
-              history.push({ role: "user", text: text });
-              history.push({ role: "assistant", text: reply });
-            } else if (res.status === 503) {
-              const data = await res.json().catch(() => ({}));
-              addMessage("bot",
-                data.error ||
-                "I'm not connected to my AI service yet. Please check back shortly.");
-            } else {
-              addMessage("bot", "Sorry, something went wrong. Please try again.");
-            }
-          } catch (e) {
-            clearTyping();
-            addMessage("bot", "I couldn't reach the server. Please check your connection and try again.");
-          }
-          busy = false;
-        };
-
-        sendBtn.addEventListener("click", send);
-        textarea.addEventListener("keydown", (e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            send();
-          }
-        });
-
-        document.querySelectorAll(".maitry-suggestion").forEach((btn) => {
-          btn.addEventListener("click", () => {
-            textarea.value = btn.textContent;
-            autoGrow();
-            send();
-          });
-        });
-
-        // Voice input — browser Web Speech API
-        const SpeechRecognition =
-          window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) {
-          micBtn.style.display = "none";
-        } else {
-          const recog = new SpeechRecognition();
-          recog.lang = "en-IN";
-          recog.interimResults = true;
-          recog.continuous = false;
-          let listening = false;
-          let baseText = "";
-
-          recog.addEventListener("result", (event) => {
-            let transcript = "";
-            for (let i = event.resultIndex; i < event.results.length; i++) {
-              transcript += event.results[i][0].transcript;
-            }
-            textarea.value = (baseText ? baseText + " " : "") + transcript;
-            autoGrow();
-          });
-          recog.addEventListener("end", () => {
-            listening = false;
-            micBtn.classList.remove("recording");
-          });
-          recog.addEventListener("error", () => {
-            listening = false;
-            micBtn.classList.remove("recording");
-          });
-          micBtn.addEventListener("click", () => {
-            if (listening) {
-              recog.stop();
-              return;
-            }
-            baseText = textarea.value.trim();
-            try {
-              recog.start();
-              listening = true;
-              micBtn.classList.add("recording");
-            } catch (e) {}
+            menu.appendChild(btn);
           });
         }
+        function showMenu() {
+          renderMenu();
+          menu.hidden = false;
+          scrim.hidden = false;
+          modeBtn.classList.add("is-open");
+          modeBtn.setAttribute("aria-expanded", "true");
+        }
+        function hideMenu() {
+          menu.hidden = true;
+          scrim.hidden = true;
+          modeBtn.classList.remove("is-open");
+          modeBtn.setAttribute("aria-expanded", "false");
+        }
+        modeBtn.addEventListener("click", () => {
+          if (menu.hidden) showMenu(); else hideMenu();
+        });
+        scrim.addEventListener("click", hideMenu);
+
+        // ---- JOURNALING ----
+        function renderJournaling() {
+          const pane = document.createElement("div");
+          pane.className = "companion-pane";
+
+          const scroll = document.createElement("div");
+          scroll.className = "companion-scroll";
+          state.messages.forEach((msg) => scroll.appendChild(bubbleEl(msg)));
+          pane.appendChild(scroll);
+
+          // Foot
+          const foot = document.createElement("div");
+          foot.className = "companion-foot";
+          const cats = document.createElement("div");
+          cats.className = "companion-cats";
+          Object.entries(CATEGORIES).forEach(([key, c]) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "companion-cat-btn" + (state.activeCat === key ? " is-active" : "");
+            b.style.setProperty("--cat-accent", c.accent);
+            b.style.setProperty("--cat-soft", c.soft);
+            b.innerHTML = ico(c.icon) + escapeHtml(c.label);
+            b.addEventListener("click", () => {
+              state.activeCat = key;
+              renderMode();
+            });
+            cats.appendChild(b);
+          });
+          foot.appendChild(cats);
+
+          const active = CATEGORIES[state.activeCat];
+
+          const inputRow = document.createElement("div");
+          inputRow.className = "companion-input-row";
+          inputRow.style.setProperty("--cat-accent", active.accent);
+
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.accept = "image/*";
+          fileInput.capture = "environment";
+          fileInput.style.display = "none";
+          fileInput.addEventListener("change", (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            commitEntry(null, URL.createObjectURL(f));
+            e.target.value = "";
+          });
+          inputRow.appendChild(fileInput);
+
+          const camBtn = document.createElement("button");
+          camBtn.type = "button";
+          camBtn.className = "companion-icon-btn";
+          camBtn.setAttribute("aria-label", "Add photo");
+          camBtn.innerHTML = ico("camera");
+          camBtn.addEventListener("click", () => fileInput.click());
+          inputRow.appendChild(camBtn);
+
+          const micBtn = document.createElement("button");
+          micBtn.type = "button";
+          micBtn.className = "companion-icon-btn" + (state.listening ? " is-listening" : "");
+          micBtn.setAttribute("aria-label", "Voice input");
+          micBtn.innerHTML = ico("mic");
+          micBtn.addEventListener("click", () => toggleVoiceJournal(textarea));
+          inputRow.appendChild(micBtn);
+
+          const textarea = document.createElement("textarea");
+          textarea.rows = 1;
+          textarea.className = "companion-textarea";
+          textarea.placeholder = state.listening ? "Listening…" : active.prompt;
+          textarea.value = state.journalingDraft;
+          const updateSend = () => {
+            const has = textarea.value.trim().length > 0;
+            sendBtn.classList.toggle("is-active", has);
+          };
+          textarea.addEventListener("input", () => {
+            state.journalingDraft = textarea.value;
+            updateSend();
+          });
+          textarea.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendJournal();
+            }
+          });
+          inputRow.appendChild(textarea);
+
+          const sendBtn = document.createElement("button");
+          sendBtn.type = "button";
+          sendBtn.className = "companion-send";
+          sendBtn.setAttribute("aria-label", "Send");
+          sendBtn.innerHTML = ico("send");
+          sendBtn.addEventListener("click", sendJournal);
+          inputRow.appendChild(sendBtn);
+
+          foot.appendChild(inputRow);
+          const hint = document.createElement("div");
+          hint.className = "companion-input-hint";
+          hint.textContent = "Type, speak, or snap a photo — just include the time in your entry.";
+          foot.appendChild(hint);
+          pane.appendChild(foot);
+
+          // Scroll to bottom after render
+          requestAnimationFrame(() => { scroll.scrollTop = scroll.scrollHeight; });
+          updateSend();
+
+          function sendJournal() {
+            const t = textarea.value.trim();
+            if (!t) return;
+            commitEntry(t, null);
+            state.journalingDraft = "";
+            textarea.value = "";
+            renderMode();
+          }
+          return pane;
+        }
+
+        function bubbleEl(msg) {
+          const row = document.createElement("div");
+          row.className = "companion-bubble-row " + (msg.from === "user" ? "user" : "bot");
+          const cat = msg.category ? CATEGORIES[msg.category] : null;
+          if (msg.from === "user" && cat) {
+            const tag = document.createElement("div");
+            tag.className = "companion-cat-tag";
+            tag.style.color = cat.accent;
+            tag.innerHTML = ico(cat.icon) + escapeHtml(cat.label);
+            row.appendChild(tag);
+          }
+          const bubble = document.createElement("div");
+          bubble.className = "companion-bubble " + (msg.from === "user" ? "user" : "bot") + (msg.image ? " image" : "");
+          if (msg.from === "user" && cat) {
+            bubble.style.background = cat.soft;
+            bubble.style.borderColor = cat.accent + "88";
+          }
+          if (msg.image) {
+            const img = document.createElement("img");
+            img.src = msg.image;
+            img.alt = "journal entry";
+            bubble.appendChild(img);
+          } else {
+            bubble.textContent = msg.text || "";
+          }
+          row.appendChild(bubble);
+          return row;
+        }
+
+        function commitEntry(text, image) {
+          state.messages.push({ from: "user", text: text || null, image: image || null, category: state.activeCat });
+          const base = {
+            food: "Logged to your food journal. 🍽️",
+            exercise: "Added to your exercise journal. 💪",
+            sleep: "Noted in your sleep journal. 🌙",
+            mood: "Saved to your mood journal. Thanks for checking in.",
+          }[state.activeCat];
+          const extra = image ? " Photo saved with the entry." : "";
+          state.messages.push({ from: "companion", text: base + extra });
+        }
+
+        function toggleVoiceJournal(textarea) {
+          const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SR) {
+            state.messages.push({ from: "companion", text: "Voice input isn't supported in this browser, but you can type your entry instead." });
+            renderMode();
+            return;
+          }
+          if (state.listening) {
+            try { activeRecognition && activeRecognition.stop(); } catch (_e) {}
+            state.listening = false;
+            renderMode();
+            return;
+          }
+          const rec = new SR();
+          rec.continuous = false;
+          rec.interimResults = true;
+          rec.lang = "en-US";
+          rec.onresult = (e) => {
+            let t = "";
+            for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+            state.journalingDraft = t;
+            if (textarea) textarea.value = t;
+          };
+          rec.onend = () => { state.listening = false; renderMode(); };
+          rec.onerror = () => { state.listening = false; renderMode(); };
+          activeRecognition = rec;
+          try {
+            rec.start();
+            state.listening = true;
+            renderMode();
+          } catch (_e) {}
+        }
+
+        // ---- MEAL PLAN ----
+        function renderMealPlan() {
+          const pane = document.createElement("div");
+          pane.className = "companion-pane";
+          const scroll = document.createElement("div");
+          scroll.className = "companion-scroll flow";
+          pane.appendChild(scroll);
+
+          if (state.mpView === "choose") return (scroll.appendChild(mpChoose()), pane);
+          if (state.mpView === "upload") return (scroll.appendChild(mpUpload()), pane);
+          if (state.mpView === "weekly") return (scroll.appendChild(mpWeekly()), pane);
+          if (state.mpView === "today")  return (scroll.appendChild(mpToday()), pane);
+          return pane;
+        }
+
+        function intro(title, bodyText) {
+          const wrap = document.createElement("div");
+          wrap.innerHTML =
+            '<h2 class="companion-intro-title">' + escapeHtml(title) + '</h2>' +
+            '<p class="companion-intro-body">' + escapeHtml(bodyText) + '</p>';
+          return wrap;
+        }
+
+        function choiceCard(opts) {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "companion-choice";
+          if (opts.disabled) b.disabled = true;
+          const tile = '<span class="choice-tile" style="background:' + opts.accent + '22"><svg viewBox="0 0 24 24" stroke="' + opts.accent + '" stroke-linecap="round" stroke-linejoin="round">' + ICONS[opts.icon] + '</svg></span>';
+          const head = '<div class="choice-head"><span class="choice-title">' + escapeHtml(opts.title) + '</span>' + (opts.badge ? '<span class="choice-badge">' + escapeHtml(opts.badge) + '</span>' : '') + '</div>';
+          const body2 = '<div class="choice-body">' + escapeHtml(opts.body) + '</div>';
+          const hint = opts.hint ? '<div class="choice-hint">' + escapeHtml(opts.hint) + '</div>' : '';
+          b.innerHTML = tile + '<div class="choice-text">' + head + body2 + hint + '</div>';
+          if (!opts.disabled) b.addEventListener("click", opts.onClick);
+          return b;
+        }
+
+        function mpChoose() {
+          const wrap = document.createElement("div");
+          wrap.style.display = "flex";
+          wrap.style.flexDirection = "column";
+          wrap.style.gap = "16px";
+          wrap.appendChild(intro("Your meal plan", "Bring your own plan, let Stilwater build a weekly plan from your tastes, or get today's plan tuned to what you ate yesterday."));
+          wrap.appendChild(choiceCard({
+            icon: "upload", accent: "#c98a5e",
+            title: "Upload my plan",
+            body: "Add a PDF or image of the plan your nutritionist gave you.",
+            badge: state.uploaded ? "Added" : null,
+            onClick: () => { state.mpView = "upload"; renderMode(); },
+          }));
+          wrap.appendChild(choiceCard({
+            icon: "sparkles", accent: "#7d9471",
+            title: "Generate Stilwater weekly plan",
+            body: "Tell us your preferred cuisines and what to avoid — by voice or text.",
+            badge: state.weeklyPlan ? "Ready" : null,
+            onClick: () => { state.mpView = "weekly"; renderMode(); },
+          }));
+          wrap.appendChild(choiceCard({
+            icon: "calendar", accent: "#6b7da3",
+            title: "Generate today's plan",
+            body: "Built from your plan and yesterday's journal.",
+            disabled: !hasPlan(),
+            hint: !hasPlan() ? "Set up a plan first" : null,
+            onClick: () => { state.mpView = "today"; renderMode(); },
+          }));
+          return wrap;
+        }
+
+        function backRow(label) {
+          const row = document.createElement("div");
+          row.className = "companion-back-row";
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "companion-back-btn";
+          b.innerHTML = ico("chevron") + 'Back';
+          b.addEventListener("click", () => { state.mpView = "choose"; renderMode(); });
+          row.appendChild(b);
+          const lab = document.createElement("span");
+          lab.className = "companion-back-label";
+          lab.textContent = label;
+          row.appendChild(lab);
+          return row;
+        }
+
+        function primaryBtn(label, iconName, onClick, disabled) {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "companion-primary";
+          btn.disabled = !!disabled;
+          btn.innerHTML = (iconName ? ico(iconName) : "") + '<span>' + escapeHtml(label) + '</span>';
+          if (!disabled) btn.addEventListener("click", onClick);
+          return btn;
+        }
+
+        function mpUpload() {
+          const wrap = document.createElement("div");
+          wrap.style.display = "flex";
+          wrap.style.flexDirection = "column";
+          wrap.style.gap = "16px";
+          wrap.appendChild(backRow("Upload your plan"));
+
+          const fileInput = document.createElement("input");
+          fileInput.type = "file";
+          fileInput.accept = "application/pdf,image/*";
+          fileInput.style.display = "none";
+          fileInput.addEventListener("change", (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            const isPdf = f.type === "application/pdf";
+            const isImage = f.type.startsWith("image/");
+            if (!isPdf && !isImage) {
+              state.uploadError = "Please choose a PDF or image file.";
+              e.target.value = "";
+              renderMode();
+              return;
+            }
+            state.uploadError = "";
+            state.uploaded = { name: f.name, kind: isPdf ? "pdf" : "image", url: URL.createObjectURL(f) };
+            e.target.value = "";
+            renderMode();
+          });
+          wrap.appendChild(fileInput);
+
+          if (!state.uploaded) {
+            const drop = document.createElement("button");
+            drop.type = "button";
+            drop.className = "companion-upload" + (state.uploadError ? " has-error" : "");
+            drop.innerHTML = ico("upload") + '<span class="up-title">Tap to add a PDF or image</span><span class="up-sub">The plan from your nutritionist</span>';
+            drop.addEventListener("click", () => fileInput.click());
+            wrap.appendChild(drop);
+            if (state.uploadError) {
+              const err = document.createElement("div");
+              err.className = "companion-upload-error";
+              err.textContent = state.uploadError;
+              wrap.appendChild(err);
+            }
+          } else {
+            const card = document.createElement("div");
+            card.className = "companion-uploaded";
+            const thumb = document.createElement("div");
+            thumb.className = "up-thumb";
+            if (state.uploaded.kind === "image") {
+              thumb.innerHTML = '<img src="' + escapeHtml(state.uploaded.url) + '" alt="plan" />';
+            } else {
+              thumb.innerHTML = ico("fileText");
+            }
+            card.appendChild(thumb);
+            const info = document.createElement("div");
+            info.style.flex = "1";
+            info.style.minWidth = "0";
+            info.innerHTML = '<div class="up-name">' + escapeHtml(state.uploaded.name) + '</div><div class="up-meta">Saved as your plan</div>';
+            card.appendChild(info);
+            const xBtn = document.createElement("button");
+            xBtn.type = "button";
+            xBtn.className = "up-x";
+            xBtn.setAttribute("aria-label", "Remove file");
+            xBtn.innerHTML = ico("x");
+            xBtn.addEventListener("click", () => { state.uploaded = null; renderMode(); });
+            card.appendChild(xBtn);
+            wrap.appendChild(card);
+            wrap.appendChild(primaryBtn("Done", "check", () => { state.mpView = "choose"; renderMode(); }));
+          }
+          return wrap;
+        }
+
+        function voiceField(opts) {
+          const wrap = document.createElement("div");
+          wrap.className = "companion-voice-field";
+          const label = document.createElement("div");
+          label.className = "vf-label";
+          label.textContent = opts.label;
+          wrap.appendChild(label);
+          const inputWrap = document.createElement("div");
+          inputWrap.className = "vf-input" + (state.listeningField === opts.field ? " is-listening" : "");
+          const micBtn = document.createElement("button");
+          micBtn.type = "button";
+          micBtn.className = "vf-mic";
+          micBtn.setAttribute("aria-label", "Voice input for " + opts.label);
+          micBtn.innerHTML = ico("mic");
+          micBtn.addEventListener("click", () => toggleVoiceField(opts.field));
+          inputWrap.appendChild(micBtn);
+          const ta = document.createElement("textarea");
+          ta.rows = 1;
+          ta.placeholder = state.listeningField === opts.field ? "Listening…" : opts.placeholder;
+          ta.value = opts.value;
+          ta.addEventListener("input", () => { opts.onChange(ta.value); });
+          inputWrap.appendChild(ta);
+          wrap.appendChild(inputWrap);
+          return wrap;
+        }
+
+        function toggleVoiceField(field) {
+          const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SR) { alert("Voice input isn't supported in this browser — please type instead."); return; }
+          if (state.listeningField === field) {
+            try { activeRecognition && activeRecognition.stop(); } catch (_e) {}
+            state.listeningField = null;
+            renderMode();
+            return;
+          }
+          const rec = new SR();
+          rec.continuous = false;
+          rec.interimResults = true;
+          rec.lang = "en-US";
+          rec.onresult = (e) => {
+            let t = "";
+            for (let i = 0; i < e.results.length; i++) t += e.results[i][0].transcript;
+            if (field === "cuisine") state.cuisine = t;
+            else state.avoid = t;
+            renderMode();
+          };
+          rec.onend = () => { state.listeningField = null; renderMode(); };
+          rec.onerror = () => { state.listeningField = null; renderMode(); };
+          activeRecognition = rec;
+          try {
+            rec.start();
+            state.listeningField = field;
+            renderMode();
+          } catch (_e) {}
+        }
+
+        function mpWeekly() {
+          const wrap = document.createElement("div");
+          wrap.style.display = "flex";
+          wrap.style.flexDirection = "column";
+          wrap.style.gap = "16px";
+
+          if (!state.weeklyPlan) {
+            wrap.appendChild(backRow("Stilwater weekly plan"));
+            const note = document.createElement("p");
+            note.className = "companion-intro-body";
+            note.style.marginTop = "-6px";
+            note.textContent = "Tell us what you like and what to skip. Tap the mic to speak, or just type.";
+            wrap.appendChild(note);
+            wrap.appendChild(voiceField({
+              label: "Cuisines you prefer", value: state.cuisine, field: "cuisine",
+              placeholder: "e.g. Mediterranean, South Indian, Japanese",
+              onChange: (v) => { state.cuisine = v; },
+            }));
+            wrap.appendChild(voiceField({
+              label: "Foods to avoid", value: state.avoid, field: "avoid",
+              placeholder: "e.g. peanuts, shellfish, red meat",
+              onChange: (v) => { state.avoid = v; },
+            }));
+            wrap.appendChild(primaryBtn(
+              state.generatingWeekly ? "Generating…" : "Generate weekly plan",
+              state.generatingWeekly ? null : "sparkles",
+              () => generateWeekly(),
+              state.generatingWeekly,
+            ));
+          } else {
+            wrap.appendChild(backRow("Your weekly plan"));
+            const row = document.createElement("div");
+            row.className = "companion-row";
+            row.style.marginTop = "-6px";
+            row.innerHTML = '<div class="companion-meta">' + escapeHtml(state.weeklyMeta) + '</div>';
+            const edit = document.createElement("button");
+            edit.type = "button";
+            edit.className = "companion-edit-btn";
+            edit.textContent = "Edit prefs";
+            edit.addEventListener("click", () => { state.weeklyPlan = null; renderMode(); });
+            row.appendChild(edit);
+            wrap.appendChild(row);
+            WEEK_DAYS.forEach((day) => {
+              const card = document.createElement("div");
+              card.className = "companion-day-card";
+              card.innerHTML = '<div class="companion-day-head">' + escapeHtml(day) + '</div>';
+              const meals = document.createElement("div");
+              meals.className = "companion-day-meals";
+              MEAL_SLOTS.forEach((slot) => {
+                const mr = document.createElement("div");
+                mr.className = "companion-meal-row";
+                mr.innerHTML = '<span class="companion-meal-slot">' + escapeHtml(slot) + '</span><span class="companion-meal-name">' + escapeHtml(state.weeklyPlan[day][slot]) + '</span>';
+                meals.appendChild(mr);
+              });
+              card.appendChild(meals);
+              wrap.appendChild(card);
+            });
+          }
+          return wrap;
+        }
+
+        function generateWeekly() {
+          state.generatingWeekly = true;
+          renderMode();
+          setTimeout(() => {
+            const avoidList = state.avoid.split(/,|\band\b/i).map((s) => s.trim().toLowerCase()).filter(Boolean);
+            const plan = {};
+            WEEK_DAYS.forEach((day) => {
+              const base = STILWATER_WEEKLY[day] || STILWATER_WEEKLY.Monday;
+              const adj = {};
+              MEAL_SLOTS.forEach((slot) => {
+                let meal = base[slot];
+                avoidList.forEach((bad) => {
+                  if (bad && meal.toLowerCase().includes(bad)) meal = "Chef's pick (no " + bad + ")";
+                });
+                adj[slot] = meal;
+              });
+              plan[day] = adj;
+            });
+            state.weeklyPlan = plan;
+            const cuisineLabel = state.cuisine.trim() ? state.cuisine.trim() : "balanced";
+            const avoidLabel = avoidList.length ? " · avoiding " + avoidList.join(", ") : "";
+            state.weeklyMeta = "Stilwater weekly plan · " + cuisineLabel + avoidLabel;
+            state.generatingWeekly = false;
+            renderMode();
+          }, 800);
+        }
+
+        function mpToday() {
+          const wrap = document.createElement("div");
+          wrap.style.display = "flex";
+          wrap.style.flexDirection = "column";
+          wrap.style.gap = "16px";
+
+          if (!hasPlan()) {
+            wrap.appendChild(backRow("Today's plan"));
+            const empty = document.createElement("div");
+            empty.className = "companion-empty-card";
+            empty.innerHTML =
+              '<div class="ec-tile">' + ico("calendar") + '</div>' +
+              '<div class="ec-title">Set up a plan first</div>' +
+              '<div class="ec-body">Today\'s plan builds on a plan you\'ve uploaded or a Stilwater weekly plan, plus yesterday\'s journal. Add one to get started.</div>';
+            const actions = document.createElement("div");
+            actions.className = "ec-actions";
+            actions.appendChild(primaryBtn("Upload", "upload", () => { state.mpView = "upload"; renderMode(); }));
+            actions.appendChild(primaryBtn("Generate weekly", "sparkles", () => { state.mpView = "weekly"; renderMode(); }));
+            empty.appendChild(actions);
+            wrap.appendChild(empty);
+            return wrap;
+          }
+
+          if (!state.todayPlan) {
+            wrap.appendChild(backRow("Today's plan"));
+            const note = document.createElement("p");
+            note.className = "companion-intro-body";
+            note.style.marginTop = "-6px";
+            note.textContent = "We'll tailor today from " + (state.weeklyPlan ? "your Stilwater weekly plan" : "your uploaded plan") + " and what your journal shows for yesterday.";
+            wrap.appendChild(note);
+            const y = document.createElement("div");
+            y.className = "companion-yesterday-card";
+            y.innerHTML = '<div class="y-label">Yesterday, from your journal</div>' +
+              SAMPLE_YESTERDAY.notes.map((n) => '<div class="y-item">• ' + escapeHtml(n) + '</div>').join("");
+            wrap.appendChild(y);
+            wrap.appendChild(primaryBtn(
+              state.generatingToday ? "Building…" : "Generate today's plan",
+              state.generatingToday ? null : "calendar",
+              () => generateToday(),
+              state.generatingToday,
+            ));
+            return wrap;
+          }
+
+          wrap.appendChild(backRow("Today's plan"));
+          const row = document.createElement("div");
+          row.className = "companion-row";
+          row.style.marginTop = "-6px";
+          row.innerHTML = '<div class="companion-meta">' + escapeHtml(state.todayMeta) + '</div>';
+          const regen = document.createElement("button");
+          regen.type = "button";
+          regen.className = "companion-edit-btn";
+          regen.textContent = "Regenerate";
+          regen.addEventListener("click", () => { state.todayPlan = null; renderMode(); });
+          row.appendChild(regen);
+          wrap.appendChild(row);
+          MEAL_SLOTS.forEach((slot) => {
+            const card = document.createElement("div");
+            card.className = "companion-today-card";
+            const entry = state.todayPlan[slot];
+            card.innerHTML =
+              '<div class="companion-today-slot">' + escapeHtml(slot) + '</div>' +
+              '<div class="companion-today-meal">' + escapeHtml(entry.meal) + '</div>' +
+              (entry.why ? '<div class="companion-today-why">' + ico("sparkles") + '<span>' + escapeHtml(entry.why) + '</span></div>' : '');
+            wrap.appendChild(card);
+          });
+          return wrap;
+        }
+
+        function generateToday() {
+          state.generatingToday = true;
+          renderMode();
+          setTimeout(() => {
+            const day = todayName();
+            let source, origin;
+            if (state.weeklyPlan) {
+              source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
+              origin = "your Stilwater weekly plan";
+            } else {
+              source = STILWATER_WEEKLY[day] || STILWATER_WEEKLY.Monday;
+              origin = "your uploaded plan";
+            }
+            const built = {};
+            MEAL_SLOTS.forEach((slot) => {
+              built[slot] = { meal: source[slot], why: todayWhy(slot, SAMPLE_YESTERDAY) };
+            });
+            state.todayPlan = built;
+            state.todayMeta = "Today's plan · from " + origin + ", adjusted for yesterday";
+            state.generatingToday = false;
+            renderMode();
+          }, 800);
+        }
+
+        // ---- RECIPES ----
+        function renderRecipes() {
+          const pane = document.createElement("div");
+          pane.className = "companion-pane";
+          const scroll = document.createElement("div");
+          scroll.className = "companion-scroll flow";
+
+          const head = document.createElement("div");
+          head.innerHTML =
+            '<h2 class="companion-intro-title">Recipes</h2>' +
+            '<p class="companion-intro-body">' +
+              (state.todayPlan
+                ? "Cooking videos for each meal in today's plan, or search any dish below."
+                : "Search any dish for cooking videos. Generate today's plan in Meal Plan to get videos for each meal automatically.") +
+            '</p>' +
+            (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
+          scroll.appendChild(head);
+
+          // Search row
+          const searchRow = document.createElement("div");
+          searchRow.className = "companion-search-row";
+          searchRow.innerHTML = ico("search", 'class="search-ico"');
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = "Search any dish — e.g. paneer tikka";
+          input.value = state.search;
+          input.addEventListener("input", () => {
+            state.search = input.value;
+            findBtn.classList.toggle("is-active", input.value.trim().length > 0);
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); runSearch(); }
+          });
+          searchRow.appendChild(input);
+          const findBtn = document.createElement("button");
+          findBtn.type = "button";
+          findBtn.textContent = "Find";
+          if (state.search.trim()) findBtn.classList.add("is-active");
+          findBtn.addEventListener("click", runSearch);
+          searchRow.appendChild(findBtn);
+          scroll.appendChild(searchRow);
+
+          function runSearch() {
+            const d = state.search.trim();
+            if (!d) return;
+            state.searchedDish = d;
+            renderMode();
+          }
+
+          if (state.searchedDish) {
+            scroll.appendChild(recipeCard("Search", state.searchedDish, true));
+          }
+          if (state.todayPlan) {
+            MEAL_SLOTS.forEach((slot) => {
+              scroll.appendChild(recipeCard(slot, state.todayPlan[slot].meal, false));
+            });
+          }
+
+          const note = document.createElement("div");
+          note.className = "companion-footer-note";
+          note.textContent = "Links open a YouTube search for each dish. A production build would surface specific picks via the YouTube API.";
+          scroll.appendChild(note);
+
+          pane.appendChild(scroll);
+          return pane;
+        }
+
+        function recipeCard(slot, meal, isSearch) {
+          const dish = String(meal).replace(/\([^)]*\)/g, "").trim();
+          const q = (extra) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(dish + " " + extra);
+          const videos = [
+            { title: "How to make " + dish, url: q("recipe") },
+            { title: dish + " — quick & easy", url: q("easy recipe") },
+            { title: "Healthy " + dish, url: q("healthy recipe") },
+          ];
+          const card = document.createElement("div");
+          card.className = "companion-recipe-card";
+          card.innerHTML =
+            '<div class="companion-recipe-head">' +
+              '<div class="companion-recipe-slot' + (isSearch ? ' search' : '') + '">' + escapeHtml(slot) + '</div>' +
+              '<div class="companion-recipe-name">' + escapeHtml(meal) + '</div>' +
+            '</div>';
+          const links = document.createElement("div");
+          links.className = "companion-recipe-links";
+          videos.forEach((v) => {
+            const a = document.createElement("a");
+            a.className = "companion-recipe-link";
+            a.href = v.url;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.innerHTML =
+              '<span class="yt-tile">' + ico("youtube") + '</span>' +
+              '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title) + '</span><span class="yt-chan">YouTube search</span></span>' +
+              ico("externalLink", 'class="yt-ext"');
+            links.appendChild(a);
+          });
+          card.appendChild(links);
+          return card;
+        }
+
+        renderMode();
       })();
     </script>
   </body>

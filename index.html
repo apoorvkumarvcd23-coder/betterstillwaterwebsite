@@ -37,8 +37,8 @@
   .nav-links a:hover{color:var(--moss);}
   .nav-cta{background:var(--moss);color:var(--paper)!important;padding:11px 24px;border-radius:100px;font-size:.9rem;transition:transform .25s,box-shadow .25s;}
   .nav-cta:hover{transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(47,72,66,.5);}
-  .menu-btn{display:none;background:none;border:none;font-size:1.4rem;color:var(--moss);cursor:pointer;line-height:1;}
-  @media(max-width:820px){.nav-links{display:none;}.menu-btn{display:block;}}
+  .menu-btn{display:none !important;}
+  @media(max-width:820px){.nav-links{display:none;}}
 
   /* Auth actions (wired by js/shared.js) */
   #authActions{display:flex;gap:14px;align-items:center;}
@@ -135,13 +135,15 @@
   .cookie-buttons{display:flex;gap:1rem;align-items:center;}
   .btn-cookie,#btnAcceptCookies{background:var(--moss);color:var(--paper);border:none;padding:.6rem 1.5rem;border-radius:100px;font-size:.82rem;cursor:pointer;font-family:var(--body);}
 
-  /* Maitry welcome popup */
+  /* Aria welcome popup */
   .welcome-overlay{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(28,42,42,.42);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);opacity:0;pointer-events:none;transition:opacity .4s ease;}
   .welcome-overlay.show{opacity:1;pointer-events:auto;}
   .welcome-card{position:relative;width:100%;max-width:430px;background:var(--paper);border:1px solid var(--line);border-radius:26px;padding:46px 38px 38px;text-align:center;box-shadow:var(--shadow);transform:translateY(18px) scale(.97);transition:transform .42s cubic-bezier(.2,.7,.2,1);}
   .welcome-overlay.show .welcome-card{transform:translateY(0) scale(1);}
   .welcome-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:1.5rem;color:var(--ink-soft);cursor:pointer;line-height:1;}
   .welcome-logo{width:180px;height:auto;margin:0 auto 18px;display:block;}
+  .welcome-brand{font-family:var(--display);font-size:2rem;font-weight:500;letter-spacing:.5px;color:var(--moss);margin:0 0 18px;}
+  .welcome-brand span{color:var(--clay);}
   .welcome-card .eyebrow{justify-content:center;margin-bottom:14px;}
   .welcome-card h2{font-family:var(--display);font-weight:400;font-size:1.7rem;color:var(--moss);line-height:1.2;margin-bottom:12px;}
   .welcome-card h2 .em{display:inline;}
@@ -292,13 +294,13 @@
   <div class="footer-bottom">&copy; 2026 Stilwater. All rights reserved.</div>
 </footer>
 
-<!-- Maitry welcome popup -->
+<!-- Aria welcome popup -->
 <div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="welcome-card">
     <button class="welcome-close" id="welcomeClose" aria-label="Close">&times;</button>
-    <img class="welcome-logo" src="images/new-stilwater-logo.png" alt="Stilwater" />
+    <div class="welcome-brand" aria-hidden="true">Stil<span>water</span></div>
     <div class="eyebrow">Your AI companion</div>
-    <h2 id="welcomeTitle">Hello, I'm <span class="em">Maitry</span> &mdash; your AI companion for personal health.</h2>
+    <h2 id="welcomeTitle">Hello, I'm <span class="em">Aria</span> &mdash; your AI companion for personal health.</h2>
     <p>To start, please log in.</p>
     <a href="/auth/google" class="btn-google" id="welcomeGoogle">
       <span class="g-badge">
@@ -327,7 +329,7 @@
     menu.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', close); });
   })();
 
-  // Maitry welcome popup — dismissible, once per browser session, hidden for logged-in users
+  // Aria welcome popup — dismissible, once per browser session, hidden for logged-in users
   (function () {
     var KEY = 'sw_welcome_seen';
     var overlay = document.getElementById('welcomeOverlay');
