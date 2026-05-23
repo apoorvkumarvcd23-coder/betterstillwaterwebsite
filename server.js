@@ -2355,6 +2355,295 @@ app.post(
   },
 );
 
+// ── Aria meal plan + recipes (OpenRouter gpt-oss-120b) ─────────────────
+// Strip ```json fences and any prose around a JSON object/array so we can
+// JSON.parse the model's reply reliably.
+function extractJson(text) {
+  if (!text) return null;
+  let s = String(text).trim();
+  s = s.replace(/^```(?:json)?\s*/i, "").replace(/```\s*$/i, "").trim();
+  // Find the first { or [ and the matching last } or ].
+  const firstObj = s.indexOf("{");
+  const firstArr = s.indexOf("[");
+  let start = -1;
+  if (firstObj === -1) start = firstArr;
+  else if (firstArr === -1) start = firstObj;
+  else start = Math.min(firstObj, firstArr);
+  if (start === -1) return null;
+  const last = Math.max(s.lastIndexOf("}"), s.lastIndexOf("]"));
+  if (last === -1 || last < start) return null;
+  try {
+    return JSON.parse(s.slice(start, last + 1));
+  } catch (_e) {
+    return null;
+  }
+}
+
+async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
+  if (!OPENROUTER_API_KEY) {
+    const err = new Error("OPENROUTER_API_KEY is not configured.");
+    err.status = 503;
+    throw err;
+  }
+  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+    method: "POST",
+    headers: buildOpenRouterHeaders(),
+    body: JSON.stringify({
+      model: "openai/gpt-oss-120b",
+      temperature: 0.4,
+      max_tokens: maxTokens,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+      ],
+    }),
+  });
+  if (!response.ok) {
+    const errText = await response.text();
+    const err = new Error(`OpenRouter request failed (${response.status}): ${errText}`);
+    err.status = response.status;
+    throw err;
+  }
+  const data = await response.json();
+  const choices = data && Array.isArray(data.choices) ? data.choices : [];
+  const content =
+    choices[0] && choices[0].message && typeof choices[0].message.content === "string"
+      ? choices[0].message.content
+      : "";
+  return content;
+}
+
+const WEEKLY_PLAN_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const WEEKLY_PLAN_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
+
+app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
+  try {
+    const cuisine = String(req.body?.cuisine || "").trim();
+    const avoid = String(req.body?.avoid || "").trim();
+
+    const systemPrompt =
+      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
+      "You design weekly meal plans that are entirely plant-based whole foods, rich in " +
+      "vegetables, legumes, whole grains, fruits, nuts and seeds. You vary cuisines, " +
+      "textures and flavors across the week, respect avoidances strictly, and avoid ultra-processed " +
+      "ingredients. Always reply with valid JSON only — no prose, no markdown code fences.";
+
+    const userPrompt = [
+      "Build a 7-day plant-based whole-food meal plan tailored to the user.",
+      `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
+      `Foods to avoid (strict): ${avoid || "none"}.`,
+      "",
+      "Each day MUST have exactly these 5 meals in this order:",
+      "  1) Breakfast",
+      "  2) Snack",
+      "  3) Lunch",
+      "  4) Evening Snack",
+      "  5) Dinner",
+      "Do NOT include times of day in the meal names.",
+      "Each meal value should be 1-2 short phrases describing the dish, e.g. \"Quinoa veggie bowl with tahini drizzle\".",
+      "Plenty of vegetables every day. No animal products.",
+      "",
+      "Return ONLY a JSON object with this exact shape (no extra keys, no commentary):",
+      "{",
+      "  \"Monday\":    { \"Breakfast\": \"...\", \"Snack\": \"...\", \"Lunch\": \"...\", \"Evening Snack\": \"...\", \"Dinner\": \"...\" },",
+      "  \"Tuesday\":   { ... },",
+      "  \"Wednesday\": { ... },",
+      "  \"Thursday\":  { ... },",
+      "  \"Friday\":    { ... },",
+      "  \"Saturday\":  { ... },",
+      "  \"Sunday\":    { ... }",
+      "}",
+    ].join("\n");
+
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 2400);
+    const parsed = extractJson(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return res.status(502).json({ error: "Aria couldn't shape a valid weekly plan. Please try again." });
+    }
+
+    // Normalize the response so the UI always gets the expected slots.
+    const plan = {};
+    for (const day of WEEKLY_PLAN_DAYS) {
+      const src = parsed[day] || {};
+      const dayPlan = {};
+      for (const slot of WEEKLY_PLAN_SLOTS) {
+        const v = src[slot];
+        dayPlan[slot] = typeof v === "string" && v.trim() ? v.trim() : "Chef's plant-based pick";
+      }
+      plan[day] = dayPlan;
+    }
+
+    return res.json({ plan });
+  } catch (err) {
+    console.error("Aria meal-plan-weekly failed:", err);
+    if (err && err.status === 503) {
+      return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    return res.status(500).json({ error: "Aria couldn't generate the weekly plan right now. Please try again." });
+  }
+});
+
+app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
+  try {
+    const cuisine = String(req.body?.cuisine || "").trim();
+    const avoid = String(req.body?.avoid || "").trim();
+    const dayRaw = String(req.body?.day || "").trim();
+    const day = WEEKLY_PLAN_DAYS.includes(dayRaw) ? dayRaw : WEEKLY_PLAN_DAYS[0];
+    const excludeRaw = Array.isArray(req.body?.exclude) ? req.body.exclude : [];
+    const exclude = excludeRaw
+      .map((s) => String(s || "").trim())
+      .filter(Boolean)
+      .slice(0, 10);
+
+    const systemPrompt =
+      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
+      "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
+      "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly.";
+
+    const userPrompt = [
+      `Build a 1-day plant-based whole-food meal plan for ${day}.`,
+      `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
+      `Foods to avoid (strict): ${avoid || "none"}.`,
+      exclude.length
+        ? `Make the meals DIFFERENT from these (pick fresh alternatives): ${exclude.join(", ")}.`
+        : "",
+      "",
+      "Return EXACTLY these 5 meals in this order, no times of day in the names:",
+      "  1) Breakfast",
+      "  2) Snack",
+      "  3) Lunch",
+      "  4) Evening Snack",
+      "  5) Dinner",
+      "Each meal value should be 1-2 short phrases describing the dish.",
+      "",
+      "Return ONLY this JSON shape (no extra keys):",
+      "{ \"Breakfast\": \"...\", \"Snack\": \"...\", \"Lunch\": \"...\", \"Evening Snack\": \"...\", \"Dinner\": \"...\" }",
+    ].filter(Boolean).join("\n");
+
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 700);
+    const parsed = extractJson(raw);
+    if (!parsed || typeof parsed !== "object") {
+      return res.status(502).json({ error: "Aria couldn't shape a valid one-day plan. Please try again." });
+    }
+    const dayPlan = {};
+    for (const slot of WEEKLY_PLAN_SLOTS) {
+      const v = parsed[slot];
+      dayPlan[slot] = typeof v === "string" && v.trim() ? v.trim() : "Chef's plant-based pick";
+    }
+    return res.json({ day, plan: dayPlan });
+  } catch (err) {
+    console.error("Aria meal-plan-day failed:", err);
+    if (err && err.status === 503) {
+      return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    return res.status(500).json({ error: "Aria couldn't generate today's plan right now. Please try again." });
+  }
+});
+
+// Fetch a YouTube search page server-side and pull the first videoId out of
+// ytInitialData. Returns null if YouTube serves bot/consent content or has
+// no video results for the query.
+async function firstYoutubeVideoId(query, excludeIds) {
+  try {
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`; // sp = videos-only filter
+    const resp = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        // Skip YouTube's EU consent interstitial.
+        Cookie: "CONSENT=YES+1; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
+      },
+    });
+    if (!resp.ok) return null;
+    const html = await resp.text();
+    // Match every videoRenderer.videoId in order.
+    const re = /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g;
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const id = m[1];
+      if (!excludeIds.has(id)) return id;
+    }
+    return null;
+  } catch (_e) {
+    return null;
+  }
+}
+
+app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
+  try {
+    const dish = String(req.body?.dish || "").trim();
+    if (!dish) {
+      return res.status(400).json({ error: "Please send a dish to search for." });
+    }
+
+    const systemPrompt =
+      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
+      "When asked for cooking videos for a dish, you suggest top YouTube searches that " +
+      "lean plant-based / whole-food but stay highly relevant to the exact dish requested. " +
+      "Prefer well-known plant-based YouTube channels (e.g. Pick Up Limes, Cheap Lazy Vegan, " +
+      "The Buddhist Chef, Nora Cooks, Sweet Simple Vegan, The Happy Pear, Edgy Veg, Avant-Garde Vegan, " +
+      "Rainbow Plant Life, Plant You). Always reply with valid JSON only — no prose, no fences.";
+
+    const userPrompt = [
+      `Dish: "${dish}".`,
+      "",
+      "Return the 3 best YouTube cooking-video recommendations for this dish. Each must be plant-based",
+      "or easily plant-based (no animal products). Each must be highly relevant to the exact dish requested.",
+      "",
+      "Return ONLY this JSON shape:",
+      "{",
+      "  \"videos\": [",
+      "    { \"title\": \"A specific recipe video title\", \"channel\": \"A real plant-based YouTube channel name\", \"query\": \"a focused YouTube search query that combines title + channel\" },",
+      "    { \"title\": \"...\", \"channel\": \"...\", \"query\": \"...\" },",
+      "    { \"title\": \"...\", \"channel\": \"...\", \"query\": \"...\" }",
+      "  ]",
+      "}",
+    ].join("\n");
+
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 700);
+    const parsed = extractJson(raw);
+    const items = parsed && Array.isArray(parsed.videos) ? parsed.videos : [];
+    if (!items.length) {
+      return res.status(502).json({ error: "Aria couldn't find recipe matches. Please try again." });
+    }
+
+    // For each suggestion, fetch the actual first YouTube video for that
+    // query so the link opens a real video instead of a search page.
+    const seenIds = new Set();
+    const videos = [];
+    for (const v of items.slice(0, 3)) {
+      const title = String(v && v.title ? v.title : dish).trim();
+      const channel = String(v && v.channel ? v.channel : "").trim();
+      const q = String(v && v.query ? v.query : `${title} ${channel}`).trim();
+      // Try the model's combined query, then a "<title> <channel> vegan recipe" fallback.
+      let id = await firstYoutubeVideoId(q, seenIds);
+      if (!id) id = await firstYoutubeVideoId(`${title} ${channel} vegan recipe`, seenIds);
+      if (!id) id = await firstYoutubeVideoId(`${dish} ${channel} vegan recipe`, seenIds);
+      const url = id
+        ? `https://www.youtube.com/watch?v=${id}`
+        : `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
+      if (id) seenIds.add(id);
+      videos.push({ title, channel: channel || "YouTube", url });
+    }
+
+    // If all three failed to resolve to a real video, try one last broad
+    // search on the dish itself so the user still gets one playable link.
+    if (videos.every((v) => !v.url.includes("watch?v="))) {
+      const id = await firstYoutubeVideoId(`${dish} plant based recipe`, seenIds);
+      if (id) videos[0].url = `https://www.youtube.com/watch?v=${id}`;
+    }
+
+    return res.json({ videos });
+  } catch (err) {
+    console.error("Aria recipes failed:", err);
+    if (err && err.status === 503) {
+      return res.status(503).json({ error: "Aria's recipe finder is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    return res.status(500).json({ error: "Aria couldn't fetch recipes right now. Please try again." });
+  }
+});
+
 app.get(
   "/api/admin/traffic",
   requireRole("admin"),

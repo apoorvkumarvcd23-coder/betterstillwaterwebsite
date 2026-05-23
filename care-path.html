@@ -2015,33 +2015,16 @@
           sleep:    { label: "Sleep",    icon: "moon",     accent: "#6b7da3", soft: "#dfe5f0", prompt: "How did you sleep, and when?" },
           mood:     { label: "Mood",     icon: "smile",    accent: "#caa44a", soft: "#f2ebd2", prompt: "How are you feeling, and when?" },
         };
-        const MEAL_SLOTS = ["Breakfast", "Lunch", "Dinner", "Snack"];
+        const MEAL_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
         const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-        const STILWATER_WEEKLY = {
-          Monday:    { Breakfast: "Veggie omelette with whole-grain toast", Lunch: "Grilled chicken & quinoa bowl",  Dinner: "Baked salmon with roasted vegetables", Snack: "Greek yogurt with berries" },
-          Tuesday:   { Breakfast: "Overnight oats with banana & almonds",   Lunch: "Chickpea & spinach curry with brown rice", Dinner: "Stir-fried tofu with mixed greens", Snack: "Apple with peanut butter" },
-          Wednesday: { Breakfast: "Spinach & mushroom scramble",            Lunch: "Lentil soup with side salad",      Dinner: "Grilled fish tacos with slaw", Snack: "Handful of mixed nuts" },
-          Thursday:  { Breakfast: "Greek yogurt parfait with granola",      Lunch: "Turkey & avocado wrap",            Dinner: "Vegetable khichdi with curd", Snack: "Carrot sticks with hummus" },
-          Friday:    { Breakfast: "Smoothie bowl with seeds",               Lunch: "Paneer tikka with salad",          Dinner: "Chicken stew with sweet potato", Snack: "Dark chocolate & orange" },
-          Saturday:  { Breakfast: "Avocado toast with poached egg",         Lunch: "Buddha bowl with tahini dressing", Dinner: "Whole-wheat pasta with veggies", Snack: "Cottage cheese with cucumber" },
-          Sunday:    { Breakfast: "Pancakes with fruit compote",            Lunch: "Rajma with brown rice",            Dinner: "Grilled shrimp with asparagus", Snack: "Trail mix" },
-        };
         const SAMPLE_YESTERDAY = {
           notes: [
             "Light on protein, especially at breakfast",
             "Pasta and bread twice — heavier on refined carbs",
             "No leafy greens or fruit logged",
           ],
-          hadHeavyCarbs: true, lowProtein: true, lowVeg: true,
         };
         const todayName = () => new Date().toLocaleDateString("en-US", { weekday: "long" });
-        const todayWhy = (slot, y) => {
-          if (slot === "Breakfast" && y.lowProtein)  return "More protein this morning — yesterday started light on it.";
-          if (slot === "Lunch"     && y.hadHeavyCarbs) return "Lighter on refined carbs to balance yesterday.";
-          if (slot === "Dinner"    && y.lowVeg)        return "Extra greens to fill yesterday's veggie gap.";
-          if (slot === "Snack") return "A fresh option for variety from yesterday.";
-          return "Tuned to balance out yesterday.";
-        };
 
         // ---- Shared state across modes ----
         const state = {
@@ -2566,6 +2549,12 @@
               () => generateWeekly(),
               state.generatingWeekly,
             ));
+            if (state.weeklyError) {
+              const err = document.createElement("div");
+              err.className = "companion-upload-error";
+              err.textContent = state.weeklyError;
+              wrap.appendChild(err);
+            }
           } else {
             wrap.appendChild(backRow("Your weekly plan"));
             const row = document.createElement("div");
@@ -2576,7 +2565,7 @@
             edit.type = "button";
             edit.className = "companion-edit-btn";
             edit.textContent = "Edit prefs";
-            edit.addEventListener("click", () => { state.weeklyPlan = null; renderMode(); });
+            edit.addEventListener("click", () => { state.weeklyPlan = null; state.todayPlan = null; state.todayMeta = ""; renderMode(); });
             row.appendChild(edit);
             wrap.appendChild(row);
             WEEK_DAYS.forEach((day) => {
@@ -2598,31 +2587,37 @@
           return wrap;
         }
 
-        function generateWeekly() {
+        async function generateWeekly() {
           state.generatingWeekly = true;
+          state.weeklyError = "";
           renderMode();
-          setTimeout(() => {
-            const avoidList = state.avoid.split(/,|\band\b/i).map((s) => s.trim().toLowerCase()).filter(Boolean);
-            const plan = {};
-            WEEK_DAYS.forEach((day) => {
-              const base = STILWATER_WEEKLY[day] || STILWATER_WEEKLY.Monday;
-              const adj = {};
-              MEAL_SLOTS.forEach((slot) => {
-                let meal = base[slot];
-                avoidList.forEach((bad) => {
-                  if (bad && meal.toLowerCase().includes(bad)) meal = "Chef's pick (no " + bad + ")";
-                });
-                adj[slot] = meal;
-              });
-              plan[day] = adj;
+          try {
+            const res = await fetch("/api/aria/meal-plan-weekly", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid }),
             });
-            state.weeklyPlan = plan;
-            const cuisineLabel = state.cuisine.trim() ? state.cuisine.trim() : "balanced";
-            const avoidLabel = avoidList.length ? " · avoiding " + avoidList.join(", ") : "";
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.plan) {
+              state.weeklyError = data.error || "Aria couldn't build the plan. Please try again.";
+              state.generatingWeekly = false;
+              renderMode();
+              return;
+            }
+            state.weeklyPlan = data.plan;
+            // Discard any previously built today plan so the Today view
+            // re-builds from this fresh weekly plan on next open.
+            state.todayPlan = null;
+            state.todayMeta = "";
+            const cuisineLabel = state.cuisine.trim() ? state.cuisine.trim() : "balanced plant-based";
+            const avoidLabel = state.avoid.trim() ? " · avoiding " + state.avoid.trim() : "";
             state.weeklyMeta = "Stilwater weekly plan · " + cuisineLabel + avoidLabel;
-            state.generatingWeekly = false;
-            renderMode();
-          }, 800);
+          } catch (_e) {
+            state.weeklyError = "Couldn't reach Aria right now. Please try again.";
+          }
+          state.generatingWeekly = false;
+          renderMode();
         }
 
         function mpToday() {
@@ -2638,7 +2633,7 @@
             empty.innerHTML =
               '<div class="ec-tile">' + ico("calendar") + '</div>' +
               '<div class="ec-title">Set up a plan first</div>' +
-              '<div class="ec-body">Today\'s plan builds on a plan you\'ve uploaded or a Stilwater weekly plan, plus yesterday\'s journal. Add one to get started.</div>';
+              '<div class="ec-body">Today\'s plan builds on a plan you\'ve uploaded or a Stilwater weekly plan. Add one to get started.</div>';
             const actions = document.createElement("div");
             actions.className = "ec-actions";
             actions.appendChild(primaryBtn("Upload", "upload", () => { state.mpView = "upload"; renderMode(); }));
@@ -2648,74 +2643,83 @@
             return wrap;
           }
 
-          if (!state.todayPlan) {
-            wrap.appendChild(backRow("Today's plan"));
-            const note = document.createElement("p");
-            note.className = "companion-intro-body";
-            note.style.marginTop = "-6px";
-            note.textContent = "We'll tailor today from " + (state.weeklyPlan ? "your Stilwater weekly plan" : "your uploaded plan") + " and what your journal shows for yesterday.";
-            wrap.appendChild(note);
-            const y = document.createElement("div");
-            y.className = "companion-yesterday-card";
-            y.innerHTML = '<div class="y-label">Yesterday, from your journal</div>' +
-              SAMPLE_YESTERDAY.notes.map((n) => '<div class="y-item">• ' + escapeHtml(n) + '</div>').join("");
-            wrap.appendChild(y);
-            wrap.appendChild(primaryBtn(
-              state.generatingToday ? "Building…" : "Generate today's plan",
-              state.generatingToday ? null : "calendar",
-              () => generateToday(),
-              state.generatingToday,
-            ));
-            return wrap;
+          // Auto-build today's plan from the matching weekday in the weekly
+          // plan the first time the user opens this view. The user can still
+          // ask for a different one-day plan via the button below.
+          if (!state.todayPlan && state.weeklyPlan) {
+            const day = todayName();
+            const source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
+            const built = {};
+            MEAL_SLOTS.forEach((slot) => {
+              built[slot] = { meal: (source && source[slot]) || "Plant-based whole-food option", why: "" };
+            });
+            state.todayPlan = built;
+            state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
           }
 
           wrap.appendChild(backRow("Today's plan"));
-          const row = document.createElement("div");
-          row.className = "companion-row";
-          row.style.marginTop = "-6px";
-          row.innerHTML = '<div class="companion-meta">' + escapeHtml(state.todayMeta) + '</div>';
-          const regen = document.createElement("button");
-          regen.type = "button";
-          regen.className = "companion-edit-btn";
-          regen.textContent = "Regenerate";
-          regen.addEventListener("click", () => { state.todayPlan = null; renderMode(); });
-          row.appendChild(regen);
-          wrap.appendChild(row);
-          MEAL_SLOTS.forEach((slot) => {
-            const card = document.createElement("div");
-            card.className = "companion-today-card";
-            const entry = state.todayPlan[slot];
-            card.innerHTML =
-              '<div class="companion-today-slot">' + escapeHtml(slot) + '</div>' +
-              '<div class="companion-today-meal">' + escapeHtml(entry.meal) + '</div>' +
-              (entry.why ? '<div class="companion-today-why">' + ico("sparkles") + '<span>' + escapeHtml(entry.why) + '</span></div>' : '');
-            wrap.appendChild(card);
-          });
+          if (state.todayPlan) {
+            const meta = document.createElement("div");
+            meta.className = "companion-meta";
+            meta.style.marginTop = "-6px";
+            meta.textContent = state.todayMeta;
+            wrap.appendChild(meta);
+            MEAL_SLOTS.forEach((slot) => {
+              const card = document.createElement("div");
+              card.className = "companion-today-card";
+              const entry = state.todayPlan[slot];
+              card.innerHTML =
+                '<div class="companion-today-slot">' + escapeHtml(slot) + '</div>' +
+                '<div class="companion-today-meal">' + escapeHtml(entry.meal) + '</div>';
+              wrap.appendChild(card);
+            });
+            wrap.appendChild(primaryBtn(
+              state.generatingToday ? "Generating…" : "Generate a different plan for today",
+              state.generatingToday ? null : "sparkles",
+              () => generateDifferentToday(),
+              state.generatingToday,
+            ));
+            if (state.todayError) {
+              const err = document.createElement("div");
+              err.className = "companion-upload-error";
+              err.textContent = state.todayError;
+              wrap.appendChild(err);
+            }
+          }
           return wrap;
         }
 
-        function generateToday() {
+        async function generateDifferentToday() {
           state.generatingToday = true;
+          state.todayError = "";
           renderMode();
-          setTimeout(() => {
+          try {
             const day = todayName();
-            let source, origin;
-            if (state.weeklyPlan) {
-              source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
-              origin = "your Stilwater weekly plan";
-            } else {
-              source = STILWATER_WEEKLY[day] || STILWATER_WEEKLY.Monday;
-              origin = "your uploaded plan";
-            }
-            const built = {};
-            MEAL_SLOTS.forEach((slot) => {
-              built[slot] = { meal: source[slot], why: todayWhy(slot, SAMPLE_YESTERDAY) };
+            const exclude = state.todayPlan
+              ? MEAL_SLOTS.map((s) => state.todayPlan[s] && state.todayPlan[s].meal).filter(Boolean)
+              : [];
+            const res = await fetch("/api/aria/meal-plan-day", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, day, exclude }),
             });
-            state.todayPlan = built;
-            state.todayMeta = "Today's plan · from " + origin + ", adjusted for yesterday";
-            state.generatingToday = false;
-            renderMode();
-          }, 800);
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.plan) {
+              state.todayError = data.error || "Aria couldn't build a different plan. Please try again.";
+            } else {
+              const built = {};
+              MEAL_SLOTS.forEach((slot) => {
+                built[slot] = { meal: data.plan[slot] || "Plant-based whole-food option", why: "" };
+              });
+              state.todayPlan = built;
+              state.todayMeta = "Today's plan · " + day + ", freshly generated by Aria";
+            }
+          } catch (_e) {
+            state.todayError = "Couldn't reach Aria right now. Please try again.";
+          }
+          state.generatingToday = false;
+          renderMode();
         }
 
         // ---- RECIPES ----
@@ -2778,21 +2782,18 @@
 
           const note = document.createElement("div");
           note.className = "companion-footer-note";
-          note.textContent = "Links open a YouTube search for each dish. A production build would surface specific picks via the YouTube API.";
+          note.textContent = "Aria suggests plant-based picks; each link opens a focused YouTube search for that video.";
           scroll.appendChild(note);
 
           pane.appendChild(scroll);
           return pane;
         }
 
+        // Cache of per-dish video fetches so re-renders don't re-hit the API.
+        const recipeCache = state.recipeCache || (state.recipeCache = {});
+
         function recipeCard(slot, meal, isSearch) {
           const dish = String(meal).replace(/\([^)]*\)/g, "").trim();
-          const q = (extra) => "https://www.youtube.com/results?search_query=" + encodeURIComponent(dish + " " + extra);
-          const videos = [
-            { title: "How to make " + dish, url: q("recipe") },
-            { title: dish + " — quick & easy", url: q("easy recipe") },
-            { title: "Healthy " + dish, url: q("healthy recipe") },
-          ];
           const card = document.createElement("div");
           card.className = "companion-recipe-card";
           card.innerHTML =
@@ -2802,18 +2803,56 @@
             '</div>';
           const links = document.createElement("div");
           links.className = "companion-recipe-links";
-          videos.forEach((v) => {
-            const a = document.createElement("a");
-            a.className = "companion-recipe-link";
-            a.href = v.url;
-            a.target = "_blank";
-            a.rel = "noopener noreferrer";
-            a.innerHTML =
-              '<span class="yt-tile">' + ico("youtube") + '</span>' +
-              '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title) + '</span><span class="yt-chan">YouTube search</span></span>' +
-              ico("externalLink", 'class="yt-ext"');
-            links.appendChild(a);
-          });
+
+          const renderVideos = (videos) => {
+            links.innerHTML = "";
+            videos.forEach((v) => {
+              const a = document.createElement("a");
+              a.className = "companion-recipe-link";
+              a.href = v.url;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.innerHTML =
+                '<span class="yt-tile">' + ico("youtube") + '</span>' +
+                '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title) + '</span><span class="yt-chan">' + escapeHtml(v.channel || "YouTube") + '</span></span>' +
+                ico("externalLink", 'class="yt-ext"');
+              links.appendChild(a);
+            });
+          };
+          const renderState = (msg) => {
+            links.innerHTML = '<div style="padding: 14px 12px; font-size: 13px; color: var(--c-ink-soft);">' + escapeHtml(msg) + '</div>';
+          };
+
+          const cached = recipeCache[dish.toLowerCase()];
+          if (cached && cached.videos) {
+            renderVideos(cached.videos);
+          } else if (cached && cached.error) {
+            renderState(cached.error);
+          } else {
+            renderState("Finding plant-based recipes…");
+            fetch("/api/aria/recipes", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ dish }),
+            })
+              .then((res) => res.json().then((data) => ({ ok: res.ok, data })))
+              .then(({ ok, data }) => {
+                if (!ok || !Array.isArray(data.videos) || !data.videos.length) {
+                  const errMsg = (data && data.error) || "Aria couldn't find recipes for that dish.";
+                  recipeCache[dish.toLowerCase()] = { error: errMsg };
+                  renderState(errMsg);
+                  return;
+                }
+                recipeCache[dish.toLowerCase()] = { videos: data.videos };
+                renderVideos(data.videos);
+              })
+              .catch(() => {
+                const errMsg = "Couldn't reach Aria right now.";
+                recipeCache[dish.toLowerCase()] = { error: errMsg };
+                renderState(errMsg);
+              });
+          }
           card.appendChild(links);
           return card;
         }
