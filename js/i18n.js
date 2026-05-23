@@ -22,6 +22,49 @@
     // Generic
     "common.back": { en: "Back", hi: "वापस" },
     "common.close": { en: "Close", hi: "बंद करें" },
+    "common.backHome": { en: "Back to Home", hi: "होम पर वापस" },
+
+    // Legal pages captions / headings
+    "legal.captionLegal": { en: "Legal", hi: "कानूनी" },
+    "legal.captionSafety": { en: "Legal & Safety", hi: "कानूनी एवं सुरक्षा" },
+
+    // Privacy Policy
+    "privacy.title": { en: "Privacy Policy", hi: "गोपनीयता नीति" },
+    "privacy.p1": { en: "We collect limited information to provide waitlist access, assessments, and community support communications.", hi: "हम वेटलिस्ट एक्सेस, मूल्यांकन और सामुदायिक सहायता संवाद के लिए सीमित जानकारी एकत्र करते हैं।" },
+    "privacy.p2": { en: "Information submitted in forms may include your name, contact details, language preference, and optional wellness context.", hi: "फ़ॉर्म में दी गई जानकारी में आपका नाम, संपर्क विवरण, भाषा प्राथमिकता और वैकल्पिक वेलनेस संदर्भ शामिल हो सकते हैं।" },
+    "privacy.p3": { en: "We use this information to improve service quality, support continuity, and coordinate trusted holistic partner pathways.", hi: "हम इस जानकारी का उपयोग सेवा गुणवत्ता सुधारने, सहायता निरंतरता बनाए रखने और विश्वसनीय समग्र साझेदार मार्गों के समन्वय के लिए करते हैं।" },
+    "privacy.p4": { en: "We do not sell your personal information. Access is restricted to authorized team members and approved service systems.", hi: "हम आपकी व्यक्तिगत जानकारी नहीं बेचते। पहुँच केवल अधिकृत टीम सदस्यों और स्वीकृत सेवा प्रणालियों तक सीमित है।" },
+    "privacy.p5": { en: "You may request correction or deletion of your data by contacting holistic_health@stillwater.you.", hi: "अपने डेटा में सुधार या उसे हटाने के लिए holistic_health@stillwater.you पर संपर्क करें।" },
+    "privacy.p6": { en: "By using this site, you agree to this policy and any updates posted on this page.", hi: "इस साइट का उपयोग करके आप इस नीति और इस पृष्ठ पर प्रकाशित किसी भी अद्यतन से सहमत होते हैं।" },
+
+    // Terms of Use
+    "terms.title": { en: "Terms of Use", hi: "उपयोग की शर्तें" },
+    "terms.p1": { en: "Stillwater provides guidance-oriented wellness content and community pathways for educational and supportive purposes.", hi: "Stillwater शैक्षिक और सहायक उद्देश्यों के लिए मार्गदर्शन-केंद्रित वेलनेस सामग्री और सामुदायिक मार्ग प्रदान करता है।" },
+    "terms.p2": { en: "You agree to provide accurate information in forms and avoid misuse of the platform.", hi: "आप फ़ॉर्म में सटीक जानकारी देने और प्लेटफ़ॉर्म के दुरुपयोग से बचने के लिए सहमत हैं।" },
+    "terms.p3": { en: "Partner recommendations are shared to support informed wellbeing choices and do not replace professional diagnosis or emergency care.", hi: "साझेदार सिफारिशें सूचित कल्याण निर्णयों के समर्थन के लिए साझा की जाती हैं और पेशेवर निदान या आपातकालीन देखभाल का स्थान नहीं लेतीं।" },
+    "terms.p4": { en: "Stillwater may update product features, forms, and policies to improve safety, quality, and user experience.", hi: "Stillwater सुरक्षा, गुणवत्ता और उपयोगकर्ता अनुभव में सुधार के लिए उत्पाद सुविधाओं, फ़ॉर्म और नीतियों को अद्यतन कर सकता है।" },
+    "terms.p5": { en: "Continued use of this site indicates acceptance of these terms.", hi: "इस साइट का निरंतर उपयोग इन शर्तों की स्वीकृति को दर्शाता है।" },
+
+    // Medical Disclaimer
+    "medical.title": { en: "Health Warning / Medical Disclaimer", hi: "स्वास्थ्य चेतावनी / चिकित्सकीय अस्वीकरण" },
+    "medical.p1": { en: "Stillwater offers supportive wellness guidance focused on awareness, balance, and lifestyle wellbeing.", hi: "Stillwater जागरूकता, संतुलन और जीवनशैली कल्याण पर केंद्रित सहायक वेलनेस मार्गदर्शन प्रदान करता है।" },
+    "medical.p2": { en: "Information on this website is not a substitute for medical diagnosis, treatment, or emergency intervention.", hi: "इस वेबसाइट की जानकारी चिकित्सीय निदान, उपचार या आपातकालीन हस्तक्षेप का विकल्प नहीं है।" },
+    "medical.p3": { en: "If you have severe symptoms, urgent distress, or a medical emergency, contact qualified healthcare professionals immediately.", hi: "यदि आपको गंभीर लक्षण, तत्काल कष्ट या चिकित्सकीय आपात स्थिति है, तो तुरंत योग्य स्वास्थ्य पेशेवरों से संपर्क करें।" },
+    "medical.p4": { en: "Any provider listed in the community should be evaluated according to your personal health context and clinician advice.", hi: "समुदाय में सूचीबद्ध किसी भी प्रदाता का मूल्यांकन आपकी व्यक्तिगत स्वास्थ्य स्थिति और चिकित्सक सलाह के अनुसार किया जाना चाहिए।" },
+    "medical.p5": { en: "By using this platform, you acknowledge responsibility for your health decisions and agree to seek professional medical care when needed.", hi: "इस प्लेटफ़ॉर्म का उपयोग करके आप अपने स्वास्थ्य निर्णयों की ज़िम्मेदारी स्वीकार करते हैं और आवश्यकता होने पर पेशेवर चिकित्सकीय देखभाल लेने के लिए सहमत हैं।" },
+
+    // Testimonials chooser page
+    "testimonials.title": { en: "Choose Your Testimonial AI", hi: "अपना प्रशंसापत्र AI चुनें" },
+    "testimonials.subtitle": { en: "Select which testimonial knowledge base you want to chat with.", hi: "चुनें कि आप किस प्रशंसापत्र ज्ञान-कोष से बात करना चाहते हैं।" },
+    "testimonials.openAi": { en: "Open AI", hi: "AI खोलें" },
+    "testimonials.card.diabetes.title": { en: "Sharan Diabetes Mate AI", hi: "Sharan मधुमेह मेट AI" },
+    "testimonials.card.diabetes.body": { en: "Uses diabetes-focused testimonials and outcomes.", hi: "मधुमेह-केंद्रित प्रशंसापत्र और परिणामों का उपयोग करता है।" },
+    "testimonials.card.amarEye.title": { en: "Amar Eye Vision Mate AI", hi: "Amar Eye विज़न मेट AI" },
+    "testimonials.card.amarEye.body": { en: "Uses Amar Eye Yoga testimonial data.", hi: "Amar Eye Yoga प्रशंसापत्र डेटा का उपयोग करता है।" },
+    "testimonials.card.sharanOther.title": { en: "Sharan Other Diseases Testimonials AI", hi: "Sharan अन्य रोग प्रशंसापत्र AI" },
+    "testimonials.card.sharanOther.body": { en: "Uses Sharan testimonials for other chronic disease journeys.", hi: "अन्य दीर्घकालिक बीमारी यात्राओं के लिए Sharan प्रशंसापत्रों का उपयोग करता है।" },
+    "testimonials.card.holistic.title": { en: "Holistic wellness AI", hi: "समग्र वेलनेस AI" },
+    "testimonials.card.holistic.body": { en: "Uses holistic wellness testimonials across multiple programs.", hi: "कई कार्यक्रमों के समग्र वेलनेस प्रशंसापत्रों का उपयोग करता है।" },
 
     // Nav (home page)
     "nav.howItWorks": { en: "How it works", hi: "यह कैसे काम करता है" },
