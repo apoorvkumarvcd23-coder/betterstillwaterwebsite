@@ -254,9 +254,12 @@
         const val = t(key, null);
         if (val != null) el.setAttribute("title", val);
       });
-      // Update dropdown selected value (in case lang was changed elsewhere).
-      const select = document.getElementById("swLangSelect");
-      if (select && select.value !== lang) select.value = lang;
+      // Refresh the dropdown's visible code and active-option state.
+      const codeEl = document.getElementById("swLangCode");
+      if (codeEl) codeEl.textContent = lang === "hi" ? "हिं" : "EN";
+      document.querySelectorAll(".sw-lang-opt").forEach((b) => {
+        b.classList.toggle("is-active", b.getAttribute("data-lang") === lang);
+      });
     } catch (_e) {
       // Never throw — i18n should be additive, not breaking.
     }
@@ -268,13 +271,19 @@
       const style = document.createElement("style");
       style.id = "swLangStyles";
       style.textContent =
-        ".sw-lang-wrap{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.7);border:1px solid rgba(47,72,66,.18);border-radius:999px;padding:4px 6px 4px 10px;margin-right:.5rem;color:#2f4842;font-family:inherit;font-size:.8rem;font-weight:600;line-height:1;cursor:pointer;transition:background .18s ease}" +
-        ".sw-lang-wrap:hover{background:rgba(255,255,255,.95)}" +
-        ".sw-lang-globe{display:inline-flex;align-items:center;color:inherit}" +
-        ".sw-lang-select{appearance:none;-webkit-appearance:none;border:none;background:transparent;color:inherit;font:inherit;padding:4px 18px 4px 4px;cursor:pointer;background-image:url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%232f4842' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>\");background-repeat:no-repeat;background-position:right 4px center;background-size:10px 10px}" +
-        ".sw-lang-select:focus{outline:none}" +
-        ".sw-lang-wrap-floating{position:fixed;top:.8rem;right:.8rem;z-index:10000}" +
-        "@media (max-width:1039px){.sw-lang-wrap{padding:4px 4px 4px 8px;font-size:.74rem}.sw-lang-select{padding-right:14px;background-size:8px 8px}}";
+        ".sw-lang-wrap{position:relative;display:inline-flex;align-items:center;flex-shrink:0;margin-right:.5rem;}" +
+        ".sw-lang-btn{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.7);border:1px solid rgba(47,72,66,.18);border-radius:999px;padding:5px 9px;color:#2f4842;font-family:inherit;font-size:.78rem;font-weight:600;line-height:1;cursor:pointer;transition:background .18s ease;}" +
+        ".sw-lang-btn:hover{background:rgba(255,255,255,.95);}" +
+        ".sw-lang-btn .sw-lang-globe{display:inline-flex;align-items:center;}" +
+        ".sw-lang-btn .sw-lang-chev{width:10px;height:10px;}" +
+        ".sw-lang-menu{position:absolute;top:calc(100% + 6px);right:0;min-width:140px;background:#fff;border:1px solid rgba(47,72,66,.16);border-radius:12px;padding:5px;box-shadow:0 16px 40px -20px rgba(28,42,42,.4);z-index:10001;}" +
+        ".sw-lang-menu[hidden]{display:none;}" +
+        ".sw-lang-opt{display:block;width:100%;text-align:left;background:transparent;border:none;border-radius:8px;padding:9px 10px;color:#2f4842;font-family:inherit;font-size:.86rem;font-weight:500;cursor:pointer;}" +
+        ".sw-lang-opt:hover{background:rgba(47,72,66,.06);}" +
+        ".sw-lang-opt.is-active{background:rgba(192,132,87,.14);color:#c08457;font-weight:700;}" +
+        ".sw-lang-wrap-floating{position:fixed;top:.8rem;right:.8rem;z-index:10000;}" +
+        "@media (max-width:1039px){.sw-lang-btn{padding:4px 7px;gap:3px;font-size:.7rem;}.sw-lang-btn .sw-lang-globe svg{width:13px;height:13px;}}" +
+        "@media (max-width:480px){.sw-lang-btn{padding:5px 6px;}.sw-lang-btn .sw-lang-code{display:none;}.sw-lang-btn .sw-lang-chev{display:none;}.sw-lang-menu{right:auto;left:0;}}";
       (document.head || document.documentElement).appendChild(style);
     } catch (_e) {}
   }
@@ -282,43 +291,63 @@
   function mountDropdown() {
     try {
       ensureDropdownStyles();
-      if (document.getElementById("swLangSelect")) return;
+      if (document.getElementById("swLangBtn")) return;
 
-      const wrap = document.createElement("label");
+      const wrap = document.createElement("div");
       wrap.id = "swLangWrap";
       wrap.className = "sw-lang-wrap";
-      wrap.setAttribute("aria-label", "Language / भाषा");
-      wrap.title = "Language / भाषा";
 
-      const globe = document.createElement("span");
-      globe.className = "sw-lang-globe";
-      globe.setAttribute("aria-hidden", "true");
-      globe.innerHTML =
-        '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
-        '<circle cx="12" cy="12" r="9"/>' +
-        '<path d="M3 12h18"/>' +
-        '<path d="M12 3c2.5 3 2.5 15 0 18"/>' +
-        '<path d="M12 3c-2.5 3-2.5 15 0 18"/>' +
-        '</svg>';
-      wrap.appendChild(globe);
+      const btn = document.createElement("button");
+      btn.id = "swLangBtn";
+      btn.type = "button";
+      btn.className = "sw-lang-btn";
+      btn.setAttribute("aria-label", "Language / भाषा");
+      btn.setAttribute("aria-haspopup", "true");
+      btn.setAttribute("aria-expanded", "false");
+      btn.title = "Language / भाषा";
+      btn.innerHTML =
+        '<span class="sw-lang-globe" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+            '<circle cx="12" cy="12" r="9"/>' +
+            '<path d="M3 12h18"/>' +
+            '<path d="M12 3c2.5 3 2.5 15 0 18"/>' +
+            '<path d="M12 3c-2.5 3-2.5 15 0 18"/>' +
+          '</svg>' +
+        '</span>' +
+        '<span class="sw-lang-code" id="swLangCode">' + (getLang() === "hi" ? "हिं" : "EN") + '</span>' +
+        '<svg class="sw-lang-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
 
-      const select = document.createElement("select");
-      select.id = "swLangSelect";
-      select.className = "sw-lang-select";
+      const menu = document.createElement("div");
+      menu.id = "swLangMenu";
+      menu.className = "sw-lang-menu";
+      menu.hidden = true;
+      menu.setAttribute("role", "menu");
+      menu.innerHTML =
+        '<button type="button" role="menuitemradio" class="sw-lang-opt' + (getLang() === "en" ? " is-active" : "") + '" data-lang="en">English</button>' +
+        '<button type="button" role="menuitemradio" class="sw-lang-opt' + (getLang() === "hi" ? " is-active" : "") + '" data-lang="hi">हिंदी</button>';
 
-      const optEn = document.createElement("option");
-      optEn.value = "en";
-      optEn.textContent = "EN · English";
-      select.appendChild(optEn);
+      const openMenu = () => { menu.hidden = false; btn.setAttribute("aria-expanded", "true"); };
+      const closeMenu = () => { menu.hidden = true; btn.setAttribute("aria-expanded", "false"); };
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (menu.hidden) openMenu(); else closeMenu();
+      });
+      menu.addEventListener("click", (e) => {
+        const opt = e.target && e.target.closest && e.target.closest(".sw-lang-opt");
+        if (!opt) return;
+        const lang = opt.getAttribute("data-lang");
+        if (lang) setLang(lang);
+        closeMenu();
+      });
+      document.addEventListener("click", (e) => {
+        if (!menu.hidden && !wrap.contains(e.target)) closeMenu();
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !menu.hidden) closeMenu();
+      });
 
-      const optHi = document.createElement("option");
-      optHi.value = "hi";
-      optHi.textContent = "हिं · हिंदी";
-      select.appendChild(optHi);
-
-      select.value = getLang();
-      select.addEventListener("change", (e) => setLang(e.target.value));
-      wrap.appendChild(select);
+      wrap.appendChild(btn);
+      wrap.appendChild(menu);
 
       // Best placement: just inside #authActions so it sits next to "Hi,
       // [name]" / "Continue Care Path". Fallback: float top-right.
@@ -340,8 +369,14 @@
     mountDropdown();
     // Re-apply after a tick in case shared.js injects auth elements
     // (e.g. authActions content) after we first ran.
-    setTimeout(() => { apply(); if (!document.getElementById("swLangSelect")) mountDropdown(); }, 80);
+    setTimeout(() => { apply(); if (!document.getElementById("swLangBtn")) mountDropdown(); }, 80);
     setTimeout(apply, 400);
+    // Dispatch sw:langchange after init so JS-driven UIs that started
+    // rendering before i18n loaded (e.g. care-path Aria) re-render and
+    // pick up the translated labels.
+    try {
+      window.dispatchEvent(new CustomEvent("sw:langchange", { detail: { lang: getLang(), initial: true } }));
+    } catch (_e) {}
   }
 
   if (document.readyState === "loading") {
