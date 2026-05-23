@@ -1112,7 +1112,9 @@
       .companion-today-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         padding: 14px; background: var(--c-mist);
+        display: flex; align-items: center; gap: 12px;
       }
+      .companion-today-text { flex: 1; min-width: 0; }
       .companion-today-slot {
         font-size: 11.5px; font-weight: 700; color: var(--c-clay-deep);
         text-transform: uppercase; letter-spacing: 0.05em;
@@ -1121,6 +1123,41 @@
         font-size: 15px; color: var(--c-ink); line-height: 1.45;
         font-weight: 600; margin-top: 6px;
       }
+      .companion-today-yt {
+        flex-shrink: 0;
+        width: 44px; height: 44px;
+        border-radius: 12px;
+        background: rgba(224, 50, 44, 0.10);
+        display: grid; place-items: center;
+        border: none; cursor: pointer;
+        color: #e0322c;
+        text-decoration: none;
+        transition: background 0.18s ease, transform 0.18s ease;
+      }
+      .companion-today-yt:hover:not([disabled]) {
+        background: rgba(224, 50, 44, 0.18);
+        transform: translateY(-1px);
+      }
+      .companion-today-yt[disabled] { opacity: 0.45; cursor: default; }
+      .companion-today-yt svg { width: 22px; height: 22px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+      .companion-today-pref {
+        border: 1.5px solid var(--c-border); border-radius: 16px;
+        padding: 14px; background: var(--c-bg);
+        display: flex; flex-direction: column; gap: 10px;
+      }
+      .companion-today-pref-label {
+        font-size: 13.5px; color: var(--c-ink); font-weight: 600; line-height: 1.5;
+      }
+      .companion-today-pref-input {
+        border: 1.5px solid var(--c-border); background: var(--c-mist);
+        border-radius: 12px; padding: 10px 12px;
+        font: inherit; font-size: 14px; color: var(--c-ink);
+        resize: vertical; min-height: 44px; outline: none;
+        transition: border-color 0.18s ease;
+      }
+      .companion-today-pref-input:focus { border-color: var(--c-sage); }
+      .companion-today-pref-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
       .companion-today-why {
         display: flex; gap: 6px; align-items: flex-start;
         margin-top: 8px; padding: 8px 10px;
@@ -2091,6 +2128,7 @@
               activeCat: state.activeCat,
               mpView: state.mpView,
               cuisine: state.cuisine,
+              like: state.like,
               avoid: state.avoid,
               weeklyPlan: state.weeklyPlan,
               weeklyMeta: state.weeklyMeta,
@@ -2115,12 +2153,15 @@
           uploaded: null,   // { name, kind, url }
           uploadError: "",
           cuisine: "",
+          like: "",
           avoid: "",
-          listeningField: null, // "cuisine" | "avoid" | null
+          listeningField: null, // "cuisine" | "like" | "avoid" | null
           weeklyPlan: null,
           weeklyMeta: "",
           generatingWeekly: false,
           generatingToday: false,
+          askingTodayPref: false,
+          todayPreference: "",
           todayPlan: null,
           todayMeta: "",
           // recipes
@@ -2650,8 +2691,13 @@
               onChange: (v) => { state.cuisine = v; },
             }));
             wrap.appendChild(voiceField({
-              label: T("aria.mp.avoidLabel", "Foods to avoid"), value: state.avoid, field: "avoid",
-              placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, shellfish, red meat"),
+              label: T("aria.mp.likeLabel", "Food I like to eat"), value: state.like || "", field: "like",
+              placeholder: T("aria.mp.likePlaceholder", "e.g. dal, paneer-free curries, oats, fruits"),
+              onChange: (v) => { state.like = v; },
+            }));
+            wrap.appendChild(voiceField({
+              label: T("aria.mp.avoidLabel", "Food I don't like to eat"), value: state.avoid, field: "avoid",
+              placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, mushrooms, bitter gourd"),
               onChange: (v) => { state.avoid = v; },
             }));
             wrap.appendChild(primaryBtn(
@@ -2707,7 +2753,7 @@
               method: "POST",
               credentials: "same-origin",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, language: LANG() }),
+              body: JSON.stringify({ cuisine: state.cuisine, like: state.like || "", avoid: state.avoid, language: LANG() }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.plan) {
@@ -2784,16 +2830,84 @@
               card.className = "companion-today-card";
               const entry = state.todayPlan[slot];
               card.innerHTML =
-                '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
-                '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>';
+                '<div class="companion-today-text">' +
+                  '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
+                  '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
+                '</div>' +
+                '<button type="button" class="companion-today-yt" disabled aria-label="Open recipe video" title="Open recipe video">' +
+                  ico("youtube") +
+                '</button>';
               wrap.appendChild(card);
+              // Lazy-load the video URL and swap the button into a real <a>.
+              const ytBtn = card.querySelector(".companion-today-yt");
+              const dishEn = mealEnglish(entry.meal) || mealText(entry.meal);
+              fetchRecipeUrl(dishEn).then((url) => {
+                if (!ytBtn || !ytBtn.parentNode) return;
+                if (!url) { ytBtn.style.display = "none"; return; }
+                const a = document.createElement("a");
+                a.className = "companion-today-yt";
+                a.href = url;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.setAttribute("aria-label", "Open recipe video");
+                a.title = "Open recipe video";
+                a.innerHTML = ico("youtube");
+                ytBtn.replaceWith(a);
+              });
             });
-            wrap.appendChild(primaryBtn(
-              state.generatingToday ? T("aria.mp.generating", "Generating…") : T("aria.mp.today.differentBtn", "Generate a different plan for today"),
-              state.generatingToday ? null : "sparkles",
-              () => generateDifferentToday(),
-              state.generatingToday,
-            ));
+
+            // "Generate a different plan for today" — either show the
+            // preference prompt or the trigger button, depending on state.
+            if (state.askingTodayPref) {
+              const prefWrap = document.createElement("div");
+              prefWrap.className = "companion-today-pref";
+              const prefLabel = document.createElement("div");
+              prefLabel.className = "companion-today-pref-label";
+              prefLabel.textContent = T(
+                "aria.mp.today.prefAsk",
+                "Do you have any meal preference for today? I can generate based on your preference.",
+              );
+              prefWrap.appendChild(prefLabel);
+              const ta = document.createElement("textarea");
+              ta.className = "companion-today-pref-input";
+              ta.rows = 2;
+              ta.placeholder = T(
+                "aria.mp.today.prefPlaceholder",
+                "e.g. lighter dinner, more protein, soup-based, low-carb...",
+              );
+              ta.value = state.todayPreference || "";
+              ta.addEventListener("input", () => { state.todayPreference = ta.value; });
+              prefWrap.appendChild(ta);
+              const btnRow = document.createElement("div");
+              btnRow.className = "companion-today-pref-actions";
+              const generateBtn = primaryBtn(
+                state.generatingToday ? T("aria.mp.generating", "Generating…") : T("aria.mp.today.generateBtn", "Generate"),
+                state.generatingToday ? null : "sparkles",
+                () => generateDifferentToday(),
+                state.generatingToday,
+              );
+              btnRow.appendChild(generateBtn);
+              const cancelBtn = document.createElement("button");
+              cancelBtn.type = "button";
+              cancelBtn.className = "companion-edit-btn";
+              cancelBtn.textContent = T("aria.mp.today.cancel", "Cancel");
+              cancelBtn.addEventListener("click", () => {
+                state.askingTodayPref = false;
+                state.todayPreference = "";
+                renderMode();
+              });
+              btnRow.appendChild(cancelBtn);
+              prefWrap.appendChild(btnRow);
+              wrap.appendChild(prefWrap);
+            } else {
+              wrap.appendChild(primaryBtn(
+                T("aria.mp.today.differentBtn", "Generate a different plan for today"),
+                "sparkles",
+                () => { state.askingTodayPref = true; renderMode(); },
+                false,
+              ));
+            }
+
             if (state.todayError) {
               const err = document.createElement("div");
               err.className = "companion-upload-error";
@@ -2819,7 +2933,15 @@
               method: "POST",
               credentials: "same-origin",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ cuisine: state.cuisine, avoid: state.avoid, day, exclude, language: LANG() }),
+              body: JSON.stringify({
+                cuisine: state.cuisine,
+                like: state.like || "",
+                avoid: state.avoid,
+                day,
+                exclude,
+                todayPreference: state.todayPreference || "",
+                language: LANG(),
+              }),
             });
             const data = await res.json().catch(() => ({}));
             if (!res.ok || !data.plan) {
@@ -2834,12 +2956,44 @@
               });
               state.todayPlan = built;
               state.todayMeta = "Today's plan · " + day + ", freshly generated by Aria";
+              // Close the preference prompt and clear it on a successful gen.
+              state.askingTodayPref = false;
+              state.todayPreference = "";
             }
           } catch (_e) {
             state.todayError = T("aria.mp.unreachable", "Couldn't reach Aria right now. Please try again.");
           }
           state.generatingToday = false;
           renderMode();
+        }
+
+        // ---- Recipe URL cache + lazy fetcher (shared with Today's plan
+        // YouTube buttons and the search-result card in Recipes mode) ----
+        const _recipeUrlCache = {};
+        const _recipeUrlInFlight = {};
+        function fetchRecipeUrl(dishEn) {
+          const key = String(dishEn || "").toLowerCase().trim();
+          if (!key) return Promise.resolve(null);
+          if (Object.prototype.hasOwnProperty.call(_recipeUrlCache, key)) {
+            return Promise.resolve(_recipeUrlCache[key]);
+          }
+          if (_recipeUrlInFlight[key]) return _recipeUrlInFlight[key];
+          const p = fetch("/api/aria/recipes", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dish: dishEn, language: LANG() }),
+          })
+            .then((r) => r.json().catch(() => ({})))
+            .then((data) => {
+              const url = data && Array.isArray(data.videos) && data.videos[0] && data.videos[0].url ? data.videos[0].url : null;
+              _recipeUrlCache[key] = url;
+              return url;
+            })
+            .catch(() => { _recipeUrlCache[key] = null; return null; })
+            .finally(() => { delete _recipeUrlInFlight[key]; });
+          _recipeUrlInFlight[key] = p;
+          return p;
         }
 
         // ---- RECIPES ----
@@ -2953,9 +3107,11 @@
               a.href = v.url;
               a.target = "_blank";
               a.rel = "noopener noreferrer";
+              // Show just the title — no "YouTube" channel suffix (looked
+              // noisy). The red play icon already signals YouTube.
               a.innerHTML =
                 '<span class="yt-tile">' + ico("youtube") + '</span>' +
-                '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title) + '</span><span class="yt-chan">' + escapeHtml(v.channel || "YouTube") + '</span></span>' +
+                '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title) + '</span></span>' +
                 ico("externalLink", 'class="yt-ext"');
               links.appendChild(a);
             });

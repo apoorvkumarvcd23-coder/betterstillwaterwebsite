@@ -2542,6 +2542,7 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
+    const like = String(req.body?.like || "").trim();
     // Language is no longer used to shape the response (we always send back
     // both en + hi). Kept on req.body for forward compat.
 
@@ -2561,7 +2562,8 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
     const userPrompt = [
       "Build a 7-day plant-based whole-food meal plan tailored to the user.",
       `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
-      `Foods to avoid (strict): ${avoid || "none"}.`,
+      `Foods the user likes and wants more of: ${like || "none specified"}.`,
+      `Foods the user dislikes / wants to avoid (strict): ${avoid || "none"}.`,
       "",
       "Each day MUST have exactly these 5 meals in this order:",
       "  1) Breakfast",
@@ -2634,6 +2636,8 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
+    const like = String(req.body?.like || "").trim();
+    const todayPreference = String(req.body?.todayPreference || "").trim();
     const dayRaw = String(req.body?.day || "").trim();
     const day = WEEKLY_PLAN_DAYS.includes(dayRaw) ? dayRaw : WEEKLY_PLAN_DAYS[0];
     const excludeRaw = Array.isArray(req.body?.exclude) ? req.body.exclude : [];
@@ -2655,7 +2659,11 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
       `Preferred cuisines: ${cuisine || "open / mixed (use balanced global cuisines)"}.`,
-      `Foods to avoid (strict): ${avoid || "none"}.`,
+      `Foods the user likes and wants more of: ${like || "none specified"}.`,
+      `Foods the user dislikes / wants to avoid (strict): ${avoid || "none"}.`,
+      todayPreference
+        ? `User's preference for today specifically: ${todayPreference}. Honour this preference strongly while still respecting all other constraints.`
+        : "",
       exclude.length
         ? `Make the meals DIFFERENT from these (pick fresh alternatives): ${exclude.join(", ")}.`
         : "",
