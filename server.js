@@ -2543,9 +2543,10 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
 // Fetch a YouTube search page server-side and pull the first videoId out of
 // ytInitialData. Returns null if YouTube serves bot/consent content or has
 // no video results for the query.
-async function firstYoutubeVideoId(query, excludeIds) {
+async function firstYoutubeVideoId(query, excludeIds, opts = {}) {
   try {
-    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}&sp=EgIQAQ%253D%253D`; // sp = videos-only filter
+    const filter = opts.videosOnly === false ? "" : "&sp=EgIQAQ%253D%253D"; // videos-only by default
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${filter}`;
     const resp = await fetch(url, {
       headers: {
         "User-Agent":
@@ -2558,16 +2559,75 @@ async function firstYoutubeVideoId(query, excludeIds) {
     if (!resp.ok) return null;
     const html = await resp.text();
     // Match every videoRenderer.videoId in order.
-    const re = /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g;
-    let m;
-    while ((m = re.exec(html)) !== null) {
-      const id = m[1];
-      if (!excludeIds.has(id)) return id;
+    const patterns = [
+      /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"compactVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"gridVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+    ];
+    for (const re of patterns) {
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        const id = m[1];
+        if (!excludeIds.has(id)) return id;
+      }
     }
     return null;
   } catch (_e) {
     return null;
   }
+}
+
+// Pull meaningful keywords from a dish name (drop stopwords and short bits).
+function dishKeywords(text) {
+  const stop = new Set([
+    "and","with","the","a","an","of","in","or","for","to","on","at","over",
+    "by","made","style","topped","drizzle","drizzled","fresh","my","your",
+  ]);
+  return String(text || "")
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 3 && !stop.has(w));
+}
+
+// Build a progressively-broader fallback chain for a dish/suggestion so we
+// (almost) always find SOMETHING playable — even if the model's specific
+// query has zero hits, we keep widening down to a single keyword.
+function recipeQueryChain(dish, suggestion) {
+  const title = (suggestion && suggestion.title) || dish;
+  const channel = (suggestion && suggestion.channel) || "";
+  const query = (suggestion && suggestion.query) || `${title} ${channel}`.trim();
+  const kws = dishKeywords(dish);
+  const top3 = kws.slice(0, 3).join(" ");
+  const top2 = kws.slice(0, 2).join(" ");
+  const top1 = kws[0] || dish;
+
+  // Each entry: [query string, videosOnly?]
+  return [
+    [query, true],
+    [`${title} ${channel} vegan recipe`.trim(), true],
+    [`${dish} ${channel} vegan recipe`.trim(), true],
+    [`${dish} vegan recipe`, true],
+    [`${dish} recipe`, true],
+    [dish, true],
+    [`${dish} recipe`, false],
+    [dish, false],
+    [`${top3} vegan recipe`, true],
+    [`${top3} recipe`, true],
+    [top3, true],
+    [`${top2} recipe`, true],
+    [top2, true],
+    [`${top1} recipe`, true],
+    [top1, true],
+  ].filter(([q]) => q && q.trim().length);
+}
+
+async function resolveYoutubeVideo(dish, suggestion, seenIds) {
+  for (const [q, videosOnly] of recipeQueryChain(dish, suggestion)) {
+    const id = await firstYoutubeVideoId(q, seenIds, { videosOnly });
+    if (id) return id;
+  }
+  return null;
 }
 
 app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
@@ -2608,30 +2668,44 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
       return res.status(502).json({ error: "Aria couldn't find recipe matches. Please try again." });
     }
 
-    // For each suggestion, fetch the actual first YouTube video for that
-    // query so the link opens a real video instead of a search page.
+    // For each suggestion, resolve to a real first YouTube video via a
+    // progressively-broader query chain so cards are never blank.
     const seenIds = new Set();
     const videos = [];
     for (const v of items.slice(0, 3)) {
       const title = String(v && v.title ? v.title : dish).trim();
       const channel = String(v && v.channel ? v.channel : "").trim();
-      const q = String(v && v.query ? v.query : `${title} ${channel}`).trim();
-      // Try the model's combined query, then a "<title> <channel> vegan recipe" fallback.
-      let id = await firstYoutubeVideoId(q, seenIds);
-      if (!id) id = await firstYoutubeVideoId(`${title} ${channel} vegan recipe`, seenIds);
-      if (!id) id = await firstYoutubeVideoId(`${dish} ${channel} vegan recipe`, seenIds);
-      const url = id
-        ? `https://www.youtube.com/watch?v=${id}`
-        : `https://www.youtube.com/results?search_query=${encodeURIComponent(q)}`;
-      if (id) seenIds.add(id);
-      videos.push({ title, channel: channel || "YouTube", url });
+      const id = await resolveYoutubeVideo(dish, { title, channel, query: v && v.query }, seenIds);
+      if (id) {
+        seenIds.add(id);
+        videos.push({
+          title,
+          channel: channel || "YouTube",
+          url: `https://www.youtube.com/watch?v=${id}`,
+        });
+      }
     }
 
-    // If all three failed to resolve to a real video, try one last broad
-    // search on the dish itself so the user still gets one playable link.
-    if (videos.every((v) => !v.url.includes("watch?v="))) {
-      const id = await firstYoutubeVideoId(`${dish} plant based recipe`, seenIds);
-      if (id) videos[0].url = `https://www.youtube.com/watch?v=${id}`;
+    // If the model returned fewer than 3 usable picks (or some failed even
+    // after broadening), top up with bare-dish results so we always show 3.
+    while (videos.length < 3) {
+      const id = await resolveYoutubeVideo(dish, null, seenIds);
+      if (!id) break;
+      seenIds.add(id);
+      videos.push({
+        title: `${dish} — recipe`,
+        channel: "YouTube",
+        url: `https://www.youtube.com/watch?v=${id}`,
+      });
+    }
+
+    if (!videos.length) {
+      // Truly nothing matched; hand back a search link so the card isn't empty.
+      videos.push({
+        title: `Search YouTube for ${dish}`,
+        channel: "YouTube",
+        url: `https://www.youtube.com/results?search_query=${encodeURIComponent(dish)}`,
+      });
     }
 
     return res.json({ videos });
