@@ -99,6 +99,28 @@
       .care-sidebar-scrim { display: none; }
       .care-sidebar-close { display: none; }
 
+      /* Care-path mobile: the shared mobile rule on #authActions uses
+         max-width + overflow:hidden, which (a) can squeeze the language
+         toggle and user/account icon off-screen and (b) clips the
+         language popover menu so it can't be opened. Loosen both —
+         scoped to care-path only, so desktop and other pages are
+         untouched. */
+      @media (max-width: 1039px) {
+        #authActions {
+          max-width: none !important;
+          overflow: visible !important;
+          gap: 0.45rem !important;
+          flex-wrap: nowrap !important;
+        }
+        #authMenuWrap {
+          max-width: none !important;
+          overflow: visible !important;
+        }
+        /* Lang toggle and the user icon must stay visible on mobile. */
+        .sw-lang-wrap,
+        .sw-lang-btn { display: inline-flex !important; }
+      }
+
       @media (max-width: 768px) {
         .care-shell {
           flex-direction: column;
@@ -2338,12 +2360,25 @@
         }
 
         function commitEntry(text, image) {
-          state.messages.push({ from: "user", text: text || null, image: image || null, category: state.activeCat });
-          // Store as a textKey so re-render in another language stays correct.
-          state.messages.push({
-            from: "companion",
-            textKey: "aria.journal.response." + state.activeCat,
-            extraKey: image ? "aria.journal.photoNote" : null,
+          const category = state.activeCat;
+          state.messages.push({ from: "user", text: text || null, image: image || null, category });
+          // Optimistic "Thanks!" bubble — language-aware via textKey so
+          // re-renders after a language toggle stay correct.
+          state.messages.push({ from: "companion", textKey: "aria.journal.thanks" });
+          // Persist to the ingestion table. No AI involved — just save.
+          fetch("/api/aria/journal/entry", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              category,
+              text: text || "",
+              hasPhoto: Boolean(image),
+              language: LANG(),
+            }),
+          }).catch(() => {
+            // Silent: the user already saw "Thanks". A future iteration
+            // could add a retry queue if reliability matters more.
           });
         }
 

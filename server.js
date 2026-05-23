@@ -378,6 +378,31 @@ async function initDb() {
       ('phone_user_count', '0')
     ON CONFLICT (key) DO NOTHING
   `);
+
+  // ── Aria journal entries (data ingestion, no AI) ───────────────────
+  await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS aria.journal_entries (
+      id          BIGSERIAL PRIMARY KEY,
+      user_id     TEXT NOT NULL,
+      user_type   TEXT,
+      user_email  TEXT,
+      user_name   TEXT,
+      category    TEXT NOT NULL CHECK (category IN ('food','exercise','sleep','mood')),
+      entry_text  TEXT,
+      has_photo   BOOLEAN NOT NULL DEFAULT FALSE,
+      client_lang TEXT,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_journal_user_created
+      ON aria.journal_entries (user_id, created_at DESC)
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_journal_category_created
+      ON aria.journal_entries (category, created_at DESC)
+  `);
 }
 
 async function incrementPhoneUserCount() {
@@ -2473,6 +2498,45 @@ function normaliseMealValue(v) {
   }
   return { en: "Chef's plant-based pick", hi: "शेफ की प्लांट-बेस्ड पसंद (chef's plant-based pick)" };
 }
+
+// ── Aria journal entry ingestion (no AI; pure data save) ───────────────
+const ARIA_JOURNAL_CATEGORIES = new Set(["food", "exercise", "sleep", "mood"]);
+
+app.post("/api/aria/journal/entry", requireAuthApi, async (req, res) => {
+  try {
+    const userId = getAuthUserId(req.user);
+    if (!userId) {
+      return res.status(401).json({ error: "Authentication required." });
+    }
+    const category = String(req.body?.category || "").trim().toLowerCase();
+    if (!ARIA_JOURNAL_CATEGORIES.has(category)) {
+      return res.status(400).json({ error: "Invalid category." });
+    }
+    const entryTextRaw = String(req.body?.text || "").trim();
+    const entryText = entryTextRaw.length > 8000 ? entryTextRaw.slice(0, 8000) : entryTextRaw;
+    const hasPhoto = Boolean(req.body?.hasPhoto);
+    if (!entryText && !hasPhoto) {
+      return res.status(400).json({ error: "Empty entry." });
+    }
+    const clientLang = String(req.body?.language || "").trim().toLowerCase();
+    const userType = getAuthUserType(req.user);
+    const userEmail = req.user?.email ? String(req.user.email).slice(0, 320) : null;
+    const userName = req.user?.name ? String(req.user.name).slice(0, 200) : null;
+
+    const insert = await pool.query(
+      `INSERT INTO aria.journal_entries
+         (user_id, user_type, user_email, user_name, category, entry_text, has_photo, client_lang)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, created_at`,
+      [userId, userType, userEmail, userName, category, entryText || null, hasPhoto, clientLang || null],
+    );
+    const row = insert.rows[0];
+    return res.status(201).json({ id: row.id, createdAt: row.created_at });
+  } catch (err) {
+    console.error("Aria journal insert failed:", err);
+    return res.status(500).json({ error: "Couldn't save your entry. Please try again." });
+  }
+});
 
 app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
   try {

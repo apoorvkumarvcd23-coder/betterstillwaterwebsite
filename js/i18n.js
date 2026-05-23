@@ -193,11 +193,7 @@
     "aria.journal.prompt.mood": { en: "How are you feeling, and when?", hi: "आप कैसा महसूस कर रहे हैं, और कब?" },
     "aria.journal.inputHint": { en: "Type, speak, or snap a photo — just include the time in your entry.", hi: "टाइप करें, बोलें, या फोटो लें — अपनी प्रविष्टि में समय शामिल करें।" },
     "aria.journal.listening": { en: "Listening…", hi: "सुन रही हूँ…" },
-    "aria.journal.response.food": { en: "Logged to your food journal. 🍽️", hi: "आपके भोजन जर्नल में दर्ज। 🍽️" },
-    "aria.journal.response.exercise": { en: "Added to your exercise journal. 💪", hi: "आपके व्यायाम जर्नल में जोड़ा गया। 💪" },
-    "aria.journal.response.sleep": { en: "Noted in your sleep journal. 🌙", hi: "आपके नींद जर्नल में नोट किया। 🌙" },
-    "aria.journal.response.mood": { en: "Saved to your mood journal. Thanks for checking in.", hi: "आपके मूड जर्नल में सहेजा गया। चेक-इन के लिए धन्यवाद।" },
-    "aria.journal.photoNote": { en: " Photo saved with the entry.", hi: " फोटो प्रविष्टि के साथ सहेजी गई।" },
+    "aria.journal.thanks": { en: "Thanks — your entry is saved.", hi: "धन्यवाद — आपकी प्रविष्टि सहेज ली गई।" },
     "aria.journal.voiceUnsupported": { en: "Voice input isn't supported in this browser, but you can type your entry instead.", hi: "इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है, लेकिन आप प्रविष्टि टाइप कर सकते हैं।" },
 
     // Language dropdown
