@@ -2443,9 +2443,9 @@ async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
 const WEEKLY_PLAN_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const WEEKLY_PLAN_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
 
-// Append a language directive to Aria's system prompts so replies match the
-// user's chosen language. For Hindi, dish names keep their common English
-// form in parentheses so YouTube search still resolves them.
+// Append a language directive to Aria's chat system prompt so journaling
+// replies match the user's chosen language. For Hindi, dish names keep
+// their common English form in parentheses so YouTube search still resolves.
 function languageInstruction(code) {
   const lang = String(code || "").toLowerCase();
   if (lang === "hi") {
@@ -2454,11 +2454,32 @@ function languageInstruction(code) {
   return " Reply in English.";
 }
 
+// Normalise a single meal value returned by the model into a bilingual
+// {en, hi} object. Accepts:
+//   - {en, hi} object (preferred)
+//   - {english, hindi} alias
+//   - plain string (fallback — same string used as both languages)
+function normaliseMealValue(v) {
+  if (v && typeof v === "object") {
+    const en = String(v.en || v.english || v.EN || "").trim();
+    const hi = String(v.hi || v.hindi || v.HI || "").trim();
+    if (en || hi) {
+      return { en: en || hi, hi: hi || en };
+    }
+  }
+  if (typeof v === "string" && v.trim()) {
+    const s = v.trim();
+    return { en: s, hi: s };
+  }
+  return { en: "Chef's plant-based pick", hi: "शेफ की प्लांट-बेस्ड पसंद (chef's plant-based pick)" };
+}
+
 app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
-    const language = String(req.body?.language || "en").trim();
+    // Language is no longer used to shape the response (we always send back
+    // both en + hi). Kept on req.body for forward compat.
 
     const systemPrompt =
       "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
@@ -2467,9 +2488,8 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "textures and flavors across the week, respect avoidances strictly, and avoid ultra-processed " +
       "ingredients. CRITICAL: every meal name you propose must be a well-known dish that you are " +
       "confident has many cooking videos available on YouTube — use common, popular names (not " +
-      "invented or hyper-specific phrasings) so a user can easily find a video for it." +
-      languageInstruction(language) + " " +
-      "Always reply with valid JSON only — no prose, no markdown code fences.";
+      "invented or hyper-specific phrasings) so a user can easily find a video for it. " +
+      "ALWAYS reply with valid JSON only — no prose, no markdown code fences.";
 
     const userPrompt = [
       "Build a 7-day plant-based whole-food meal plan tailored to the user.",
@@ -2489,10 +2509,20 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "Keep each meal name short (1 phrase, ideally 3-6 words).",
       "Plenty of vegetables every day. No animal products.",
       "",
-      "Return ONLY a JSON object with this exact shape (no extra keys, no commentary):",
+      "EVERY meal value MUST be a JSON object with BOTH languages so the UI can",
+      "switch instantly without regenerating:",
+      "  { \"en\": \"<English name>\", \"hi\": \"<Hindi (Devanagari) name with the common English in parentheses, e.g. मूंग दाल चीला (moong dal chilla)>\" }",
+      "",
+      "Return ONLY this exact JSON shape (no extra keys, no commentary):",
       "{",
-      "  \"Monday\":    { \"Breakfast\": \"...\", \"Snack\": \"...\", \"Lunch\": \"...\", \"Evening Snack\": \"...\", \"Dinner\": \"...\" },",
-      "  \"Tuesday\":   { ... },",
+      "  \"Monday\": {",
+      "    \"Breakfast\":     { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Snack\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Lunch\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Evening Snack\": { \"en\": \"...\", \"hi\": \"...\" },",
+      "    \"Dinner\":        { \"en\": \"...\", \"hi\": \"...\" }",
+      "  },",
+      "  \"Tuesday\":   { ... same shape ... },",
       "  \"Wednesday\": { ... },",
       "  \"Thursday\":  { ... },",
       "  \"Friday\":    { ... },",
@@ -2501,21 +2531,21 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "}",
     ].join("\n");
 
-    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 2400);
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 3200);
     const parsed = extractJson(raw);
     if (!parsed || typeof parsed !== "object") {
       console.error("Aria meal-plan-weekly: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
       return res.status(502).json({ error: "Aria couldn't shape a valid weekly plan. Please try again." });
     }
 
-    // Normalize the response so the UI always gets the expected slots.
+    // Normalize: every slot becomes {en, hi}. Plain string from the model
+    // (or legacy) is mirrored into both languages so nothing ever blanks.
     const plan = {};
     for (const day of WEEKLY_PLAN_DAYS) {
       const src = parsed[day] || {};
       const dayPlan = {};
       for (const slot of WEEKLY_PLAN_SLOTS) {
-        const v = src[slot];
-        dayPlan[slot] = typeof v === "string" && v.trim() ? v.trim() : "Chef's plant-based pick";
+        dayPlan[slot] = normaliseMealValue(src[slot]);
       }
       plan[day] = dayPlan;
     }
@@ -2539,7 +2569,6 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     const avoid = String(req.body?.avoid || "").trim();
     const dayRaw = String(req.body?.day || "").trim();
     const day = WEEKLY_PLAN_DAYS.includes(dayRaw) ? dayRaw : WEEKLY_PLAN_DAYS[0];
-    const language = String(req.body?.language || "en").trim();
     const excludeRaw = Array.isArray(req.body?.exclude) ? req.body.exclude : [];
     const exclude = excludeRaw
       .map((s) => String(s || "").trim())
@@ -2551,8 +2580,7 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
       "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly. " +
       "CRITICAL: every meal name must be a well-known dish you're confident has many cooking videos on " +
-      "YouTube — use common, popular names (not invented or hyper-specific phrasings)." +
-      languageInstruction(language);
+      "YouTube — use common, popular names (not invented or hyper-specific phrasings).";
 
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
@@ -2571,11 +2599,20 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "Each meal name MUST be a popular, well-known plant-based dish that has many cooking videos on YouTube.",
       "Keep each meal name short (1 phrase, ideally 3-6 words). Avoid hyper-specific phrasings.",
       "",
+      "EVERY meal value MUST be a JSON object with BOTH languages so the UI can switch instantly:",
+      "  { \"en\": \"<English name>\", \"hi\": \"<Hindi (Devanagari) name with the common English in parentheses, e.g. मूंग दाल चीला (moong dal chilla)>\" }",
+      "",
       "Return ONLY this JSON shape (no extra keys):",
-      "{ \"Breakfast\": \"...\", \"Snack\": \"...\", \"Lunch\": \"...\", \"Evening Snack\": \"...\", \"Dinner\": \"...\" }",
+      "{",
+      "  \"Breakfast\":     { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Snack\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Lunch\":         { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Evening Snack\": { \"en\": \"...\", \"hi\": \"...\" },",
+      "  \"Dinner\":        { \"en\": \"...\", \"hi\": \"...\" }",
+      "}",
     ].filter(Boolean).join("\n");
 
-    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 700);
+    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 900);
     const parsed = extractJson(raw);
     if (!parsed || typeof parsed !== "object") {
       console.error("Aria meal-plan-day: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
@@ -2583,8 +2620,7 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     }
     const dayPlan = {};
     for (const slot of WEEKLY_PLAN_SLOTS) {
-      const v = parsed[slot];
-      dayPlan[slot] = typeof v === "string" && v.trim() ? v.trim() : "Chef's plant-based pick";
+      dayPlan[slot] = normaliseMealValue(parsed[slot]);
     }
     return res.json({ day, plan: dayPlan });
   } catch (err) {
