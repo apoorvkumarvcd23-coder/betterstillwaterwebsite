@@ -21,9 +21,92 @@
       }
 
       .care-shell {
-        max-width: 720px;
-        margin: 6rem auto 3rem;
-        padding: 0 1.25rem 2rem;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: stretch;
+        min-height: calc(100vh - 4.5rem);
+      }
+
+      /* Hide the legacy recommendation surface — kept in DOM so we can
+         restore it later, just visually removed for now. The header
+         buttons #btnProviders and #btnYoga also move into the sidebar. */
+      .care-head,
+      .reco-block,
+      .link-block,
+      #btnProviders,
+      #btnYoga,
+      #btnIntake { display: none !important; }
+
+      /* ChatGPT-style left sidebar */
+      .care-sidebar {
+        width: 260px;
+        flex-shrink: 0;
+        background: #1c2a2a;
+        color: #e8eee9;
+        display: flex;
+        flex-direction: column;
+        padding: 18px 12px;
+        gap: 6px;
+        border-right: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .care-sidebar-title {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: rgba(232, 238, 233, 0.55);
+        padding: 6px 12px 10px;
+        font-weight: 600;
+      }
+      .care-sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 10px;
+        background: transparent;
+        border: none;
+        color: #e8eee9;
+        font: inherit;
+        font-size: 0.93rem;
+        text-decoration: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.18s ease;
+      }
+      .care-sidebar-item:hover { background: rgba(255, 255, 255, 0.06); }
+      .care-sidebar-item svg {
+        width: 18px;
+        height: 18px;
+        stroke: rgba(232, 238, 233, 0.85);
+        stroke-width: 1.7;
+        fill: none;
+        flex-shrink: 0;
+      }
+
+      /* The chat area fills the rest of the viewport */
+      .care-stage {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      @media (max-width: 768px) {
+        .care-shell { flex-direction: column; min-height: 0; }
+        .care-sidebar {
+          width: 100%;
+          flex-direction: row;
+          gap: 6px;
+          padding: 10px;
+          overflow-x: auto;
+          border-right: none;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .care-sidebar-title { display: none; }
+        .care-sidebar-item { flex: 0 0 auto; padding: 8px 12px; font-size: 0.85rem; }
       }
 
       .care-head h1 {
@@ -527,9 +610,10 @@
         --c-border: #dcd6c8;
         --c-blue: #6b7da3;
 
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid rgba(47, 72, 66, 0.12);
+        flex: 1;
+        margin: 0;
+        padding: 0;
+        border-top: none;
         display: flex;
         flex-direction: column;
         font-family: var(--font-body, "Outfit", system-ui, sans-serif);
@@ -537,17 +621,18 @@
       }
       .companion-shell {
         width: 100%;
-        max-width: 640px;
-        margin: 0 auto;
+        max-width: none;
+        margin: 0;
         background: radial-gradient(120% 80% at 50% 0%, var(--c-mist) 0%, var(--c-bg) 45%, var(--c-bg-deep) 100%);
-        border: 1px solid var(--c-border);
-        border-radius: 20px;
+        border: none;
+        border-radius: 0;
         overflow: hidden;
-        box-shadow: 0 12px 40px -28px rgba(47, 58, 50, 0.45);
+        box-shadow: none;
         display: flex;
         flex-direction: column;
-        height: 640px;
-        max-height: 82vh;
+        flex: 1;
+        height: auto;
+        max-height: none;
         position: relative;
       }
       .companion-head {
@@ -1009,12 +1094,19 @@
       }
 
       .companion-hint {
-        font-size: 0.78rem;
-        color: var(--color-text-secondary);
+        font-size: 0.72rem;
+        color: var(--c-ink-soft);
         text-align: center;
-        margin: 0.75rem auto 0;
-        max-width: 640px;
+        margin: 0;
+        padding: 6px 12px 8px;
+        background: var(--c-mist);
+        border-top: 1px solid var(--c-border);
+        flex: 0 0 auto;
       }
+
+      /* Simplify mode dropdown — name only, no blurb */
+      .companion-menu-item .menu-blurb { display: none; }
+      .companion-menu-item .menu-text { display: inline-flex; align-items: center; }
 
       @keyframes companionPop {
         from { opacity: 0; transform: translateY(-6px) scale(0.98); }
@@ -1155,6 +1247,26 @@
     </div>
 
     <main class="care-shell">
+      <aside class="care-sidebar" aria-label="Care path navigation">
+        <div class="care-sidebar-title">Your Care Path</div>
+        <a class="care-sidebar-item" href="partners.html">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M9 12l2 2 4-4"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          Verified Wellness Providers
+        </a>
+        <button type="button" class="care-sidebar-item" id="btnYogaSidebar">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v6"/>
+            <path d="M5 11l7-2 7 2"/>
+            <path d="M9 22l3-9 3 9"/>
+          </svg>
+          Practice Yoga with AI
+        </button>
+      </aside>
+      <div class="care-stage">
       <section class="care-head">
         <h1 style="margin: 0 0 0.6rem; font-size: 1.6rem; letter-spacing: 0.01em">
           Your Verified Healing Partners
@@ -1282,6 +1394,7 @@
         </div>
         <p class="companion-hint">Aria offers lifestyle guidance and does not replace your doctor's advice.</p>
       </section>
+      </div>
     </main>
 
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
@@ -1683,16 +1796,18 @@
         });
       })();
 
-      // ── "Practice yoga with AI" header button -> yoga intro modal ────
+      // ── "Practice yoga with AI" -> yoga intro modal ──────────────────
       (function () {
-        const btn = document.getElementById("btnYoga");
         const modal = document.getElementById("yogaIntroModal");
         const close = document.getElementById("yogaIntroClose");
-        if (!btn || !modal) return;
+        if (!modal) return;
         const open = () => { modal.hidden = false; };
         const hide = () => { modal.hidden = true; };
-        btn.addEventListener("click", open);
-        close.addEventListener("click", hide);
+        [
+          document.getElementById("btnYoga"),
+          document.getElementById("btnYogaSidebar"),
+        ].forEach((btn) => btn && btn.addEventListener("click", open));
+        if (close) close.addEventListener("click", hide);
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
       })();
 
