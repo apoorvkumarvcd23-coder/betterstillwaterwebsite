@@ -38,7 +38,15 @@
   .nav-cta{background:var(--moss);color:var(--paper)!important;padding:11px 24px;border-radius:100px;font-size:.9rem;transition:transform .25s,box-shadow .25s;}
   .nav-cta:hover{transform:translateY(-2px);box-shadow:0 12px 24px -10px rgba(47,72,66,.5);}
   .menu-btn{display:none !important;}
-  @media(max-width:820px){.nav-links{display:none;}}
+  @media(max-width:820px){
+    .nav-links{display:none;}
+    /* Compact auth zone on mobile so brand + user icon + hamburger fit */
+    #authActions{gap:8px;}
+    #btnLogin{font-size:.85rem;border-bottom:none;}
+    #authMenuButton{max-width:44px;min-width:36px;padding:0;border-radius:50%;overflow:hidden;justify-content:center;}
+    #authMenuButton .auth-btn-label{display:none;}
+    #authMenuButton .auth-btn-icon{display:block;width:22px;height:22px;}
+  }
 
   /* Auth actions (wired by js/shared.js) */
   #authActions{display:flex;gap:14px;align-items:center;}
@@ -162,17 +170,17 @@
   <div class="nav-links">
     <a href="#how">How it works</a>
     <a href="#features">Features</a>
-    <div id="authActions">
-      <div id="authMenuWrap">
-        <button id="authMenuButton">Hi</button>
-        <div id="authMenu">
-          <a id="btnLogout" href="/logout">Log out</a>
-        </div>
+  </div>
+  <div id="authActions">
+    <div id="authMenuWrap">
+      <button id="authMenuButton" aria-label="Account menu">Hi</button>
+      <div id="authMenu">
+        <a id="btnLogout" href="/logout">Log out</a>
       </div>
-      <a href="auth.html" id="btnLogin">Login / Sign up</a>
-      <a href="admin.html" id="btnAdmin">Admin Dashboard</a>
-      <a href="/intake.html" id="btnIntake">Wellness Assessment</a>
     </div>
+    <a href="auth.html" id="btnLogin">Login / Sign up</a>
+    <a href="admin.html" id="btnAdmin">Admin Dashboard</a>
+    <a href="/intake.html" id="btnIntake">Wellness Assessment</a>
   </div>
   <button class="menu-btn" id="menuBtn" aria-label="Open menu">&#9776;</button>
 </nav>
