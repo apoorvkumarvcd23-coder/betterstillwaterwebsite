@@ -2385,32 +2385,58 @@ async function callOpenRouterJson(systemPrompt, userPrompt, maxTokens = 2200) {
     err.status = 503;
     throw err;
   }
-  const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
-    method: "POST",
-    headers: buildOpenRouterHeaders(),
-    body: JSON.stringify({
-      model: "openai/gpt-oss-120b",
-      temperature: 0.4,
-      max_tokens: maxTokens,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-    }),
-  });
-  if (!response.ok) {
-    const errText = await response.text();
-    const err = new Error(`OpenRouter request failed (${response.status}): ${errText}`);
-    err.status = response.status;
+  // Fail fast instead of waiting 90+ seconds when a provider is hung.
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 45_000);
+  try {
+    const response = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: buildOpenRouterHeaders(),
+      signal: controller.signal,
+      body: JSON.stringify({
+        // Aria meal-plan model. Override via the ARIA_MODEL env var without
+        // touching code. Default chosen for JSON reliability, speed and cost.
+        model: String(process.env.ARIA_MODEL || "openai/gpt-4o-mini").trim(),
+        temperature: 0.4,
+        max_tokens: maxTokens,
+        // Force JSON-only output so the model can't drift into prose or
+        // markdown fences — eliminates most "couldn't parse" failures.
+        response_format: { type: "json_object" },
+        // Prefer faster, more reliable providers and skip any provider
+        // that times out on this request.
+        provider: {
+          sort: "throughput",
+          allow_fallbacks: true,
+        },
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
+        ],
+      }),
+    });
+    if (!response.ok) {
+      const errText = await response.text();
+      const err = new Error(`OpenRouter request failed (${response.status}): ${errText}`);
+      err.status = response.status;
+      throw err;
+    }
+    const data = await response.json();
+    const choices = data && Array.isArray(data.choices) ? data.choices : [];
+    const content =
+      choices[0] && choices[0].message && typeof choices[0].message.content === "string"
+        ? choices[0].message.content
+        : "";
+    return content;
+  } catch (err) {
+    if (err && err.name === "AbortError") {
+      const e = new Error("OpenRouter request timed out (45s).");
+      e.status = 504;
+      throw e;
+    }
     throw err;
+  } finally {
+    clearTimeout(timer);
   }
-  const data = await response.json();
-  const choices = data && Array.isArray(data.choices) ? data.choices : [];
-  const content =
-    choices[0] && choices[0].message && typeof choices[0].message.content === "string"
-      ? choices[0].message.content
-      : "";
-  return content;
 }
 
 const WEEKLY_PLAN_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -2464,6 +2490,7 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
     const raw = await callOpenRouterJson(systemPrompt, userPrompt, 2400);
     const parsed = extractJson(raw);
     if (!parsed || typeof parsed !== "object") {
+      console.error("Aria meal-plan-weekly: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
       return res.status(502).json({ error: "Aria couldn't shape a valid weekly plan. Please try again." });
     }
 
@@ -2484,6 +2511,9 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
     console.error("Aria meal-plan-weekly failed:", err);
     if (err && err.status === 503) {
       return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    if (err && err.status === 504) {
+      return res.status(504).json({ error: "Aria took too long to respond. Please try again." });
     }
     return res.status(500).json({ error: "Aria couldn't generate the weekly plan right now. Please try again." });
   }
@@ -2532,6 +2562,7 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     const raw = await callOpenRouterJson(systemPrompt, userPrompt, 700);
     const parsed = extractJson(raw);
     if (!parsed || typeof parsed !== "object") {
+      console.error("Aria meal-plan-day: failed to parse model output. Raw (first 1k chars):", String(raw || "").slice(0, 1000));
       return res.status(502).json({ error: "Aria couldn't shape a valid one-day plan. Please try again." });
     }
     const dayPlan = {};
@@ -2544,6 +2575,9 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     console.error("Aria meal-plan-day failed:", err);
     if (err && err.status === 503) {
       return res.status(503).json({ error: "Aria's meal planner is not configured yet (missing OPENROUTER_API_KEY)." });
+    }
+    if (err && err.status === 504) {
+      return res.status(504).json({ error: "Aria took too long to respond. Please try again." });
     }
     return res.status(500).json({ error: "Aria couldn't generate today's plan right now. Please try again." });
   }
