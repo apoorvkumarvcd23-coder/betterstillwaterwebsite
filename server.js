@@ -2426,7 +2426,10 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "You design weekly meal plans that are entirely plant-based whole foods, rich in " +
       "vegetables, legumes, whole grains, fruits, nuts and seeds. You vary cuisines, " +
       "textures and flavors across the week, respect avoidances strictly, and avoid ultra-processed " +
-      "ingredients. Always reply with valid JSON only — no prose, no markdown code fences.";
+      "ingredients. CRITICAL: every meal name you propose must be a well-known dish that you are " +
+      "confident has many cooking videos available on YouTube — use common, popular names (not " +
+      "invented or hyper-specific phrasings) so a user can easily find a video for it. " +
+      "Always reply with valid JSON only — no prose, no markdown code fences.";
 
     const userPrompt = [
       "Build a 7-day plant-based whole-food meal plan tailored to the user.",
@@ -2440,7 +2443,10 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "  4) Evening Snack",
       "  5) Dinner",
       "Do NOT include times of day in the meal names.",
-      "Each meal value should be 1-2 short phrases describing the dish, e.g. \"Quinoa veggie bowl with tahini drizzle\".",
+      "Each meal name MUST be a popular, well-known plant-based dish that has many cooking videos on YouTube",
+      "(e.g. \"Vegan chickpea curry with rice\", \"Banana oat smoothie bowl\", \"Lentil shepherd's pie\").",
+      "Use common dish names — avoid one-off creative phrasings that wouldn't return YouTube results.",
+      "Keep each meal name short (1 phrase, ideally 3-6 words).",
       "Plenty of vegetables every day. No animal products.",
       "",
       "Return ONLY a JSON object with this exact shape (no extra keys, no commentary):",
@@ -2498,7 +2504,9 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     const systemPrompt =
       "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
       "Reply with valid JSON only — no prose, no markdown code fences. Plant-based whole foods only, " +
-      "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly.";
+      "rich in vegetables, legumes, whole grains, fruits, nuts and seeds. Respect avoidances strictly. " +
+      "CRITICAL: every meal name must be a well-known dish you're confident has many cooking videos on " +
+      "YouTube — use common, popular names (not invented or hyper-specific phrasings).";
 
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
@@ -2514,7 +2522,8 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "  3) Lunch",
       "  4) Evening Snack",
       "  5) Dinner",
-      "Each meal value should be 1-2 short phrases describing the dish.",
+      "Each meal name MUST be a popular, well-known plant-based dish that has many cooking videos on YouTube.",
+      "Keep each meal name short (1 phrase, ideally 3-6 words). Avoid hyper-specific phrasings.",
       "",
       "Return ONLY this JSON shape (no extra keys):",
       "{ \"Breakfast\": \"...\", \"Snack\": \"...\", \"Lunch\": \"...\", \"Evening Snack\": \"...\", \"Dinner\": \"...\" }",
@@ -2541,13 +2550,17 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
 });
 
 // Fetch a YouTube search page server-side and pull the first videoId out of
-// ytInitialData. Returns null if YouTube serves bot/consent content or has
-// no video results for the query.
+// ytInitialData. Returns null if YouTube serves bot/consent content, the
+// request exceeds the per-call timeout, or there are no video results.
 async function firstYoutubeVideoId(query, excludeIds, opts = {}) {
+  const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 4000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const filter = opts.videosOnly === false ? "" : "&sp=EgIQAQ%253D%253D"; // videos-only by default
     const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${filter}`;
     const resp = await fetch(url, {
+      signal: controller.signal,
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
@@ -2558,7 +2571,6 @@ async function firstYoutubeVideoId(query, excludeIds, opts = {}) {
     });
     if (!resp.ok) return null;
     const html = await resp.text();
-    // Match every videoRenderer.videoId in order.
     const patterns = [
       /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
       /"compactVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
@@ -2574,6 +2586,8 @@ async function firstYoutubeVideoId(query, excludeIds, opts = {}) {
     return null;
   } catch (_e) {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -2630,6 +2644,10 @@ async function resolveYoutubeVideo(dish, suggestion, seenIds) {
   return null;
 }
 
+// In-process cache for recipe lookups so repeat hits are instant.
+const recipeMemoCache = new Map(); // key -> { videos, ts }
+const RECIPE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
+
 app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
   try {
     const dish = String(req.body?.dish || "").trim();
@@ -2637,70 +2655,45 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
       return res.status(400).json({ error: "Please send a dish to search for." });
     }
 
-    const systemPrompt =
-      "You are Aria, a plant-based whole-food nutritionist for the Stilwater app. " +
-      "When asked for cooking videos for a dish, you suggest top YouTube searches that " +
-      "lean plant-based / whole-food but stay highly relevant to the exact dish requested. " +
-      "Prefer well-known plant-based YouTube channels (e.g. Pick Up Limes, Cheap Lazy Vegan, " +
-      "The Buddhist Chef, Nora Cooks, Sweet Simple Vegan, The Happy Pear, Edgy Veg, Avant-Garde Vegan, " +
-      "Rainbow Plant Life, Plant You). Always reply with valid JSON only — no prose, no fences.";
-
-    const userPrompt = [
-      `Dish: "${dish}".`,
-      "",
-      "Return the 3 best YouTube cooking-video recommendations for this dish. Each must be plant-based",
-      "or easily plant-based (no animal products). Each must be highly relevant to the exact dish requested.",
-      "",
-      "Return ONLY this JSON shape:",
-      "{",
-      "  \"videos\": [",
-      "    { \"title\": \"A specific recipe video title\", \"channel\": \"A real plant-based YouTube channel name\", \"query\": \"a focused YouTube search query that combines title + channel\" },",
-      "    { \"title\": \"...\", \"channel\": \"...\", \"query\": \"...\" },",
-      "    { \"title\": \"...\", \"channel\": \"...\", \"query\": \"...\" }",
-      "  ]",
-      "}",
-    ].join("\n");
-
-    const raw = await callOpenRouterJson(systemPrompt, userPrompt, 700);
-    const parsed = extractJson(raw);
-    const items = parsed && Array.isArray(parsed.videos) ? parsed.videos : [];
-    if (!items.length) {
-      return res.status(502).json({ error: "Aria couldn't find recipe matches. Please try again." });
+    const cacheKey = dish.toLowerCase();
+    const cached = recipeMemoCache.get(cacheKey);
+    if (cached && Date.now() - cached.ts < RECIPE_CACHE_TTL_MS) {
+      return res.json({ videos: cached.videos });
     }
 
-    // For each suggestion, try to resolve to a real first YouTube videoId.
-    // YouTube blocks server-side scrapes from many data-center IPs (e.g.
-    // Render), so when that fails we still push a card with a focused
-    // YouTube *search* URL — guarantees no blank cards in any environment.
-    const seenIds = new Set();
-    const videos = [];
-    for (const v of items.slice(0, 3)) {
-      const title = String(v && v.title ? v.title : dish).trim();
-      const channel = String(v && v.channel ? v.channel : "").trim();
-      const query = String(v && v.query ? v.query : `${title} ${channel}`.trim()).trim();
-      const id = await resolveYoutubeVideo(dish, { title, channel, query }, seenIds);
-      if (id) {
-        seenIds.add(id);
-        videos.push({
-          title,
-          channel: channel || "YouTube",
-          url: `https://www.youtube.com/watch?v=${id}`,
-        });
-      } else {
-        videos.push({
-          title,
-          channel: channel || "YouTube",
-          url: `https://www.youtube.com/results?search_query=${encodeURIComponent(query || dish)}`,
-        });
-      }
+    // Skip the model entirely — the meal-plan prompts already produce
+    // popular video-friendly dish names, so we go straight to YouTube
+    // with a tight fallback chain. Each fetch has a 4s timeout, and we
+    // bail at the first hit. Worst case: ~12s on Render before falling
+    // back to a search URL; common case: < 1s on the first query.
+    const seen = new Set();
+    const queries = [
+      `${dish} vegan recipe`,
+      `${dish} recipe`,
+      dish,
+    ];
+    let id = null;
+    for (const q of queries) {
+      id = await firstYoutubeVideoId(q, seen, { timeoutMs: 4000 });
+      if (id) break;
     }
 
+    const url = id
+      ? `https://www.youtube.com/watch?v=${id}`
+      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${dish} vegan recipe`)}`;
+
+    const videos = [
+      {
+        title: dish,
+        channel: id ? "YouTube" : "YouTube search",
+        url,
+      },
+    ];
+
+    recipeMemoCache.set(cacheKey, { videos, ts: Date.now() });
     return res.json({ videos });
   } catch (err) {
     console.error("Aria recipes failed:", err);
-    if (err && err.status === 503) {
-      return res.status(503).json({ error: "Aria's recipe finder is not configured yet (missing OPENROUTER_API_KEY)." });
-    }
     return res.status(500).json({ error: "Aria couldn't fetch recipes right now. Please try again." });
   }
 });

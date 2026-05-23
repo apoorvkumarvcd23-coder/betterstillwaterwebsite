@@ -2796,7 +2796,7 @@
 
           const note = document.createElement("div");
           note.className = "companion-footer-note";
-          note.textContent = "Aria suggests plant-based picks; each link opens a focused YouTube search for that video.";
+          note.textContent = "One plant-based cooking video per dish — click to open it on YouTube.";
           scroll.appendChild(note);
 
           pane.appendChild(scroll);
@@ -2849,7 +2849,7 @@
             if (isSearch) renderState(cached.error);
             else removeIfPerMeal();
           } else {
-            renderState("Finding plant-based recipes…");
+            renderState("Finding a recipe video…");
             fetch("/api/aria/recipes", {
               method: "POST",
               credentials: "same-origin",
