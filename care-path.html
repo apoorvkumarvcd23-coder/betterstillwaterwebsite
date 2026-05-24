@@ -199,16 +199,12 @@
         }
         .companion-mark { width: 34px; height: 34px; border-radius: 11px; }
         .companion-mark svg { width: 17px; height: 17px; }
-        .companion-mode-btn { padding: 6px 10px; gap: 6px; }
-        .companion-mode-btn .mode-label { font-size: 15.5px; }
+        .companion-mode-tabs { padding: 2px; }
+        .companion-mode-tab { padding: 6px 9px; font-size: 13px; gap: 4px; }
+        .companion-mode-tab svg { width: 13px; height: 13px; }
         .companion-greeting { display: none; }
-        .companion-menu {
-          top: 56px;
-          left: 12px;
-          right: 12px;
-          width: auto;
-          max-width: 320px;
-        }
+        .companion-subtabs { padding: 8px 12px; }
+        .companion-subtab { padding: 6px 12px; font-size: 13px; }
         .companion-scroll { padding: 14px 12px 6px; gap: 12px; }
         .companion-scroll.flow { padding: 16px 12px 20px; gap: 14px; }
         .companion-foot { padding: 10px 12px 14px; }
@@ -226,7 +222,8 @@
       }
 
       @media (max-width: 420px) {
-        .companion-mode-btn .mode-label { font-size: 14px; }
+        .companion-mode-tab { padding: 5px 7px; font-size: 12.5px; }
+        .companion-mode-tab svg { display: none; }
         .companion-cat-btn { padding: 7px 12px; font-size: 13px; }
         .companion-intro-title { font-size: 20px; }
         .companion-back-label { font-size: 17px; }
@@ -780,83 +777,76 @@
         flex-shrink: 0;
       }
       .companion-mark svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2.2; }
-      .companion-mode-btn {
-        display: flex;
+      /* Primary mode tabs (Meal Plan / Recipes / Journaling) */
+      .companion-mode-tabs {
+        display: inline-flex;
         align-items: center;
-        gap: 9px;
-        padding: 8px 13px;
-        border-radius: 13px;
-        border: 1.5px solid var(--c-border);
+        gap: 2px;
         background: var(--c-bg);
-        color: var(--c-ink);
-        cursor: pointer;
+        border: 1.5px solid var(--c-border);
+        border-radius: 14px;
+        padding: 3px;
+      }
+      .companion-mode-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 11px;
+        border: none;
+        background: transparent;
+        color: var(--c-ink-soft);
         font: inherit;
-      }
-      .companion-mode-btn .mode-icon { width: 17px; height: 17px; stroke: var(--c-sage-deep); stroke-width: 2.3; fill: none; flex-shrink: 0; }
-      .companion-mode-btn .mode-label {
-        font-family: var(--font-heading, "Fraunces", serif);
-        font-size: 17px;
+        font-size: 14px;
         font-weight: 600;
+        cursor: pointer;
+        transition: background 0.16s ease, color 0.16s ease;
+        white-space: nowrap;
       }
-      .companion-mode-btn .chev {
-        width: 16px; height: 16px;
-        stroke: var(--c-ink-soft); stroke-width: 2.6; fill: none;
-        transition: transform 0.2s ease;
+      .companion-mode-tab svg { width: 15px; height: 15px; stroke: currentColor; stroke-width: 2.2; fill: none; flex-shrink: 0; }
+      .companion-mode-tab:hover { color: var(--c-ink); }
+      .companion-mode-tab.is-active {
+        background: var(--c-mist);
+        color: var(--c-ink);
+        box-shadow: 0 1px 4px rgba(47, 58, 50, 0.08);
       }
-      .companion-mode-btn.is-open .chev { transform: rotate(180deg); }
+      .companion-mode-tab.is-active svg { stroke: var(--c-sage-deep); }
+
+      /* Sub-tabs (Meal Plan: Weekly / Today). Sits as a sticky strip just
+         under the main header so it doesn't scroll away with content. */
+      .companion-subtabs {
+        display: flex;
+        gap: 6px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--c-border);
+        background: var(--c-mist);
+        flex: 0 0 auto;
+      }
+      .companion-subtab {
+        flex: 0 0 auto;
+        padding: 7px 14px;
+        border-radius: 10px;
+        border: 1.5px solid transparent;
+        background: transparent;
+        color: var(--c-ink-soft);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease;
+      }
+      .companion-subtab:hover { color: var(--c-ink); }
+      .companion-subtab.is-active {
+        background: var(--c-bg);
+        border-color: var(--c-border);
+        color: var(--c-ink);
+      }
+
       .companion-greeting {
         margin-left: auto;
         font-size: 13px;
         color: var(--c-ink-soft);
         font-weight: 600;
-      }
-      .companion-menu {
-        position: absolute;
-        top: 60px;
-        left: 68px;
-        width: 244px;
-        background: var(--c-mist);
-        border-radius: 16px;
-        border: 1.5px solid var(--c-border);
-        box-shadow: 0 18px 40px rgba(47, 58, 50, 0.16);
-        padding: 6px;
-        z-index: 30;
-        animation: companionPop 0.16s ease both;
-      }
-      .companion-menu[hidden] { display: none; }
-      .companion-menu-item {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        gap: 11px;
-        padding: 11px 12px;
-        border-radius: 11px;
-        border: none;
-        background: transparent;
-        cursor: pointer;
-        text-align: left;
-        font: inherit;
-        color: var(--c-ink);
-      }
-      .companion-menu-item.is-active { background: var(--c-bg); }
-      .companion-menu-item .menu-tile {
-        width: 34px; height: 34px;
-        border-radius: 10px;
-        background: var(--c-bg-deep);
-        display: grid;
-        place-items: center;
-        flex-shrink: 0;
-      }
-      .companion-menu-item.is-active .menu-tile { background: var(--c-sage); }
-      .companion-menu-item .menu-tile svg { width: 17px; height: 17px; stroke: var(--c-ink-soft); stroke-width: 2.3; fill: none; }
-      .companion-menu-item.is-active .menu-tile svg { stroke: #fff; }
-      .companion-menu-item .menu-text { flex: 1; min-width: 0; }
-      .companion-menu-item .menu-title { font-size: 14.5px; font-weight: 700; }
-      .companion-menu-item .menu-blurb { font-size: 12px; color: var(--c-ink-soft); }
-      .companion-menu-item .menu-check { width: 16px; height: 16px; stroke: var(--c-sage-deep); stroke-width: 3; fill: none; display: none; }
-      .companion-menu-item.is-active .menu-check { display: block; }
-      .companion-menu-scrim {
-        position: fixed; inset: 0; z-index: 10;
       }
 
       .companion-body { flex: 1 1 auto; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
@@ -889,6 +879,25 @@
       .companion-bubble.user { border-radius: 18px 18px 5px 18px; font-weight: 600; }
       .companion-bubble.image { padding: 6px; }
       .companion-bubble.image img { display: block; width: 100%; max-width: 240px; border-radius: 13px; }
+      .companion-bubble-text { display: inline; }
+      .companion-bubble-time {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 10.5px;
+        font-weight: 400;
+        color: var(--c-ink-soft);
+        opacity: 0.7;
+        white-space: nowrap;
+        vertical-align: baseline;
+        float: right;
+        line-height: 1.6;
+      }
+      .companion-bubble.image .companion-bubble-time {
+        float: none;
+        display: block;
+        text-align: right;
+        margin: 4px 4px 2px 0;
+      }
 
       /* Journaling input row */
       .companion-foot {
@@ -1636,16 +1645,9 @@
             <div class="companion-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13H2a9 9 0 0 0 9 9v-2zM2 13h2C4 8.03 8.03 4 13 4V2C6.92 2 2 6.92 2 13z"/><path d="M19 6c-1.66 0-3 1.34-3 3 0 1.66 1.34 3 3 3s3-1.34 3-3c0-1.66-1.34-3-3-3z"/></svg>
             </div>
-            <button type="button" class="companion-mode-btn" id="companionModeBtn" aria-haspopup="true" aria-expanded="false">
-              <svg class="mode-icon" id="companionModeIcon" viewBox="0 0 24 24"></svg>
-              <span class="mode-label" id="companionModeLabel">Journaling</span>
-              <svg class="chev" viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-            </button>
+            <nav class="companion-mode-tabs" id="companionModeTabs" role="tablist" aria-label="Aria mode"></nav>
             <span class="companion-greeting" id="companionGreeting" data-i18n="aria.greeting">Hi, Aria here</span>
           </header>
-
-          <div class="companion-menu-scrim" id="companionMenuScrim" hidden></div>
-          <div class="companion-menu" id="companionMenu" hidden role="menu"></div>
 
           <div class="companion-body" id="companionBody"></div>
         </div>
@@ -2108,11 +2110,7 @@
         const root = document.getElementById("companionRoot");
         if (!root) return;
         const body = document.getElementById("companionBody");
-        const modeBtn = document.getElementById("companionModeBtn");
-        const modeIcon = document.getElementById("companionModeIcon");
-        const modeLabel = document.getElementById("companionModeLabel");
-        const menu = document.getElementById("companionMenu");
-        const scrim = document.getElementById("companionMenuScrim");
+        const modeTabsEl = document.getElementById("companionModeTabs");
 
         // ---- Icon library (inline SVG paths) ----
         const ICONS = {
@@ -2123,6 +2121,8 @@
           dumbbell: '<path d="M14.4 14.4 9.6 9.6"/><path d="M18.66 17.66 21 15.32a1 1 0 0 0 0-1.41l-2.83-2.83a1 1 0 0 0-1.41 0L14.42 13.34"/><path d="M9.58 6.34 6.34 9.58a1 1 0 0 1-1.41 0L3 7.66a1 1 0 0 1 0-1.41L4.41 4.83"/><path d="m21.66 20.24-2.12 2.12"/><path d="M2.34 3.76 4.46 1.64"/>',
           moon: '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',
           smile: '<circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/>',
+          droplet: '<path d="M12 2.5s6 7 6 11.5a6 6 0 0 1-12 0c0-4.5 6-11.5 6-11.5z"/>',
+          heartPulse: '<path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><path d="M3 12h3l2-4 4 8 2-4h7"/>',
           camera: '<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>',
           mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/>',
           send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
@@ -2175,10 +2175,12 @@
           journaling: { icon: "notebook", labelKey: "aria.mode.journaling", blurbKey: "aria.modeBlurb.journaling" },
         };
         const CATEGORIES = {
-          food:     { icon: "utensils", accent: "#c98a5e", soft: "#f3e3d4", labelKey: "aria.journal.cat.food",     promptKey: "aria.journal.prompt.food" },
-          exercise: { icon: "dumbbell", accent: "#7d9471", soft: "#e3ebdc", labelKey: "aria.journal.cat.exercise", promptKey: "aria.journal.prompt.exercise" },
-          sleep:    { icon: "moon",     accent: "#6b7da3", soft: "#dfe5f0", labelKey: "aria.journal.cat.sleep",    promptKey: "aria.journal.prompt.sleep" },
-          mood:     { icon: "smile",    accent: "#caa44a", soft: "#f2ebd2", labelKey: "aria.journal.cat.mood",     promptKey: "aria.journal.prompt.mood" },
+          food:           { icon: "utensils",   accent: "#c98a5e", soft: "#f3e3d4", labelKey: "aria.journal.cat.food",           promptKey: "aria.journal.prompt.food" },
+          exercise:       { icon: "dumbbell",   accent: "#7d9471", soft: "#e3ebdc", labelKey: "aria.journal.cat.exercise",       promptKey: "aria.journal.prompt.exercise" },
+          sleep:          { icon: "moon",       accent: "#6b7da3", soft: "#dfe5f0", labelKey: "aria.journal.cat.sleep",          promptKey: "aria.journal.prompt.sleep" },
+          mood:           { icon: "smile",      accent: "#caa44a", soft: "#f2ebd2", labelKey: "aria.journal.cat.mood",           promptKey: "aria.journal.prompt.mood" },
+          blood_sugar:    { icon: "droplet",    accent: "#c0584f", soft: "#f3dcda", labelKey: "aria.journal.cat.bloodSugar",     promptKey: "aria.journal.prompt.bloodSugar" },
+          blood_pressure: { icon: "heartPulse", accent: "#8a5fb1", soft: "#e6dbf0", labelKey: "aria.journal.cat.bloodPressure",  promptKey: "aria.journal.prompt.bloodPressure" },
         };
         const MEAL_SLOTS = ["Breakfast", "Snack", "Lunch", "Evening Snack", "Dinner"];
         const WEEK_DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
@@ -2233,7 +2235,7 @@
           journalingDraft: "",
           listening: false,
           // meal plan
-          mpView: "choose", // choose | upload | weekly | today
+          mpView: "weekly", // weekly | today (legacy: choose | upload)
           uploaded: null,   // { name, kind, url }
           uploadError: "",
           cuisine: "",
@@ -2263,6 +2265,11 @@
         state.generatingWeekly = false;
         state.generatingToday = false;
         state.search = "";
+        // Migrate legacy mpView values ("choose" / "upload") to the new
+        // 2-tab model so old persisted state doesn't render an empty pane.
+        if (state.mpView !== "weekly" && state.mpView !== "today") {
+          state.mpView = "weekly";
+        }
         // Guarantee at least the greeting bubble if persisted messages was empty.
         if (!Array.isArray(state.messages) || !state.messages.length) {
           state.messages = [{ from: "companion", textKey: "aria.journal.greeting" }];
@@ -2271,10 +2278,29 @@
         let activeRecognition = null;
 
         // ---- Render entry-points ----
+        function renderModeTabs() {
+          if (!modeTabsEl) return;
+          modeTabsEl.innerHTML = "";
+          Object.entries(MODES).forEach(([key, m]) => {
+            const on = state.mode === key;
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "companion-mode-tab" + (on ? " is-active" : "");
+            btn.setAttribute("role", "tab");
+            btn.setAttribute("aria-selected", on ? "true" : "false");
+            btn.innerHTML = ico(m.icon) + '<span>' + escapeHtml(T(m.labelKey, key)) + '</span>';
+            btn.addEventListener("click", () => {
+              if (state.mode === key) return;
+              state.mode = key;
+              renderMode();
+            });
+            modeTabsEl.appendChild(btn);
+          });
+        }
+
         function renderMode() {
           try {
-            modeIcon.innerHTML = ICONS[MODES[state.mode].icon];
-            modeLabel.textContent = T(MODES[state.mode].labelKey, state.mode);
+            renderModeTabs();
             body.innerHTML = "";
             if (state.mode === "journaling") body.appendChild(renderJournaling());
             else if (state.mode === "mealplan") body.appendChild(renderMealPlan());
@@ -2291,49 +2317,6 @@
 
         // Re-render Aria whenever language changes.
         window.addEventListener("sw:langchange", () => renderMode());
-
-        // ---- Mode dropdown ----
-        function renderMenu() {
-          menu.innerHTML = "";
-          Object.entries(MODES).forEach(([key, m]) => {
-            const on = state.mode === key;
-            const btn = document.createElement("button");
-            btn.type = "button";
-            btn.className = "companion-menu-item" + (on ? " is-active" : "");
-            btn.setAttribute("role", "menuitemradio");
-            btn.setAttribute("aria-checked", on ? "true" : "false");
-            btn.innerHTML =
-              '<span class="menu-tile">' + ico(m.icon) + '</span>' +
-              '<span class="menu-text">' +
-                '<span class="menu-title">' + escapeHtml(T(m.labelKey, key)) + '</span>' +
-                '<span class="menu-blurb">' + escapeHtml(T(m.blurbKey, "")) + '</span>' +
-              '</span>' +
-              ico("check", 'class="menu-check"');
-            btn.addEventListener("click", () => {
-              state.mode = key;
-              hideMenu();
-              renderMode();
-            });
-            menu.appendChild(btn);
-          });
-        }
-        function showMenu() {
-          renderMenu();
-          menu.hidden = false;
-          scrim.hidden = false;
-          modeBtn.classList.add("is-open");
-          modeBtn.setAttribute("aria-expanded", "true");
-        }
-        function hideMenu() {
-          menu.hidden = true;
-          scrim.hidden = true;
-          modeBtn.classList.remove("is-open");
-          modeBtn.setAttribute("aria-expanded", "false");
-        }
-        modeBtn.addEventListener("click", () => {
-          if (menu.hidden) showMenu(); else hideMenu();
-        });
-        scrim.addEventListener("click", hideMenu);
 
         // ---- JOURNALING ----
         function renderJournaling() {
@@ -2451,6 +2434,26 @@
           return pane;
         }
 
+        // WhatsApp-style short timestamp: "10:24 AM" for today, "May 24,
+        // 10:24 AM" for other days. Locale-aware. Returns "" if no ts.
+        function formatBubbleTime(ts) {
+          if (!ts) return "";
+          try {
+            const d = new Date(Number(ts));
+            if (isNaN(d.getTime())) return "";
+            const now = new Date();
+            const sameDay =
+              d.getFullYear() === now.getFullYear() &&
+              d.getMonth() === now.getMonth() &&
+              d.getDate() === now.getDate();
+            const locale = LANG() === "hi" ? "hi-IN" : "en-US";
+            const time = d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+            if (sameDay) return time;
+            const date = d.toLocaleDateString(locale, { month: "short", day: "numeric" });
+            return date + ", " + time;
+          } catch (_e) { return ""; }
+        }
+
         function bubbleEl(msg) {
           const row = document.createElement("div");
           row.className = "companion-bubble-row " + (msg.from === "user" ? "user" : "bot");
@@ -2478,7 +2481,18 @@
             // re-translate on language change. Optional extraKey appended.
             let txt = msg.textKey ? T(msg.textKey, msg.text || "") : (msg.text || "");
             if (msg.extraKey) txt += T(msg.extraKey, "");
-            bubble.textContent = txt;
+            const txtEl = document.createElement("span");
+            txtEl.className = "companion-bubble-text";
+            txtEl.textContent = txt;
+            bubble.appendChild(txtEl);
+          }
+          // WhatsApp-style timestamp at the bottom-right of the bubble.
+          const timeStr = formatBubbleTime(msg.ts);
+          if (timeStr) {
+            const time = document.createElement("span");
+            time.className = "companion-bubble-time";
+            time.textContent = timeStr;
+            bubble.appendChild(time);
           }
           row.appendChild(bubble);
           return row;
@@ -2486,10 +2500,11 @@
 
         function commitEntry(text, image) {
           const category = state.activeCat;
-          state.messages.push({ from: "user", text: text || null, image: image || null, category });
+          const now = Date.now();
+          state.messages.push({ from: "user", text: text || null, image: image || null, category, ts: now });
           // Optimistic "Thanks!" bubble — language-aware via textKey so
           // re-renders after a language toggle stay correct.
-          state.messages.push({ from: "companion", textKey: "aria.journal.thanks" });
+          state.messages.push({ from: "companion", textKey: "aria.journal.thanks", ts: Date.now() });
           // Persist to the ingestion table. No AI involved — just save.
           fetch("/api/aria/journal/entry", {
             method: "POST",
@@ -2544,14 +2559,35 @@
         function renderMealPlan() {
           const pane = document.createElement("div");
           pane.className = "companion-pane";
+
+          // Sub-tabs strip: Weekly | Today (sticks under the header).
+          const tabs = document.createElement("div");
+          tabs.className = "companion-subtabs";
+          [
+            ["weekly", "aria.mp.weekly.tab", "Weekly"],
+            ["today",  "aria.mp.today.tab",  "Today"],
+          ].forEach(([key, labelKey, fallback]) => {
+            const b = document.createElement("button");
+            b.type = "button";
+            b.className = "companion-subtab" + (state.mpView === key ? " is-active" : "");
+            b.setAttribute("role", "tab");
+            b.setAttribute("aria-selected", state.mpView === key ? "true" : "false");
+            b.textContent = T(labelKey, fallback);
+            b.addEventListener("click", () => {
+              if (state.mpView === key) return;
+              state.mpView = key;
+              renderMode();
+            });
+            tabs.appendChild(b);
+          });
+          pane.appendChild(tabs);
+
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow";
           pane.appendChild(scroll);
 
-          if (state.mpView === "choose") return (scroll.appendChild(mpChoose()), pane);
-          if (state.mpView === "upload") return (scroll.appendChild(mpUpload()), pane);
-          if (state.mpView === "weekly") return (scroll.appendChild(mpWeekly()), pane);
-          if (state.mpView === "today")  return (scroll.appendChild(mpToday()), pane);
+          if (state.mpView === "today")  scroll.appendChild(mpToday());
+          else                            scroll.appendChild(mpWeekly());
           return pane;
         }
 
@@ -2603,15 +2639,11 @@
           return wrap;
         }
 
+        // Top-of-view heading (the explicit Back button is gone now that
+        // Meal Plan uses Weekly/Today sub-tabs — users navigate via tabs).
         function backRow(label) {
           const row = document.createElement("div");
           row.className = "companion-back-row";
-          const b = document.createElement("button");
-          b.type = "button";
-          b.className = "companion-back-btn";
-          b.innerHTML = ico("chevron") + escapeHtml(T("common.back", "Back"));
-          b.addEventListener("click", () => { state.mpView = "choose"; renderMode(); });
-          row.appendChild(b);
           const lab = document.createElement("span");
           lab.className = "companion-back-label";
           lab.textContent = label;
@@ -2887,7 +2919,6 @@
               '<div class="ec-body">' + escapeHtml(T("aria.mp.setupBody", "Today's plan builds on a plan you've uploaded or a Stilwater weekly plan. Add one to get started.")) + '</div>';
             const actions = document.createElement("div");
             actions.className = "ec-actions";
-            actions.appendChild(primaryBtn(T("aria.mp.uploadBtn", "Upload"), "upload", () => { state.mpView = "upload"; renderMode(); }));
             actions.appendChild(primaryBtn(T("aria.mp.generateWeeklyShort", "Generate weekly"), "sparkles", () => { state.mpView = "weekly"; renderMode(); }));
             empty.appendChild(actions);
             wrap.appendChild(empty);
@@ -2928,25 +2959,15 @@
                   '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                   '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
                 '</div>' +
-                '<button type="button" class="companion-today-yt" disabled aria-label="Open recipe video" title="Open recipe video">' +
+                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
                   ico("youtube") +
                 '</button>';
               wrap.appendChild(card);
-              // Lazy-load the video URL and swap the button into a real <a>.
+              // Click → same 3-video popup agent the weekly rows use.
+              // Inert until clicked: no preload, no background fetch.
               const ytBtn = card.querySelector(".companion-today-yt");
-              const dishEn = mealEnglish(entry.meal) || mealText(entry.meal);
-              fetchRecipeUrl(dishEn).then((url) => {
-                if (!ytBtn || !ytBtn.parentNode) return;
-                if (!url) { ytBtn.style.display = "none"; return; }
-                const a = document.createElement("a");
-                a.className = "companion-today-yt";
-                a.href = url;
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                a.setAttribute("aria-label", "Open recipe video");
-                a.title = "Open recipe video";
-                a.innerHTML = ico("youtube");
-                ytBtn.replaceWith(a);
+              ytBtn.addEventListener("click", () => {
+                openRecipePopup(mealText(entry.meal), mealEnglish(entry.meal) || mealText(entry.meal));
               });
             });
 
@@ -3183,9 +3204,9 @@
 
         // ---- RECIPES ----
         function renderRecipes() {
-          // If a weekly plan exists but today's plan hasn't been built yet,
-          // derive it here from the matching weekday so Recipes can show
-          // per-meal cards without forcing the user to visit Today's Plan first.
+          // Auto-derive today's plan from the matching weekday if a weekly
+          // plan exists but no today plan has been built yet — so Recipes
+          // shows the day's meals without forcing a visit to Today first.
           if (!state.todayPlan && state.weeklyPlan) {
             const day = todayName();
             const source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
@@ -3210,13 +3231,14 @@
             '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
             '<p class="companion-intro-body">' +
               escapeHtml(state.todayPlan
-                ? T("aria.recipes.intro.withPlan", "Cooking videos for each meal in today's plan, or search any dish below.")
-                : T("aria.recipes.intro.noPlan", "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.")) +
+                ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
+                : T("aria.recipes.searchIntro", "Search any dish — Aria finds 3 plant-based cooking videos.")) +
             '</p>' +
             (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
           scroll.appendChild(head);
 
-          // Search row
+          // Search row — typing a dish + Find opens the 3-video popup
+          // (same agent used by the weekly-plan and today-plan buttons).
           const searchRow = document.createElement("div");
           searchRow.className = "companion-search-row";
           searchRow.innerHTML = ico("search", 'class="search-ico"');
@@ -3244,21 +3266,35 @@
             const d = state.search.trim();
             if (!d) return;
             state.searchedDish = d;
-            renderMode();
+            openRecipePopup(d, d);
           }
 
-          if (state.searchedDish) {
-            scroll.appendChild(recipeCard("Search", state.searchedDish, true));
-          }
+          // Per-meal cards from today's plan — same card layout as the
+          // Today's plan tab, same YouTube button → 3-video popup agent.
           if (state.todayPlan) {
             MEAL_SLOTS.forEach((slot) => {
-              scroll.appendChild(recipeCard(slot, state.todayPlan[slot].meal, false));
+              const entry = state.todayPlan[slot];
+              const card = document.createElement("div");
+              card.className = "companion-today-card";
+              card.innerHTML =
+                '<div class="companion-today-text">' +
+                  '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
+                  '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
+                '</div>' +
+                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                  ico("youtube") +
+                '</button>';
+              scroll.appendChild(card);
+              const ytBtn = card.querySelector(".companion-today-yt");
+              ytBtn.addEventListener("click", () => {
+                openRecipePopup(mealText(entry.meal), mealEnglish(entry.meal) || mealText(entry.meal));
+              });
             });
           }
 
           const note = document.createElement("div");
           note.className = "companion-footer-note";
-          note.textContent = T("aria.recipes.footerNote", "One plant-based cooking video per dish — click to open it on YouTube.");
+          note.textContent = T("aria.recipes.footerNote3", "Aria fetches 3 plant-based cooking videos per dish.");
           scroll.appendChild(note);
 
           pane.appendChild(scroll);
