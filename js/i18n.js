@@ -80,7 +80,7 @@
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
 
     // Home hero
-    "home.heroEyebrow": { en: "Your AI companion for personal health", hi: "व्यक्तिगत स्वास्थ्य के लिए आपकी AI साथी" },
+    "home.heroEyebrow": { en: "Your AI companion for Managing Diabetes using Holistic Methods", hi: "समग्र विधियों से मधुमेह प्रबंधन के लिए आपकी AI साथी" },
     "home.heroTitleA": { en: "Managing a chronic condition,", hi: "दीर्घकालिक स्थिति को संभालना —" },
     "home.heroTitleB": { en: "one good day at a time.", hi: "एक-एक अच्छा दिन।" },
     "home.heroSub": {
