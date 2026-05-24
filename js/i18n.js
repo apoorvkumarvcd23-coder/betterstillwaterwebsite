@@ -191,6 +191,9 @@
     "aria.mp.today.prefPlaceholder": { en: "e.g. lighter dinner, more protein, soup-based, low-carb…", hi: "उदा. हल्का डिनर, ज़्यादा प्रोटीन, सूप, कम कार्ब्स…" },
     "aria.mp.today.generateBtn": { en: "Generate", hi: "बनाएं" },
     "aria.mp.today.cancel": { en: "Cancel", hi: "रद्द करें" },
+    // Meal Plan sub-tab labels
+    "aria.mp.weekly.tab": { en: "Weekly", hi: "साप्ताहिक" },
+    "aria.mp.today.tab": { en: "Today", hi: "आज" },
     "aria.mp.today.error": { en: "Aria couldn't build a different plan. Please try again.", hi: "Aria अलग योजना नहीं बना पाई। फिर से कोशिश करें।" },
     "aria.mp.weeklyError": { en: "Aria couldn't build the plan. Please try again.", hi: "Aria योजना नहीं बना पाई। फिर से कोशिश करें।" },
     "aria.mp.unreachable": { en: "Couldn't reach Aria right now. Please try again.", hi: "अभी Aria तक नहीं पहुँच पा रहे। फिर से कोशिश करें।" },
@@ -219,12 +222,16 @@
 
     // Recipes
     "aria.recipes.title": { en: "Recipes", hi: "व्यंजन" },
-    "aria.recipes.intro.withPlan": { en: "Cooking videos for each meal in today's plan, or search any dish below.", hi: "आज की योजना के हर भोजन के लिए कुकिंग वीडियो, या नीचे कोई व्यंजन खोजें।" },
+    "aria.recipes.intro.withPlan": { en: "Tap a meal below for 3 cooking videos, or search any dish.", hi: "नीचे किसी भोजन पर टैप करें और 3 कुकिंग वीडियो पाएं, या कोई व्यंजन खोजें।" },
     "aria.recipes.intro.noPlan": { en: "Search any dish for cooking videos. Generate a weekly plan in Meal Plan to get videos for each meal automatically.", hi: "कुकिंग वीडियो के लिए कोई व्यंजन खोजें। हर भोजन के वीडियो स्वतः पाने के लिए Meal Plan में साप्ताहिक योजना बनाएं।" },
     "aria.recipes.searchPlaceholder": { en: "Search any dish — e.g. paneer tikka", hi: "कोई व्यंजन खोजें — जैसे पनीर टिक्का" },
     "aria.recipes.find": { en: "Find", hi: "खोजें" },
     "aria.recipes.loading": { en: "Finding a recipe video…", hi: "रेसिपी वीडियो खोज रहे हैं…" },
     "aria.recipes.footerNote": { en: "One plant-based cooking video per dish — click to open it on YouTube.", hi: "हर व्यंजन के लिए एक प्लांट-बेस्ड कुकिंग वीडियो — YouTube पर खोलने के लिए क्लिक करें।" },
+    "aria.recipes.footerNote3": { en: "Aria fetches 3 plant-based cooking videos per dish.", hi: "Aria हर व्यंजन के लिए 3 प्लांट-बेस्ड कुकिंग वीडियो लाती है।" },
+    "aria.recipes.searchIntro": { en: "Search any dish — Aria finds 3 plant-based cooking videos.", hi: "कोई भी व्यंजन खोजें — Aria 3 प्लांट-बेस्ड कुकिंग वीडियो ढूँढती है।" },
+    "aria.recipes.popupTitle": { en: "Recipe videos for", hi: "इसके लिए रेसिपी वीडियो:" },
+    "aria.recipes.loading3": { en: "Finding 3 plant-based recipe videos…", hi: "3 प्लांट-बेस्ड रेसिपी वीडियो ढूँढ रही हूँ…" },
     "aria.recipes.cantReach": { en: "Couldn't reach Aria right now.", hi: "अभी Aria तक नहीं पहुँच पा रहे।" },
 
     // Journaling
@@ -236,10 +243,14 @@
     "aria.journal.cat.exercise": { en: "Exercise", hi: "व्यायाम" },
     "aria.journal.cat.sleep": { en: "Sleep", hi: "नींद" },
     "aria.journal.cat.mood": { en: "Mood", hi: "मूड" },
+    "aria.journal.cat.bloodSugar": { en: "Blood Sugar", hi: "रक्त शर्करा" },
+    "aria.journal.cat.bloodPressure": { en: "Blood Pressure", hi: "रक्तचाप" },
     "aria.journal.prompt.food": { en: "What did you eat, and when?", hi: "आपने क्या और कब खाया?" },
     "aria.journal.prompt.exercise": { en: "What movement did you do, and when?", hi: "आपने क्या व्यायाम और कब किया?" },
     "aria.journal.prompt.sleep": { en: "How did you sleep, and when?", hi: "आपने कैसे और कब सोया?" },
     "aria.journal.prompt.mood": { en: "How are you feeling, and when?", hi: "आप कैसा महसूस कर रहे हैं, और कब?" },
+    "aria.journal.prompt.bloodSugar": { en: "Your blood sugar reading, and when (e.g. 110 mg/dL at 8 am, fasting)", hi: "आपकी रक्त शर्करा रीडिंग और समय (जैसे 110 mg/dL सुबह 8 बजे, खाली पेट)" },
+    "aria.journal.prompt.bloodPressure": { en: "Your blood pressure reading, and when (e.g. 120/80 at 9 am)", hi: "आपका रक्तचाप रीडिंग और समय (जैसे 120/80 सुबह 9 बजे)" },
     "aria.journal.inputHint": { en: "Type, speak, or snap a photo — just include the time in your entry.", hi: "टाइप करें, बोलें, या फोटो लें — अपनी प्रविष्टि में समय शामिल करें।" },
     "aria.journal.listening": { en: "Listening…", hi: "सुन रही हूँ…" },
     "aria.journal.thanks": { en: "Thanks — your entry is saved.", hi: "धन्यवाद — आपकी प्रविष्टि सहेज ली गई।" },

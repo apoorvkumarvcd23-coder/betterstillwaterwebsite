@@ -403,6 +403,17 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_aria_journal_category_created
       ON aria.journal_entries (category, created_at DESC)
   `);
+  // Widen the category CHECK to include blood_sugar and blood_pressure
+  // — additive migration, idempotent. Existing rows are unaffected.
+  await pool.query(`
+    ALTER TABLE aria.journal_entries
+      DROP CONSTRAINT IF EXISTS journal_entries_category_check
+  `);
+  await pool.query(`
+    ALTER TABLE aria.journal_entries
+      ADD CONSTRAINT journal_entries_category_check
+      CHECK (category IN ('food','exercise','sleep','mood','blood_sugar','blood_pressure'))
+  `);
 }
 
 async function incrementPhoneUserCount() {
@@ -2500,7 +2511,7 @@ function normaliseMealValue(v) {
 }
 
 // ── Aria journal entry ingestion (no AI; pure data save) ───────────────
-const ARIA_JOURNAL_CATEGORIES = new Set(["food", "exercise", "sleep", "mood"]);
+const ARIA_JOURNAL_CATEGORIES = new Set(["food", "exercise", "sleep", "mood", "blood_sugar", "blood_pressure"]);
 
 app.post("/api/aria/journal/entry", requireAuthApi, async (req, res) => {
   try {
