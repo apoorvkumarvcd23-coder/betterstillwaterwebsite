@@ -81,7 +81,7 @@
 
     // Home hero
     "home.heroEyebrow": { en: "Your AI companion for Managing Diabetes using Holistic Methods", hi: "समग्र विधियों से मधुमेह प्रबंधन के लिए आपकी AI साथी" },
-    "home.heroTitleA": { en: "Managing a chronic condition,", hi: "दीर्घकालिक स्थिति को संभालना —" },
+    "home.heroTitleA": { en: "Managing a diabetes condition,", hi: "मधुमेह की स्थिति को संभालना —" },
     "home.heroTitleB": { en: "one good day at a time.", hi: "एक-एक अच्छा दिन।" },
     "home.heroSub": {
       en: "Living with diabetes or hypertension? Stilwater builds you a personalized diet, lifestyle, and exercise routine — complete with recipe links — so you can take steady, daily steps toward managing your condition and living well.",
