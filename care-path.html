@@ -879,6 +879,25 @@
       .companion-bubble.user { border-radius: 18px 18px 5px 18px; font-weight: 600; }
       .companion-bubble.image { padding: 6px; }
       .companion-bubble.image img { display: block; width: 100%; max-width: 240px; border-radius: 13px; }
+      .companion-bubble-text { display: inline; }
+      .companion-bubble-time {
+        display: inline-block;
+        margin-left: 8px;
+        font-size: 10.5px;
+        font-weight: 400;
+        color: var(--c-ink-soft);
+        opacity: 0.7;
+        white-space: nowrap;
+        vertical-align: baseline;
+        float: right;
+        line-height: 1.6;
+      }
+      .companion-bubble.image .companion-bubble-time {
+        float: none;
+        display: block;
+        text-align: right;
+        margin: 4px 4px 2px 0;
+      }
 
       /* Journaling input row */
       .companion-foot {
@@ -2415,6 +2434,26 @@
           return pane;
         }
 
+        // WhatsApp-style short timestamp: "10:24 AM" for today, "May 24,
+        // 10:24 AM" for other days. Locale-aware. Returns "" if no ts.
+        function formatBubbleTime(ts) {
+          if (!ts) return "";
+          try {
+            const d = new Date(Number(ts));
+            if (isNaN(d.getTime())) return "";
+            const now = new Date();
+            const sameDay =
+              d.getFullYear() === now.getFullYear() &&
+              d.getMonth() === now.getMonth() &&
+              d.getDate() === now.getDate();
+            const locale = LANG() === "hi" ? "hi-IN" : "en-US";
+            const time = d.toLocaleTimeString(locale, { hour: "numeric", minute: "2-digit" });
+            if (sameDay) return time;
+            const date = d.toLocaleDateString(locale, { month: "short", day: "numeric" });
+            return date + ", " + time;
+          } catch (_e) { return ""; }
+        }
+
         function bubbleEl(msg) {
           const row = document.createElement("div");
           row.className = "companion-bubble-row " + (msg.from === "user" ? "user" : "bot");
@@ -2442,7 +2481,18 @@
             // re-translate on language change. Optional extraKey appended.
             let txt = msg.textKey ? T(msg.textKey, msg.text || "") : (msg.text || "");
             if (msg.extraKey) txt += T(msg.extraKey, "");
-            bubble.textContent = txt;
+            const txtEl = document.createElement("span");
+            txtEl.className = "companion-bubble-text";
+            txtEl.textContent = txt;
+            bubble.appendChild(txtEl);
+          }
+          // WhatsApp-style timestamp at the bottom-right of the bubble.
+          const timeStr = formatBubbleTime(msg.ts);
+          if (timeStr) {
+            const time = document.createElement("span");
+            time.className = "companion-bubble-time";
+            time.textContent = timeStr;
+            bubble.appendChild(time);
           }
           row.appendChild(bubble);
           return row;
@@ -2450,10 +2500,11 @@
 
         function commitEntry(text, image) {
           const category = state.activeCat;
-          state.messages.push({ from: "user", text: text || null, image: image || null, category });
+          const now = Date.now();
+          state.messages.push({ from: "user", text: text || null, image: image || null, category, ts: now });
           // Optimistic "Thanks!" bubble — language-aware via textKey so
           // re-renders after a language toggle stay correct.
-          state.messages.push({ from: "companion", textKey: "aria.journal.thanks" });
+          state.messages.push({ from: "companion", textKey: "aria.journal.thanks", ts: Date.now() });
           // Persist to the ingestion table. No AI involved — just save.
           fetch("/api/aria/journal/entry", {
             method: "POST",
