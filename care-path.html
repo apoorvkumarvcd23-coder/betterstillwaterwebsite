@@ -1101,13 +1101,97 @@
         border-bottom: 1px solid var(--c-border);
       }
       .companion-day-meals { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
-      .companion-meal-row { display: flex; gap: 10px; align-items: baseline; }
+      .companion-meal-row { display: flex; gap: 10px; align-items: center; }
       .companion-meal-slot {
         font-size: 10.5px; font-weight: 700; color: var(--c-clay-deep);
         text-transform: uppercase; letter-spacing: 0.04em;
         width: 64px; flex-shrink: 0;
       }
-      .companion-meal-name { font-size: 13.5px; color: var(--c-ink); line-height: 1.4; }
+      .companion-meal-name { font-size: 13.5px; color: var(--c-ink); line-height: 1.4; flex: 1; min-width: 0; }
+      .companion-meal-yt {
+        flex-shrink: 0;
+        width: 30px; height: 30px;
+        border-radius: 8px;
+        background: rgba(224, 50, 44, 0.08);
+        display: grid; place-items: center;
+        border: none; cursor: pointer;
+        color: #e0322c;
+        transition: background 0.18s ease, transform 0.18s ease;
+      }
+      .companion-meal-yt:hover { background: rgba(224, 50, 44, 0.18); transform: translateY(-1px); }
+      .companion-meal-yt svg { width: 16px; height: 16px; stroke: currentColor; stroke-width: 2; fill: none; }
+
+      /* Recipe-videos popup (3 links per meal, triggered from the weekly
+         plan's YouTube button on each meal row). Lives on document.body
+         so it overlays everything cleanly. */
+      .companion-recipe-modal-scrim {
+        position: fixed; inset: 0; z-index: 5000;
+        background: rgba(0, 0, 0, 0.55);
+        display: grid; place-items: center;
+        padding: 16px;
+        animation: companionFadeIn 0.15s ease both;
+      }
+      .companion-recipe-modal {
+        width: 100%; max-width: 480px;
+        background: #fbfaf6;
+        color: #2f3a32;
+        border-radius: 18px;
+        border: 1.5px solid #dcd6c8;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        font-family: var(--font-body, "Outfit", system-ui, sans-serif);
+        animation: companionModalPop 0.18s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .companion-recipe-modal-header {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 12px; padding: 14px 16px;
+        border-bottom: 1px solid #dcd6c8;
+        background: #f4f1ea;
+      }
+      .companion-recipe-modal-header h3 {
+        font-size: 14.5px; font-weight: 700; margin: 0;
+        line-height: 1.35; flex: 1; min-width: 0;
+      }
+      .companion-recipe-modal-close {
+        width: 32px; height: 32px; border-radius: 50%;
+        background: transparent; border: none;
+        font-size: 22px; line-height: 1; color: #5d6b5e;
+        cursor: pointer; flex-shrink: 0;
+        padding: 0;
+      }
+      .companion-recipe-modal-close:hover { background: rgba(0, 0, 0, 0.06); }
+      .companion-recipe-modal-body {
+        padding: 12px;
+        display: flex; flex-direction: column; gap: 4px;
+        min-height: 100px;
+        font-size: 14px; color: #5d6b5e;
+      }
+      .companion-recipe-modal-state {
+        padding: 18px 12px; text-align: center; font-size: 14px;
+      }
+      .companion-recipe-modal-link {
+        display: flex; align-items: center; gap: 11px;
+        padding: 10px; border-radius: 11px;
+        text-decoration: none; color: #2f3a32;
+        transition: background 0.15s ease;
+      }
+      .companion-recipe-modal-link:hover { background: #f4f1ea; }
+      .companion-recipe-modal-link .yt-tile {
+        width: 40px; height: 40px; border-radius: 10px;
+        background: rgba(224, 50, 44, 0.08);
+        display: grid; place-items: center; flex-shrink: 0;
+      }
+      .companion-recipe-modal-link .yt-tile svg { width: 20px; height: 20px; stroke: #e0322c; stroke-width: 2; fill: none; }
+      .companion-recipe-modal-link .yt-text { flex: 1; min-width: 0; }
+      .companion-recipe-modal-link .yt-title { font-size: 13.5px; font-weight: 600; line-height: 1.35; overflow: hidden; text-overflow: ellipsis; }
+      .companion-recipe-modal-link .yt-ext { width: 14px; height: 14px; stroke: #5d6b5e; stroke-width: 2; fill: none; flex-shrink: 0; }
+
+      @keyframes companionFadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes companionModalPop {
+        from { opacity: 0; transform: translateY(8px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+      }
 
       .companion-today-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
@@ -2734,8 +2818,18 @@
               MEAL_SLOTS.forEach((slot) => {
                 const mr = document.createElement("div");
                 mr.className = "companion-meal-row";
-                mr.innerHTML = '<span class="companion-meal-slot">' + escapeHtml(T("slot." + slot, slot)) + '</span><span class="companion-meal-name">' + escapeHtml(mealText(state.weeklyPlan[day][slot])) + '</span>';
+                const mealVal = state.weeklyPlan[day][slot];
+                mr.innerHTML =
+                  '<span class="companion-meal-slot">' + escapeHtml(T("slot." + slot, slot)) + '</span>' +
+                  '<span class="companion-meal-name">' + escapeHtml(mealText(mealVal)) + '</span>' +
+                  '<button type="button" class="companion-meal-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' + ico("youtube") + '</button>';
                 meals.appendChild(mr);
+                // The button is inert until clicked — only then do we hit
+                // the recipes endpoint (count=3) and pop the modal.
+                const ytBtn = mr.querySelector(".companion-meal-yt");
+                ytBtn.addEventListener("click", () => {
+                  openRecipePopup(mealText(mealVal), mealEnglish(mealVal) || mealText(mealVal));
+                });
               });
               card.appendChild(meals);
               wrap.appendChild(card);
@@ -2994,6 +3088,97 @@
             .finally(() => { delete _recipeUrlInFlight[key]; });
           _recipeUrlInFlight[key] = p;
           return p;
+        }
+
+        // ---- Recipe-videos popup (3 links per meal) ----
+        // Triggered by the small YouTube button on each weekly meal row.
+        // Inert until clicked. Caches per dish across opens.
+        const _recipe3Cache = {};
+        function openRecipePopup(displayName, dishEn) {
+          // Remove any previously-open popup (only one at a time).
+          document.querySelectorAll(".companion-recipe-modal-scrim").forEach((el) => el.remove());
+
+          const scrim = document.createElement("div");
+          scrim.className = "companion-recipe-modal-scrim";
+
+          const modal = document.createElement("div");
+          modal.className = "companion-recipe-modal";
+
+          const header = document.createElement("div");
+          header.className = "companion-recipe-modal-header";
+          const title = document.createElement("h3");
+          title.textContent = T("aria.recipes.popupTitle", "Recipe videos for") + " " + (displayName || "");
+          header.appendChild(title);
+          const closeBtn = document.createElement("button");
+          closeBtn.type = "button";
+          closeBtn.className = "companion-recipe-modal-close";
+          closeBtn.setAttribute("aria-label", "Close");
+          closeBtn.innerHTML = "&times;";
+          closeBtn.addEventListener("click", () => scrim.remove());
+          header.appendChild(closeBtn);
+          modal.appendChild(header);
+
+          const body = document.createElement("div");
+          body.className = "companion-recipe-modal-body";
+          modal.appendChild(body);
+
+          // Don't let clicks inside the modal bubble up and dismiss it.
+          modal.addEventListener("click", (e) => e.stopPropagation());
+          scrim.addEventListener("click", () => scrim.remove());
+
+          // Escape key dismisses too. Clean up the listener on close.
+          const onKey = (e) => { if (e.key === "Escape") { scrim.remove(); document.removeEventListener("keydown", onKey); } };
+          document.addEventListener("keydown", onKey);
+
+          scrim.appendChild(modal);
+          document.body.appendChild(scrim);
+
+          const setState = (msg) => {
+            body.innerHTML = "";
+            const s = document.createElement("div");
+            s.className = "companion-recipe-modal-state";
+            s.textContent = msg;
+            body.appendChild(s);
+          };
+          const renderVideos = (videos) => {
+            body.innerHTML = "";
+            videos.forEach((v, i) => {
+              const a = document.createElement("a");
+              a.className = "companion-recipe-modal-link";
+              a.href = v.url;
+              a.target = "_blank";
+              a.rel = "noopener noreferrer";
+              a.innerHTML =
+                '<span class="yt-tile">' + ico("youtube") + '</span>' +
+                '<span class="yt-text"><span class="yt-title">' + escapeHtml(v.title || (displayName || "Video " + (i + 1))) + '</span></span>' +
+                ico("externalLink", 'class="yt-ext"');
+              body.appendChild(a);
+            });
+          };
+
+          const cacheKey = String(dishEn || displayName || "").toLowerCase().trim();
+          if (cacheKey && _recipe3Cache[cacheKey]) {
+            renderVideos(_recipe3Cache[cacheKey]);
+            return;
+          }
+          setState(T("aria.recipes.loading3", "Finding 3 plant-based recipe videos…"));
+          fetch("/api/aria/recipes", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dish: dishEn || displayName, count: 3, language: LANG() }),
+          })
+            .then((r) => r.json().catch(() => ({})))
+            .then((data) => {
+              const videos = Array.isArray(data && data.videos) ? data.videos : [];
+              if (!videos.length) {
+                setState(T("aria.recipes.cantReach", "Couldn't reach Aria right now."));
+                return;
+              }
+              if (cacheKey) _recipe3Cache[cacheKey] = videos;
+              renderVideos(videos);
+            })
+            .catch(() => setState(T("aria.recipes.cantReach", "Couldn't reach Aria right now.")));
         }
 
         // ---- RECIPES ----
