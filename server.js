@@ -2557,6 +2557,7 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
       "Also no sugary drinks or juices or tea coffee with sugar. " +
       "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food. " +
+      "If user mentions roti as preference, recommend khapli wheat roti or jowar wheat roti as part of one of the meals. " +
       "ALWAYS reply with valid JSON only — no prose, no markdown code fences.";
 
     const userPrompt = [
@@ -2654,7 +2655,8 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
       "YouTube — use common, popular names (not invented or hyper-specific phrasings). " +
       "Don't recommend oil based food like samosas and pakoras as it increases insulin resistance. " +
       "Also no sugary drinks or juices or tea coffee with sugar. " +
-      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food.";
+      "Don't recommend processed foods like maida or white rice. Always recommend whole foods and grains like millet and brown or red rice based food. " +
+      "If user mentions roti as preference, recommend khapli wheat roti or jowar wheat roti as part of one of the meals.";
 
     const userPrompt = [
       `Build a 1-day plant-based whole-food meal plan for ${day}.`,
@@ -2812,14 +2814,63 @@ async function resolveYoutubeVideo(dish, suggestion, seenIds) {
 const recipeMemoCache = new Map(); // key -> { videos, ts }
 const RECIPE_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24h
 
+// Pull up to `max` unique videoIds from a single YouTube search page.
+// Honours an excludeIds Set so callers can stitch IDs across queries
+// without duplicates. Same User-Agent / consent-cookie / timeout dance
+// as firstYoutubeVideoId so behaviour stays consistent.
+async function multiYoutubeVideoIds(query, max, excludeIds, opts = {}) {
+  const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 4000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const filter = opts.videosOnly === false ? "" : "&sp=EgIQAQ%253D%253D";
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${filter}`;
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        Cookie: "CONSENT=YES+1; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
+      },
+    });
+    if (!resp.ok) return [];
+    const html = await resp.text();
+    const patterns = [
+      /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"compactVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+      /"gridVideoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"/g,
+    ];
+    const ids = [];
+    for (const re of patterns) {
+      let m;
+      while ((m = re.exec(html)) !== null) {
+        const id = m[1];
+        if (excludeIds.has(id)) continue;
+        excludeIds.add(id);
+        ids.push(id);
+        if (ids.length >= max) return ids;
+      }
+    }
+    return ids;
+  } catch (_e) {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
   try {
     const dish = String(req.body?.dish || "").trim();
     if (!dish) {
       return res.status(400).json({ error: "Please send a dish to search for." });
     }
+    // How many videos to return. Default 1 (existing behaviour). Capped at 5.
+    const count = Math.max(1, Math.min(5, parseInt(req.body?.count, 10) || 1));
 
-    const cacheKey = dish.toLowerCase();
+    // Cache key includes count so the 1-video and 3-video shapes don't collide.
+    const cacheKey = `${dish.toLowerCase()}__${count}`;
     const cached = recipeMemoCache.get(cacheKey);
     if (cached && Date.now() - cached.ts < RECIPE_CACHE_TTL_MS) {
       return res.json({ videos: cached.videos });
@@ -2828,31 +2879,41 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
     // Skip the model entirely — the meal-plan prompts already produce
     // popular video-friendly dish names, so we go straight to YouTube
     // with a tight fallback chain. Each fetch has a 4s timeout, and we
-    // bail at the first hit. Worst case: ~12s on Render before falling
-    // back to a search URL; common case: < 1s on the first query.
+    // bail as soon as we have enough video IDs.
     const seen = new Set();
     const queries = [
       `${dish} vegan recipe`,
       `${dish} recipe`,
       dish,
     ];
-    let id = null;
+    const ids = [];
     for (const q of queries) {
-      id = await firstYoutubeVideoId(q, seen, { timeoutMs: 4000 });
-      if (id) break;
+      const need = count - ids.length;
+      if (need <= 0) break;
+      const more = await multiYoutubeVideoIds(q, need, seen, { timeoutMs: 4000 });
+      for (const id of more) {
+        if (ids.length >= count) break;
+        ids.push(id);
+      }
     }
 
-    const url = id
-      ? `https://www.youtube.com/watch?v=${id}`
-      : `https://www.youtube.com/results?search_query=${encodeURIComponent(`${dish} vegan recipe`)}`;
-
-    const videos = [
-      {
+    let videos;
+    if (ids.length) {
+      videos = ids.map((id) => ({
         title: dish,
-        channel: id ? "YouTube" : "YouTube search",
-        url,
-      },
-    ];
+        channel: "YouTube",
+        url: `https://www.youtube.com/watch?v=${id}`,
+      }));
+    } else {
+      // Last-ditch fallback: a single search URL so the popup is never empty.
+      videos = [
+        {
+          title: dish,
+          channel: "YouTube search",
+          url: `https://www.youtube.com/results?search_query=${encodeURIComponent(`${dish} vegan recipe`)}`,
+        },
+      ];
+    }
 
     recipeMemoCache.set(cacheKey, { videos, ts: Date.now() });
     return res.json({ videos });
