@@ -414,6 +414,55 @@ async function initDb() {
       ADD CONSTRAINT journal_entries_category_check
       CHECK (category IN ('food','exercise','sleep','mood','blood_sugar','blood_pressure'))
   `);
+
+  // ── Aria weekly meal plans (one row per generation; history kept) ─
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS aria.meal_plan_weekly (
+      id          BIGSERIAL PRIMARY KEY,
+      user_id     TEXT NOT NULL,
+      user_type   TEXT,
+      user_email  TEXT,
+      user_name   TEXT,
+      cuisine     TEXT,
+      food_like   TEXT,
+      food_avoid  TEXT,
+      plan        JSONB NOT NULL,
+      client_lang TEXT,
+      created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_meal_plan_weekly_user_created
+      ON aria.meal_plan_weekly (user_id, created_at DESC)
+  `);
+
+  // ── Aria daily meal plans (at most one per user per calendar date;
+  //     upserted whenever the user explicitly regenerates today's plan) ─
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS aria.meal_plan_daily (
+      id                BIGSERIAL PRIMARY KEY,
+      user_id           TEXT NOT NULL,
+      user_type         TEXT,
+      user_email        TEXT,
+      user_name         TEXT,
+      plan_date         DATE NOT NULL,
+      cuisine           TEXT,
+      food_like         TEXT,
+      food_avoid        TEXT,
+      today_preference  TEXT,
+      excluded_meals    JSONB,
+      plan              JSONB NOT NULL,
+      source            TEXT,
+      client_lang       TEXT,
+      created_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      CONSTRAINT meal_plan_daily_user_date_unique UNIQUE (user_id, plan_date)
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_meal_plan_daily_user_date
+      ON aria.meal_plan_daily (user_id, plan_date DESC)
+  `);
 }
 
 async function incrementPhoneUserCount() {
@@ -2631,6 +2680,33 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
       plan[day] = dayPlan;
     }
 
+    // Persist the generated plan as a history row. Non-fatal on error —
+    // the user already has their plan in the response.
+    try {
+      const userId = getAuthUserId(req.user);
+      if (userId) {
+        const language = String(req.body?.language || "").trim();
+        await pool.query(
+          `INSERT INTO aria.meal_plan_weekly
+             (user_id, user_type, user_email, user_name, cuisine, food_like, food_avoid, plan, client_lang)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9)`,
+          [
+            userId,
+            getAuthUserType(req.user),
+            req.user?.email ? String(req.user.email).slice(0, 320) : null,
+            req.user?.name ? String(req.user.name).slice(0, 200) : null,
+            cuisine || null,
+            like || null,
+            avoid || null,
+            JSON.stringify(plan),
+            language || null,
+          ],
+        );
+      }
+    } catch (saveErr) {
+      console.error("Save aria.meal_plan_weekly failed (non-fatal):", saveErr);
+    }
+
     return res.json({ plan });
   } catch (err) {
     console.error("Aria meal-plan-weekly failed:", err);
@@ -2713,6 +2789,54 @@ app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
     for (const slot of WEEKLY_PLAN_SLOTS) {
       dayPlan[slot] = normaliseMealValue(parsed[slot]);
     }
+
+    // Upsert the regenerated day's plan — at most one row per
+    // (user_id, plan_date). Re-running today's "Generate a different
+    // plan" updates the same row. Non-fatal on error.
+    try {
+      const userId = getAuthUserId(req.user);
+      if (userId) {
+        const language = String(req.body?.language || "").trim();
+        await pool.query(
+          `INSERT INTO aria.meal_plan_daily
+             (user_id, user_type, user_email, user_name, plan_date,
+              cuisine, food_like, food_avoid, today_preference,
+              excluded_meals, plan, source, client_lang)
+           VALUES ($1, $2, $3, $4, CURRENT_DATE,
+                   $5, $6, $7, $8,
+                   $9::jsonb, $10::jsonb, 'regenerated', $11)
+           ON CONFLICT ON CONSTRAINT meal_plan_daily_user_date_unique DO UPDATE SET
+             cuisine          = EXCLUDED.cuisine,
+             food_like        = EXCLUDED.food_like,
+             food_avoid       = EXCLUDED.food_avoid,
+             today_preference = EXCLUDED.today_preference,
+             excluded_meals   = EXCLUDED.excluded_meals,
+             plan             = EXCLUDED.plan,
+             source           = EXCLUDED.source,
+             client_lang      = EXCLUDED.client_lang,
+             user_type        = EXCLUDED.user_type,
+             user_email       = EXCLUDED.user_email,
+             user_name        = EXCLUDED.user_name,
+             updated_at       = NOW()`,
+          [
+            userId,
+            getAuthUserType(req.user),
+            req.user?.email ? String(req.user.email).slice(0, 320) : null,
+            req.user?.name ? String(req.user.name).slice(0, 200) : null,
+            cuisine || null,
+            like || null,
+            avoid || null,
+            todayPreference || null,
+            JSON.stringify(exclude || []),
+            JSON.stringify(dayPlan),
+            language || null,
+          ],
+        );
+      }
+    } catch (saveErr) {
+      console.error("Save aria.meal_plan_daily failed (non-fatal):", saveErr);
+    }
+
     return res.json({ day, plan: dayPlan });
   } catch (err) {
     console.error("Aria meal-plan-day failed:", err);
