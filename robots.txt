@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# API endpoints are not content — no point wasting crawl budget.
+Disallow: /api/
+Disallow: /auth/google/
+
+Sitemap: https://stillwater.you/sitemap.xml
