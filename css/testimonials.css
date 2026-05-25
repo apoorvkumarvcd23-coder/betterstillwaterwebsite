@@ -52,13 +52,6 @@ body {
   gap: 1rem;
 }
 
-.top-brand .brand-image { display: block; height: 2.4rem; width: auto; }
-.hero-brand-image { display: block; margin: 0 auto 1.2rem; height: 4rem; width: auto; }
-@media (max-width: 720px) {
-  .top-brand .brand-image { height: 2rem; }
-  .hero-brand-image { height: 3.2rem; }
-}
-
 .top-brand {
   order: -1;
   display: inline-flex;

@@ -146,9 +146,6 @@
   .footer-left{max-width:380px;}
   .footer-left .brand{color:var(--paper);}
   .footer-left .brand span{color:var(--clay-soft);}
-  /* Dark footer bg: invert dark-green logo ink to white silhouette so the
-     image stays visible. (Trade-off: loses the green/orange split.) */
-  .footer-left .brand > img{height:2.4rem;filter:brightness(0) invert(1);opacity:.95;}
   .footer-left p{font-size:.92rem;color:rgba(244,241,234,.7);margin:14px 0 22px;}
   .footer-social{display:flex;gap:14px;}
   .footer-social a{width:40px;height:40px;border-radius:50%;border:1px solid rgba(244,241,234,.28);display:grid;place-items:center;color:rgba(244,241,234,.8);transition:background .25s,color .25s,transform .25s;}
@@ -295,7 +292,7 @@
 <footer>
   <div class="footer-top">
     <div class="footer-left">
-      <a href="index.html" class="brand"><img src="images/stilwater-logov3.png" alt="Stilwater" /></a>
+      <a href="index.html" class="brand">Stil<span>water</span></a>
       <p data-i18n="footer.tagline">Your AI companion for personal health &mdash; personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.</p>
       <div class="footer-social">
         <a href="https://www.instagram.com/Stilwater_Official" target="_blank" rel="noopener" aria-label="Instagram">

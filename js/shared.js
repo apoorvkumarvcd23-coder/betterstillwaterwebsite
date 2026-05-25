@@ -153,7 +153,7 @@ document.addEventListener("DOMContentLoaded", () => {
         footer.innerHTML = `
           <div class="footer-top">
             <div class="footer-left">
-              <a href="index.html" class="brand"><img src="images/stilwater-logov3.png" alt="Stilwater" style="display:block;height:2.4rem;width:auto;filter:brightness(0) invert(1);opacity:.95;" /></a>
+              <a href="index.html" class="brand">Stil<span>water</span></a>
               <p data-i18n="footer.tagline">Your AI companion for personal health — personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.</p>
               <div class="footer-social">
                 <a href="https://www.instagram.com/Stilwater_Official" target="_blank" rel="noopener" aria-label="Instagram">
