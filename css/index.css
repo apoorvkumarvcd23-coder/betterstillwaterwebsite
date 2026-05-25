@@ -1843,3 +1843,19 @@ footer.footer .header-logo {
   }
 }
 
+/* Header brand: image-based logo (replaces the two-tone "Stilwater"
+   text wordmark). Scoped to <img> direct children, so the footer
+   .brand which still contains text + <span> is unaffected. */
+.header-logo img,
+.brand > img {
+  display: block;
+  height: 2.4rem;
+  width: auto;
+}
+@media (max-width: 720px) {
+  .header-logo img,
+  .brand > img {
+    height: 2rem;
+  }
+}
+

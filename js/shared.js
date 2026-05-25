@@ -245,6 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <li><a href="terms-of-use.html">Terms of Use</a></li>
           <li><a href="medical-disclaimer.html">Health Warning / Medical Disclaimer</a></li>
           <li><a href="testimonials.html">Testimonials</a></li>
+          <li><a href="blog.html">Blog</a></li>
           <!-- <li><a href="careers.html">Careers</a></li> -->
         </ul>
       `;
@@ -651,16 +652,12 @@ document.addEventListener("DOMContentLoaded", () => {
         // Label is always "Continue Care Path" regardless of auth state;
         // only the target changes (smart-routed to the right place).
         let intakeTarget;
-        if (user.hasCompletedAssessment) {
-          if (onCarePath) {
-            intakeTarget = "/";
-          } else {
-            intakeTarget = latestSubmissionId
-              ? `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`
-              : "/care-path.html";
-          }
+        if (onCarePath) {
+          intakeTarget = "/";
+        } else if (user.hasCompletedAssessment && latestSubmissionId) {
+          intakeTarget = `/care-path.html?submissionId=${encodeURIComponent(latestSubmissionId)}`;
         } else {
-          intakeTarget = "/intake.html";
+          intakeTarget = "/care-path.html";
         }
         const intakeLabelKey = "auth.continueCarePath";
         const tx = (k, fb) => (window.SwI18n && window.SwI18n.t) ? window.SwI18n.t(k, fb) : fb;
