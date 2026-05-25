@@ -52,8 +52,9 @@
   nav{position:fixed;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;justify-content:space-between;padding:22px clamp(20px,5vw,64px);background:rgba(244,241,234,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line);}
   .brand{font-family:var(--display);font-size:1.45rem;font-weight:500;letter-spacing:.5px;color:var(--moss);text-decoration:none;display:inline-flex;align-items:center;}
   .brand span{color:var(--clay);}
-  .brand > img{display:block;height:2rem;width:auto;}
-  @media (max-width:720px){ .brand > img{height:1.7rem;} }
+  .brand > img{display:block;height:2.4rem;width:auto;}
+  .welcome-brand > img{display:block;height:2.6rem;width:auto;margin:0 auto;}
+  @media (max-width:720px){ .brand > img{height:2rem;} .welcome-brand > img{height:2.2rem;} }
   .nav-links{display:flex;gap:28px;align-items:center;}
   .nav-links a{color:var(--ink-soft);text-decoration:none;font-size:.92rem;letter-spacing:.3px;transition:color .25s;}
   .nav-links a:hover{color:var(--moss);}
@@ -188,7 +189,7 @@
 <body>
 
 <nav>
-  <a href="index.html" class="brand"><img src="images/stilwater-logo-v2.jpg" alt="Stilwater" /></a>
+  <a href="index.html" class="brand"><img src="images/stilwater-logov3.png" alt="Stilwater" /></a>
   <div class="nav-links">
     <a href="#how" data-i18n="nav.howItWorks">How it works</a>
     <a href="#features" data-i18n="nav.features">Features</a>
@@ -327,7 +328,7 @@
 <div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="welcome-card">
     <button class="welcome-close" id="welcomeClose" aria-label="Close">&times;</button>
-    <div class="welcome-brand" aria-hidden="true">Stil<span>water</span></div>
+    <div class="welcome-brand" aria-hidden="true"><img src="images/stilwater-logov3.png" alt="Stilwater" /></div>
     <div class="eyebrow" data-i18n="welcome.eyebrow">Your AI companion</div>
     <h2 id="welcomeTitle"><span data-i18n="welcome.titleA">Hello, I'm</span> <span class="em">Aria</span> <span data-i18n="welcome.titleB">&mdash; your AI companion for personal health.</span></h2>
     <p data-i18n="welcome.subtitle">To start, please log in.</p>

@@ -1849,13 +1849,13 @@ footer.footer .header-logo {
 .header-logo img,
 .brand > img {
   display: block;
-  height: 2rem;
+  height: 2.4rem;
   width: auto;
 }
 @media (max-width: 720px) {
   .header-logo img,
   .brand > img {
-    height: 1.7rem;
+    height: 2rem;
   }
 }
 
