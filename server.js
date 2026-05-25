@@ -545,13 +545,16 @@ const getDefaultPostAuthRedirectForUser = async (user) => {
     return "/admin.html";
   }
 
-  // Include submissionId so care-path.html can fetch the saved flags and
-  // render the matching recommendation cards on repeat logins.
+  // Always go directly to /care-path on login. If the user has a
+  // completed wellness assessment, include its id so the page can
+  // render the personalized recommendation cards. Otherwise just
+  // open the bare care-path — the user can take the assessment
+  // later from the sidebar "Take Wellness Assessment" link.
   const latest = await getLatestCompletedAssessmentForUser(user);
   if (latest && latest.id) {
     return `${CUSTOMER_CARE_PATH_REDIRECT}?submissionId=${encodeURIComponent(String(latest.id))}`;
   }
-  return CUSTOMER_ASSESSMENT_REDIRECT;
+  return CUSTOMER_CARE_PATH_REDIRECT;
 };
 
 const resolvePostAuthRedirect = async (value, user) => {

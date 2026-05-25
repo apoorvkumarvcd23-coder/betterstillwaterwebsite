@@ -80,8 +80,8 @@
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
 
     // Home hero
-    "home.heroEyebrow": { en: "Your AI companion for Managing Diabetes using Holistic Methods", hi: "समग्र विधियों से मधुमेह प्रबंधन के लिए आपकी AI साथी" },
-    "home.heroTitleA": { en: "Managing a diabetes condition,", hi: "मधुमेह की स्थिति को संभालना —" },
+    "home.heroEyebrow": { en: "Your AI companion for Healthy Living", hi: "स्वस्थ जीवन के लिए आपका AI साथी" },
+    "home.heroTitleA": { en: "Living Healthy,", hi: "स्वस्थ जीवन —" },
     "home.heroTitleB": { en: "one good day at a time.", hi: "एक-एक अच्छा दिन।" },
     "home.heroSub": {
       en: "Living with diabetes or hypertension? Stilwater builds you a personalized diet, lifestyle, and exercise routine — complete with recipe links — so you can take steady, daily steps toward managing your condition and living well.",
@@ -149,6 +149,7 @@
     "carepath.yourPath": { en: "Your Care Path", hi: "आपका केयर पाथ" },
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
+    "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
 
     // Aria companion shell
     "aria.greeting": { en: "Hi, Aria here", hi: "नमस्ते, मैं Aria हूँ" },
