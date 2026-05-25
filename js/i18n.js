@@ -139,6 +139,7 @@
     "footer.terms": { en: "Terms of Use", hi: "उपयोग की शर्तें" },
     "footer.medical": { en: "Health Warning / Medical Disclaimer", hi: "स्वास्थ्य चेतावनी / चिकित्सकीय अस्वीकरण" },
     "footer.testimonials": { en: "Testimonials", hi: "प्रशंसापत्र" },
+    "footer.blog": { en: "Blog", hi: "ब्लॉग" },
     "footer.copyright": { en: "© 2026 Stilwater. All rights reserved.", hi: "© 2026 Stilwater। सर्वाधिकार सुरक्षित।" },
     "footer.tagline": {
       en: "Your AI companion for personal health — personalized diet, lifestyle, and exercise guidance for living well with a chronic condition.",
