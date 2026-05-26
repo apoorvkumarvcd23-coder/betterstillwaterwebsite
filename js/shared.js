@@ -767,5 +767,8 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     });
   }
+
+  // GA event tracking lives in js/ga-events.js so it loads on every page
+  // (including ones that don't include shared.js, e.g. intake.html).
 });
 

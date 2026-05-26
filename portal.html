@@ -30,8 +30,11 @@
         }
       }
     </style>
-    <!-- Google tag (gtag.js) — prod only -->
+    <!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
     <script>
+      window.dataLayer = window.dataLayer || [];
+      window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
+      gtag('js', new Date());
       (function(){
         var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
         if (prodHosts.indexOf(location.hostname) === -1) return;
@@ -39,14 +42,11 @@
         s.async = true;
         s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
         document.head.appendChild(s);
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        window.gtag = gtag;
-        gtag('js', new Date());
         gtag('config', 'G-3YFE71RLJZ');
-    gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GP7VFJF628');
       })();
     </script>
+    <script src="js/ga-events.js" defer></script>
 <!-- Microsoft Clarity (prod only) -->
 <script type="text/javascript">
   (function(){
