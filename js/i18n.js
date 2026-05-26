@@ -151,6 +151,7 @@
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
+    "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell
     "aria.greeting": { en: "Hi, Aria here", hi: "नमस्ते, मैं Aria हूँ" },

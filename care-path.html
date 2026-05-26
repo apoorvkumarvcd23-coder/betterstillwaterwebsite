@@ -1369,6 +1369,58 @@
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
       }
+
+      /* AI Driven Meditation modal (iframes stillwater-seven.vercel.app inside the app) */
+      .meditation-modal-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        background: rgba(15, 25, 24, 0.72);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+      }
+      .meditation-modal-overlay[hidden] { display: none; }
+      .meditation-modal-card {
+        position: relative;
+        width: min(96vw, 1280px);
+        height: min(92vh, 860px);
+        background: var(--color-bg-secondary, #fff);
+        border-radius: 18px;
+        overflow: hidden;
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+      .meditation-modal-card .modal-close {
+        position: absolute;
+        top: 10px;
+        right: 12px;
+        z-index: 5;
+        width: 34px;
+        height: 34px;
+        border: 1px solid rgba(47, 72, 66, 0.22);
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 999px;
+        font-size: 1.4rem;
+        line-height: 1;
+        color: #1c2a2a;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+      }
+      .meditation-modal-card .modal-close:hover { transform: scale(1.06); }
+      .meditation-frame {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border: 0;
+      }
+      @media (max-width: 720px) {
+        .meditation-modal-overlay { padding: 8px; }
+        .meditation-modal-card { width: 100vw; height: 100vh; border-radius: 0; }
+      }
     </style>
     <!-- Google tag (gtag.js) — prod only -->
     <script>
@@ -1554,6 +1606,14 @@
           </svg>
           <span data-i18n="carepath.wellnessAssessment">Take Wellness Assessment</span>
         </a>
+        <button type="button" class="care-sidebar-item" id="btnMeditation">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <circle cx="12" cy="12" r="3"/>
+            <circle cx="12" cy="12" r="6.5"/>
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
+          <span data-i18n="carepath.meditation">AI Driven Meditation</span>
+        </button>
       </aside>
       <div class="care-stage">
       <section class="care-head">
@@ -1762,6 +1822,22 @@
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
         </div>
+      </div>
+    </div>
+
+    <!-- AI Driven Meditation — opens stillwater-seven.vercel.app inside an in-app modal -->
+    <div class="modal-overlay meditation-modal-overlay" id="meditationModal" hidden>
+      <div class="meditation-modal-card" id="meditationModalCard" role="dialog" aria-modal="true" aria-label="AI Driven Meditation">
+        <button type="button" class="modal-close" id="meditationModalClose" aria-label="Close">&times;</button>
+        <iframe
+          id="meditationFrame"
+          class="meditation-frame"
+          src="about:blank"
+          allow="autoplay; microphone; camera; clipboard-read; clipboard-write; fullscreen"
+          allowfullscreen
+          referrerpolicy="no-referrer-when-downgrade"
+          title="AI Driven Meditation"
+        ></iframe>
       </div>
     </div>
 
@@ -2098,6 +2174,37 @@
         ].forEach((btn) => btn && btn.addEventListener("click", open));
         if (close) close.addEventListener("click", hide);
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
+      })();
+
+      // ── AI Driven Meditation -> in-app iframe modal ──────────────────
+      (function () {
+        const MEDITATION_URL = "https://stillwater-seven.vercel.app/";
+        const openBtn = document.getElementById("btnMeditation");
+        const overlay = document.getElementById("meditationModal");
+        const closeBtn = document.getElementById("meditationModalClose");
+        const frame = document.getElementById("meditationFrame");
+        if (!openBtn || !overlay || !frame) return;
+
+        let previousBodyOverflow = "";
+        const open = () => {
+          // Load the URL on first open; reuse the loaded frame afterwards so
+          // the meditation session keeps its state if the user re-opens it.
+          if (frame.src !== MEDITATION_URL) frame.src = MEDITATION_URL;
+          overlay.hidden = false;
+          previousBodyOverflow = document.body.style.overflow;
+          document.body.style.overflow = "hidden";
+        };
+        const close = () => {
+          overlay.hidden = true;
+          document.body.style.overflow = previousBodyOverflow;
+        };
+
+        openBtn.addEventListener("click", open);
+        closeBtn.addEventListener("click", close);
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !overlay.hidden) close();
+        });
       })();
 
       // ── Mobile sidebar drawer ────────────────────────────────────────
