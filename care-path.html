@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Choose Your Care Path | Stillwater</title>
     <link rel="stylesheet" href="css/index.css" />
+    <!-- LemonSlice widget (used by the Tadasana yoga modal's "Tap to talk" pill) -->
+    <script type="module" src="https://unpkg.com/@lemonsliceai/lemon-slice-widget"></script>
     <style>
       body {
         min-height: 100vh;
@@ -516,6 +518,91 @@
         width: 14px;
         height: 14px;
       }
+      .yoga-intro-card { width: min(720px, 100%); }
+      .yoga-pose-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.85rem;
+        margin-top: 0.5rem;
+      }
+      .yoga-pose-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.95rem 1rem;
+        border-radius: 14px;
+        background: rgba(95, 179, 179, 0.08);
+        border: 1px solid rgba(95, 179, 179, 0.22);
+      }
+      .yoga-pose-title { display: flex; flex-direction: column; gap: 0.2rem; }
+      .yoga-pose-title strong { font-size: 0.98rem; color: var(--color-text-primary); }
+      .yoga-pose-title span {
+        font-size: 0.82rem;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.01em;
+      }
+      .yoga-pose-card .yoga-beta-cta { align-self: flex-start; }
+
+      /* Tadasana avatar "Tap to talk" pill + LemonSlice widget container */
+      .static-avatar-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.45rem 0.75rem 0.45rem 0.45rem;
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        border-radius: 999px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.35s ease, box-shadow 0.2s ease;
+      }
+      .static-avatar-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
+      }
+      .static-avatar-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
+      .static-avatar-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        padding-right: 0.25rem;
+      }
+      .static-avatar-pulse {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #2ecc71;
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.55);
+        animation: avatarPulse 1.6s infinite;
+      }
+      @keyframes avatarPulse {
+        0%   { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0.55); }
+        70%  { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);   }
+        100% { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0);   }
+      }
+      .static-avatar-hidden { opacity: 0; pointer-events: none; }
+      .lemon-hidden { display: none !important; }
+      .static-avatar-btn[hidden] { display: none !important; }
+      #lemonWidgetContainer {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+      }
 
       .yoga-modal-overlay {
         padding: 1rem;
@@ -614,6 +701,10 @@
       }
       .yoga-choice-primary svg { width: 14px; height: 14px; }
       .yoga-choice-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
         background: transparent;
         color: var(--color-text-secondary);
         border: 1px solid rgba(47, 72, 66, 0.18);
@@ -622,6 +713,7 @@
         font-size: 0.9rem;
         cursor: pointer;
       }
+      .yoga-choice-secondary svg { width: 14px; height: 14px; flex-shrink: 0; }
       .yoga-choice-secondary:hover {
         color: var(--color-text-primary);
         border-color: rgba(47, 72, 66, 0.4);
@@ -1370,7 +1462,7 @@
         to { opacity: 1; transform: translateY(0); }
       }
 
-      /* AI Driven Meditation modal (iframes stillwater-seven.vercel.app inside the app) */
+      /* AI Driven Meditation modal (iframes stillwater-frontend.onrender.com inside the app) */
       .meditation-modal-overlay {
         position: fixed;
         inset: 0;
@@ -1748,7 +1840,7 @@
 
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
     <div class="modal-overlay" id="yogaIntroModal" hidden>
-      <div class="modal-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
+      <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
         <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
         <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
           <div class="yoga-beta-head">
@@ -1758,12 +1850,112 @@
           <p>
             We are building an AI avatar that will help you practice yoga asanas for managing chronic conditions. Please share your feedback and suggestions for improvement.
           </p>
-          <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Try the AI Coach
-          </button>
+          <div class="yoga-pose-grid">
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Practice Yoga Asanas with AI</strong>
+                <span>(Tadasana &mdash; Mountain Pose)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Try the AI Coach
+              </button>
+            </div>
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Practice Yoga Asanas with AI</strong>
+                <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Try the AI Coach
+              </button>
+            </div>
+          </div>
         </section>
       </div>
+    </div>
+
+    <!-- Balasana — same three-stage flow as Tadasana (video guide -> choice -> iframe) -->
+    <div class="modal-overlay yoga-modal-overlay" id="balasanaModal" hidden>
+      <div class="yoga-modal-card" id="balasanaModalCard">
+        <button type="button" class="yoga-back" id="balasanaBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span id="balasanaBackLabel">Back</span>
+        </button>
+        <button type="button" class="yoga-back-carepath" id="balasanaBackCarepath" hidden>
+          Back to Care Path
+        </button>
+        <button type="button" class="modal-close" id="balasanaModalClose" aria-label="Close">&times;</button>
+
+        <div class="yoga-stage" id="balasanaStageVideo">
+          <button type="button" class="yoga-skip" id="balasanaSkip" aria-label="Skip Guide">
+            Skip Guide
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <video
+            id="balasanaVideo"
+            class="yoga-video"
+            playsinline
+            controls
+            preload="metadata"
+            src="videos/Childs-Pose-Stretch2.mp4"
+          ></video>
+          <div class="yoga-stage-caption">
+            <strong>Balasana &mdash; Child&rsquo;s Pose</strong>
+            <span>Watch the short guide, then choose how you&rsquo;d like to continue.</span>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-choice" id="balasanaStageChoice" hidden>
+          <div class="yoga-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <h3>What&rsquo;s next?</h3>
+          <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
+          <div class="yoga-choice-actions">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="balasanaPracticeNow">
+              Practice Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="balasanaRestart">
+              Restart Video
+            </button>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-frame-stage" id="balasanaStageFrame" hidden>
+          <iframe
+            id="balasanaFrame"
+            class="yoga-frame"
+            title="Practice Balasana with AI pose detection"
+            allow="camera; microphone; fullscreen"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tadasana avatar — static "Tap to talk" pill + LemonSlice widget (mounts when activated) -->
+    <button id="staticAvatarBtn" class="static-avatar-btn" type="button" hidden
+            aria-label="Tap to start a call with your AI yoga assistant">
+      <img src="images/yoga-avatar.jpg" alt="" class="static-avatar-img" />
+      <span class="static-avatar-label">
+        <span class="static-avatar-pulse"></span>
+        Tap to talk
+      </span>
+    </button>
+    <div id="lemonWidgetContainer" class="lemon-hidden">
+      <lemon-slice-widget
+        id="lemonSliceWidget"
+        agent-id="agent_77081533e48ba693"
+        custom-minimized-width="144"
+        custom-minimized-height="216"
+        custom-active-width="195"
+        custom-active-height="295"
+        show-minimize-button="true"
+        initial-state="active">
+      </lemon-slice-widget>
     </div>
 
     <div class="modal-overlay yoga-modal-overlay" id="yogaModal" hidden>
@@ -1803,12 +1995,16 @@
           <h3>What&rsquo;s next?</h3>
           <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
           <div class="yoga-choice-actions">
-            <button type="button" class="btn btn-solid yoga-choice-primary" id="yogaPracticeNow">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="yogaTalkAvatar">
+              Talk with the AI Agent
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaPracticeNow">
               Practice Now
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
             <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaRestart">
-              Restart Video
+              Repeat Video
             </button>
           </div>
         </div>
@@ -1825,7 +2021,7 @@
       </div>
     </div>
 
-    <!-- AI Driven Meditation — opens stillwater-seven.vercel.app inside an in-app modal -->
+    <!-- AI Driven Meditation — opens stillwater-frontend.onrender.com inside an in-app modal -->
     <div class="modal-overlay meditation-modal-overlay" id="meditationModal" hidden>
       <div class="meditation-modal-card" id="meditationModalCard" role="dialog" aria-modal="true" aria-label="AI Driven Meditation">
         <button type="button" class="modal-close" id="meditationModalClose" aria-label="Close">&times;</button>
@@ -2073,10 +2269,80 @@
         const frame = document.getElementById("yogaFrame");
         const practiceBtn = document.getElementById("yogaPracticeNow");
         const restartBtn = document.getElementById("yogaRestart");
+        const talkAvatarBtn = document.getElementById("yogaTalkAvatar");
+
+        // LemonSlice avatar pieces
+        const avatarPill = document.getElementById("staticAvatarBtn");
+        const lemonContainer = document.getElementById("lemonWidgetContainer");
+        const lemonWidget = document.getElementById("lemonSliceWidget");
 
         if (!openBtn || !overlay) return;
 
         let currentStage = "video";
+        let agentActivated = false;
+
+        const showAvatarPill = (visible) => {
+          if (!avatarPill) return;
+          if (visible) {
+            avatarPill.hidden = false;
+            avatarPill.classList.remove("static-avatar-hidden");
+          } else {
+            avatarPill.hidden = true;
+          }
+        };
+
+        // Activate the LemonSlice agent — hides the pill, shows the widget,
+        // and tries to auto-start mic + unmute so the user goes straight into
+        // a call. Mirrors the reference repo's activateAgent().
+        const activateAgent = async () => {
+          if (agentActivated) return;
+          agentActivated = true;
+          if (avatarPill) {
+            avatarPill.classList.add("static-avatar-hidden");
+            setTimeout(() => { avatarPill.hidden = true; }, 350);
+          }
+          if (lemonContainer) lemonContainer.classList.remove("lemon-hidden");
+          if (!lemonWidget) return;
+          try {
+            let tries = 0;
+            while (typeof lemonWidget.micOn !== "function" && tries < 40) {
+              await new Promise((r) => setTimeout(r, 100));
+              tries++;
+            }
+            if (typeof lemonWidget.micOn === "function") {
+              await lemonWidget.micOn();
+            }
+            if (typeof lemonWidget.unmute === "function") {
+              await lemonWidget.unmute();
+            }
+          } catch (err) {
+            console.warn("Auto-start agent failed:", err);
+          }
+        };
+
+        // Tear the agent down when the modal closes so the widget doesn't
+        // keep rendering (or recording) on top of care-path. Tries every
+        // teardown method the widget might expose, then hides the container
+        // and resets the activation flag so the next open starts clean.
+        const teardownAgent = () => {
+          if (lemonWidget) {
+            ["endCall", "disconnect", "hangup", "stop", "micOff", "mute"].forEach((m) => {
+              try {
+                if (typeof lemonWidget[m] === "function") lemonWidget[m]();
+              } catch (_e) {}
+            });
+          }
+          if (lemonContainer) lemonContainer.classList.add("lemon-hidden");
+          agentActivated = false;
+        };
+
+        // Video end / Skip both land on the choice stage where the user
+        // picks one of the three options (Talk with agent / Practice Now /
+        // Repeat Video). The avatar pill stays visible in the corner so
+        // they can also start the call from there at any time.
+        const handleVideoFinished = () => {
+          showStage("choice");
+        };
 
         const showStage = (which) => {
           currentStage = which;
@@ -2096,6 +2362,134 @@
           backCarepathBtn.hidden = which !== "frame";
 
           // Skip only makes sense while the guide video is playing.
+          skipBtn.hidden = which !== "video";
+
+          // Avatar pill shows on video + choice stages; hidden once the user
+          // is in the pose-detection iframe (avoids occluding the practice
+          // surface). If the agent was already activated, the widget is
+          // visible instead — leave it alone.
+          if (!agentActivated) {
+            showAvatarPill(which === "video" || which === "choice");
+          }
+        };
+
+        const openModal = () => {
+          overlay.hidden = false;
+          showStage("video");
+          document.body.style.overflow = "hidden";
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const closeModal = () => {
+          overlay.hidden = true;
+          document.body.style.overflow = "";
+          try { video.pause(); } catch (_e) {}
+          frame.removeAttribute("src");
+          showAvatarPill(false);
+          teardownAgent();
+        };
+
+        const restartVideo = () => {
+          showStage("video");
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const launchPractice = () => {
+          frame.src = POSE_APP_URL;
+          showStage("frame");
+        };
+
+        const handleBack = () => {
+          if (currentStage === "video") {
+            closeModal();
+          } else if (currentStage === "choice") {
+            restartVideo();
+          } else if (currentStage === "frame") {
+            // One step back to the choice popup; iframe is discarded so it
+            // re-loads fresh if the user picks Practice Now again.
+            frame.removeAttribute("src");
+            showStage("choice");
+          }
+        };
+
+        openBtn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        backBtn.addEventListener("click", handleBack);
+        backCarepathBtn.addEventListener("click", closeModal);
+        skipBtn.addEventListener("click", () => {
+          try { video.pause(); } catch (_e) {}
+          handleVideoFinished();
+        });
+        video.addEventListener("ended", handleVideoFinished);
+        restartBtn.addEventListener("click", restartVideo);
+        practiceBtn.addEventListener("click", launchPractice);
+        if (talkAvatarBtn) talkAvatarBtn.addEventListener("click", activateAgent);
+        if (avatarPill) avatarPill.addEventListener("click", activateAgent);
+
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) closeModal();
+        });
+      })();
+
+      // ── "Practice yoga with AI" -> yoga intro modal ──────────────────
+      (function () {
+        const modal = document.getElementById("yogaIntroModal");
+        const close = document.getElementById("yogaIntroClose");
+        if (!modal) return;
+        const open = () => { modal.hidden = false; };
+        const hide = () => { modal.hidden = true; };
+        [
+          document.getElementById("btnYoga"),
+          document.getElementById("btnYogaSidebar"),
+        ].forEach((btn) => btn && btn.addEventListener("click", open));
+        if (close) close.addEventListener("click", hide);
+        modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
+      })();
+
+      // ── Balasana — mirrors the Tadasana three-stage flow ─────────────
+      (function () {
+        const POSE_APP_URL = "https://static-chisld-pose-detection.onrender.com/";
+
+        const openBtn = document.getElementById("yogaBalasanaOpen");
+        const overlay = document.getElementById("balasanaModal");
+        const card = document.getElementById("balasanaModalCard");
+        const closeBtn = document.getElementById("balasanaModalClose");
+        const backBtn = document.getElementById("balasanaBack");
+        const backLabel = document.getElementById("balasanaBackLabel");
+        const backCarepathBtn = document.getElementById("balasanaBackCarepath");
+        const skipBtn = document.getElementById("balasanaSkip");
+        const stageVideo = document.getElementById("balasanaStageVideo");
+        const stageChoice = document.getElementById("balasanaStageChoice");
+        const stageFrame = document.getElementById("balasanaStageFrame");
+        const video = document.getElementById("balasanaVideo");
+        const frame = document.getElementById("balasanaFrame");
+        const practiceBtn = document.getElementById("balasanaPracticeNow");
+        const restartBtn = document.getElementById("balasanaRestart");
+
+        if (!openBtn || !overlay) return;
+
+        let currentStage = "video";
+
+        const showStage = (which) => {
+          currentStage = which;
+          stageVideo.hidden = which !== "video";
+          stageChoice.hidden = which !== "choice";
+          stageFrame.hidden = which !== "frame";
+          card.classList.toggle("yoga-modal-fullbleed", which === "frame");
+
+          if (which === "video") backLabel.textContent = "Back to Care Path";
+          else if (which === "choice") backLabel.textContent = "Back";
+          else if (which === "frame") backLabel.textContent = "Back";
+
+          backCarepathBtn.hidden = which !== "frame";
           skipBtn.hidden = which !== "video";
         };
 
@@ -2137,8 +2531,6 @@
           } else if (currentStage === "choice") {
             restartVideo();
           } else if (currentStage === "frame") {
-            // One step back to the choice popup; iframe is discarded so it
-            // re-loads fresh if the user picks Practice Now again.
             frame.removeAttribute("src");
             showStage("choice");
           }
@@ -2161,24 +2553,9 @@
         });
       })();
 
-      // ── "Practice yoga with AI" -> yoga intro modal ──────────────────
-      (function () {
-        const modal = document.getElementById("yogaIntroModal");
-        const close = document.getElementById("yogaIntroClose");
-        if (!modal) return;
-        const open = () => { modal.hidden = false; };
-        const hide = () => { modal.hidden = true; };
-        [
-          document.getElementById("btnYoga"),
-          document.getElementById("btnYogaSidebar"),
-        ].forEach((btn) => btn && btn.addEventListener("click", open));
-        if (close) close.addEventListener("click", hide);
-        modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
-      })();
-
       // ── AI Driven Meditation -> in-app iframe modal ──────────────────
       (function () {
-        const MEDITATION_URL = "https://stillwater-seven.vercel.app/";
+        const MEDITATION_URL = "https://stillwater-frontend.onrender.com/";
         const openBtn = document.getElementById("btnMeditation");
         const overlay = document.getElementById("meditationModal");
         const closeBtn = document.getElementById("meditationModalClose");
