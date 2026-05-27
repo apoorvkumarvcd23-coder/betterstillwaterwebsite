@@ -1674,7 +1674,7 @@
           </svg>
         </button>
         <div class="care-sidebar-title" data-i18n="carepath.yourPath">Your Care Path</div>
-        <a class="care-sidebar-item" href="partners.html">
+        <a class="care-sidebar-item" href="partners.html" data-ga-event="cta_verified_providers">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
             <path d="M9 12l2 2 4-4"/>
             <circle cx="12" cy="12" r="10"/>
@@ -1690,7 +1690,7 @@
           </svg>
           <span data-i18n="carepath.yoga">Practice Yoga with AI</span>
         </button>
-        <a class="care-sidebar-item" href="intake.html">
+        <a class="care-sidebar-item" href="intake.html" data-ga-event="cta_take_assessment">
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
             <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
             <rect x="9" y="3" width="6" height="4" rx="1"/>
@@ -2795,6 +2795,13 @@
         function renderModeTabs() {
           if (!modeTabsEl) return;
           modeTabsEl.innerHTML = "";
+          // Mode key -> GA event name. Tabs are dynamically rendered so we
+          // tag them with data-ga-event for js/ga-events.js to pick up.
+          const GA_TAB_EVENT = {
+            mealplan: "menu_meal_plan",
+            recipes: "menu_recipes",
+            journaling: "menu_journaling",
+          };
           Object.entries(MODES).forEach(([key, m]) => {
             const on = state.mode === key;
             const btn = document.createElement("button");
@@ -2802,6 +2809,7 @@
             btn.className = "companion-mode-tab" + (on ? " is-active" : "");
             btn.setAttribute("role", "tab");
             btn.setAttribute("aria-selected", on ? "true" : "false");
+            if (GA_TAB_EVENT[key]) btn.setAttribute("data-ga-event", GA_TAB_EVENT[key]);
             btn.innerHTML = ico(m.icon) + '<span>' + escapeHtml(T(m.labelKey, key)) + '</span>';
             btn.addEventListener("click", () => {
               if (state.mode === key) return;
@@ -3330,12 +3338,14 @@
               placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, mushrooms, bitter gourd"),
               onChange: (v) => { state.avoid = v; },
             }));
-            wrap.appendChild(primaryBtn(
+            const weeklyBtn = primaryBtn(
               state.generatingWeekly ? T("aria.mp.generating", "Generating…") : T("aria.mp.generateBtn", "Generate weekly plan"),
               state.generatingWeekly ? null : "sparkles",
               () => generateWeekly(),
               state.generatingWeekly,
-            ));
+            );
+            weeklyBtn.setAttribute("data-ga-event", "btn_generate_weekly_plan");
+            wrap.appendChild(weeklyBtn);
             if (state.weeklyError) {
               const err = document.createElement("div");
               err.className = "companion-upload-error";
@@ -3771,6 +3781,7 @@
           const findBtn = document.createElement("button");
           findBtn.type = "button";
           findBtn.textContent = T("aria.recipes.find", "Find");
+          findBtn.setAttribute("data-ga-event", "btn_find_recipes");
           if (state.search.trim()) findBtn.classList.add("is-active");
           findBtn.addEventListener("click", runSearch);
           searchRow.appendChild(findBtn);
