@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Choose Your Care Path | Stillwater</title>
     <link rel="stylesheet" href="css/index.css" />
+    <!-- LemonSlice widget (used by the Tadasana yoga modal's "Tap to talk" pill) -->
+    <script type="module" src="https://unpkg.com/@lemonsliceai/lemon-slice-widget"></script>
     <style>
       body {
         min-height: 100vh;
@@ -540,6 +542,103 @@
         letter-spacing: 0.01em;
       }
       .yoga-pose-card .yoga-beta-cta { align-self: flex-start; }
+
+      /* Tadasana avatar "Tap to talk" pill + LemonSlice widget container */
+      .static-avatar-btn {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.45rem 0.75rem 0.45rem 0.45rem;
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        border-radius: 999px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+        cursor: pointer;
+        transition: transform 0.2s ease, opacity 0.35s ease, box-shadow 0.2s ease;
+      }
+      .static-avatar-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
+      }
+      .static-avatar-img {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+      }
+      .static-avatar-label {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        padding-right: 0.25rem;
+      }
+      .static-avatar-pulse {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #2ecc71;
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.55);
+        animation: avatarPulse 1.6s infinite;
+      }
+      @keyframes avatarPulse {
+        0%   { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0.55); }
+        70%  { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);   }
+        100% { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0);   }
+      }
+      .static-avatar-hidden { opacity: 0; pointer-events: none; }
+      .lemon-hidden { display: none !important; }
+      #lemonWidgetContainer {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 1000;
+      }
+
+      /* Talk-with-avatar confirm pop-up */
+      .lemon-confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 22, 22, 0.55);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1100;
+        padding: 1rem;
+      }
+      .lemon-confirm-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 1.5rem 1.5rem 1.25rem;
+        max-width: 380px;
+        width: 100%;
+        box-shadow: 0 20px 55px rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+      .lemon-confirm-card h3 {
+        margin: 0 0 0.4rem;
+        font-size: 1.15rem;
+        color: var(--color-text-primary);
+      }
+      .lemon-confirm-card p {
+        margin: 0 0 1.1rem;
+        color: var(--color-text-secondary);
+        font-size: 0.95rem;
+      }
+      .lemon-confirm-actions {
+        display: flex;
+        gap: 0.6rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
 
       .yoga-modal-overlay {
         padding: 1rem;
@@ -1868,6 +1967,40 @@
       </div>
     </div>
 
+    <!-- Tadasana avatar — static "Tap to talk" pill + LemonSlice widget (mounts when activated) -->
+    <button id="staticAvatarBtn" class="static-avatar-btn" type="button" hidden
+            aria-label="Tap to start a call with your AI yoga assistant">
+      <img src="images/yoga-avatar.jpg" alt="" class="static-avatar-img" />
+      <span class="static-avatar-label">
+        <span class="static-avatar-pulse"></span>
+        Tap to talk
+      </span>
+    </button>
+    <div id="lemonWidgetContainer" class="lemon-hidden">
+      <lemon-slice-widget
+        id="lemonSliceWidget"
+        agent-id="agent_77081533e48ba693"
+        custom-minimized-width="144"
+        custom-minimized-height="216"
+        custom-active-width="195"
+        custom-active-height="295"
+        show-minimize-button="true"
+        initial-state="active">
+      </lemon-slice-widget>
+    </div>
+
+    <!-- "Talk with the Avatar?" confirm popup shown when the Tadasana guide video ends or is skipped -->
+    <div class="lemon-confirm-overlay" id="lemonConfirmOverlay" hidden>
+      <div class="lemon-confirm-card" role="dialog" aria-modal="true" aria-label="Talk with the AI yoga assistant?">
+        <h3>Talk with the AI assistant?</h3>
+        <p>Get personalised guidance on your Tadasana practice from your AI yoga coach.</p>
+        <div class="lemon-confirm-actions">
+          <button type="button" class="btn btn-solid" id="lemonConfirmYes">Yes, start the call</button>
+          <button type="button" class="btn btn-ghost" id="lemonConfirmNo">Not now</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay yoga-modal-overlay" id="yogaModal" hidden>
       <div class="yoga-modal-card" id="yogaModalCard">
         <button type="button" class="yoga-back" id="yogaBack" aria-label="Back">
@@ -1911,6 +2044,9 @@
             </button>
             <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaRestart">
               Restart Video
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaTalkAvatar">
+              Talk with the Avatar
             </button>
           </div>
         </div>
@@ -2175,10 +2311,84 @@
         const frame = document.getElementById("yogaFrame");
         const practiceBtn = document.getElementById("yogaPracticeNow");
         const restartBtn = document.getElementById("yogaRestart");
+        const talkAvatarBtn = document.getElementById("yogaTalkAvatar");
+
+        // LemonSlice avatar pieces + confirm popup
+        const avatarPill = document.getElementById("staticAvatarBtn");
+        const lemonContainer = document.getElementById("lemonWidgetContainer");
+        const lemonWidget = document.getElementById("lemonSliceWidget");
+        const confirmOverlay = document.getElementById("lemonConfirmOverlay");
+        const confirmYes = document.getElementById("lemonConfirmYes");
+        const confirmNo = document.getElementById("lemonConfirmNo");
 
         if (!openBtn || !overlay) return;
 
         let currentStage = "video";
+        let agentActivated = false;
+        // Track whether the user has already been offered the avatar this
+        // session, so the auto-popup only fires once on the first transition
+        // out of the video stage (end-of-video or Skip).
+        let avatarOfferShown = false;
+
+        const showAvatarPill = (visible) => {
+          if (!avatarPill) return;
+          if (visible) {
+            avatarPill.hidden = false;
+            avatarPill.classList.remove("static-avatar-hidden");
+          } else {
+            avatarPill.hidden = true;
+          }
+        };
+
+        // Activate the LemonSlice agent — hides the pill, shows the widget,
+        // and tries to auto-start mic + unmute so the user goes straight into
+        // a call. Mirrors the reference repo's activateAgent().
+        const activateAgent = async () => {
+          if (agentActivated) return;
+          agentActivated = true;
+          if (avatarPill) {
+            avatarPill.classList.add("static-avatar-hidden");
+            setTimeout(() => { avatarPill.hidden = true; }, 350);
+          }
+          if (lemonContainer) lemonContainer.classList.remove("lemon-hidden");
+          if (!lemonWidget) return;
+          try {
+            let tries = 0;
+            while (typeof lemonWidget.micOn !== "function" && tries < 40) {
+              await new Promise((r) => setTimeout(r, 100));
+              tries++;
+            }
+            if (typeof lemonWidget.micOn === "function") {
+              await lemonWidget.micOn();
+            }
+            if (typeof lemonWidget.unmute === "function") {
+              await lemonWidget.unmute();
+            }
+          } catch (err) {
+            console.warn("Auto-start agent failed:", err);
+          }
+        };
+
+        const hideConfirm = () => {
+          if (confirmOverlay) confirmOverlay.hidden = true;
+        };
+        const showConfirm = () => {
+          if (confirmOverlay) confirmOverlay.hidden = false;
+        };
+
+        // Called when the video ends OR the user skips. First time only,
+        // pops the "Talk with the AI assistant?" prompt before revealing
+        // the choice stage. If the user cancels, they still land on the
+        // choice stage which now has 3 buttons including a manual "Talk
+        // with the Avatar" entry point.
+        const handleVideoFinished = () => {
+          if (!avatarOfferShown) {
+            avatarOfferShown = true;
+            showConfirm();
+            return;
+          }
+          showStage("choice");
+        };
 
         const showStage = (which) => {
           currentStage = which;
@@ -2199,10 +2409,19 @@
 
           // Skip only makes sense while the guide video is playing.
           skipBtn.hidden = which !== "video";
+
+          // Avatar pill shows on video + choice stages; hidden once the user
+          // is in the pose-detection iframe (avoids occluding the practice
+          // surface). If the agent was already activated, the widget is
+          // visible instead — leave it alone.
+          if (!agentActivated) {
+            showAvatarPill(which === "video" || which === "choice");
+          }
         };
 
         const openModal = () => {
           overlay.hidden = false;
+          avatarOfferShown = false;
           showStage("video");
           document.body.style.overflow = "hidden";
           try {
@@ -2217,6 +2436,8 @@
           document.body.style.overflow = "";
           try { video.pause(); } catch (_e) {}
           frame.removeAttribute("src");
+          hideConfirm();
+          showAvatarPill(false);
         };
 
         const restartVideo = () => {
@@ -2252,11 +2473,22 @@
         backCarepathBtn.addEventListener("click", closeModal);
         skipBtn.addEventListener("click", () => {
           try { video.pause(); } catch (_e) {}
-          showStage("choice");
+          handleVideoFinished();
         });
-        video.addEventListener("ended", () => showStage("choice"));
+        video.addEventListener("ended", handleVideoFinished);
         restartBtn.addEventListener("click", restartVideo);
         practiceBtn.addEventListener("click", launchPractice);
+        if (talkAvatarBtn) talkAvatarBtn.addEventListener("click", activateAgent);
+        if (avatarPill) avatarPill.addEventListener("click", activateAgent);
+        if (confirmYes) confirmYes.addEventListener("click", () => {
+          hideConfirm();
+          showStage("choice");
+          activateAgent();
+        });
+        if (confirmNo) confirmNo.addEventListener("click", () => {
+          hideConfirm();
+          showStage("choice");
+        });
 
         overlay.addEventListener("click", (event) => {
           if (event.target === overlay) closeModal();
