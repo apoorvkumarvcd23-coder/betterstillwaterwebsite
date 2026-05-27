@@ -1370,7 +1370,7 @@
         to { opacity: 1; transform: translateY(0); }
       }
 
-      /* AI Driven Meditation modal (iframes stillwater-seven.vercel.app inside the app) */
+      /* AI Driven Meditation modal (iframes stillwater-frontend.onrender.com inside the app) */
       .meditation-modal-overlay {
         position: fixed;
         inset: 0;
@@ -1825,7 +1825,7 @@
       </div>
     </div>
 
-    <!-- AI Driven Meditation — opens stillwater-seven.vercel.app inside an in-app modal -->
+    <!-- AI Driven Meditation — opens stillwater-frontend.onrender.com inside an in-app modal -->
     <div class="modal-overlay meditation-modal-overlay" id="meditationModal" hidden>
       <div class="meditation-modal-card" id="meditationModalCard" role="dialog" aria-modal="true" aria-label="AI Driven Meditation">
         <button type="button" class="modal-close" id="meditationModalClose" aria-label="Close">&times;</button>
@@ -2178,7 +2178,7 @@
 
       // ── AI Driven Meditation -> in-app iframe modal ──────────────────
       (function () {
-        const MEDITATION_URL = "https://stillwater-seven.vercel.app/";
+        const MEDITATION_URL = "https://stillwater-frontend.onrender.com/";
         const openBtn = document.getElementById("btnMeditation");
         const overlay = document.getElementById("meditationModal");
         const closeBtn = document.getElementById("meditationModalClose");
