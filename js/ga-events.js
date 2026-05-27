@@ -21,6 +21,13 @@
   }
 
   var rules = [
+    // Generic escape hatch — any element (including dynamically rendered
+    // ones) can opt in by setting data-ga-event="<event_name>". First rule
+    // so it always wins over the static selectors below.
+    ["__data-ga-event__", function (el) {
+      var tagged = el.closest("[data-ga-event]");
+      return tagged || null;
+    }],
     ["nav_logout", function (el) { return el.closest("#btnLogout"); }],
     ["nav_login_signup", function (el) { return el.closest("#btnLogin, #mmLogin"); }],
     ["nav_admin_dashboard", function (el) { return el.closest("#btnAdmin"); }],
@@ -49,8 +56,15 @@
     var target = e.target;
     if (!target || typeof target.closest !== "function") return;
     for (var i = 0; i < rules.length; i++) {
-      if (rules[i][1](target)) {
-        try { window.gtag("event", rules[i][0]); } catch (_err) {}
+      var matched = rules[i][1](target);
+      if (matched) {
+        // For the generic data-ga-event rule, read the event name from the
+        // attribute; for all other rules, use the declared event name.
+        var name = rules[i][0] === "__data-ga-event__"
+          ? matched.getAttribute("data-ga-event")
+          : rules[i][0];
+        if (!name) return;
+        try { window.gtag("event", name); } catch (_err) {}
         return;
       }
     }
