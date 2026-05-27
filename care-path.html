@@ -516,6 +516,30 @@
         width: 14px;
         height: 14px;
       }
+      .yoga-intro-card { width: min(720px, 100%); }
+      .yoga-pose-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.85rem;
+        margin-top: 0.5rem;
+      }
+      .yoga-pose-card {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 0.95rem 1rem;
+        border-radius: 14px;
+        background: rgba(95, 179, 179, 0.08);
+        border: 1px solid rgba(95, 179, 179, 0.22);
+      }
+      .yoga-pose-title { display: flex; flex-direction: column; gap: 0.2rem; }
+      .yoga-pose-title strong { font-size: 0.98rem; color: var(--color-text-primary); }
+      .yoga-pose-title span {
+        font-size: 0.82rem;
+        color: var(--color-text-secondary);
+        letter-spacing: 0.01em;
+      }
+      .yoga-pose-card .yoga-beta-cta { align-self: flex-start; }
 
       .yoga-modal-overlay {
         padding: 1rem;
@@ -1748,7 +1772,7 @@
 
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
     <div class="modal-overlay" id="yogaIntroModal" hidden>
-      <div class="modal-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
+      <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
         <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
         <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
           <div class="yoga-beta-head">
@@ -1758,11 +1782,43 @@
           <p>
             We are building an AI avatar that will help you practice yoga asanas for managing chronic conditions. Please share your feedback and suggestions for improvement.
           </p>
-          <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Try the AI Coach
-          </button>
+          <div class="yoga-pose-grid">
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Practice Yoga Asanas with AI</strong>
+                <span>(Tadasana &mdash; Mountain Pose)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Try the AI Coach
+              </button>
+            </div>
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Practice Yoga Asanas with AI</strong>
+                <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Try the AI Coach
+              </button>
+            </div>
+          </div>
         </section>
+      </div>
+    </div>
+
+    <!-- Balasana pose detection — direct iframe (no guide video) -->
+    <div class="modal-overlay yoga-modal-overlay" id="balasanaModal" hidden>
+      <div class="yoga-modal-card yoga-modal-fullbleed" id="balasanaModalCard">
+        <button type="button" class="modal-close" id="balasanaModalClose" aria-label="Close" style="position:absolute;top:14px;right:14px;z-index:5;">&times;</button>
+        <iframe
+          id="balasanaFrame"
+          class="yoga-frame"
+          title="Practice Balasana with AI pose detection"
+          allow="camera; microphone; fullscreen"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
       </div>
     </div>
 
@@ -2174,6 +2230,38 @@
         ].forEach((btn) => btn && btn.addEventListener("click", open));
         if (close) close.addEventListener("click", hide);
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
+      })();
+
+      // ── Balasana pose detection -> direct iframe modal ───────────────
+      (function () {
+        const BALASANA_URL = "https://static-chisld-pose-detection.onrender.com/";
+        const openBtn = document.getElementById("yogaBalasanaOpen");
+        const overlay = document.getElementById("balasanaModal");
+        const closeBtn = document.getElementById("balasanaModalClose");
+        const frame = document.getElementById("balasanaFrame");
+        const introModal = document.getElementById("yogaIntroModal");
+        if (!openBtn || !overlay || !frame) return;
+
+        let previousBodyOverflow = "";
+        const open = () => {
+          if (introModal) introModal.hidden = true;
+          if (frame.src !== BALASANA_URL) frame.src = BALASANA_URL;
+          overlay.hidden = false;
+          previousBodyOverflow = document.body.style.overflow;
+          document.body.style.overflow = "hidden";
+        };
+        const close = () => {
+          overlay.hidden = true;
+          document.body.style.overflow = previousBodyOverflow;
+          frame.removeAttribute("src");
+        };
+
+        openBtn.addEventListener("click", open);
+        closeBtn.addEventListener("click", close);
+        overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape" && !overlay.hidden) close();
+        });
       })();
 
       // ── AI Driven Meditation -> in-app iframe modal ──────────────────
