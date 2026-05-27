@@ -701,6 +701,10 @@
       }
       .yoga-choice-primary svg { width: 14px; height: 14px; }
       .yoga-choice-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.45rem;
         background: transparent;
         color: var(--color-text-secondary);
         border: 1px solid rgba(47, 72, 66, 0.18);
@@ -709,6 +713,7 @@
         font-size: 0.9rem;
         cursor: pointer;
       }
+      .yoga-choice-secondary svg { width: 14px; height: 14px; flex-shrink: 0; }
       .yoga-choice-secondary:hover {
         color: var(--color-text-primary);
         border-color: rgba(47, 72, 66, 0.4);
@@ -2315,6 +2320,22 @@
           }
         };
 
+        // Tear the agent down when the modal closes so the widget doesn't
+        // keep rendering (or recording) on top of care-path. Tries every
+        // teardown method the widget might expose, then hides the container
+        // and resets the activation flag so the next open starts clean.
+        const teardownAgent = () => {
+          if (lemonWidget) {
+            ["endCall", "disconnect", "hangup", "stop", "micOff", "mute"].forEach((m) => {
+              try {
+                if (typeof lemonWidget[m] === "function") lemonWidget[m]();
+              } catch (_e) {}
+            });
+          }
+          if (lemonContainer) lemonContainer.classList.add("lemon-hidden");
+          agentActivated = false;
+        };
+
         // Video end / Skip both land on the choice stage where the user
         // picks one of the three options (Talk with agent / Practice Now /
         // Repeat Video). The avatar pill stays visible in the corner so
@@ -2369,6 +2390,7 @@
           try { video.pause(); } catch (_e) {}
           frame.removeAttribute("src");
           showAvatarPill(false);
+          teardownAgent();
         };
 
         const restartVideo = () => {
