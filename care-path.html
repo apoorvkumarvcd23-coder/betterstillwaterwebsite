@@ -2297,7 +2297,6 @@
         const frame = document.getElementById("balasanaFrame");
         const practiceBtn = document.getElementById("balasanaPracticeNow");
         const restartBtn = document.getElementById("balasanaRestart");
-        const introModal = document.getElementById("yogaIntroModal");
 
         if (!openBtn || !overlay) return;
 
@@ -2319,7 +2318,6 @@
         };
 
         const openModal = () => {
-          if (introModal) introModal.hidden = true;
           overlay.hidden = false;
           showStage("video");
           document.body.style.overflow = "hidden";
