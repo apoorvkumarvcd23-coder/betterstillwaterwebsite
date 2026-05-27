@@ -1808,17 +1808,63 @@
       </div>
     </div>
 
-    <!-- Balasana pose detection — direct iframe (no guide video) -->
+    <!-- Balasana — same three-stage flow as Tadasana (video guide -> choice -> iframe) -->
     <div class="modal-overlay yoga-modal-overlay" id="balasanaModal" hidden>
-      <div class="yoga-modal-card yoga-modal-fullbleed" id="balasanaModalCard">
-        <button type="button" class="modal-close" id="balasanaModalClose" aria-label="Close" style="position:absolute;top:14px;right:14px;z-index:5;">&times;</button>
-        <iframe
-          id="balasanaFrame"
-          class="yoga-frame"
-          title="Practice Balasana with AI pose detection"
-          allow="camera; microphone; fullscreen"
-          referrerpolicy="no-referrer-when-downgrade"
-        ></iframe>
+      <div class="yoga-modal-card" id="balasanaModalCard">
+        <button type="button" class="yoga-back" id="balasanaBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span id="balasanaBackLabel">Back</span>
+        </button>
+        <button type="button" class="yoga-back-carepath" id="balasanaBackCarepath" hidden>
+          Back to Care Path
+        </button>
+        <button type="button" class="modal-close" id="balasanaModalClose" aria-label="Close">&times;</button>
+
+        <div class="yoga-stage" id="balasanaStageVideo">
+          <button type="button" class="yoga-skip" id="balasanaSkip" aria-label="Skip Guide">
+            Skip Guide
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <video
+            id="balasanaVideo"
+            class="yoga-video"
+            playsinline
+            controls
+            preload="metadata"
+            src="videos/Childs-Pose-Stretch2.mp4"
+          ></video>
+          <div class="yoga-stage-caption">
+            <strong>Balasana &mdash; Child&rsquo;s Pose</strong>
+            <span>Watch the short guide, then choose how you&rsquo;d like to continue.</span>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-choice" id="balasanaStageChoice" hidden>
+          <div class="yoga-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <h3>What&rsquo;s next?</h3>
+          <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
+          <div class="yoga-choice-actions">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="balasanaPracticeNow">
+              Practice Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="balasanaRestart">
+              Restart Video
+            </button>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-frame-stage" id="balasanaStageFrame" hidden>
+          <iframe
+            id="balasanaFrame"
+            class="yoga-frame"
+            title="Practice Balasana with AI pose detection"
+            allow="camera; microphone; fullscreen"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+        </div>
       </div>
     </div>
 
@@ -2232,35 +2278,104 @@
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
       })();
 
-      // ── Balasana pose detection -> direct iframe modal ───────────────
+      // ── Balasana — mirrors the Tadasana three-stage flow ─────────────
       (function () {
-        const BALASANA_URL = "https://static-chisld-pose-detection.onrender.com/";
+        const POSE_APP_URL = "https://static-chisld-pose-detection.onrender.com/";
+
         const openBtn = document.getElementById("yogaBalasanaOpen");
         const overlay = document.getElementById("balasanaModal");
+        const card = document.getElementById("balasanaModalCard");
         const closeBtn = document.getElementById("balasanaModalClose");
+        const backBtn = document.getElementById("balasanaBack");
+        const backLabel = document.getElementById("balasanaBackLabel");
+        const backCarepathBtn = document.getElementById("balasanaBackCarepath");
+        const skipBtn = document.getElementById("balasanaSkip");
+        const stageVideo = document.getElementById("balasanaStageVideo");
+        const stageChoice = document.getElementById("balasanaStageChoice");
+        const stageFrame = document.getElementById("balasanaStageFrame");
+        const video = document.getElementById("balasanaVideo");
         const frame = document.getElementById("balasanaFrame");
+        const practiceBtn = document.getElementById("balasanaPracticeNow");
+        const restartBtn = document.getElementById("balasanaRestart");
         const introModal = document.getElementById("yogaIntroModal");
-        if (!openBtn || !overlay || !frame) return;
 
-        let previousBodyOverflow = "";
-        const open = () => {
-          if (introModal) introModal.hidden = true;
-          if (frame.src !== BALASANA_URL) frame.src = BALASANA_URL;
-          overlay.hidden = false;
-          previousBodyOverflow = document.body.style.overflow;
-          document.body.style.overflow = "hidden";
+        if (!openBtn || !overlay) return;
+
+        let currentStage = "video";
+
+        const showStage = (which) => {
+          currentStage = which;
+          stageVideo.hidden = which !== "video";
+          stageChoice.hidden = which !== "choice";
+          stageFrame.hidden = which !== "frame";
+          card.classList.toggle("yoga-modal-fullbleed", which === "frame");
+
+          if (which === "video") backLabel.textContent = "Back to Care Path";
+          else if (which === "choice") backLabel.textContent = "Back";
+          else if (which === "frame") backLabel.textContent = "Back";
+
+          backCarepathBtn.hidden = which !== "frame";
+          skipBtn.hidden = which !== "video";
         };
-        const close = () => {
+
+        const openModal = () => {
+          if (introModal) introModal.hidden = true;
+          overlay.hidden = false;
+          showStage("video");
+          document.body.style.overflow = "hidden";
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const closeModal = () => {
           overlay.hidden = true;
-          document.body.style.overflow = previousBodyOverflow;
+          document.body.style.overflow = "";
+          try { video.pause(); } catch (_e) {}
           frame.removeAttribute("src");
         };
 
-        openBtn.addEventListener("click", open);
-        closeBtn.addEventListener("click", close);
-        overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
-        document.addEventListener("keydown", (e) => {
-          if (e.key === "Escape" && !overlay.hidden) close();
+        const restartVideo = () => {
+          showStage("video");
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const launchPractice = () => {
+          frame.src = POSE_APP_URL;
+          showStage("frame");
+        };
+
+        const handleBack = () => {
+          if (currentStage === "video") {
+            closeModal();
+          } else if (currentStage === "choice") {
+            restartVideo();
+          } else if (currentStage === "frame") {
+            frame.removeAttribute("src");
+            showStage("choice");
+          }
+        };
+
+        openBtn.addEventListener("click", openModal);
+        closeBtn.addEventListener("click", closeModal);
+        backBtn.addEventListener("click", handleBack);
+        backCarepathBtn.addEventListener("click", closeModal);
+        skipBtn.addEventListener("click", () => {
+          try { video.pause(); } catch (_e) {}
+          showStage("choice");
+        });
+        video.addEventListener("ended", () => showStage("choice"));
+        restartBtn.addEventListener("click", restartVideo);
+        practiceBtn.addEventListener("click", launchPractice);
+
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) closeModal();
         });
       })();
 
