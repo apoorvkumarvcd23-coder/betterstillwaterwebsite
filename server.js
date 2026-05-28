@@ -578,8 +578,6 @@ app.use(
       try {
         const { hostname } = new URL(origin);
         if (
-          hostname === "stilwater.health" ||
-          hostname.endsWith(".stilwater.health") ||
           hostname === "stillwater.you" ||
           hostname.endsWith(".stillwater.you")
         ) {
