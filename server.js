@@ -4253,7 +4253,7 @@ initDb()
   .then(() => {
     app.listen(PORT, () => {
       console.log(
-        `🌊 Stillwater Digital Sanctuary running on http://localhost:${PORT}`,
+        `🌊 Stilwater Digital Sanctuary running on http://localhost:${PORT}`,
       );
     });
   })

@@ -59,7 +59,7 @@ test("assistant avoids custom bottom overlap in connected state on mobile", asyn
   });
 
   await expect(
-    page.getByText("Your Stillwater guide is ready. Speak when comfortable."),
+    page.getByText("Your Stilwater guide is ready. Speak when comfortable."),
   ).toBeVisible();
 
   await expect(page.locator(".overlay-bottom")).toHaveCount(0);

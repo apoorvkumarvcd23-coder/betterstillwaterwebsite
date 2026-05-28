@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stillwater Guided Session</title>
+    <title>Stilwater Guided Session</title>
     <link rel="stylesheet" href="css/index.css" />
     <style>
       :root {
@@ -359,7 +359,7 @@
           <div class="status-chip" id="statusChip" data-state="connecting">
             <div class="status-line" id="statusLine">Connecting</div>
             <div class="status-message" id="statusMessage">
-              Connecting you to your Stillwater guide...
+              Connecting you to your Stilwater guide...
             </div>
           </div>
           <div class="meta-tray">
@@ -520,7 +520,7 @@
         frame.on("app-message", (ev) => {
           const type = ev && ev.data ? ev.data.type : "";
           if (type === "bot_ready") {
-            setStatus("Guide Ready", "Your Stillwater guide is ready. Speak when comfortable.", "ready");
+            setStatus("Guide Ready", "Your Stilwater guide is ready. Speak when comfortable.", "ready");
             setActionMode("ready");
             return;
           }
@@ -563,7 +563,7 @@
         attemptCount += 1;
 
         if (attemptCount === 1) {
-          setStatus("Connecting", "Connecting you to your Stillwater guide...", "connecting");
+          setStatus("Connecting", "Connecting you to your Stilwater guide...", "connecting");
         } else {
           setStatus("Retrying", "Connection took longer than expected. Retrying now...", "retrying");
         }

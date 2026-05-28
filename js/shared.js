@@ -642,14 +642,14 @@ document.addEventListener("DOMContentLoaded", () => {
             : "";
         // When the user is already on the care-path page, swap the primary
         // header button to "Home" so they can jump back to the main site.
-        // On every other page it stays "Continue Care Path" (or "Wellness
+        // On every other page it stays "Continue Your Personalized Care Path" (or "Wellness
         // Assessment" if no assessment is completed yet).
         const currentPath = (window.location.pathname || "").toLowerCase();
         const onCarePath =
           currentPath === "/care-path.html" ||
           currentPath === "/care-path" ||
           currentPath.endsWith("/care-path.html");
-        // Label is always "Continue Care Path" regardless of auth state;
+        // Label is always "Continue Your Personalized Care Path" regardless of auth state;
         // only the target changes (smart-routed to the right place).
         let intakeTarget;
         if (onCarePath) {
@@ -663,7 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const tx = (k, fb) => (window.SwI18n && window.SwI18n.t) ? window.SwI18n.t(k, fb) : fb;
 
         const applyIntakeButton = () => {
-          const lbl = tx(intakeLabelKey, "Continue Care Path");
+          const lbl = tx(intakeLabelKey, "Continue Your Personalized Care Path");
           if (btnIntake) {
             btnIntake.href = intakeTarget;
             btnIntake.textContent = lbl;
@@ -674,7 +674,7 @@ document.addEventListener("DOMContentLoaded", () => {
           });
         };
 
-        // The Continue Care Path / Home / Wellness Assessment link is already
+        // The Continue Your Personalized Care Path / Home / Wellness Assessment link is already
         // shown as the prominent header button (btnIntake) — keep the auth
         // dropdown free of duplicates so it only contains Log out (and Admin
         // Dashboard for admins, since btnAdmin is hidden on mobile).

@@ -39,15 +39,15 @@
 
     // Terms of Use
     "terms.title": { en: "Terms of Use", hi: "उपयोग की शर्तें" },
-    "terms.p1": { en: "Stillwater provides guidance-oriented wellness content and community pathways for educational and supportive purposes.", hi: "Stillwater शैक्षिक और सहायक उद्देश्यों के लिए मार्गदर्शन-केंद्रित वेलनेस सामग्री और सामुदायिक मार्ग प्रदान करता है।" },
+    "terms.p1": { en: "Stilwater provides guidance-oriented wellness content and community pathways for educational and supportive purposes.", hi: "Stilwater शैक्षिक और सहायक उद्देश्यों के लिए मार्गदर्शन-केंद्रित वेलनेस सामग्री और सामुदायिक मार्ग प्रदान करता है।" },
     "terms.p2": { en: "You agree to provide accurate information in forms and avoid misuse of the platform.", hi: "आप फ़ॉर्म में सटीक जानकारी देने और प्लेटफ़ॉर्म के दुरुपयोग से बचने के लिए सहमत हैं।" },
     "terms.p3": { en: "Partner recommendations are shared to support informed wellbeing choices and do not replace professional diagnosis or emergency care.", hi: "साझेदार सिफारिशें सूचित कल्याण निर्णयों के समर्थन के लिए साझा की जाती हैं और पेशेवर निदान या आपातकालीन देखभाल का स्थान नहीं लेतीं।" },
-    "terms.p4": { en: "Stillwater may update product features, forms, and policies to improve safety, quality, and user experience.", hi: "Stillwater सुरक्षा, गुणवत्ता और उपयोगकर्ता अनुभव में सुधार के लिए उत्पाद सुविधाओं, फ़ॉर्म और नीतियों को अद्यतन कर सकता है।" },
+    "terms.p4": { en: "Stilwater may update product features, forms, and policies to improve safety, quality, and user experience.", hi: "Stilwater सुरक्षा, गुणवत्ता और उपयोगकर्ता अनुभव में सुधार के लिए उत्पाद सुविधाओं, फ़ॉर्म और नीतियों को अद्यतन कर सकता है।" },
     "terms.p5": { en: "Continued use of this site indicates acceptance of these terms.", hi: "इस साइट का निरंतर उपयोग इन शर्तों की स्वीकृति को दर्शाता है।" },
 
     // Medical Disclaimer
     "medical.title": { en: "Health Warning / Medical Disclaimer", hi: "स्वास्थ्य चेतावनी / चिकित्सकीय अस्वीकरण" },
-    "medical.p1": { en: "Stillwater offers supportive wellness guidance focused on awareness, balance, and lifestyle wellbeing.", hi: "Stillwater जागरूकता, संतुलन और जीवनशैली कल्याण पर केंद्रित सहायक वेलनेस मार्गदर्शन प्रदान करता है।" },
+    "medical.p1": { en: "Stilwater offers supportive wellness guidance focused on awareness, balance, and lifestyle wellbeing.", hi: "Stilwater जागरूकता, संतुलन और जीवनशैली कल्याण पर केंद्रित सहायक वेलनेस मार्गदर्शन प्रदान करता है।" },
     "medical.p2": { en: "Information on this website is not a substitute for medical diagnosis, treatment, or emergency intervention.", hi: "इस वेबसाइट की जानकारी चिकित्सीय निदान, उपचार या आपातकालीन हस्तक्षेप का विकल्प नहीं है।" },
     "medical.p3": { en: "If you have severe symptoms, urgent distress, or a medical emergency, contact qualified healthcare professionals immediately.", hi: "यदि आपको गंभीर लक्षण, तत्काल कष्ट या चिकित्सकीय आपात स्थिति है, तो तुरंत योग्य स्वास्थ्य पेशेवरों से संपर्क करें।" },
     "medical.p4": { en: "Any provider listed in the community should be evaluated according to your personal health context and clinician advice.", hi: "समुदाय में सूचीबद्ध किसी भी प्रदाता का मूल्यांकन आपकी व्यक्तिगत स्वास्थ्य स्थिति और चिकित्सक सलाह के अनुसार किया जाना चाहिए।" },
@@ -75,19 +75,20 @@
     "auth.logout": { en: "Log out", hi: "लॉग आउट" },
     "auth.adminDashboard": { en: "Admin Dashboard", hi: "एडमिन डैशबोर्ड" },
     "auth.wellnessAssessment": { en: "Wellness Assessment", hi: "वेलनेस आकलन" },
-    "auth.continueCarePath": { en: "Continue Care Path", hi: "केयर पाथ जारी रखें" },
+    "auth.continueCarePath": { en: "Continue Your Personalized Care Path", hi: "अपना वैयक्तिकृत केयर पाथ जारी रखें" },
     "auth.home": { en: "Home", hi: "होम" },
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
 
     // Home hero
-    "home.heroEyebrow": { en: "Your AI companion for Healthy Living", hi: "स्वस्थ जीवन के लिए आपका AI साथी" },
-    "home.heroTitleA": { en: "Living Healthy,", hi: "स्वस्थ जीवन —" },
-    "home.heroTitleB": { en: "one good day at a time.", hi: "एक-एक अच्छा दिन।" },
+    "home.heroEyebrow": { en: "YOUR AI HEALTH COMPANION FOR HEALTHY LIVING", hi: "स्वस्थ जीवन के लिए आपका AI स्वास्थ्य साथी" },
+    "home.heroTitleA": { en: "Calm the mind.", hi: "मन को शांत करें।" },
+    "home.heroTitleB": { en: "Nourish the body.", hi: "शरीर को पोषित करें।" },
+    "home.heroTitleC": { en: "Manage health naturally.", hi: "स्वास्थ्य को सहज ढंग से संभालें।" },
     "home.heroSub": {
-      en: "Living with diabetes or hypertension? Stilwater builds you a personalized diet, lifestyle, and exercise routine — complete with recipe links — so you can take steady, daily steps toward managing your condition and living well.",
-      hi: "मधुमेह या उच्च रक्तचाप के साथ जी रहे हैं? Stilwater आपके लिए वैयक्तिकृत आहार, जीवनशैली और व्यायाम दिनचर्या तैयार करता है — रेसिपी लिंक के साथ — ताकि आप अपनी स्थिति को संभालने और अच्छे ढंग से जीने की दिशा में रोज़ छोटे, स्थिर कदम बढ़ा सकें।",
+      en: "Stilwater helps you manage diabetes, hypertension, blood sugar levels, and blood pressure through personalized AI-powered wellness guidance, stress management, mindful eating, and sustainable plant-based lifestyle routines designed to support long-term healthy living.",
+      hi: "Stilwater आपको वैयक्तिकृत AI-आधारित वेलनेस मार्गदर्शन, तनाव प्रबंधन, सजग आहार और टिकाऊ पादप-आधारित जीवनशैली दिनचर्या के माध्यम से मधुमेह, उच्च रक्तचाप, रक्त शर्करा और रक्तचाप को संभालने में मदद करता है — जो दीर्घकालिक स्वस्थ जीवन का समर्थन करता है।",
     },
-    "home.seeHowItWorks": { en: "See how it works →", hi: "देखें कैसे काम करता है →" },
+    "home.seeHowItWorks": { en: "See how AI wellness support works →", hi: "देखें AI वेलनेस सहायता कैसे काम करती है →" },
 
     // Home — How it works
     "home.howKicker": { en: "How it works", hi: "यह कैसे काम करता है" },

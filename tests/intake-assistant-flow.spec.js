@@ -87,7 +87,7 @@ test("intake submission routes to assistant and reaches guide-ready state", asyn
   await expect(page.getByRole("button", { name: "End Session" })).toHaveCount(0);
 
   await expect(
-    page.getByText("Your Stillwater guide is ready. Speak when comfortable."),
+    page.getByText("Your Stilwater guide is ready. Speak when comfortable."),
   ).toBeVisible();
 
   await expect(page.locator("#meetingMeta")).toBeVisible();
