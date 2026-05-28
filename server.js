@@ -1030,11 +1030,9 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Build the OAuth callback URL — use absolute URL in production. Strip any
-// trailing slash(es) from BASE_URL so we never construct //double-slash//
-// path, which Google rejects as redirect_uri_mismatch.
+// Build the OAuth callback URL — use absolute URL in production
 const CALLBACK_URL = process.env.BASE_URL
-  ? `${process.env.BASE_URL.replace(/\/+$/, "")}/auth/google/callback`
+  ? `${process.env.BASE_URL}/auth/google/callback`
   : "/auth/google/callback";
 
 // Avoid crashes if Google OAuth credentials aren't set up yet
