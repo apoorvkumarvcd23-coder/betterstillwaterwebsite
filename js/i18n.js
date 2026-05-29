@@ -80,15 +80,101 @@
     "auth.home": { en: "Home", hi: "होम" },
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
 
-    // Home hero
-    "home.heroEyebrow": { en: "YOUR AI HEALTH COMPANION FOR HEALTHY LIVING", hi: "स्वस्थ जीवन के लिए आपका AI स्वास्थ्य साथी" },
-    "home.heroTitleA": { en: "Calm the mind.", hi: "मन को शांत करें।" },
-    "home.heroTitleB": { en: "Nourish the body.", hi: "शरीर को पोषित करें।" },
-    "home.heroTitleC": { en: "Manage health naturally.", hi: "स्वास्थ्य को सहज ढंग से संभालें।" },
-    "home.heroSub": {
-      en: "Stilwater helps you manage diabetes, hypertension, blood sugar levels, and blood pressure through personalized AI-powered wellness guidance, stress management, mindful eating, and sustainable plant-based lifestyle routines designed to support long-term healthy living.",
-      hi: "Stilwater आपको वैयक्तिकृत AI-आधारित वेलनेस मार्गदर्शन, तनाव प्रबंधन, सजग आहार और टिकाऊ पादप-आधारित जीवनशैली दिनचर्या के माध्यम से मधुमेह, उच्च रक्तचाप, रक्त शर्करा और रक्तचाप को संभालने में मदद करता है — जो दीर्घकालिक स्वस्थ जीवन का समर्थन करता है।",
+    // Home — document title + meta
+    "home.docTitle": { en: "Stilwater Health AI — Still the mind. Nourish the body.", hi: "Stilwater हेल्थ AI — मन को शांत करें। शरीर को पोषित करें।" },
+    "home.metaDescription": {
+      en: "Stilwater is an AI wellness companion built around yoga, meditation, and plant-based nutrition — to support healthy living, especially for people managing diabetes and hypertension.",
+      hi: "Stilwater एक AI वेलनेस साथी है जो योग, ध्यान और पादप-आधारित पोषण पर आधारित है — मधुमेह और उच्च रक्तचाप के साथ जी रहे लोगों के लिए स्वस्थ जीवन का समर्थन करता है।",
     },
+
+    // Home — nav
+    "home.nav.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
+    "home.nav.platform": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
+    "home.nav.how": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "home.nav.pricing": { en: "Pricing", hi: "मूल्य निर्धारण" },
+
+    // Home hero
+    "home.heroEyebrow": { en: "Your AI companion for healthy living", hi: "स्वस्थ जीवन के लिए आपका AI साथी" },
+    "home.heroTitleA": { en: "Still the mind.", hi: "मन को शांत करें।" },
+    "home.heroTitleB": { en: "Nourish the body.", hi: "शरीर को पोषित करें।" },
+    "home.heroSub": {
+      en: "Stilwater is an AI wellness companion built around three pillars — yoga, meditation, and plant-based nutrition — to support healthy living, especially for people managing diabetes and hypertension.",
+      hi: "Stilwater एक AI वेलनेस साथी है जो तीन आधारों पर बना है — योग, ध्यान और पादप-आधारित पोषण — मधुमेह और उच्च रक्तचाप के साथ जी रहे लोगों के लिए स्वस्थ जीवन का समर्थन करता है।",
+    },
+    "home.heroPillars": { en: "Yoga · Meditation · Plant-based nutrition.", hi: "योग · ध्यान · पादप-आधारित पोषण।" },
+    "home.startJourney": { en: "Start your journey", hi: "अपनी यात्रा शुरू करें" },
+    "home.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
+
+    // Home — Aria section
+    "home.aria.name": { en: "Aria", hi: "Aria" },
+    "home.aria.tagline": { en: "Your AI Companion", hi: "आपका AI साथी" },
+    "home.aria.eyebrow": { en: "Meet Aria", hi: "Aria से मिलें" },
+    "home.aria.titleA": { en: "A companion that", hi: "एक साथी जो" },
+    "home.aria.titleB": { en: "walks with you.", hi: "आपके साथ चलता है।" },
+    "home.aria.greeting": { en: "Hi, I'm Aria.", hi: "नमस्ते, मैं Aria हूँ।" },
+    "home.aria.p1": { en: "I'm Stilwater's AI companion — here to help you settle into a plant-based, whole-food lifestyle for healthier, calmer living.", hi: "मैं Stilwater का AI साथी हूँ — स्वस्थ और शांत जीवन के लिए पादप-आधारित, संपूर्ण-आहार जीवनशैली अपनाने में आपकी मदद करने के लिए यहाँ हूँ।" },
+    "home.aria.p2": { en: "I suggest delicious plant-based recipes you can ease into based on your taste and meal preferences — no overnight overhaul, just steady, enjoyable change.", hi: "मैं स्वादिष्ट पादप-आधारित रेसिपी सुझाता हूँ जिन्हें आप अपनी पसंद और भोजन वरीयताओं के अनुसार धीरे-धीरे अपना सकें — रातोंरात बदलाव नहीं, बस स्थिर, सुखद परिवर्तन।" },
+    "home.aria.p3": { en: "I help you keep a simple daily journal of what you eat, how you move, and how you meditate — so you can actually see the rhythm of your practice.", hi: "मैं आपकी रोज़ की सरल जर्नल रखने में मदद करता हूँ — आप क्या खाते हैं, कैसे चलते-फिरते हैं, और कैसे ध्यान करते हैं — ताकि आप अपनी साधना की लय देख सकें।" },
+    "home.aria.p4": { en: "And if you start drifting from your plan, I'll give you a gentle call to check in and help you find your way back. Not a notification. A real, kind nudge.", hi: "और अगर आप अपनी योजना से भटकने लगें, तो मैं हाल पूछने और आपको रास्ते पर लाने के लिए एक हल्की कॉल करूँगा। केवल सूचना नहीं — एक सच्ची, स्नेहपूर्ण याद।" },
+    "home.aria.p5": { en: "I also answer your questions about wellness and nutrition — and when something's beyond me, I connect you to verified providers and doctors, so you always know where to turn.", hi: "मैं वेलनेस और पोषण से जुड़े आपके सवालों के जवाब भी देता हूँ — और जब कुछ मेरी सीमा से परे हो, तो आपको सत्यापित प्रदाताओं और डॉक्टरों से जोड़ता हूँ, ताकि आपको हमेशा पता रहे कि कहाँ जाना है।" },
+
+    // Home — Platform / pillars
+    "home.platform.eyebrow": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
+    "home.platform.titleA": { en: "Three AI guides.", hi: "तीन AI गाइड।" },
+    "home.platform.titleB": { en: "One integrated practice.", hi: "एक एकीकृत साधना।" },
+    "home.platform.lede": { en: "Yoga, meditation, and plant-based nutrition aren't three separate apps. They're one practice that reinforces itself — a calmer mind makes the practice stick, the practice makes the eating mindful, and mindful eating steadies both body and mind.", hi: "योग, ध्यान और पादप-आधारित पोषण तीन अलग ऐप नहीं हैं। ये एक ऐसी साधना हैं जो खुद को मज़बूत करती है — शांत मन साधना को बनाए रखता है, साधना खाने को सजग बनाती है, और सजग खाना तन-मन दोनों को स्थिर करता है।" },
+
+    "home.pillar.yoga.title": { en: "AI Yoga", hi: "AI योग" },
+    "home.pillar.yoga.tag": { en: "Record. Score. Improve.", hi: "रिकॉर्ड करें। आँकें। बेहतर बनें।" },
+    "home.pillar.yoga.body": { en: "Record your asana practice and Aria gives you AI feedback on your form — the assessment loop most yoga apps don't offer. Pranayama breathwork built in.", hi: "अपनी आसन साधना रिकॉर्ड करें और Aria आपकी मुद्रा पर AI फ़ीडबैक देती है — वो आकलन चक्र जो ज़्यादातर योग ऐप नहीं देते। प्राणायाम साँस-क्रिया अंतर्निहित।" },
+    "home.pillar.nutrition.title": { en: "AI Plant-Based Nutrition", hi: "AI पादप-आधारित पोषण" },
+    "home.pillar.nutrition.tag": { en: "Eat the way the body loves.", hi: "वैसे खाएं जैसे शरीर पसंद करता है।" },
+    "home.pillar.nutrition.body": { en: "Personalized plant-based meal plans and delicious whole-food recipes that adapt to your taste — the gentle path away from stress-driven eating.", hi: "वैयक्तिकृत पादप-आधारित भोजन योजनाएँ और स्वादिष्ट संपूर्ण-आहार रेसिपी जो आपकी पसंद के अनुसार ढलती हैं — तनाव-प्रेरित खाने से दूर ले जाने वाला सौम्य रास्ता।" },
+    "home.pillar.meditation.title": { en: "AI Meditation", hi: "AI ध्यान" },
+    "home.pillar.meditation.tag": { en: "Still the mind.", hi: "मन को शांत करें।" },
+    "home.pillar.meditation.body": { en: "Guided meditation and breathwork to lower the stress that quietly undoes the rest — the foundation everything else grows from.", hi: "तनाव कम करने के लिए मार्गदर्शित ध्यान और साँस-क्रिया जो बाकी सब चुपचाप तोड़ देता है — वो आधार जिस पर सब कुछ टिका है।" },
+
+    // Home — How it works
+    "home.how.eyebrow": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "home.how.titleA": { en: "A practice that", hi: "एक साधना जो" },
+    "home.how.titleB": { en: "fits your life.", hi: "आपके जीवन में बैठती है।" },
+    "home.how.lede": { en: "No overhaul, no impossible plan. Aria meets you where you are and helps you build a daily rhythm — gently, consistently.", hi: "कोई पूरा बदलाव नहीं, कोई असंभव योजना नहीं। Aria आपसे वहीं मिलती है जहाँ आप हैं और आपको रोज़ की लय बनाने में मदद करती है — सौम्यता से, निरंतरता से।" },
+    "home.step1.title": { en: "Tell Aria about you", hi: "Aria को अपने बारे में बताएं" },
+    "home.step1.body": { en: "Your preferences, your goals, the conditions you live with. Aria builds a plan you can follow easily — no overhaul, no overwhelm.", hi: "आपकी पसंद, आपके लक्ष्य, आपकी स्थितियाँ। Aria एक ऐसी योजना बनाती है जिसे आप आसानी से अपना सकें — कोई पूरा बदलाव नहीं, कोई बोझ नहीं।" },
+    "home.step2.title": { en: "Get your daily plan", hi: "अपनी रोज़ की योजना पाएं" },
+    "home.step2.body": { en: "Plant-based recipes you'll actually want to eat, a short yoga session, a few minutes of meditation.", hi: "पादप-आधारित रेसिपी जिन्हें आप वाकई खाना चाहेंगे, एक छोटा योग सत्र, कुछ मिनट का ध्यान।" },
+    "home.step3.title": { en: "Journal as you go", hi: "साथ-साथ जर्नल रखें" },
+    "home.step3.body": { en: "Quick entries for meals, movement, and meditation — so you can see your practice take shape.", hi: "भोजन, गति और ध्यान के लिए त्वरित प्रविष्टियाँ — ताकि आप अपनी साधना को आकार लेते देख सकें।" },
+    "home.step4.title": { en: "A kind voice when needed", hi: "ज़रूरत पड़ने पर एक स्नेहपूर्ण आवाज़" },
+    "home.step4.body": { en: "If you drift, Aria calls to check in. Not a buzz on your screen — a real, warm reminder.", hi: "अगर आप भटक जाएँ, Aria हाल पूछने के लिए कॉल करती है। स्क्रीन पर एक बज़ नहीं — एक सच्ची, गर्मजोश याद।" },
+
+    // Home — Pricing
+    "home.pricing.eyebrow": { en: "Subscription", hi: "सदस्यता" },
+    "home.pricing.titleA": { en: "Simple,", hi: "सरल," },
+    "home.pricing.titleB": { en: "honest pricing.", hi: "ईमानदार मूल्य।" },
+    "home.pricing.lede": { en: "One plan, everything included. Cancel anytime.", hi: "एक योजना, सब कुछ शामिल। कभी भी रद्द करें।" },
+    "home.pricing.badge": { en: "Aria Companion", hi: "Aria साथी" },
+    "home.pricing.planName": { en: "Full access", hi: "पूर्ण पहुँच" },
+    "home.pricing.planSub": { en: "Yoga · Meditation · Plant-based nutrition", hi: "योग · ध्यान · पादप-आधारित पोषण" },
+    "home.pricing.period": { en: " /month", hi: " /माह" },
+    "home.pricing.f1": { en: "Personalized plant-based meal plans & recipes", hi: "वैयक्तिकृत पादप-आधारित भोजन योजनाएँ और रेसिपी" },
+    "home.pricing.f2": { en: "AI yoga sessions with form feedback", hi: "मुद्रा फ़ीडबैक के साथ AI योग सत्र" },
+    "home.pricing.f3": { en: "Guided meditation & pranayama library", hi: "मार्गदर्शित ध्यान और प्राणायाम पुस्तकालय" },
+    "home.pricing.f4": { en: "Daily journal: food, movement & meditation", hi: "रोज़ की जर्नल: भोजन, गति और ध्यान" },
+    "home.pricing.f5": { en: "Gentle phone check-ins from Aria", hi: "Aria की तरफ़ से हल्के फ़ोन चेक-इन" },
+    "home.pricing.f6": { en: "Q&A on wellness & nutrition, with referrals to verified doctors", hi: "वेलनेस और पोषण पर सवाल-जवाब, सत्यापित डॉक्टरों के रेफ़रल के साथ" },
+    "home.pricing.f7": { en: "Cancel anytime, no hidden fees", hi: "कभी भी रद्द करें, कोई छिपा शुल्क नहीं" },
+    "home.pricing.cta": { en: "Start with Aria", hi: "Aria के साथ शुरुआत करें" },
+
+    // Home — Footer
+    "home.foot.tagline": { en: "Still the mind. Nourish the body.", hi: "मन को शांत करें। शरीर को पोषित करें।" },
+    "home.foot.blurb": { en: "Wellness for life with chronic conditions. Yoga, meditation & plant-based nutrition — guided by Aria.", hi: "दीर्घकालिक स्थितियों के साथ जीने के लिए वेलनेस। योग, ध्यान और पादप-आधारित पोषण — Aria द्वारा निर्देशित।" },
+    "home.foot.explore": { en: "Explore", hi: "खोजें" },
+    "home.foot.stilwater": { en: "Stilwater", hi: "Stilwater" },
+    "home.foot.disclaimerTitle": { en: "A note on wellness & medical care.", hi: "वेलनेस और चिकित्सकीय देखभाल पर एक नोट।" },
+    "home.foot.disclaimerBody": { en: " Stilwater is a wellness companion and supports your practice alongside your medical care — not in place of it. Please consult your physician for medical advice, diagnosis, or treatment decisions, especially if you live with diabetes, hypertension, or any chronic condition.", hi: " Stilwater एक वेलनेस साथी है और आपकी चिकित्सकीय देखभाल के साथ आपकी साधना का समर्थन करता है — उसके स्थान पर नहीं। चिकित्सकीय सलाह, निदान या उपचार निर्णयों के लिए, विशेष रूप से यदि आप मधुमेह, उच्च रक्तचाप या किसी दीर्घकालिक स्थिति के साथ जी रहे हैं, अपने चिकित्सक से परामर्श करें।" },
+    "home.foot.copyright": { en: "© 2026 Stilwater Health AI. All rights reserved.", hi: "© 2026 Stilwater हेल्थ AI। सर्वाधिकार सुरक्षित।" },
+
     "home.seeHowItWorks": { en: "See how AI wellness support works →", hi: "देखें AI वेलनेस सहायता कैसे काम करती है →" },
 
     // Home — How it works
