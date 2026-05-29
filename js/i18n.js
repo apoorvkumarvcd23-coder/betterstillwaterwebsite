@@ -331,6 +331,7 @@
     "aria.chat.viewPrompt": { en: "View system prompt being sent", hi: "भेजा जा रहा सिस्टम प्रॉम्प्ट देखें" },
     "aria.chat.errorGeneric": { en: "I couldn't reach the AI just now. Please try again.", hi: "मैं अभी AI तक नहीं पहुँच पाई। कृपया फिर से प्रयास करें।" },
     "aria.chat.errorNetwork": { en: "Network hiccup — please try once more.", hi: "नेटवर्क समस्या — कृपया फिर से प्रयास करें।" },
+    "aria.chat.composePh": { en: "Ask Aria anything…", hi: "Aria से कुछ भी पूछें…" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell

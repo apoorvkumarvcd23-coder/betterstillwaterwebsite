@@ -4398,7 +4398,7 @@
             const ta = document.createElement("textarea");
             ta.className = "plant-input";
             ta.rows = 1;
-            ta.placeholder = RECIPE_PROMPTS[recipeChat.step].placeholder();
+            ta.placeholder = T("aria.chat.composePh", "Ask Aria anything…");
             ta.value = recipeChat.draft || "";
             ta.addEventListener("input", () => { recipeChat.draft = ta.value; });
             ta.addEventListener("keydown", (e) => {
