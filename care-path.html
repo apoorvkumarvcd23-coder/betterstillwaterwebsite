@@ -4408,7 +4408,10 @@
             recipeChat.messages.push({ role: "assistant", text: recipeChatGreeting() });
           }
 
-          recipeChat.messages.forEach((msg) => {
+          // Render the greeting (first assistant message), then pin the 3
+          // starter chips directly under it so they're always at the top.
+          // The rest of the conversation streams below.
+          const renderBubble = (msg) => {
             const bubble = document.createElement("div");
             bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
             let html = escapeHtml(msg.text || "");
@@ -4420,11 +4423,15 @@
                 '</span>';
             }
             bubble.innerHTML = html;
-            scroll.appendChild(bubble);
-          });
+            return bubble;
+          };
 
-          // Starter chips — always visible so the user can fall back to
-          // a quick suggested question at any point in the conversation.
+          if (recipeChat.messages.length > 0) {
+            scroll.appendChild(renderBubble(recipeChat.messages[0]));
+          }
+
+          // Starter chips — always visible, fixed position just under the
+          // greeting so users can always reach the suggested prompts.
           const chipsWrap = document.createElement("div");
           chipsWrap.className = "plant-chat-starters";
           recipeChatStarters().forEach((q) => {
@@ -4436,6 +4443,11 @@
             chipsWrap.appendChild(chip);
           });
           scroll.appendChild(chipsWrap);
+
+          // Rest of the conversation (everything after the greeting).
+          for (let i = 1; i < recipeChat.messages.length; i++) {
+            scroll.appendChild(renderBubble(recipeChat.messages[i]));
+          }
 
           // Loading indicator while waiting on the LLM
           if (recipeChat.loading) {
