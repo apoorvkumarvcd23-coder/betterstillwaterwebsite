@@ -332,6 +332,8 @@
     "aria.chat.errorGeneric": { en: "I couldn't reach the AI just now. Please try again.", hi: "मैं अभी AI तक नहीं पहुँच पाई। कृपया फिर से प्रयास करें।" },
     "aria.chat.errorNetwork": { en: "Network hiccup — please try once more.", hi: "नेटवर्क समस्या — कृपया फिर से प्रयास करें।" },
     "aria.chat.composePh": { en: "Ask Aria anything…", hi: "Aria से कुछ भी पूछें…" },
+    "aria.chat.clear": { en: "Clear chat", hi: "चैट साफ़ करें" },
+    "aria.chat.clearConfirm": { en: "Clear this conversation? This can't be undone.", hi: "इस बातचीत को साफ़ करें? यह पूर्ववत नहीं की जा सकती।" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell

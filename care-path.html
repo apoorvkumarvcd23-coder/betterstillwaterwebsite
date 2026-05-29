@@ -1584,13 +1584,40 @@
       }
       .plant-chat-close svg { width: 18px; height: 18px; }
       .plant-chat-close:hover { background: rgba(47, 72, 66, 0.06); }
+      .plant-chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-right: 48px;
+      }
       .plant-chat-title {
         font-family: "Fraunces", Georgia, serif;
         font-size: 1.2rem;
         font-weight: 600;
         color: var(--c-ink, #1c2a2a);
-        padding-right: 48px;
       }
+      .plant-chat-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        color: var(--c-ink-soft, rgba(28, 42, 42, 0.7));
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .plant-chat-clear:hover {
+        background: rgba(47, 72, 66, 0.06);
+        color: var(--c-ink, #1c2a2a);
+        border-color: rgba(47, 72, 66, 0.32);
+      }
+      .plant-chat-clear svg { width: 14px; height: 14px; }
       .plant-chat-scroll {
         flex: 1 1 auto;
         overflow-y: auto;
@@ -3069,6 +3096,20 @@
         }
         function savePersistedState() {
           try {
+            // Slim the recipeChat down to just the persistable fields — drop
+            // transients like the SpeechRecognition handle and the loading
+            // flag. Cap message history at 100 to keep localStorage bounded.
+            let chat = null;
+            if (state.recipeChat) {
+              const msgs = Array.isArray(state.recipeChat.messages)
+                ? state.recipeChat.messages.slice(-100)
+                : [];
+              chat = {
+                messages: msgs,
+                greetingApplied: !!state.recipeChat.greetingApplied,
+                draft: typeof state.recipeChat.draft === "string" ? state.recipeChat.draft : "",
+              };
+            }
             const slim = {
               mode: state.mode,
               messages: Array.isArray(state.messages) ? state.messages.slice(-50) : [],
@@ -3082,6 +3123,7 @@
               todayPlan: state.todayPlan,
               todayMeta: state.todayMeta,
               searchedDish: state.searchedDish,
+              recipeChat: chat,
             };
             localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(slim));
           } catch (_e) {}
@@ -4225,16 +4267,20 @@
         // model openai/gpt-oss-120b by default). Greeting + 3 starter
         // suggestion chips are tuned to the user's wellness-assessment
         // condition (diabetes / eye / hypertension / general).
-        const recipeChat = state.recipeChat || (state.recipeChat = {
-          messages: [],            // [{ role: "assistant"|"user", text, attachment? }]
-          loading: false,
-          greetingApplied: false,
-          draft: "",
-          pendingAttachment: null,
-          lastPrompt: "",          // system prompt the server reported
-          lastModel: "",           // model name the server used
-          showPrompt: false,       // toggles the "Show prompt" debug panel
-        });
+        // Hydrates the recipeChat from persisted state (if any) and tops up
+        // every field so a partially-restored object can't blow up the
+        // render. Always resets transient flags (loading, pending attachment).
+        const recipeChat = (function () {
+          const base = state.recipeChat || (state.recipeChat = {});
+          if (!Array.isArray(base.messages)) base.messages = [];
+          if (typeof base.greetingApplied !== "boolean") base.greetingApplied = false;
+          if (typeof base.draft !== "string") base.draft = "";
+          if (typeof base.lastPrompt !== "string") base.lastPrompt = "";
+          if (typeof base.lastModel !== "string") base.lastModel = "";
+          base.loading = false;
+          base.pendingAttachment = null;
+          return base;
+        })();
 
         function activeCondition() {
           const f = window.__swCareFlags || {};
@@ -4317,10 +4363,41 @@
           if (!host) return;
           host.innerHTML = "";
 
+          const header = document.createElement("div");
+          header.className = "plant-chat-header";
           const title = document.createElement("div");
           title.className = "plant-chat-title";
           title.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
-          host.appendChild(title);
+          header.appendChild(title);
+
+          // Clear-history button — only meaningful once the user has sent
+          // at least one message (greeting alone shouldn't be wiped).
+          if (recipeChat.messages.some((m) => m.role === "user")) {
+            const clearBtn = document.createElement("button");
+            clearBtn.type = "button";
+            clearBtn.className = "plant-chat-clear";
+            clearBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
+              '<span>' + escapeHtml(T("aria.chat.clear", "Clear chat")) + '</span>';
+            clearBtn.addEventListener("click", () => {
+              if (!confirm(T("aria.chat.clearConfirm", "Clear this conversation? This can't be undone."))) return;
+              state.recipeChat = {
+                messages: [],
+                loading: false,
+                greetingApplied: false,
+                draft: "",
+                pendingAttachment: null,
+                lastPrompt: "",
+                lastModel: "",
+                showPrompt: false,
+              };
+              Object.assign(recipeChat, state.recipeChat);
+              savePersistedState();
+              renderPlantRecipesChat();
+            });
+            header.appendChild(clearBtn);
+          }
+          host.appendChild(header);
 
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow plant-chat-scroll";
@@ -4346,20 +4423,19 @@
             scroll.appendChild(bubble);
           });
 
-          // Starter chips — visible only when the user hasn't asked anything yet
-          if (recipeChat.messages.filter((m) => m.role === "user").length === 0) {
-            const chipsWrap = document.createElement("div");
-            chipsWrap.className = "plant-chat-starters";
-            recipeChatStarters().forEach((q) => {
-              const chip = document.createElement("button");
-              chip.type = "button";
-              chip.className = "plant-chat-starter";
-              chip.textContent = q;
-              chip.addEventListener("click", () => sendMessage(q));
-              chipsWrap.appendChild(chip);
-            });
-            scroll.appendChild(chipsWrap);
-          }
+          // Starter chips — always visible so the user can fall back to
+          // a quick suggested question at any point in the conversation.
+          const chipsWrap = document.createElement("div");
+          chipsWrap.className = "plant-chat-starters";
+          recipeChatStarters().forEach((q) => {
+            const chip = document.createElement("button");
+            chip.type = "button";
+            chip.className = "plant-chat-starter";
+            chip.textContent = q;
+            chip.addEventListener("click", () => sendMessage(q));
+            chipsWrap.appendChild(chip);
+          });
+          scroll.appendChild(chipsWrap);
 
           // Loading indicator while waiting on the LLM
           if (recipeChat.loading) {
@@ -4381,6 +4457,7 @@
             recipeChat.pendingAttachment = null;
             recipeChat.draft = "";
             recipeChat.loading = true;
+            try { savePersistedState(); } catch (_) {}
             renderPlantRecipesChat();
 
             const apiMessages = recipeChat.messages.map((m) => ({
@@ -4411,6 +4488,7 @@
                 const reply = (data && data.reply ? String(data.reply) : "").trim()
                   || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
                 recipeChat.messages.push({ role: "assistant", text: reply });
+                try { savePersistedState(); } catch (_) {}
                 renderPlantRecipesChat();
               })
               .catch(() => {
@@ -4419,6 +4497,7 @@
                   role: "assistant",
                   text: T("aria.chat.errorNetwork", "Network hiccup — please try once more."),
                 });
+                try { savePersistedState(); } catch (_) {}
                 renderPlantRecipesChat();
               });
           }
