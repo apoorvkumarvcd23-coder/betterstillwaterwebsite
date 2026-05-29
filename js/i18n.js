@@ -293,6 +293,9 @@
     },
     "aria.recipes.chat.send": { en: "Send", hi: "भेजें" },
     "aria.recipes.chat.restart": { en: "Ask Aria again", hi: "Aria से फिर पूछें" },
+    "aria.recipes.chat.attach": { en: "Attach a file", hi: "फ़ाइल जोड़ें" },
+    "aria.recipes.chat.voice": { en: "Voice input", hi: "आवाज़ इनपुट" },
+    "aria.recipes.chat.voiceUnsupported": { en: "Voice input not supported in this browser", hi: "इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell

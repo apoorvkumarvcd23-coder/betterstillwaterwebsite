@@ -1491,25 +1491,26 @@
       }
       .recipe-chat-restart:hover { background: rgba(47, 72, 66, 0.06); }
 
-      /* Plant-Based Recipes overlay — covers the companion shell when open */
-      #companionRoot { position: relative; }
+      /* Plant-Based Recipes — opens INSIDE the companion section; while it's
+         open the 3-tab companion shell is fully hidden so only the chat is
+         visible. Closing the chat (tab click or ✕) restores the shell. */
+      body.plant-chat-open #companionRoot .companion-shell { display: none; }
       .plant-chat-overlay {
-        position: absolute;
-        inset: 0;
-        z-index: 5;
+        position: relative;
         background: var(--c-bg, #ffffff);
-        border-radius: inherit;
+        border-radius: 18px;
         display: flex;
         flex-direction: column;
         gap: 14px;
-        padding: 18px clamp(14px, 3vw, 28px);
-        overflow: hidden;
+        padding: 22px clamp(14px, 3vw, 32px) 18px;
+        min-height: clamp(420px, 70vh, 720px);
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.12));
       }
       .plant-chat-overlay[hidden] { display: none; }
       .plant-chat-close {
         position: absolute;
-        top: 12px;
-        right: 12px;
+        top: 14px;
+        right: 14px;
         width: 36px; height: 36px;
         border-radius: 50%;
         border: 1px solid rgba(47, 72, 66, 0.18);
@@ -1536,6 +1537,95 @@
         gap: 12px;
         padding-bottom: 12px;
       }
+
+      /* ChatGPT-style compose bar */
+      .plant-compose {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--c-bg, #ffffff);
+        border: 1.5px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 999px;
+        padding: 6px 8px 6px 6px;
+        margin-top: auto;
+      }
+      .plant-compose:focus-within {
+        border-color: rgba(95, 179, 179, 0.55);
+        box-shadow: 0 0 0 4px rgba(95, 179, 179, 0.12);
+      }
+      .plant-compose .plant-icon-btn {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--c-ink-soft, rgba(28,42,42,0.7));
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-compose .plant-icon-btn:hover { background: rgba(47, 72, 66, 0.06); color: var(--c-ink, #1c2a2a); }
+      .plant-compose .plant-icon-btn svg { width: 20px; height: 20px; }
+      .plant-compose .plant-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        resize: none;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--c-ink, #1c2a2a);
+        padding: 8px 4px;
+        max-height: 140px;
+      }
+      .plant-compose .plant-send-btn {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(140deg, #2f4842, #5f7d72);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .plant-compose .plant-send-btn[disabled] {
+        background: var(--c-border, rgba(47, 72, 66, 0.18));
+        cursor: not-allowed;
+      }
+      .plant-compose .plant-send-btn svg { width: 18px; height: 18px; }
+      .plant-mic-btn.is-listening { color: #c0392b; background: rgba(192, 57, 43, 0.10); }
+      .plant-mic-btn.is-listening .plant-mic-wave {
+        animation: plantMicPulse 1.2s ease-out infinite;
+      }
+      @keyframes plantMicPulse {
+        0%   { box-shadow: 0 0 0 0   rgba(192, 57, 43, 0.55); }
+        70%  { box-shadow: 0 0 0 14px rgba(192, 57, 43, 0);   }
+        100% { box-shadow: 0 0 0 0   rgba(192, 57, 43, 0);   }
+      }
+      .plant-mic-wave {
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .plant-attach-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(95, 179, 179, 0.10);
+        border: 1px solid rgba(95, 179, 179, 0.30);
+        color: var(--c-ink, #1c2a2a);
+        font-size: 12.5px;
+        border-radius: 999px;
+        margin-top: 4px;
+      }
+      .plant-attach-chip svg { width: 13px; height: 13px; }
 
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
@@ -4085,40 +4175,156 @@
           recipeChat.messages.forEach((msg) => {
             const bubble = document.createElement("div");
             bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
-            bubble.innerHTML = escapeHtml(msg.text);
+            let html = escapeHtml(msg.text || "");
+            if (msg.attachment && msg.attachment.name) {
+              html += (msg.text ? '<br/>' : '') +
+                '<span class="plant-attach-chip" style="margin-top:6px;">' +
+                  '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                  '<span>' + escapeHtml(msg.attachment.name) + '</span>' +
+                '</span>';
+            }
+            bubble.innerHTML = html;
             scroll.appendChild(bubble);
           });
 
-          // Compose row (only while there are still questions to answer)
+          // ChatGPT-style compose bar: + attach, textarea, mic, send
           if (recipeChat.step < RECIPE_PROMPTS.length) {
             const composeWrap = document.createElement("div");
-            composeWrap.className = "recipe-chat-compose";
+            composeWrap.className = "plant-compose";
+
+            // + attach button (hidden file picker)
+            const attachBtn = document.createElement("button");
+            attachBtn.type = "button";
+            attachBtn.className = "plant-icon-btn plant-attach-btn";
+            attachBtn.setAttribute("aria-label", T("aria.recipes.chat.attach", "Attach a file"));
+            attachBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*,application/pdf,.doc,.docx,video/*";
+            fileInput.style.display = "none";
+            fileInput.addEventListener("change", () => {
+              const f = fileInput.files && fileInput.files[0];
+              if (!f) return;
+              recipeChat.pendingAttachment = { name: f.name, size: f.size, type: f.type || "" };
+              renderPlantRecipesChat();
+            });
+            attachBtn.addEventListener("click", () => fileInput.click());
+            composeWrap.appendChild(attachBtn);
+            composeWrap.appendChild(fileInput);
+
+            // Textarea
             const ta = document.createElement("textarea");
-            ta.className = "recipe-chat-input";
-            ta.rows = 2;
+            ta.className = "plant-input";
+            ta.rows = 1;
             ta.placeholder = RECIPE_PROMPTS[recipeChat.step].placeholder();
+            ta.value = recipeChat.draft || "";
+            ta.addEventListener("input", () => { recipeChat.draft = ta.value; });
             ta.addEventListener("keydown", (e) => {
               if (e.key === "Enter" && !e.shiftKey) {
                 e.preventDefault();
                 submitAnswer();
               }
             });
+            composeWrap.appendChild(ta);
+
+            // Mic — Web Speech API (with waveform pulse when listening)
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const micBtn = document.createElement("button");
+            micBtn.type = "button";
+            micBtn.className = "plant-icon-btn plant-mic-btn";
+            micBtn.setAttribute("aria-label", T("aria.recipes.chat.voice", "Voice input"));
+            micBtn.innerHTML = SpeechRec
+              ? '<span class="plant-mic-wave" aria-hidden="true"></span>'
+              : '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+            if (!SpeechRec) {
+              micBtn.disabled = true;
+              micBtn.title = T("aria.recipes.chat.voiceUnsupported",
+                "Voice input not supported in this browser");
+            } else {
+              micBtn.innerHTML =
+                '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+              micBtn.addEventListener("click", () => {
+                if (recipeChat._rec && recipeChat._listening) {
+                  try { recipeChat._rec.stop(); } catch (_) {}
+                  return;
+                }
+                const rec = new SpeechRec();
+                rec.lang = (LANG && LANG()) === "hi" ? "hi-IN" : "en-US";
+                rec.interimResults = true;
+                rec.continuous = false;
+                rec.onstart = () => {
+                  recipeChat._listening = true;
+                  micBtn.classList.add("is-listening");
+                  micBtn.innerHTML = '<span class="plant-mic-wave" aria-hidden="true"></span>';
+                };
+                rec.onresult = (e) => {
+                  let txt = "";
+                  for (let i = 0; i < e.results.length; i++) {
+                    txt += e.results[i][0].transcript;
+                  }
+                  ta.value = (recipeChat.draft || "") + txt;
+                };
+                rec.onerror = () => {
+                  recipeChat._listening = false;
+                  micBtn.classList.remove("is-listening");
+                };
+                rec.onend = () => {
+                  recipeChat._listening = false;
+                  recipeChat.draft = ta.value;
+                  micBtn.classList.remove("is-listening");
+                  micBtn.innerHTML =
+                    '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+                };
+                recipeChat._rec = rec;
+                try { rec.start(); } catch (_) {}
+              });
+            }
+            composeWrap.appendChild(micBtn);
+
+            // Send (icon-only paper-plane)
             const sendBtn = document.createElement("button");
             sendBtn.type = "button";
-            sendBtn.className = "recipe-chat-send";
-            sendBtn.textContent = T("aria.recipes.chat.send", "Send");
+            sendBtn.className = "plant-send-btn";
+            sendBtn.setAttribute("aria-label", T("aria.recipes.chat.send", "Send"));
+            sendBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
             sendBtn.addEventListener("click", submitAnswer);
-
-            composeWrap.appendChild(ta);
             composeWrap.appendChild(sendBtn);
+
             scroll.appendChild(composeWrap);
 
+            // Pending attachment chip preview
+            if (recipeChat.pendingAttachment) {
+              const chip = document.createElement("div");
+              chip.className = "plant-attach-chip";
+              chip.innerHTML =
+                '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                '<span>' + escapeHtml(recipeChat.pendingAttachment.name) + '</span>';
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.style.cssText = "border:none;background:transparent;cursor:pointer;color:inherit;padding:0 4px;";
+              remove.textContent = "×";
+              remove.setAttribute("aria-label", T("common.close", "Close"));
+              remove.addEventListener("click", () => {
+                recipeChat.pendingAttachment = null;
+                renderPlantRecipesChat();
+              });
+              chip.appendChild(remove);
+              scroll.appendChild(chip);
+            }
+
             function submitAnswer() {
-              const v = ta.value.trim();
-              if (!v) return;
+              const v = (ta.value || "").trim();
+              const attach = recipeChat.pendingAttachment;
+              if (!v && !attach) return;
               const prompt = RECIPE_PROMPTS[recipeChat.step];
-              recipeChat.answers[prompt.key] = v;
-              recipeChat.messages.push({ role: "user", text: v });
+              recipeChat.answers[prompt.key] = v || (attach ? "[attached " + attach.name + "]" : "");
+              recipeChat.messages.push({
+                role: "user",
+                text: v,
+                attachment: attach ? { name: attach.name } : null,
+              });
+              recipeChat.pendingAttachment = null;
+              recipeChat.draft = "";
               recipeChat.step += 1;
               if (recipeChat.step < RECIPE_PROMPTS.length) {
                 recipeChat.messages.push({
