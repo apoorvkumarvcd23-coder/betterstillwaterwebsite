@@ -359,6 +359,7 @@
     "aria.mp.setupFirst": { en: "Set up a plan first", hi: "पहले एक योजना बनाएं" },
     "aria.mp.weekly.title": { en: "Stilwater weekly plan", hi: "Stilwater साप्ताहिक योजना" },
     "aria.mp.weekly.hint": { en: "Tell us what you like and what to skip. Tap the mic to speak, or just type.", hi: "हमें बताएं क्या पसंद है और क्या छोड़ना है। बोलने के लिए माइक दबाएं, या टाइप करें।" },
+    "aria.mp.safetyNote": { en: "Aria offers lifestyle guidance and does not replace your doctor’s advice.", hi: "Aria जीवनशैली मार्गदर्शन देती है और आपके डॉक्टर की सलाह का स्थान नहीं लेती।" },
     "aria.mp.cuisinesLabel": { en: "Cuisines you prefer", hi: "पसंदीदा व्यंजन" },
     "aria.mp.cuisinesPlaceholder": { en: "e.g. Mediterranean, South Indian, Japanese", hi: "उदा. भारतीय, भूमध्यसागरीय, जापानी" },
     "aria.mp.likeLabel": { en: "Food I like to eat", hi: "मैं जो खाना पसंद करता/करती हूँ" },

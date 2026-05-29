@@ -1059,6 +1059,46 @@
       }
       .companion-intro-body { font-size: 14px; color: var(--c-ink-soft); line-height: 1.5; margin: 0; }
 
+      /* Meal Plan form — decorative header with bowl illustration on the right */
+      .mp-form-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 0 2px;
+      }
+      .mp-form-header-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .mp-form-header-art {
+        flex: 0 0 auto;
+        width: clamp(120px, 24vw, 200px);
+        max-height: 140px;
+        display: block;
+      }
+      .mp-form-header-art svg { width: 100%; height: 100%; display: block; }
+      @media (max-width: 540px) {
+        .mp-form-header-art { display: none; }
+      }
+
+      /* Footer safety note under the meal-plan form */
+      .mp-safety-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 10px 14px;
+        background: rgba(122, 143, 126, 0.08);
+        border: 1px solid rgba(122, 143, 126, 0.20);
+        border-radius: 12px;
+        font-size: 12.5px;
+        color: var(--c-ink-soft, rgba(28, 42, 42, 0.75));
+        line-height: 1.45;
+      }
+      .mp-safety-note svg {
+        width: 16px; height: 16px;
+        color: rgba(122, 143, 126, 0.9);
+        flex-shrink: 0;
+      }
+
       .companion-choice {
         display: flex; align-items: flex-start; gap: 14px;
         padding: 16px; border-radius: 18px;
@@ -3658,12 +3698,46 @@
           wrap.style.gap = "16px";
 
           if (!state.weeklyPlan) {
-            wrap.appendChild(backRow(T("aria.mp.weekly.title", "Stilwater weekly plan")));
+            // Header block: title + subtitle on the left, decorative bowl
+            // illustration on the right (purely cosmetic — matches the new
+            // mock; no behavior change).
+            const headerWrap = document.createElement("div");
+            headerWrap.className = "mp-form-header";
+            const headerText = document.createElement("div");
+            headerText.className = "mp-form-header-text";
+            const titleRow = backRow(T("aria.mp.weekly.title", "Stilwater weekly plan"));
             const note = document.createElement("p");
             note.className = "companion-intro-body";
             note.style.marginTop = "-6px";
             note.textContent = T("aria.mp.weekly.hint", "Tell us what you like and what to skip. Tap the mic to speak, or just type.");
-            wrap.appendChild(note);
+            headerText.appendChild(titleRow);
+            headerText.appendChild(note);
+            const headerArt = document.createElement("div");
+            headerArt.className = "mp-form-header-art";
+            headerArt.setAttribute("aria-hidden", "true");
+            headerArt.innerHTML =
+              '<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">' +
+                // soft cream backdrop blob
+                '<ellipse cx="120" cy="80" rx="78" ry="50" fill="#eaf0e3"/>' +
+                // bowl
+                '<path d="M55 78 Q120 122 185 78 L172 100 Q120 130 68 100 Z" fill="#f1ead8" stroke="#cdc4ad" stroke-width="1.5"/>' +
+                '<ellipse cx="120" cy="78" rx="65" ry="10" fill="#e7decc" stroke="#cdc4ad" stroke-width="1.5"/>' +
+                // greens / leaves
+                '<path d="M85 70 q-8 -20 8 -34 q12 10 6 28 q-6 8 -14 6z" fill="#7ea27a"/>' +
+                '<path d="M105 64 q-10 -22 10 -36 q14 12 6 30 q-8 8 -16 6z" fill="#5f8a5f"/>' +
+                '<path d="M130 66 q-6 -18 14 -30 q10 12 2 26 q-8 6 -16 4z" fill="#88ad84"/>' +
+                // lemon halves
+                '<circle cx="148" cy="78" r="10" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+                '<circle cx="148" cy="78" r="6" fill="#fff4c2"/>' +
+                '<line x1="148" y1="72" x2="148" y2="84" stroke="#d6b85a" stroke-width="0.8"/>' +
+                '<line x1="142" y1="78" x2="154" y2="78" stroke="#d6b85a" stroke-width="0.8"/>' +
+                '<circle cx="166" cy="86" r="7" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+                '<circle cx="166" cy="86" r="4" fill="#fff4c2"/>' +
+              '</svg>';
+            headerWrap.appendChild(headerText);
+            headerWrap.appendChild(headerArt);
+            wrap.appendChild(headerWrap);
+
             wrap.appendChild(voiceField({
               label: T("aria.mp.cuisinesLabel", "Cuisines you prefer"), value: state.cuisine, field: "cuisine",
               placeholder: T("aria.mp.cuisinesPlaceholder", "e.g. Mediterranean, South Indian, Japanese"),
@@ -3693,6 +3767,14 @@
               err.textContent = state.weeklyError;
               wrap.appendChild(err);
             }
+
+            // Safety note (matches Plant-Based Recipes chat footer)
+            const safety = document.createElement("div");
+            safety.className = "mp-safety-note";
+            safety.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+              '<span>' + escapeHtml(T("aria.mp.safetyNote", "Aria offers lifestyle guidance and does not replace your doctor’s advice.")) + '</span>';
+            wrap.appendChild(safety);
           } else {
             wrap.appendChild(backRow(T("aria.mp.yourWeekly", "Your weekly plan")));
             const row = document.createElement("div");
