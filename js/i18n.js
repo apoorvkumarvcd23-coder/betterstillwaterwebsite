@@ -235,7 +235,7 @@
     },
 
     // Care-path sidebar
-    "carepath.yourPath": { en: "Your Care Path", hi: "आपका केयर पाथ" },
+    "carepath.yourPath": { en: "Your Wellness Journey", hi: "आपकी वेलनेस यात्रा" },
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },

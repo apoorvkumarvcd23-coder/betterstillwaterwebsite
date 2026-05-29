@@ -300,6 +300,53 @@
         background: rgba(255, 255, 255, 0.09);
       }
 
+      /* Two-CTA chooser (Welcome to Stilwater) — mirrors auth.html */
+      .auth-choices { display: flex; flex-direction: column; gap: 14px; }
+      .auth-cta {
+        display: flex; align-items: center; justify-content: center;
+        gap: 0.9rem;
+        padding: 1.05rem 1.4rem;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--white);
+        font-family: "Outfit", sans-serif;
+        font-size: 0.82rem; font-weight: 500;
+        letter-spacing: 0.14em; text-transform: uppercase;
+        text-decoration: none;
+        border-radius: 999px;
+        cursor: pointer;
+        transition: background 0.25s, border-color 0.25s;
+      }
+      .auth-cta:hover {
+        background: rgba(255, 255, 255, 0.09);
+        border-color: rgba(255, 255, 255, 0.35);
+      }
+      .auth-cta svg { flex-shrink: 0; }
+      .auth-or {
+        display: flex; align-items: center; gap: 12px;
+        color: var(--off);
+        font-size: 0.7rem; letter-spacing: 0.32em;
+        margin: 4px 0;
+      }
+      .auth-or::before, .auth-or::after {
+        content: ""; flex: 1; height: 1px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .auth-safety {
+        display: flex; align-items: center; justify-content: center; gap: 8px;
+        color: var(--off);
+        font-size: 0.74rem; letter-spacing: 0.04em;
+        margin-top: 32px;
+      }
+      .auth-back {
+        display: inline-flex; align-items: center; gap: 6px;
+        background: transparent; border: none; cursor: pointer;
+        color: var(--off);
+        padding: 4px 0; margin-bottom: 18px;
+        font-family: inherit; font-size: 0.78rem; letter-spacing: 0.04em;
+      }
+      .auth-back:hover { color: var(--white); }
+
       .text-center {
         text-align: center;
       }
@@ -485,9 +532,9 @@
           <a href="index.html" class="back-link">Back to Site</a>
 
           <div class="auth-form-container fade-up delay-02">
-            <h2 id="formTitle">Begin your journey.</h2>
+            <h2 id="formTitle">Welcome to Stilwater</h2>
             <p class="form-subtitle">
-              Create your Stilwater account and access the digital sanctuary.
+              Access your digital sanctuary.
             </p>
 
             <div id="signedInState" class="signed-in-state">
@@ -495,52 +542,39 @@
               <a href="/logout" class="btn btn-inline">Sign Out</a>
             </div>
 
-            <div class="toggle-group">
-              <button
-                class="toggle-btn active"
-                id="googleToggle"
-                onclick="switchToGoogle()"
-              >
-                Sign up with Google
-              </button>
-              <button
-                class="toggle-btn"
-                id="phoneToggle"
-                onclick="switchToPhone()"
-              >
-                Sign up with Phone
-              </button>
-            </div>
-
-            <div id="googleSection">
-              <a href="/auth/google?returnTo=/" id="googleAuthLink" class="btn">
-                <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path
-                    fill="#4285F4"
-                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                  />
-                  <path
-                    fill="#34A853"
-                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                  />
-                  <path
-                    fill="#FBBC05"
-                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                  />
-                  <path
-                    fill="#EA4335"
-                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                  />
+            <div id="authChoices" class="auth-choices">
+              <a href="/auth/google?returnTo=/" id="googleAuthLink" class="auth-cta auth-cta-google">
+                <svg width="20" height="20" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Continue with Google
+                <span>Continue with Google</span>
               </a>
 
-              <div class="helper-text text-center mt-1">
-                Securely authenticating via Google OAuth 2.0
+              <div class="auth-or"><span>OR</span></div>
+
+              <button type="button" class="auth-cta auth-cta-phone" onclick="switchToPhone()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                <span>Continue with Mobile Number</span>
+              </button>
+
+              <div class="auth-safety">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                </svg>
+                <span>Your data is safe and secure with us.</span>
               </div>
             </div>
 
             <div id="phoneSection" class="hidden">
+              <button type="button" class="auth-back" onclick="switchToChoices()">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+                Back
+              </button>
               <div id="phoneLoginForm">
                 <form onsubmit="handlePhoneLogin(event)">
                   <div class="mb-12">
@@ -670,8 +704,7 @@
           : "/intake.html";
       const signedInState = document.getElementById("signedInState");
       const signedInMessage = document.getElementById("signedInMessage");
-      const toggleGroup = document.querySelector(".toggle-group");
-      const googleSection = document.getElementById("googleSection");
+      const authChoices = document.getElementById("authChoices");
       const phoneSection = document.getElementById("phoneSection");
 
       const googleAuthLink = document.getElementById("googleAuthLink");
@@ -695,8 +728,7 @@
               signedInMessage.textContent = `You are already signed in as ${name}.`;
             }
             if (signedInState) signedInState.style.display = "block";
-            if (toggleGroup) toggleGroup.style.display = "none";
-            if (googleSection) googleSection.style.display = "none";
+            if (authChoices) authChoices.style.display = "none";
             if (phoneSection) phoneSection.style.display = "none";
             return;
           }
@@ -709,19 +741,21 @@
         })
         .catch(() => {});
 
-      function switchToGoogle() {
-        document.getElementById("googleToggle").classList.add("active");
-        document.getElementById("phoneToggle").classList.remove("active");
-        document.getElementById("googleSection").style.display = "block";
-        document.getElementById("phoneSection").style.display = "none";
+      function switchToPhone() {
+        const choices = document.getElementById("authChoices");
+        if (choices) choices.style.display = "none";
+        const phone = document.getElementById("phoneSection");
+        if (phone) phone.style.display = "block";
       }
 
-      function switchToPhone() {
-        document.getElementById("phoneToggle").classList.add("active");
-        document.getElementById("googleToggle").classList.remove("active");
-        document.getElementById("phoneSection").style.display = "block";
-        document.getElementById("googleSection").style.display = "none";
+      function switchToChoices() {
+        const choices = document.getElementById("authChoices");
+        if (choices) choices.style.display = "block";
+        const phone = document.getElementById("phoneSection");
+        if (phone) phone.style.display = "none";
       }
+
+      function switchToGoogle() { switchToChoices(); }
 
       function switchToPhoneLogin() {
         document.getElementById("phoneLoginForm").style.display = "block";
