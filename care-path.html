@@ -4551,6 +4551,13 @@
         }
 
         renderMode();
+
+        // Default landing view = Plant-Based Recipes chat. The 3-tab
+        // companion (Meal Plan / Recipes / Journaling) appears as soon as
+        // the user clicks ✕ on the chat or any of the 3 tabs.
+        if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
+          window.__swPlantRecipes.show();
+        }
       })();
     </script>
   </body>
