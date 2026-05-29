@@ -4532,14 +4532,19 @@
           return card;
         }
 
-        // Sidebar "Plant-Based Recipes" → open the ChatGPT-style chat as an
-        // overlay above the companion. The 3 companion tabs (Meal Plan,
-        // Recipes, Journaling) are untouched and reappear as soon as any
-        // tab — or the close button — is clicked.
+        // Sidebar "Plant-Based Recipes" → TOGGLES the chat overlay.
+        //  - Default page load shows the chat (see init below).
+        //  - Click while chat is open  → chat closes, 3-tab companion
+        //    (Meal Plan / Recipes / Journaling) appears.
+        //  - Click while chat is closed → chat opens again.
         const plantBtn = document.getElementById("btnPlantRecipes");
         if (plantBtn) {
           plantBtn.addEventListener("click", () => {
-            if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
+            const isOpen = document.body.classList.contains("plant-chat-open");
+            if (!window.__swPlantRecipes) return;
+            if (isOpen) {
+              window.__swPlantRecipes.hide();
+            } else {
               window.__swPlantRecipes.show();
             }
             try {
@@ -4554,7 +4559,8 @@
 
         // Default landing view = Plant-Based Recipes chat. The 3-tab
         // companion (Meal Plan / Recipes / Journaling) appears as soon as
-        // the user clicks ✕ on the chat or any of the 3 tabs.
+        // the user clicks ✕ on the chat, any of the 3 tabs, or the
+        // sidebar "Plant-Based Recipes" item (which toggles).
         if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
           window.__swPlantRecipes.show();
         }
