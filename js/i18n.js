@@ -75,6 +75,7 @@
     "auth.logout": { en: "Log out", hi: "लॉग आउट" },
     "auth.adminDashboard": { en: "Admin Dashboard", hi: "एडमिन डैशबोर्ड" },
     "auth.wellnessAssessment": { en: "Wellness Assessment", hi: "वेलनेस आकलन" },
+    "intake.skipForNow": { en: "Skip for now →", hi: "अभी छोड़ें →" },
     "auth.continueCarePath": { en: "Continue Your Personalized Care Path", hi: "अपना वैयक्तिकृत केयर पाथ जारी रखें" },
     "auth.home": { en: "Home", hi: "होम" },
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },

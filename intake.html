@@ -546,13 +546,20 @@
             ></textarea>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-solid"
-            style="margin-top: 1.5rem"
-          >
-            Submit Wellness Assessment
-          </button>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
+            <button
+              type="submit"
+              class="btn btn-solid"
+            >
+              Submit Wellness Assessment
+            </button>
+            <a href="/care-path.html"
+               class="btn btn-ghost"
+               style="text-decoration: none;"
+               aria-label="Skip the wellness assessment and continue to care path"
+               data-i18n="intake.skipForNow"
+            >Skip for now &rarr;</a>
+          </div>
           <div id="formMessage" class="form-message"></div>
         </form>
       </section>

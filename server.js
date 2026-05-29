@@ -545,16 +545,17 @@ const getDefaultPostAuthRedirectForUser = async (user) => {
     return "/admin.html";
   }
 
-  // Always go directly to /care-path on login. If the user has a
-  // completed wellness assessment, include its id so the page can
-  // render the personalized recommendation cards. Otherwise just
-  // open the bare care-path — the user can take the assessment
-  // later from the sidebar "Take Wellness Assessment" link.
+  // If the user has a completed wellness assessment, go straight to
+  // care-path with the submissionId so the personalized recommendation
+  // cards render immediately. New users (no assessment yet) are sent to
+  // the intake form first; that form now has a Skip button so they can
+  // bypass it and land on the bare care-path if they're not ready to
+  // fill it out.
   const latest = await getLatestCompletedAssessmentForUser(user);
   if (latest && latest.id) {
     return `${CUSTOMER_CARE_PATH_REDIRECT}?submissionId=${encodeURIComponent(String(latest.id))}`;
   }
-  return CUSTOMER_CARE_PATH_REDIRECT;
+  return "/intake.html";
 };
 
 const resolvePostAuthRedirect = async (value, user) => {
