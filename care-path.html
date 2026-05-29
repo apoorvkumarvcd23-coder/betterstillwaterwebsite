@@ -1398,6 +1398,99 @@
         cursor: pointer;
       }
 
+      /* Plant-Based Recipes — ChatGPT-style 3-question chat */
+      .companion-recipe-chat .companion-scroll { padding-bottom: 24px; }
+      .recipe-chat-bubble {
+        max-width: 88%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 14.5px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .recipe-chat-assistant {
+        align-self: flex-start;
+        background: rgba(95, 179, 179, 0.10);
+        border: 1px solid rgba(95, 179, 179, 0.25);
+        color: var(--c-ink, #1c2a2a);
+      }
+      .recipe-chat-user {
+        align-self: flex-end;
+        background: linear-gradient(140deg, #2f4842, #5f7d72);
+        color: #f4f1ea;
+        border: 1px solid rgba(47, 72, 66, 0.28);
+      }
+      .recipe-chat-compose {
+        display: flex; align-items: flex-end; gap: 8px;
+        margin-top: 4px;
+        background: var(--c-bg, #ffffff);
+        border: 1.5px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 14px;
+        padding: 8px;
+      }
+      .recipe-chat-input {
+        flex: 1;
+        border: none; outline: none; background: transparent;
+        resize: none;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--c-ink, #1c2a2a);
+        padding: 6px 8px;
+        max-height: 160px;
+      }
+      .recipe-chat-send {
+        border: none;
+        border-radius: 11px;
+        padding: 9px 16px;
+        background: linear-gradient(140deg, var(--c-sage, #8aa399), var(--c-sage-deep, #5f7d72));
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        font-size: 13.5px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .recipe-chat-meta {
+        color: var(--c-ink-soft, rgba(28,42,42,0.7));
+        font-size: 13px;
+        font-style: italic;
+        margin-top: 6px;
+      }
+      .recipe-chat-videos {
+        display: flex; flex-direction: column; gap: 8px;
+        margin-top: 8px;
+      }
+      .recipe-chat-video {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--c-ink, #1c2a2a);
+        background: var(--c-bg, #ffffff);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .recipe-chat-video:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.18);
+      }
+      .recipe-chat-restart {
+        align-self: flex-start;
+        margin-top: 6px;
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        background: transparent;
+        color: var(--c-ink, #1c2a2a);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .recipe-chat-restart:hover { background: rgba(47, 72, 66, 0.06); }
+
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         background: var(--c-mist); overflow: hidden;
@@ -1705,6 +1798,13 @@
             <circle cx="12" cy="12" r="10"/>
           </svg>
           <span data-i18n="carepath.meditation">AI Driven Meditation</span>
+        </button>
+        <button type="button" class="care-sidebar-item" id="btnPlantRecipes" data-ga-event="menu_recipes">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M12 2c-2 3-2 6 0 8s2 5 0 8"/>
+            <path d="M5 12c3-2 6-2 8 0s5 2 8 0"/>
+          </svg>
+          <span data-i18n="carepath.plantRecipes">Plant-Based Recipes</span>
         </button>
       </aside>
       <div class="care-stage">
@@ -2063,10 +2163,20 @@
       const hasFlagInUrl =
         params.has("hasOther") || params.has("hasEye") || params.has("hasHolistic");
 
-      const applyFlags = ({ hasOther, hasEye, hasHolistic }) => {
+      // Cached on window so the companion chat (renderRecipes) can read
+      // the user's assessed conditions and tailor Aria's welcome greeting.
+      window.__swCareFlags = window.__swCareFlags || {};
+      const applyFlags = ({ hasOther, hasEye, hasHolistic, hasDiabetes, hasHypertension }) => {
         if (hasOther) document.getElementById("sharanReco").hidden = false;
         if (hasEye) document.getElementById("eyeReco").hidden = false;
         if (hasHolistic) document.getElementById("healyReco").hidden = false;
+        window.__swCareFlags = {
+          hasOther: !!hasOther,
+          hasEye: !!hasEye,
+          hasHolistic: !!hasHolistic,
+          hasDiabetes: !!hasDiabetes,
+          hasHypertension: !!hasHypertension,
+        };
       };
 
       // Tag the Chat link (testimonials-*.html) so the testimonial AI page
@@ -2101,6 +2211,8 @@
             hasOther: params.get("hasOther") === "1",
             hasEye: params.get("hasEye") === "1",
             hasHolistic: params.get("hasHolistic") === "1",
+            hasDiabetes: params.get("hasDiabetes") === "1",
+            hasHypertension: params.get("hasHypertension") === "1",
           });
           return;
         }
@@ -2116,6 +2228,8 @@
             hasOther: Boolean(data.hasOther),
             hasEye: Boolean(data.hasEye),
             hasHolistic: Boolean(data.hasHolistic),
+            hasDiabetes: Boolean(data.hasDiabetes),
+            hasHypertension: Boolean(data.hasHypertension),
           });
         } catch (_) {
           // network error — leave cards hidden; UI degrades gracefully
@@ -3726,104 +3840,224 @@
             .catch(() => setState(T("aria.recipes.cantReach", "Couldn't reach Aria right now.")));
         }
 
-        // ---- RECIPES ----
-        function renderRecipes() {
-          // Auto-derive today's plan from the matching weekday if a weekly
-          // plan exists but no today plan has been built yet — so Recipes
-          // shows the day's meals without forcing a visit to Today first.
-          if (!state.todayPlan && state.weeklyPlan) {
-            const day = todayName();
-            const source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
-            const built = {};
-            MEAL_SLOTS.forEach((slot) => {
-              built[slot] = {
-                meal: (source && source[slot]) || { en: "Plant-based whole-food option", hi: "प्लांट-बेस्ड भोजन (plant-based option)" },
-                why: "",
-              };
-            });
-            state.todayPlan = built;
-            state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
-          }
+        // ---- RECIPES (ChatGPT-style 3-question flow) ----
+        // Persistent state for the recipe chat so re-renders don't reset
+        // the conversation — lives on the parent `state` object alongside
+        // mode/meal-plan/journaling state.
+        const recipeChat = state.recipeChat || (state.recipeChat = {
+          messages: [],          // [{ role: "assistant"|"user", text }]
+          step: 0,               // 0 = waiting for likes, 1 = avoid, 2 = condition note, 3 = done
+          answers: {},           // { likes, avoid, condition }
+          loadingVideos: false,
+          videos: null,
+          greetingApplied: false,
+        });
 
+        // Build the welcome message conditioned on the user's assessment.
+        // Falls back to the generic copy when no flags are set (skipped
+        // assessment or anonymous URL load).
+        function recipeChatGreeting() {
+          const f = window.__swCareFlags || {};
+          if (f.hasDiabetes) {
+            return T("aria.recipes.chat.greetDiabetes",
+              "Hi, I'm Aria. I see you're managing diabetes — let's find plant-based meals that keep your blood sugar steady and still taste great. Three quick questions and I'll pull cooking videos you can try tonight.");
+          }
+          if (f.hasEye) {
+            return T("aria.recipes.chat.greetEye",
+              "Hi, I'm Aria. Since eye health is on your radar, I'll lean toward plant-based meals rich in lutein, zeaxanthin, and omega-3s. Three quick questions and I'll pull cooking videos for you.");
+          }
+          if (f.hasHypertension) {
+            return T("aria.recipes.chat.greetHypertension",
+              "Hi, I'm Aria. With blood pressure in mind, I'll suggest plant-based meals that are heart-friendly and low in sodium. Three quick questions and I'll find cooking videos for you.");
+          }
+          return T("aria.recipes.chat.greetGeneric",
+            "Hi, I'm Aria. Tell me a bit about your tastes and I'll find delicious plant-based recipes you'll actually want to cook. Three quick questions — that's it.");
+        }
+
+        const RECIPE_PROMPTS = [
+          {
+            key: "likes",
+            ask: () => T("aria.recipes.chat.qLikes",
+              "What kinds of dishes or flavours do you love eating? (e.g. South Indian, lentil curries, oats, salads)"),
+            placeholder: () => T("aria.recipes.chat.phLikes",
+              "e.g. dal, paneer-free curries, oats, fruits"),
+          },
+          {
+            key: "avoid",
+            ask: () => T("aria.recipes.chat.qAvoid",
+              "Anything you'd rather avoid — allergies, dislikes, or foods that don't sit right with you?"),
+            placeholder: () => T("aria.recipes.chat.phAvoid",
+              "e.g. peanuts, mushrooms, bitter gourd — or 'nothing'"),
+          },
+          {
+            key: "condition",
+            ask: () => T("aria.recipes.chat.qCondition",
+              "Anything about your health I should keep in mind while picking recipes? (diabetes-friendly, low salt, gut-friendly, etc.)"),
+            placeholder: () => T("aria.recipes.chat.phCondition",
+              "e.g. diabetes-friendly, low sodium — or 'whatever works'"),
+          },
+        ];
+
+        function renderRecipes() {
           const pane = document.createElement("div");
-          pane.className = "companion-pane";
+          pane.className = "companion-pane companion-recipe-chat";
+
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow";
+          scroll.style.gap = "12px";
 
-          const head = document.createElement("div");
-          head.innerHTML =
-            '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
-            '<p class="companion-intro-body">' +
-              escapeHtml(state.todayPlan
-                ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
-                : T("aria.recipes.searchIntro", "Search any dish — Aria finds 3 plant-based cooking videos.")) +
-            '</p>' +
-            (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
-          scroll.appendChild(head);
-
-          // Search row — typing a dish + Find opens the 3-video popup
-          // (same agent used by the weekly-plan and today-plan buttons).
-          const searchRow = document.createElement("div");
-          searchRow.className = "companion-search-row";
-          searchRow.innerHTML = ico("search", 'class="search-ico"');
-          const input = document.createElement("input");
-          input.type = "text";
-          input.placeholder = T("aria.recipes.searchPlaceholder", "Search any dish — e.g. paneer tikka");
-          input.value = state.search;
-          input.addEventListener("input", () => {
-            state.search = input.value;
-            findBtn.classList.toggle("is-active", input.value.trim().length > 0);
-          });
-          input.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") { e.preventDefault(); runSearch(); }
-          });
-          searchRow.appendChild(input);
-          const findBtn = document.createElement("button");
-          findBtn.type = "button";
-          findBtn.textContent = T("aria.recipes.find", "Find");
-          findBtn.setAttribute("data-ga-event", "btn_find_recipes");
-          if (state.search.trim()) findBtn.classList.add("is-active");
-          findBtn.addEventListener("click", runSearch);
-          searchRow.appendChild(findBtn);
-          scroll.appendChild(searchRow);
-
-          function runSearch() {
-            const d = state.search.trim();
-            if (!d) return;
-            state.searchedDish = d;
-            openRecipePopup(d, d);
+          // Inject greeting + first question once per session.
+          if (!recipeChat.greetingApplied) {
+            recipeChat.greetingApplied = true;
+            recipeChat.messages.push({ role: "assistant", text: recipeChatGreeting() });
+            recipeChat.messages.push({ role: "assistant", text: RECIPE_PROMPTS[0].ask() });
           }
 
-          // Per-meal cards from today's plan — same card layout as the
-          // Today's plan tab, same YouTube button → 3-video popup agent.
-          if (state.todayPlan) {
-            MEAL_SLOTS.forEach((slot) => {
-              const entry = state.todayPlan[slot];
-              const card = document.createElement("div");
-              card.className = "companion-today-card";
-              card.innerHTML =
-                '<div class="companion-today-text">' +
-                  '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
-                  '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
-                '</div>' +
-                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
-                  ico("youtube") +
-                '</button>';
-              scroll.appendChild(card);
-              const ytBtn = card.querySelector(".companion-today-yt");
-              ytBtn.addEventListener("click", () => {
-                openRecipePopup(mealText(entry.meal), mealEnglish(entry.meal) || mealText(entry.meal));
-              });
+          recipeChat.messages.forEach((msg) => {
+            const bubble = document.createElement("div");
+            bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
+            bubble.innerHTML = escapeHtml(msg.text);
+            scroll.appendChild(bubble);
+          });
+
+          // Compose row (only while there are still questions to answer)
+          if (recipeChat.step < RECIPE_PROMPTS.length) {
+            const composeWrap = document.createElement("div");
+            composeWrap.className = "recipe-chat-compose";
+            const ta = document.createElement("textarea");
+            ta.className = "recipe-chat-input";
+            ta.rows = 2;
+            ta.placeholder = RECIPE_PROMPTS[recipeChat.step].placeholder();
+            ta.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submitAnswer();
+              }
             });
+            const sendBtn = document.createElement("button");
+            sendBtn.type = "button";
+            sendBtn.className = "recipe-chat-send";
+            sendBtn.textContent = T("aria.recipes.chat.send", "Send");
+            sendBtn.addEventListener("click", submitAnswer);
+
+            composeWrap.appendChild(ta);
+            composeWrap.appendChild(sendBtn);
+            scroll.appendChild(composeWrap);
+
+            function submitAnswer() {
+              const v = ta.value.trim();
+              if (!v) return;
+              const prompt = RECIPE_PROMPTS[recipeChat.step];
+              recipeChat.answers[prompt.key] = v;
+              recipeChat.messages.push({ role: "user", text: v });
+              recipeChat.step += 1;
+              if (recipeChat.step < RECIPE_PROMPTS.length) {
+                recipeChat.messages.push({
+                  role: "assistant",
+                  text: RECIPE_PROMPTS[recipeChat.step].ask(),
+                });
+              } else {
+                recipeChat.messages.push({
+                  role: "assistant",
+                  text: T("aria.recipes.chat.thinking",
+                    "Got it. Pulling 3 plant-based recipe videos that match what you told me…"),
+                });
+                fetchRecipeVideos();
+              }
+              renderMode();
+            }
+
+            // Focus the input automatically so the user can just start typing.
+            requestAnimationFrame(() => { try { ta.focus(); } catch (_) {} });
           }
 
-          const note = document.createElement("div");
-          note.className = "companion-footer-note";
-          note.textContent = T("aria.recipes.footerNote3", "Aria fetches 3 plant-based cooking videos per dish.");
-          scroll.appendChild(note);
+          // After all 3 questions: show loading state or the videos.
+          if (recipeChat.step >= RECIPE_PROMPTS.length) {
+            if (recipeChat.loadingVideos) {
+              const wait = document.createElement("div");
+              wait.className = "recipe-chat-meta";
+              wait.textContent = T("aria.recipes.chat.loading",
+                "Finding 3 plant-based recipe videos…");
+              scroll.appendChild(wait);
+            } else if (recipeChat.videos && recipeChat.videos.length) {
+              const grid = document.createElement("div");
+              grid.className = "recipe-chat-videos";
+              recipeChat.videos.forEach((v) => {
+                const a = document.createElement("a");
+                a.className = "recipe-chat-video";
+                a.href = v.url;
+                a.target = "_blank";
+                a.rel = "noopener noreferrer";
+                a.innerHTML =
+                  '<span class="yt-tile">' + ico("youtube") + '</span>' +
+                  '<span class="yt-text"><span class="yt-title">' +
+                    escapeHtml(v.title || v.url) +
+                  '</span></span>';
+                grid.appendChild(a);
+              });
+              scroll.appendChild(grid);
+
+              const restart = document.createElement("button");
+              restart.type = "button";
+              restart.className = "recipe-chat-restart";
+              restart.textContent = T("aria.recipes.chat.restart", "Ask Aria again");
+              restart.addEventListener("click", () => {
+                state.recipeChat = {
+                  messages: [],
+                  step: 0,
+                  answers: {},
+                  loadingVideos: false,
+                  videos: null,
+                  greetingApplied: false,
+                };
+                // Re-point the local closure to the fresh object.
+                Object.assign(recipeChat, state.recipeChat);
+                renderMode();
+              });
+              scroll.appendChild(restart);
+            } else if (recipeChat.videos && !recipeChat.videos.length) {
+              const noresult = document.createElement("div");
+              noresult.className = "recipe-chat-meta";
+              noresult.textContent = T("aria.recipes.chat.empty",
+                "Couldn't find recipe videos for that combination. Try rephrasing or asking again.");
+              scroll.appendChild(noresult);
+            }
+          }
 
           pane.appendChild(scroll);
           return pane;
+        }
+
+        // Hits the existing /api/aria/recipes endpoint with a synthesized
+        // dish prompt that folds in the user's 3 answers. The server's
+        // existing LLM + YouTube lookup pipeline returns up to 3 videos.
+        function fetchRecipeVideos() {
+          recipeChat.loadingVideos = true;
+          recipeChat.videos = null;
+          const a = recipeChat.answers;
+          const parts = [];
+          if (a.likes) parts.push(a.likes);
+          if (a.condition) parts.push("(" + a.condition + ")");
+          if (a.avoid) parts.push("without " + a.avoid);
+          const dish = parts.join(" ").slice(0, 240) || "plant-based dinner";
+
+          fetch("/api/aria/recipes", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ dish, count: 3, language: LANG() }),
+          })
+            .then((r) => r.json().catch(() => ({})))
+            .then((data) => {
+              recipeChat.loadingVideos = false;
+              recipeChat.videos = Array.isArray(data && data.videos) ? data.videos : [];
+              renderMode();
+            })
+            .catch(() => {
+              recipeChat.loadingVideos = false;
+              recipeChat.videos = [];
+              renderMode();
+            });
         }
 
         // Cache of per-dish video fetches so re-renders don't re-hit the API.
@@ -3906,6 +4140,23 @@
           }
           card.appendChild(links);
           return card;
+        }
+
+        // Sidebar "Plant-Based Recipes" → switch chat into recipes mode
+        // and scroll the companion into view so the new chat is in focus.
+        const plantBtn = document.getElementById("btnPlantRecipes");
+        if (plantBtn) {
+          plantBtn.addEventListener("click", () => {
+            if (state.mode !== "recipes") {
+              state.mode = "recipes";
+              renderMode();
+            }
+            try {
+              root.scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (_) {
+              root.scrollIntoView();
+            }
+          });
         }
 
         renderMode();

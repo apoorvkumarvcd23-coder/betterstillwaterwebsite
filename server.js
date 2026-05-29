@@ -3669,6 +3669,11 @@ app.get(
         hasOther: OTHER_CONDITIONS.some((c) => conditionSet.has(c)),
         hasEye: Boolean(row.eyesight_issues),
         hasHolistic: HOLISTIC_CONDITIONS.some((c) => conditionSet.has(c)),
+        // Expose specific conditions so the Plant-Based Recipes chat can
+        // tune Aria's welcome greeting (diabetes-aware / eye-aware /
+        // generic). Falls back to false on a skipped/missing assessment.
+        hasDiabetes: conditionSet.has("diabetes"),
+        hasHypertension: conditionSet.has("hypertension"),
       });
     } catch (err) {
       console.error("Failed to fetch submission flags:", err);

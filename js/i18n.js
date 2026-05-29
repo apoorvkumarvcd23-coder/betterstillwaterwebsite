@@ -239,6 +239,60 @@
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
+    "carepath.plantRecipes": { en: "Plant-Based Recipes", hi: "पादप-आधारित रेसिपी" },
+
+    // Aria — Plant-Based Recipes chat (3-question ChatGPT-style flow)
+    "aria.recipes.chat.greetDiabetes": {
+      en: "Hi, I'm Aria. I see you're managing diabetes — let's find plant-based meals that keep your blood sugar steady and still taste great. Three quick questions and I'll pull cooking videos you can try tonight.",
+      hi: "नमस्ते, मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — आइए ऐसी पादप-आधारित भोजन खोजें जो आपकी रक्त शर्करा स्थिर रखें और स्वादिष्ट भी हों। तीन छोटे सवाल और मैं आज रात बनाने वाली रेसिपी वीडियो ले आती हूँ।",
+    },
+    "aria.recipes.chat.greetEye": {
+      en: "Hi, I'm Aria. Since eye health is on your radar, I'll lean toward plant-based meals rich in lutein, zeaxanthin, and omega-3s. Three quick questions and I'll pull cooking videos for you.",
+      hi: "नमस्ते, मैं Aria हूँ। चूँकि आँखों के स्वास्थ्य पर ध्यान है, मैं ल्यूटीन, ज़ीएक्सैंथिन और ओमेगा-3 से भरपूर पादप-आधारित भोजन सुझाऊँगी। तीन छोटे सवाल और मैं आपके लिए रेसिपी वीडियो ले आती हूँ।",
+    },
+    "aria.recipes.chat.greetHypertension": {
+      en: "Hi, I'm Aria. With blood pressure in mind, I'll suggest plant-based meals that are heart-friendly and low in sodium. Three quick questions and I'll find cooking videos for you.",
+      hi: "नमस्ते, मैं Aria हूँ। रक्तचाप को ध्यान में रखते हुए, मैं हृदय-अनुकूल और कम सोडियम वाली पादप-आधारित भोजन सुझाऊँगी। तीन छोटे सवाल और मैं आपके लिए रेसिपी वीडियो ढूँढती हूँ।",
+    },
+    "aria.recipes.chat.greetGeneric": {
+      en: "Hi, I'm Aria. Tell me a bit about your tastes and I'll find delicious plant-based recipes you'll actually want to cook. Three quick questions — that's it.",
+      hi: "नमस्ते, मैं Aria हूँ। अपनी पसंद के बारे में थोड़ा बताइए और मैं ऐसी स्वादिष्ट पादप-आधारित रेसिपी ढूँढूँगी जिन्हें आप वाकई बनाना चाहेंगे। बस तीन छोटे सवाल।",
+    },
+    "aria.recipes.chat.qLikes": {
+      en: "What kinds of dishes or flavours do you love eating? (e.g. South Indian, lentil curries, oats, salads)",
+      hi: "आप किस तरह के व्यंजन या स्वाद पसंद करते हैं? (जैसे दक्षिण भारतीय, दाल, ओट्स, सलाद)",
+    },
+    "aria.recipes.chat.phLikes": {
+      en: "e.g. dal, paneer-free curries, oats, fruits",
+      hi: "जैसे दाल, बिना पनीर की सब्ज़ी, ओट्स, फल",
+    },
+    "aria.recipes.chat.qAvoid": {
+      en: "Anything you'd rather avoid — allergies, dislikes, or foods that don't sit right with you?",
+      hi: "क्या कुछ है जिसे आप टालना चाहेंगे — एलर्जी, नापसंदगी, या ऐसा भोजन जो आपको रास नहीं आता?",
+    },
+    "aria.recipes.chat.phAvoid": {
+      en: "e.g. peanuts, mushrooms, bitter gourd — or 'nothing'",
+      hi: "जैसे मूँगफली, मशरूम, करेला — या 'कुछ नहीं'",
+    },
+    "aria.recipes.chat.qCondition": {
+      en: "Anything about your health I should keep in mind while picking recipes? (diabetes-friendly, low salt, gut-friendly, etc.)",
+      hi: "रेसिपी चुनते समय आपके स्वास्थ्य के बारे में मुझे क्या ध्यान रखना चाहिए? (मधुमेह-अनुकूल, कम नमक, पेट-अनुकूल आदि)",
+    },
+    "aria.recipes.chat.phCondition": {
+      en: "e.g. diabetes-friendly, low sodium — or 'whatever works'",
+      hi: "जैसे मधुमेह-अनुकूल, कम सोडियम — या 'जो भी ठीक हो'",
+    },
+    "aria.recipes.chat.thinking": {
+      en: "Got it. Pulling 3 plant-based recipe videos that match what you told me…",
+      hi: "ठीक है। आपकी बातों से मेल खाती 3 पादप-आधारित रेसिपी वीडियो ढूँढ रही हूँ…",
+    },
+    "aria.recipes.chat.loading": { en: "Finding 3 plant-based recipe videos…", hi: "3 पादप-आधारित रेसिपी वीडियो ढूँढी जा रही हैं…" },
+    "aria.recipes.chat.empty": {
+      en: "Couldn't find recipe videos for that combination. Try rephrasing or asking again.",
+      hi: "उस संयोजन के लिए रेसिपी वीडियो नहीं मिले। दोबारा शब्दों में बदलाव कर देखें या फिर पूछें।",
+    },
+    "aria.recipes.chat.send": { en: "Send", hi: "भेजें" },
+    "aria.recipes.chat.restart": { en: "Ask Aria again", hi: "Aria से फिर पूछें" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell
