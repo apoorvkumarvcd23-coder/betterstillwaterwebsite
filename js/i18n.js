@@ -240,6 +240,7 @@
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
     "carepath.plantRecipes": { en: "Plant-Based Recipes", hi: "पादप-आधारित रेसिपी" },
+    "carepath.stilwaterAIChat": { en: "Stilwater AI Chat", hi: "Stilwater AI चैट" },
 
     // Aria — Plant-Based Recipes chat (3-question ChatGPT-style flow)
     "aria.recipes.chat.greetDiabetes": {

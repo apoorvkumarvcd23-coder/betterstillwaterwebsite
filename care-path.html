@@ -1491,10 +1491,30 @@
       }
       .recipe-chat-restart:hover { background: rgba(47, 72, 66, 0.06); }
 
-      /* Plant-Based Recipes — opens INSIDE the companion section; while it's
+      /* Stilwater AI Chat — opens INSIDE the companion section; while it's
          open the 3-tab companion shell is fully hidden so only the chat is
-         visible. Closing the chat (tab click or ✕) restores the shell. */
+         visible. Closing the chat (tab click or sidebar toggle) restores
+         the shell with a ✕ in the corner to flip back to chat. */
       body.plant-chat-open #companionRoot .companion-shell { display: none; }
+      body.plant-chat-open #companionBackToChat { display: none; }
+      .companion-back-to-chat {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--c-ink, #1c2a2a);
+        z-index: 3;
+        box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.18);
+      }
+      .companion-back-to-chat svg { width: 18px; height: 18px; }
+      .companion-back-to-chat:hover { background: rgba(47, 72, 66, 0.06); }
       .plant-chat-overlay {
         position: relative;
         background: var(--c-bg, #ffffff);
@@ -2051,10 +2071,15 @@
 
       <!-- ── Stilwater Companion ──────────────────────────────────── -->
       <section class="companion-chat" id="companionRoot">
-        <!-- Plant-Based Recipes chat overlay — mounted by JS, hidden by default.
-             Opened from the "Plant-Based Recipes" sidebar item; closed by its
-             own ✕ button or by clicking any of the 3 companion tabs. -->
+        <!-- Stilwater AI Chat overlay — JS-mounted, opens by default on
+             care-path load. The 3-tab Stilwater Companion below appears
+             when the user clicks the sidebar toggle. -->
         <div id="plantRecipesChat" class="plant-chat-overlay" hidden></div>
+        <!-- Close ✕ on the companion shell — only visible when the chat is
+             hidden. Clicking it switches back to the chat view. -->
+        <button type="button" id="companionBackToChat" class="companion-back-to-chat" aria-label="Back to Stilwater AI Chat">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <div class="companion-shell">
           <header class="companion-head">
             <button type="button" class="care-menu-btn" id="careMenuBtn" aria-label="Open menu" aria-controls="careSidebar">
@@ -4149,17 +4174,9 @@
           if (!host) return;
           host.innerHTML = "";
 
-          const close = document.createElement("button");
-          close.type = "button";
-          close.className = "plant-chat-close";
-          close.setAttribute("aria-label", T("common.close", "Close"));
-          close.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-          close.addEventListener("click", hidePlantRecipesChat);
-          host.appendChild(close);
-
           const title = document.createElement("div");
           title.className = "plant-chat-title";
-          title.textContent = T("carepath.plantRecipes", "Plant-Based Recipes");
+          title.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
           host.appendChild(title);
 
           const scroll = document.createElement("div");
@@ -4402,18 +4419,35 @@
           host.appendChild(scroll);
         }
 
+        function updateSidebarToggleLabel() {
+          // Sidebar button label reflects WHERE the click will take you —
+          // chat open → "Plant-Based Recipes" (click → companion);
+          // companion open → "Stilwater AI Chat" (click → chat).
+          const span = document.querySelector("#btnPlantRecipes span");
+          if (!span) return;
+          const isChatOpen = document.body.classList.contains("plant-chat-open");
+          if (isChatOpen) {
+            span.textContent = T("carepath.plantRecipes", "Plant-Based Recipes");
+            span.setAttribute("data-i18n", "carepath.plantRecipes");
+          } else {
+            span.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
+            span.setAttribute("data-i18n", "carepath.stilwaterAIChat");
+          }
+        }
         function showPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
           if (!host) return;
           host.hidden = false;
           document.body.classList.add("plant-chat-open");
           renderPlantRecipesChat();
+          updateSidebarToggleLabel();
         }
         function hidePlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
           if (!host) return;
           host.hidden = true;
           document.body.classList.remove("plant-chat-open");
+          updateSidebarToggleLabel();
         }
         // Expose so the sidebar handler at the bottom of the file can use them.
         window.__swPlantRecipes = { show: showPlantRecipesChat, hide: hidePlantRecipesChat };
@@ -4532,11 +4566,11 @@
           return card;
         }
 
-        // Sidebar "Plant-Based Recipes" → TOGGLES the chat overlay.
-        //  - Default page load shows the chat (see init below).
-        //  - Click while chat is open  → chat closes, 3-tab companion
-        //    (Meal Plan / Recipes / Journaling) appears.
-        //  - Click while chat is closed → chat opens again.
+        // Sidebar item TOGGLES between the chat and the companion. Its
+        // label updates to match the destination (handled in
+        // updateSidebarToggleLabel inside the IIFE below):
+        //  - chat open      → label "Plant-Based Recipes" → click flips to companion
+        //  - companion open → label "Stilwater AI Chat"   → click flips to chat
         const plantBtn = document.getElementById("btnPlantRecipes");
         if (plantBtn) {
           plantBtn.addEventListener("click", () => {
@@ -4551,6 +4585,16 @@
               root.scrollIntoView({ behavior: "smooth", block: "start" });
             } catch (_) {
               root.scrollIntoView();
+            }
+          });
+        }
+
+        // ✕ button overlaid on the companion shell → switches back to chat
+        const backToChatBtn = document.getElementById("companionBackToChat");
+        if (backToChatBtn) {
+          backToChatBtn.addEventListener("click", () => {
+            if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
+              window.__swPlantRecipes.show();
             }
           });
         }
