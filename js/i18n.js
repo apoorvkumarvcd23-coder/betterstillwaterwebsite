@@ -297,6 +297,40 @@
     "aria.recipes.chat.attach": { en: "Attach a file", hi: "फ़ाइल जोड़ें" },
     "aria.recipes.chat.voice": { en: "Voice input", hi: "आवाज़ इनपुट" },
     "aria.recipes.chat.voiceUnsupported": { en: "Voice input not supported in this browser", hi: "इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है" },
+
+    // Stilwater AI Chat — LLM-backed free-form chat
+    "aria.chat.greetDiabetes": {
+      en: "Hi, I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.",
+      hi: "नमस्ते, मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — क्या पूछना चाहेंगे? मैं पादप-आधारित भोजन, सजग खानपान और रक्त शर्करा के लिए सहायक दिनचर्या साझा कर सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.greetEye": {
+      en: "Hi, I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.",
+      hi: "नमस्ते, मैं Aria हूँ। आपकी आँखों के स्वास्थ्य पर ध्यान है — क्या पूछना चाहेंगे? मैं दृष्टि को सहारा देने वाले पादप-आधारित भोजन, आँखों के योग और स्क्रीन-समय की आदतें सुझा सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.greetHypertension": {
+      en: "Hi, I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.",
+      hi: "नमस्ते, मैं Aria हूँ। आपके ध्यान में रक्तचाप है — क्या पूछना चाहेंगे? मैं हृदय-अनुकूल पादप भोजन, शांत साँस-क्रिया और सहायक दिनचर्या साझा कर सकती हूँ।",
+    },
+    "aria.chat.greetGeneral": {
+      en: "Hi, I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.",
+      hi: "नमस्ते, मैं Aria हूँ — आपकी Stilwater वेलनेस साथी। पादप-आधारित भोजन, सजग जीवन, योग या साँस-क्रिया के बारे में कुछ भी पूछें — मैं मदद के लिए हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.startDiabetes.1": { en: "What plant-based foods help stabilize blood sugar?", hi: "रक्त शर्करा स्थिर रखने में कौन से पादप-आधारित भोजन मदद करते हैं?" },
+    "aria.chat.startDiabetes.2": { en: "How can I reduce sugar cravings naturally?", hi: "मैं मीठे की क्रेविंग को प्राकृतिक रूप से कैसे कम करूँ?" },
+    "aria.chat.startDiabetes.3": { en: "What's a simple morning routine for diabetes management?", hi: "मधुमेह प्रबंधन के लिए एक सरल सुबह की दिनचर्या क्या होगी?" },
+    "aria.chat.startEye.1": { en: "What plant-based foods support eye health?", hi: "आँखों के स्वास्थ्य के लिए कौन से पादप-आधारित भोजन सहायक हैं?" },
+    "aria.chat.startEye.2": { en: "Are there yoga or eye exercises for tired eyes?", hi: "थकी आँखों के लिए योग या आँख-व्यायाम कौन से हैं?" },
+    "aria.chat.startEye.3": { en: "How can I reduce eye strain from screens?", hi: "स्क्रीन से आँखों की थकान कैसे कम करूँ?" },
+    "aria.chat.startHypertension.1": { en: "What plant-based foods help lower blood pressure?", hi: "रक्तचाप कम करने में कौन से पादप-आधारित भोजन मदद करते हैं?" },
+    "aria.chat.startHypertension.2": { en: "Which breathing exercises calm the heart?", hi: "कौन सी साँस-क्रियाएँ हृदय को शांत करती हैं?" },
+    "aria.chat.startHypertension.3": { en: "How do I cut sodium without losing flavour?", hi: "स्वाद खोए बिना नमक कैसे कम करूँ?" },
+    "aria.chat.startGeneral.1": { en: "What's a simple plant-based meal I can try tonight?", hi: "आज रात बनाने के लिए एक सरल पादप-आधारित भोजन क्या है?" },
+    "aria.chat.startGeneral.2": { en: "How do I start a daily mindfulness practice?", hi: "मैं रोज़ की सजगता-साधना कैसे शुरू करूँ?" },
+    "aria.chat.startGeneral.3": { en: "What are some gentle yoga poses for stress?", hi: "तनाव के लिए कुछ सौम्य योगासन कौन से हैं?" },
+    "aria.chat.thinking": { en: "Aria is thinking…", hi: "Aria सोच रही है…" },
+    "aria.chat.viewPrompt": { en: "View system prompt being sent", hi: "भेजा जा रहा सिस्टम प्रॉम्प्ट देखें" },
+    "aria.chat.errorGeneric": { en: "I couldn't reach the AI just now. Please try again.", hi: "मैं अभी AI तक नहीं पहुँच पाई। कृपया फिर से प्रयास करें।" },
+    "aria.chat.errorNetwork": { en: "Network hiccup — please try once more.", hi: "नेटवर्क समस्या — कृपया फिर से प्रयास करें।" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell

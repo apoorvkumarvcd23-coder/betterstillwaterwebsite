@@ -2999,6 +2999,116 @@ async function multiYoutubeVideoIds(query, max, excludeIds, opts = {}) {
   }
 }
 
+// ── Stilwater AI Chat (Plant-Based Recipes sidebar) ────────────────────────
+// Holistic wellness chat tailored to the user's wellness-assessment condition
+// (diabetes / eye / hypertension / general). Calls OpenRouter using the
+// model configured via OPENROUTER_MODEL (default: openai/gpt-oss-120b).
+// Response includes the system prompt so the client can show it for
+// transparency / debugging.
+function buildStilwaterSystemPrompt(condition, language) {
+  const isHindi = String(language || "").toLowerCase().startsWith("hi");
+  const langClause = isHindi
+    ? "Respond in clear, simple Hindi mixed with English where natural."
+    : "Respond in clear, simple English.";
+
+  const baseShape =
+    "Be warm, conversational, and concise (2-4 short paragraphs). " +
+    "Use holistic healing techniques: plant-based nutrition, mindful eating, " +
+    "gentle yoga / breathwork, stress reduction. " +
+    "In EVERY reply, suggest 1-2 specific plant-based foods (whole foods only — " +
+    "no processed/animal products) with a one-line reason WHY they help. " +
+    "Avoid medical jargon, no diagnosis, no prescriptions. End with one short " +
+    "encouraging sentence. " + langClause;
+
+  const conditionClause = (() => {
+    switch (String(condition || "").toLowerCase()) {
+      case "diabetes":
+        return "You are Aria, the Stilwater AI wellness companion. The user is managing DIABETES. " +
+          "Focus your guidance on blood-sugar stability, low-glycemic plant foods, fibre-forward meals, " +
+          "and stress-reducing practices that support insulin sensitivity.";
+      case "eye":
+        return "You are Aria, the Stilwater AI wellness companion. The user has EYE-HEALTH concerns. " +
+          "Focus your guidance on eye-supportive nutrients (lutein, zeaxanthin, omega-3s, vitamin A, " +
+          "anthocyanins), eye yoga / palming / 20-20-20 rule, and screen-time hygiene.";
+      case "hypertension":
+        return "You are Aria, the Stilwater AI wellness companion. The user has HYPERTENSION (high blood pressure). " +
+          "Focus your guidance on heart-friendly plant foods (low sodium, high potassium, magnesium, " +
+          "nitrate-rich greens), calm breathwork, and stress-lowering daily rhythms.";
+      default:
+        return "You are Aria, the Stilwater AI wellness companion. The user is exploring HOLISTIC WELLNESS " +
+          "without a specific condition selected. Give general plant-based + mindful-living guidance.";
+    }
+  })();
+
+  return conditionClause + "\n\n" + baseShape;
+}
+
+app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
+  try {
+    if (!OPENROUTER_API_KEY) {
+      return res.status(503).json({ error: "OpenRouter is not configured on this server." });
+    }
+
+    const condition = String(req.body?.condition || "general").trim().toLowerCase();
+    const language = String(req.body?.language || "en").trim();
+    const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+
+    // Sanitize message list: only allow user/assistant roles, cap to last 20 turns
+    // and 4000 chars per message to keep token usage bounded.
+    const messages = rawMessages
+      .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+      .map((m) => ({
+        role: m.role,
+        content: String(m.content || "").slice(0, 4000),
+      }))
+      .slice(-20);
+
+    if (!messages.length) {
+      return res.status(400).json({ error: "messages[] is required" });
+    }
+
+    const systemPrompt = buildStilwaterSystemPrompt(condition, language);
+    const model = String(
+      process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b"
+    ).trim();
+
+    const upstream = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: buildOpenRouterHeaders(),
+      body: JSON.stringify({
+        model,
+        temperature: 0.7,
+        max_tokens: 700,
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+      }),
+    });
+
+    if (!upstream.ok) {
+      const errText = await upstream.text().catch(() => "");
+      console.error("[stilwater-chat] upstream error", upstream.status, errText);
+      return res.status(502).json({ error: "Upstream chat error", status: upstream.status });
+    }
+
+    const data = await upstream.json();
+    const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
+    const reply =
+      (choice && choice.message && typeof choice.message.content === "string"
+        ? choice.message.content
+        : ""
+      ).trim();
+
+    return res.json({
+      reply: reply || "I'm here — could you ask that a different way?",
+      model,
+      condition,
+      prompt: systemPrompt,
+    });
+  } catch (err) {
+    console.error("[stilwater-chat] failed:", err);
+    return res.status(500).json({ error: "Stilwater chat failed" });
+  }
+});
+
 app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
   try {
     const dish = String(req.body?.dish || "").trim();

@@ -1647,6 +1647,59 @@
       }
       .plant-attach-chip svg { width: 13px; height: 13px; }
 
+      /* Stilwater AI Chat — starter chips + prompt debug panel */
+      .plant-chat-starters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 4px 0 12px;
+      }
+      .plant-chat-starter {
+        font: inherit;
+        font-size: 13px;
+        background: rgba(95, 179, 179, 0.10);
+        border: 1px solid rgba(95, 179, 179, 0.32);
+        color: var(--c-ink, #1c2a2a);
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        line-height: 1.35;
+        text-align: left;
+      }
+      .plant-chat-starter:hover {
+        background: rgba(95, 179, 179, 0.18);
+        border-color: rgba(95, 179, 179, 0.55);
+      }
+      .plant-chat-promptbox {
+        margin-top: 8px;
+        background: rgba(47, 72, 66, 0.04);
+        border: 1px dashed rgba(47, 72, 66, 0.22);
+        border-radius: 12px;
+        padding: 10px 12px;
+        font-size: 12.5px;
+        color: var(--c-ink-soft, rgba(28, 42, 42, 0.75));
+      }
+      .plant-chat-promptbox summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: var(--c-ink, #1c2a2a);
+        outline: none;
+      }
+      .plant-chat-promptbody {
+        margin: 8px 0 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--c-ink, #1c2a2a);
+        background: rgba(255, 255, 255, 0.5);
+        padding: 8px 10px;
+        border-radius: 8px;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         background: var(--c-mist); overflow: hidden;
@@ -4109,64 +4162,80 @@
           return pane;
         }
 
-        // ---- PLANT-BASED RECIPES (separate ChatGPT-style overlay) ----
-        // Mounted as a layer that covers the 3-tab companion UI when the
-        // user clicks the "Plant-Based Recipes" sidebar item. Clicking any
-        // of the 3 tabs (Meal Plan / Recipes / Journaling) closes it and
-        // restores the original tabbed view.
+        // ---- STILWATER AI CHAT (overlay opened from sidebar) ----
+        // Real LLM chat backed by /api/stilwater/chat (OpenRouter,
+        // model openai/gpt-oss-120b by default). Greeting + 3 starter
+        // suggestion chips are tuned to the user's wellness-assessment
+        // condition (diabetes / eye / hypertension / general).
         const recipeChat = state.recipeChat || (state.recipeChat = {
-          messages: [],          // [{ role: "assistant"|"user", text }]
-          step: 0,               // 0 = waiting for likes, 1 = avoid, 2 = condition note, 3 = done
-          answers: {},           // { likes, avoid, condition }
-          loadingVideos: false,
-          videos: null,
+          messages: [],            // [{ role: "assistant"|"user", text, attachment? }]
+          loading: false,
           greetingApplied: false,
+          draft: "",
+          pendingAttachment: null,
+          lastPrompt: "",          // system prompt the server reported
+          lastModel: "",           // model name the server used
+          showPrompt: false,       // toggles the "Show prompt" debug panel
         });
 
-        // Build the welcome message conditioned on the user's assessment.
-        // Falls back to the generic copy when no flags are set (skipped
-        // assessment or anonymous URL load).
-        function recipeChatGreeting() {
+        function activeCondition() {
           const f = window.__swCareFlags || {};
-          if (f.hasDiabetes) {
-            return T("aria.recipes.chat.greetDiabetes",
-              "Hi, I'm Aria. I see you're managing diabetes — let's find plant-based meals that keep your blood sugar steady and still taste great. Three quick questions and I'll pull cooking videos you can try tonight.");
-          }
-          if (f.hasEye) {
-            return T("aria.recipes.chat.greetEye",
-              "Hi, I'm Aria. Since eye health is on your radar, I'll lean toward plant-based meals rich in lutein, zeaxanthin, and omega-3s. Three quick questions and I'll pull cooking videos for you.");
-          }
-          if (f.hasHypertension) {
-            return T("aria.recipes.chat.greetHypertension",
-              "Hi, I'm Aria. With blood pressure in mind, I'll suggest plant-based meals that are heart-friendly and low in sodium. Three quick questions and I'll find cooking videos for you.");
-          }
-          return T("aria.recipes.chat.greetGeneric",
-            "Hi, I'm Aria. Tell me a bit about your tastes and I'll find delicious plant-based recipes you'll actually want to cook. Three quick questions — that's it.");
+          if (f.hasDiabetes) return "diabetes";
+          if (f.hasEye) return "eye";
+          if (f.hasHypertension) return "hypertension";
+          return "general";
         }
 
-        const RECIPE_PROMPTS = [
-          {
-            key: "likes",
-            ask: () => T("aria.recipes.chat.qLikes",
-              "What kinds of dishes or flavours do you love eating? (e.g. South Indian, lentil curries, oats, salads)"),
-            placeholder: () => T("aria.recipes.chat.phLikes",
-              "e.g. dal, paneer-free curries, oats, fruits"),
-          },
-          {
-            key: "avoid",
-            ask: () => T("aria.recipes.chat.qAvoid",
-              "Anything you'd rather avoid — allergies, dislikes, or foods that don't sit right with you?"),
-            placeholder: () => T("aria.recipes.chat.phAvoid",
-              "e.g. peanuts, mushrooms, bitter gourd — or 'nothing'"),
-          },
-          {
-            key: "condition",
-            ask: () => T("aria.recipes.chat.qCondition",
-              "Anything about your health I should keep in mind while picking recipes? (diabetes-friendly, low salt, gut-friendly, etc.)"),
-            placeholder: () => T("aria.recipes.chat.phCondition",
-              "e.g. diabetes-friendly, low sodium — or 'whatever works'"),
-          },
-        ];
+        // Build the welcome message conditioned on the user's assessment.
+        function recipeChatGreeting() {
+          const c = activeCondition();
+          if (c === "diabetes") {
+            return T("aria.chat.greetDiabetes",
+              "Hi, I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.");
+          }
+          if (c === "eye") {
+            return T("aria.chat.greetEye",
+              "Hi, I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.");
+          }
+          if (c === "hypertension") {
+            return T("aria.chat.greetHypertension",
+              "Hi, I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.");
+          }
+          return T("aria.chat.greetGeneral",
+            "Hi, I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.");
+        }
+
+        // 3 starter-question chips per condition. Clicking one is equivalent
+        // to typing it and hitting Send.
+        function recipeChatStarters() {
+          const c = activeCondition();
+          if (c === "diabetes") {
+            return [
+              T("aria.chat.startDiabetes.1", "What plant-based foods help stabilize blood sugar?"),
+              T("aria.chat.startDiabetes.2", "How can I reduce sugar cravings naturally?"),
+              T("aria.chat.startDiabetes.3", "What's a simple morning routine for diabetes management?"),
+            ];
+          }
+          if (c === "eye") {
+            return [
+              T("aria.chat.startEye.1", "What plant-based foods support eye health?"),
+              T("aria.chat.startEye.2", "Are there yoga or eye exercises for tired eyes?"),
+              T("aria.chat.startEye.3", "How can I reduce eye strain from screens?"),
+            ];
+          }
+          if (c === "hypertension") {
+            return [
+              T("aria.chat.startHypertension.1", "What plant-based foods help lower blood pressure?"),
+              T("aria.chat.startHypertension.2", "Which breathing exercises calm the heart?"),
+              T("aria.chat.startHypertension.3", "How do I cut sodium without losing flavour?"),
+            ];
+          }
+          return [
+            T("aria.chat.startGeneral.1", "What's a simple plant-based meal I can try tonight?"),
+            T("aria.chat.startGeneral.2", "How do I start a daily mindfulness practice?"),
+            T("aria.chat.startGeneral.3", "What are some gentle yoga poses for stress?"),
+          ];
+        }
 
         function renderPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
@@ -4181,11 +4250,10 @@
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow plant-chat-scroll";
 
-          // Inject greeting + first question once per session.
+          // Inject greeting once per session.
           if (!recipeChat.greetingApplied) {
             recipeChat.greetingApplied = true;
             recipeChat.messages.push({ role: "assistant", text: recipeChatGreeting() });
-            recipeChat.messages.push({ role: "assistant", text: RECIPE_PROMPTS[0].ask() });
           }
 
           recipeChat.messages.forEach((msg) => {
@@ -4203,8 +4271,106 @@
             scroll.appendChild(bubble);
           });
 
-          // ChatGPT-style compose bar: + attach, textarea, mic, send
-          if (recipeChat.step < RECIPE_PROMPTS.length) {
+          // Starter chips — visible only when the user hasn't asked anything yet
+          if (recipeChat.messages.filter((m) => m.role === "user").length === 0) {
+            const chipsWrap = document.createElement("div");
+            chipsWrap.className = "plant-chat-starters";
+            recipeChatStarters().forEach((q) => {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "plant-chat-starter";
+              chip.textContent = q;
+              chip.addEventListener("click", () => sendMessage(q));
+              chipsWrap.appendChild(chip);
+            });
+            scroll.appendChild(chipsWrap);
+          }
+
+          // Loading indicator while waiting on the LLM
+          if (recipeChat.loading) {
+            const wait = document.createElement("div");
+            wait.className = "recipe-chat-meta";
+            wait.textContent = T("aria.chat.thinking", "Aria is thinking…");
+            scroll.appendChild(wait);
+          }
+
+          // Prompt-debug panel (collapsible). Always rendered so the user can
+          // toggle to see exactly what system prompt is being sent.
+          if (recipeChat.lastPrompt) {
+            const dbg = document.createElement("details");
+            dbg.className = "plant-chat-promptbox";
+            dbg.open = !!recipeChat.showPrompt;
+            dbg.addEventListener("toggle", () => { recipeChat.showPrompt = dbg.open; });
+            const summary = document.createElement("summary");
+            summary.textContent = T("aria.chat.viewPrompt", "View system prompt being sent")
+              + (recipeChat.lastModel ? "  (" + recipeChat.lastModel + ")" : "");
+            dbg.appendChild(summary);
+            const pre = document.createElement("pre");
+            pre.className = "plant-chat-promptbody";
+            pre.textContent = recipeChat.lastPrompt;
+            dbg.appendChild(pre);
+            scroll.appendChild(dbg);
+          }
+
+          // Sends one message to /api/stilwater/chat and re-renders.
+          function sendMessage(text, attachment) {
+            const v = String(text || "").trim();
+            if (!v && !attachment) return;
+            recipeChat.messages.push({
+              role: "user",
+              text: v,
+              attachment: attachment ? { name: attachment.name } : null,
+            });
+            recipeChat.pendingAttachment = null;
+            recipeChat.draft = "";
+            recipeChat.loading = true;
+            renderPlantRecipesChat();
+
+            const apiMessages = recipeChat.messages.map((m) => ({
+              role: m.role,
+              content: m.text + (m.attachment ? "\n[attached: " + m.attachment.name + "]" : ""),
+            }));
+
+            fetch("/api/stilwater/chat", {
+              method: "POST",
+              credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                condition: activeCondition(),
+                language: LANG(),
+                messages: apiMessages,
+              }),
+            })
+              .then((r) => r.json().catch(() => ({})))
+              .then((data) => {
+                recipeChat.loading = false;
+                if (data && data.prompt) {
+                  recipeChat.lastPrompt = data.prompt;
+                  recipeChat.lastModel = data.model || "";
+                  // Also log to console so it shows up in DevTools.
+                  console.log("[Stilwater AI Chat] System prompt sent:\n" + data.prompt);
+                  if (data.model) console.log("[Stilwater AI Chat] Model:", data.model);
+                }
+                const reply = (data && data.reply ? String(data.reply) : "").trim()
+                  || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
+                recipeChat.messages.push({ role: "assistant", text: reply });
+                renderPlantRecipesChat();
+              })
+              .catch(() => {
+                recipeChat.loading = false;
+                recipeChat.messages.push({
+                  role: "assistant",
+                  text: T("aria.chat.errorNetwork", "Network hiccup — please try once more."),
+                });
+                renderPlantRecipesChat();
+              });
+          }
+          // Expose for the chip handlers above (avoids hoisting issues).
+          recipeChat._send = sendMessage;
+
+          // ChatGPT-style compose bar: + attach, textarea, mic, send.
+          // Always shown — the chat is free-form, not a 3-step script.
+          if (true) {
             const composeWrap = document.createElement("div");
             composeWrap.className = "plant-compose";
 
@@ -4332,87 +4498,11 @@
               const v = (ta.value || "").trim();
               const attach = recipeChat.pendingAttachment;
               if (!v && !attach) return;
-              const prompt = RECIPE_PROMPTS[recipeChat.step];
-              recipeChat.answers[prompt.key] = v || (attach ? "[attached " + attach.name + "]" : "");
-              recipeChat.messages.push({
-                role: "user",
-                text: v,
-                attachment: attach ? { name: attach.name } : null,
-              });
-              recipeChat.pendingAttachment = null;
-              recipeChat.draft = "";
-              recipeChat.step += 1;
-              if (recipeChat.step < RECIPE_PROMPTS.length) {
-                recipeChat.messages.push({
-                  role: "assistant",
-                  text: RECIPE_PROMPTS[recipeChat.step].ask(),
-                });
-              } else {
-                recipeChat.messages.push({
-                  role: "assistant",
-                  text: T("aria.recipes.chat.thinking",
-                    "Got it. Pulling 3 plant-based recipe videos that match what you told me…"),
-                });
-                fetchRecipeVideos();
-              }
-              renderPlantRecipesChat();
+              sendMessage(v, attach);
             }
 
             // Focus the input automatically so the user can just start typing.
             requestAnimationFrame(() => { try { ta.focus(); } catch (_) {} });
-          }
-
-          // After all 3 questions: show loading state or the videos.
-          if (recipeChat.step >= RECIPE_PROMPTS.length) {
-            if (recipeChat.loadingVideos) {
-              const wait = document.createElement("div");
-              wait.className = "recipe-chat-meta";
-              wait.textContent = T("aria.recipes.chat.loading",
-                "Finding 3 plant-based recipe videos…");
-              scroll.appendChild(wait);
-            } else if (recipeChat.videos && recipeChat.videos.length) {
-              const grid = document.createElement("div");
-              grid.className = "recipe-chat-videos";
-              recipeChat.videos.forEach((v) => {
-                const a = document.createElement("a");
-                a.className = "recipe-chat-video";
-                a.href = v.url;
-                a.target = "_blank";
-                a.rel = "noopener noreferrer";
-                a.innerHTML =
-                  '<span class="yt-tile">' + ico("youtube") + '</span>' +
-                  '<span class="yt-text"><span class="yt-title">' +
-                    escapeHtml(v.title || v.url) +
-                  '</span></span>';
-                grid.appendChild(a);
-              });
-              scroll.appendChild(grid);
-
-              const restart = document.createElement("button");
-              restart.type = "button";
-              restart.className = "recipe-chat-restart";
-              restart.textContent = T("aria.recipes.chat.restart", "Ask Aria again");
-              restart.addEventListener("click", () => {
-                state.recipeChat = {
-                  messages: [],
-                  step: 0,
-                  answers: {},
-                  loadingVideos: false,
-                  videos: null,
-                  greetingApplied: false,
-                };
-                // Re-point the local closure to the fresh object.
-                Object.assign(recipeChat, state.recipeChat);
-                renderPlantRecipesChat();
-              });
-              scroll.appendChild(restart);
-            } else if (recipeChat.videos && !recipeChat.videos.length) {
-              const noresult = document.createElement("div");
-              noresult.className = "recipe-chat-meta";
-              noresult.textContent = T("aria.recipes.chat.empty",
-                "Couldn't find recipe videos for that combination. Try rephrasing or asking again.");
-              scroll.appendChild(noresult);
-            }
           }
 
           host.appendChild(scroll);
@@ -4450,38 +4540,6 @@
         }
         // Expose so the sidebar handler at the bottom of the file can use them.
         window.__swPlantRecipes = { show: showPlantRecipesChat, hide: hidePlantRecipesChat };
-
-        // Hits the existing /api/aria/recipes endpoint with a synthesized
-        // dish prompt that folds in the user's 3 answers. The server's
-        // existing LLM + YouTube lookup pipeline returns up to 3 videos.
-        function fetchRecipeVideos() {
-          recipeChat.loadingVideos = true;
-          recipeChat.videos = null;
-          const a = recipeChat.answers;
-          const parts = [];
-          if (a.likes) parts.push(a.likes);
-          if (a.condition) parts.push("(" + a.condition + ")");
-          if (a.avoid) parts.push("without " + a.avoid);
-          const dish = parts.join(" ").slice(0, 240) || "plant-based dinner";
-
-          fetch("/api/aria/recipes", {
-            method: "POST",
-            credentials: "same-origin",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ dish, count: 3, language: LANG() }),
-          })
-            .then((r) => r.json().catch(() => ({})))
-            .then((data) => {
-              recipeChat.loadingVideos = false;
-              recipeChat.videos = Array.isArray(data && data.videos) ? data.videos : [];
-              renderPlantRecipesChat();
-            })
-            .catch(() => {
-              recipeChat.loadingVideos = false;
-              recipeChat.videos = [];
-              renderPlantRecipesChat();
-            });
-        }
 
         // Cache of per-dish video fetches so re-renders don't re-hit the API.
         const recipeCache = state.recipeCache || (state.recipeCache = {});
