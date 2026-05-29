@@ -300,20 +300,20 @@
 
     // Stilwater AI Chat — LLM-backed free-form chat
     "aria.chat.greetDiabetes": {
-      en: "Hi, I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.",
-      hi: "नमस्ते, मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — क्या पूछना चाहेंगे? मैं पादप-आधारित भोजन, सजग खानपान और रक्त शर्करा के लिए सहायक दिनचर्या साझा कर सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+      en: "I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.",
+      hi: "मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — क्या पूछना चाहेंगे? मैं पादप-आधारित भोजन, सजग खानपान और रक्त शर्करा के लिए सहायक दिनचर्या साझा कर सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
     },
     "aria.chat.greetEye": {
-      en: "Hi, I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.",
-      hi: "नमस्ते, मैं Aria हूँ। आपकी आँखों के स्वास्थ्य पर ध्यान है — क्या पूछना चाहेंगे? मैं दृष्टि को सहारा देने वाले पादप-आधारित भोजन, आँखों के योग और स्क्रीन-समय की आदतें सुझा सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+      en: "I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.",
+      hi: "मैं Aria हूँ। आपकी आँखों के स्वास्थ्य पर ध्यान है — क्या पूछना चाहेंगे? मैं दृष्टि को सहारा देने वाले पादप-आधारित भोजन, आँखों के योग और स्क्रीन-समय की आदतें सुझा सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
     },
     "aria.chat.greetHypertension": {
-      en: "Hi, I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.",
-      hi: "नमस्ते, मैं Aria हूँ। आपके ध्यान में रक्तचाप है — क्या पूछना चाहेंगे? मैं हृदय-अनुकूल पादप भोजन, शांत साँस-क्रिया और सहायक दिनचर्या साझा कर सकती हूँ।",
+      en: "I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.",
+      hi: "मैं Aria हूँ। आपके ध्यान में रक्तचाप है — क्या पूछना चाहेंगे? मैं हृदय-अनुकूल पादप भोजन, शांत साँस-क्रिया और सहायक दिनचर्या साझा कर सकती हूँ।",
     },
     "aria.chat.greetGeneral": {
-      en: "Hi, I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.",
-      hi: "नमस्ते, मैं Aria हूँ — आपकी Stilwater वेलनेस साथी। पादप-आधारित भोजन, सजग जीवन, योग या साँस-क्रिया के बारे में कुछ भी पूछें — मैं मदद के लिए हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+      en: "I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.",
+      hi: "मैं Aria हूँ — आपकी Stilwater वेलनेस साथी। पादप-आधारित भोजन, सजग जीवन, योग या साँस-क्रिया के बारे में कुछ भी पूछें — मैं मदद के लिए हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
     },
     "aria.chat.startDiabetes.1": { en: "What plant-based foods help stabilize blood sugar?", hi: "रक्त शर्करा स्थिर रखने में कौन से पादप-आधारित भोजन मदद करते हैं?" },
     "aria.chat.startDiabetes.2": { en: "How can I reduce sugar cravings naturally?", hi: "मैं मीठे की क्रेविंग को प्राकृतिक रूप से कैसे कम करूँ?" },

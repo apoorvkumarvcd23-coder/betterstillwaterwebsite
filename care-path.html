@@ -2392,6 +2392,11 @@
           hasDiabetes: !!hasDiabetes,
           hasHypertension: !!hasHypertension,
         };
+        // The Stilwater AI Chat may have rendered its greeting BEFORE these
+        // flags arrived (default landing = chat open, flags fetched async).
+        // If the user hasn't sent anything yet, regenerate the greeting to
+        // match the condition + name we now know.
+        window.dispatchEvent(new CustomEvent("sw:flagsready"));
       };
 
       // Tag the Chat link (testimonials-*.html) so the testimonial AI page
@@ -4186,23 +4191,40 @@
           return "general";
         }
 
+        // Pulls the logged-in user's first name out of the header's
+        // "Hi, [name]" pill that shared.js populates from /api/auth/me.
+        // Returns "" if not yet ready or not logged in.
+        function getUserFirstName() {
+          const label = document.querySelector("#authMenuButton .auth-btn-label");
+          const raw = (label && label.textContent || "").trim();
+          if (!raw) return "";
+          // raw is "Hi, Bikramjit Das" → drop the prefix and take first word.
+          const after = raw.replace(/^.*?,\s*/, "").trim();
+          const first = after.split(/\s+/)[0];
+          return first || "";
+        }
+
         // Build the welcome message conditioned on the user's assessment.
+        // The greeting also personalises with the user's first name when
+        // available ("Hi Bikramjit, I'm Aria — ...").
         function recipeChatGreeting() {
           const c = activeCondition();
+          const name = getUserFirstName();
+          const hi = name ? "Hi " + name + ", " : "Hi, ";
           if (c === "diabetes") {
-            return T("aria.chat.greetDiabetes",
-              "Hi, I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.");
+            return hi + T("aria.chat.greetDiabetes",
+              "I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.");
           }
           if (c === "eye") {
-            return T("aria.chat.greetEye",
-              "Hi, I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.");
+            return hi + T("aria.chat.greetEye",
+              "I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.");
           }
           if (c === "hypertension") {
-            return T("aria.chat.greetHypertension",
-              "Hi, I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.");
+            return hi + T("aria.chat.greetHypertension",
+              "I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.");
           }
-          return T("aria.chat.greetGeneral",
-            "Hi, I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.");
+          return hi + T("aria.chat.greetGeneral",
+            "I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.");
         }
 
         // 3 starter-question chips per condition. Clicking one is equivalent
@@ -4523,6 +4545,38 @@
             span.setAttribute("data-i18n", "carepath.stilwaterAIChat");
           }
         }
+        // Regenerate the first greeting bubble when (a) the assessment
+        // flags resolve or (b) the auth-header pill populates with the
+        // user's name — but only if the user hasn't typed anything yet.
+        function refreshGreetingIfStale() {
+          if (!recipeChat.greetingApplied) return;
+          const userMsgs = recipeChat.messages.filter((m) => m.role === "user").length;
+          if (userMsgs > 0) return;
+          // Replace the first assistant message with the new greeting.
+          const fresh = recipeChatGreeting();
+          const firstAssistantIdx = recipeChat.messages.findIndex((m) => m.role === "assistant");
+          if (firstAssistantIdx >= 0) {
+            recipeChat.messages[firstAssistantIdx] = { role: "assistant", text: fresh };
+          } else {
+            recipeChat.messages.unshift({ role: "assistant", text: fresh });
+          }
+          const host = document.getElementById("plantRecipesChat");
+          if (host && !host.hidden) renderPlantRecipesChat();
+        }
+        window.addEventListener("sw:flagsready", refreshGreetingIfStale);
+        // The auth pill text is set asynchronously by shared.js after
+        // /api/auth/me resolves. Poll briefly (a handful of frames) to pick
+        // up the name once it's populated. Cheap and bounded.
+        (function watchAuthName() {
+          let tries = 0;
+          const tick = () => {
+            const name = getUserFirstName();
+            if (name) { refreshGreetingIfStale(); return; }
+            if (++tries < 40) setTimeout(tick, 250);
+          };
+          tick();
+        })();
+
         function showPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
           if (!host) return;
