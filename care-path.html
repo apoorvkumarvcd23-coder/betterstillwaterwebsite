@@ -3106,6 +3106,7 @@
                 : [];
               chat = {
                 messages: msgs,
+                greetingApplied: !!state.recipeChat.greetingApplied,
                 draft: typeof state.recipeChat.draft === "string" ? state.recipeChat.draft : "",
               };
             }
@@ -4266,42 +4267,18 @@
         // model openai/gpt-oss-120b by default). Greeting + 3 starter
         // suggestion chips are tuned to the user's wellness-assessment
         // condition (diabetes / eye / hypertension / general).
-        // Greeting is a one-time welcome, NOT part of chat history. We track
-        // "has this browser ever shown the greeting" via a long-lived
-        // localStorage flag so it never reappears after logout / login /
-        // refresh. (Per-browser; same browser, same flag.)
-        const GREETED_KEY = "sw_aria_greeted_v1";
-        function hasBeenGreeted() {
-          try { return localStorage.getItem(GREETED_KEY) === "1"; } catch (_) { return false; }
-        }
-        function markGreeted() {
-          try { localStorage.setItem(GREETED_KEY, "1"); } catch (_) {}
-        }
-
         // Hydrates the recipeChat from persisted state (if any) and tops up
         // every field so a partially-restored object can't blow up the
         // render. Always resets transient flags (loading, pending attachment).
-        // Also strips any greeting bubbles that were saved into messages
-        // before this refactor — greeting now lives outside the array.
         const recipeChat = (function () {
           const base = state.recipeChat || (state.recipeChat = {});
           if (!Array.isArray(base.messages)) base.messages = [];
-          // One-time cleanup: drop legacy greeting bubbles persisted by
-          // earlier builds. Cheap heuristic — the greeting always opens
-          // with "Hi" or "नमस्ते" and contains "Aria".
-          if (base.messages.length && base.messages[0].role === "assistant") {
-            const first = (base.messages[0].text || "").trim();
-            const looksLikeGreeting =
-              /^(Hi|नमस्ते)\b/.test(first) && /Aria/.test(first);
-            if (looksLikeGreeting) base.messages.shift();
-          }
+          if (typeof base.greetingApplied !== "boolean") base.greetingApplied = false;
           if (typeof base.draft !== "string") base.draft = "";
           if (typeof base.lastPrompt !== "string") base.lastPrompt = "";
           if (typeof base.lastModel !== "string") base.lastModel = "";
           base.loading = false;
           base.pendingAttachment = null;
-          // No longer needed — kept only so older saved snapshots don't break.
-          delete base.greetingApplied;
           return base;
         })();
 
@@ -4404,16 +4381,15 @@
               '<span>' + escapeHtml(T("aria.chat.clear", "Clear chat")) + '</span>';
             clearBtn.addEventListener("click", () => {
               if (!confirm(T("aria.chat.clearConfirm", "Clear this conversation? This can't be undone."))) return;
-              // Wipe the conversation. NOTE: we deliberately leave the
-              // "hasBeenGreeted" flag in localStorage alone — Clear empties
-              // chat history but doesn't bring back the one-time welcome.
               state.recipeChat = {
                 messages: [],
                 loading: false,
+                greetingApplied: false,
                 draft: "",
                 pendingAttachment: null,
                 lastPrompt: "",
                 lastModel: "",
+                showPrompt: false,
               };
               Object.assign(recipeChat, state.recipeChat);
               savePersistedState();
@@ -4432,6 +4408,9 @@
             recipeChat.messages.push({ role: "assistant", text: recipeChatGreeting() });
           }
 
+          // Render the greeting (first assistant message), then pin the 3
+          // starter chips directly under it so they're always at the top.
+          // The rest of the conversation streams below.
           const renderBubble = (msg) => {
             const bubble = document.createElement("div");
             bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
@@ -4447,15 +4426,8 @@
             return bubble;
           };
 
-          // One-time welcome bubble — rendered ABOVE the chips on first
-          // visit to this browser only. Suppressed forever once
-          // hasBeenGreeted() returns true. Lives outside the messages
-          // array so it never pollutes saved chat history.
-          if (!hasBeenGreeted()) {
-            scroll.appendChild(renderBubble({ role: "assistant", text: recipeChatGreeting() }));
-            // Mark greeted on next animation frame so any name/flag updates
-            // that fire within the same tick can still revise the greeting.
-            requestAnimationFrame(markGreeted);
+          if (recipeChat.messages.length > 0) {
+            scroll.appendChild(renderBubble(recipeChat.messages[0]));
           }
 
           // Starter chips — always visible, fixed position just under the
@@ -4472,8 +4444,10 @@
           });
           scroll.appendChild(chipsWrap);
 
-          // Persisted conversation (no greeting in here — see above).
-          recipeChat.messages.forEach((msg) => scroll.appendChild(renderBubble(msg)));
+          // Rest of the conversation (everything after the greeting).
+          for (let i = 1; i < recipeChat.messages.length; i++) {
+            scroll.appendChild(renderBubble(recipeChat.messages[i]));
+          }
 
           // Loading indicator while waiting on the LLM
           if (recipeChat.loading) {
@@ -4697,13 +4671,21 @@
             span.setAttribute("data-i18n", "carepath.stilwaterAIChat");
           }
         }
-        // Re-render the chat when (a) the assessment flags resolve or (b)
-        // the auth-header pill populates with the user's name. Whether the
-        // greeting bubble actually shows is decided inside render() by
-        // hasBeenGreeted() — this just triggers a redraw so the still-
-        // unshown greeting picks up the latest condition + name.
+        // Regenerate the first greeting bubble when (a) the assessment
+        // flags resolve or (b) the auth-header pill populates with the
+        // user's name — but only if the user hasn't typed anything yet.
         function refreshGreetingIfStale() {
-          if (hasBeenGreeted()) return;
+          if (!recipeChat.greetingApplied) return;
+          const userMsgs = recipeChat.messages.filter((m) => m.role === "user").length;
+          if (userMsgs > 0) return;
+          // Replace the first assistant message with the new greeting.
+          const fresh = recipeChatGreeting();
+          const firstAssistantIdx = recipeChat.messages.findIndex((m) => m.role === "assistant");
+          if (firstAssistantIdx >= 0) {
+            recipeChat.messages[firstAssistantIdx] = { role: "assistant", text: fresh };
+          } else {
+            recipeChat.messages.unshift({ role: "assistant", text: fresh });
+          }
           const host = document.getElementById("plantRecipesChat");
           if (host && !host.hidden) renderPlantRecipesChat();
         }
