@@ -1491,6 +1491,52 @@
       }
       .recipe-chat-restart:hover { background: rgba(47, 72, 66, 0.06); }
 
+      /* Plant-Based Recipes overlay — covers the companion shell when open */
+      #companionRoot { position: relative; }
+      .plant-chat-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        background: var(--c-bg, #ffffff);
+        border-radius: inherit;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 18px clamp(14px, 3vw, 28px);
+        overflow: hidden;
+      }
+      .plant-chat-overlay[hidden] { display: none; }
+      .plant-chat-close {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--c-ink, #1c2a2a);
+        z-index: 1;
+      }
+      .plant-chat-close svg { width: 18px; height: 18px; }
+      .plant-chat-close:hover { background: rgba(47, 72, 66, 0.06); }
+      .plant-chat-title {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--c-ink, #1c2a2a);
+        padding-right: 48px;
+      }
+      .plant-chat-scroll {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        gap: 12px;
+        padding-bottom: 12px;
+      }
+
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         background: var(--c-mist); overflow: hidden;
@@ -1915,6 +1961,10 @@
 
       <!-- ── Stilwater Companion ──────────────────────────────────── -->
       <section class="companion-chat" id="companionRoot">
+        <!-- Plant-Based Recipes chat overlay — mounted by JS, hidden by default.
+             Opened from the "Plant-Based Recipes" sidebar item; closed by its
+             own ✕ button or by clicking any of the 3 companion tabs. -->
+        <div id="plantRecipesChat" class="plant-chat-overlay" hidden></div>
         <div class="companion-shell">
           <header class="companion-head">
             <button type="button" class="care-menu-btn" id="careMenuBtn" aria-label="Open menu" aria-controls="careSidebar">
@@ -2926,6 +2976,11 @@
             if (GA_TAB_EVENT[key]) btn.setAttribute("data-ga-event", GA_TAB_EVENT[key]);
             btn.innerHTML = ico(m.icon) + '<span>' + escapeHtml(T(m.labelKey, key)) + '</span>';
             btn.addEventListener("click", () => {
+              // Clicking any tab closes the Plant-Based Recipes chat overlay
+              // and restores the 3-tab companion view.
+              if (window.__swPlantRecipes && typeof window.__swPlantRecipes.hide === "function") {
+                window.__swPlantRecipes.hide();
+              }
               if (state.mode === key) return;
               state.mode = key;
               renderMode();
@@ -3840,10 +3895,111 @@
             .catch(() => setState(T("aria.recipes.cantReach", "Couldn't reach Aria right now.")));
         }
 
-        // ---- RECIPES (ChatGPT-style 3-question flow) ----
-        // Persistent state for the recipe chat so re-renders don't reset
-        // the conversation — lives on the parent `state` object alongside
-        // mode/meal-plan/journaling state.
+        // ---- RECIPES (original Recipes tab — search + meal cards) ----
+        function renderRecipes() {
+          // Auto-derive today's plan from the matching weekday if a weekly
+          // plan exists but no today plan has been built yet — so Recipes
+          // shows the day's meals without forcing a visit to Today first.
+          if (!state.todayPlan && state.weeklyPlan) {
+            const day = todayName();
+            const source = state.weeklyPlan[day] || state.weeklyPlan[WEEK_DAYS[0]];
+            const built = {};
+            MEAL_SLOTS.forEach((slot) => {
+              built[slot] = {
+                meal: (source && source[slot]) || { en: "Plant-based whole-food option", hi: "प्लांट-बेस्ड भोजन (plant-based option)" },
+                why: "",
+              };
+            });
+            state.todayPlan = built;
+            state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
+          }
+
+          const pane = document.createElement("div");
+          pane.className = "companion-pane";
+          const scroll = document.createElement("div");
+          scroll.className = "companion-scroll flow";
+
+          const head = document.createElement("div");
+          head.innerHTML =
+            '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
+            '<p class="companion-intro-body">' +
+              escapeHtml(state.todayPlan
+                ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
+                : T("aria.recipes.searchIntro", "Search any dish — Aria finds 3 plant-based cooking videos.")) +
+            '</p>' +
+            (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
+          scroll.appendChild(head);
+
+          // Search row — typing a dish + Find opens the 3-video popup
+          // (same agent used by the weekly-plan and today-plan buttons).
+          const searchRow = document.createElement("div");
+          searchRow.className = "companion-search-row";
+          searchRow.innerHTML = ico("search", 'class="search-ico"');
+          const input = document.createElement("input");
+          input.type = "text";
+          input.placeholder = T("aria.recipes.searchPlaceholder", "Search any dish — e.g. paneer tikka");
+          input.value = state.search;
+          input.addEventListener("input", () => {
+            state.search = input.value;
+            findBtn.classList.toggle("is-active", input.value.trim().length > 0);
+          });
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") { e.preventDefault(); runSearch(); }
+          });
+          searchRow.appendChild(input);
+          const findBtn = document.createElement("button");
+          findBtn.type = "button";
+          findBtn.textContent = T("aria.recipes.find", "Find");
+          findBtn.setAttribute("data-ga-event", "btn_find_recipes");
+          if (state.search.trim()) findBtn.classList.add("is-active");
+          findBtn.addEventListener("click", runSearch);
+          searchRow.appendChild(findBtn);
+          scroll.appendChild(searchRow);
+
+          function runSearch() {
+            const d = state.search.trim();
+            if (!d) return;
+            state.searchedDish = d;
+            openRecipePopup(d, d);
+          }
+
+          // Per-meal cards from today's plan — same card layout as the
+          // Today's plan tab, same YouTube button → 3-video popup agent.
+          if (state.todayPlan) {
+            MEAL_SLOTS.forEach((slot) => {
+              const entry = state.todayPlan[slot];
+              const card = document.createElement("div");
+              card.className = "companion-today-card";
+              card.innerHTML =
+                '<div class="companion-today-text">' +
+                  '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
+                  '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
+                '</div>' +
+                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                  ico("youtube") +
+                '</button>';
+              scroll.appendChild(card);
+              const ytBtn = card.querySelector(".companion-today-yt");
+              ytBtn.addEventListener("click", () => {
+                openRecipePopup(mealText(entry.meal), mealEnglish(entry.meal) || mealText(entry.meal));
+              });
+            });
+          }
+
+          const note = document.createElement("div");
+          note.className = "companion-footer-note";
+          note.textContent = T("aria.recipes.footerNote3", "Aria fetches 3 plant-based cooking videos per dish.");
+          scroll.appendChild(note);
+
+          pane.appendChild(scroll);
+          return pane;
+        }
+
+        // ---- PLANT-BASED RECIPES (separate ChatGPT-style overlay) ----
+        // Mounted as a layer that covers the 3-tab companion UI when the
+        // user clicks the "Plant-Based Recipes" sidebar item. Clicking any
+        // of the 3 tabs (Meal Plan / Recipes / Journaling) closes it and
+        // restores the original tabbed view.
         const recipeChat = state.recipeChat || (state.recipeChat = {
           messages: [],          // [{ role: "assistant"|"user", text }]
           step: 0,               // 0 = waiting for likes, 1 = avoid, 2 = condition note, 3 = done
@@ -3898,13 +4054,26 @@
           },
         ];
 
-        function renderRecipes() {
-          const pane = document.createElement("div");
-          pane.className = "companion-pane companion-recipe-chat";
+        function renderPlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          host.innerHTML = "";
+
+          const close = document.createElement("button");
+          close.type = "button";
+          close.className = "plant-chat-close";
+          close.setAttribute("aria-label", T("common.close", "Close"));
+          close.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+          close.addEventListener("click", hidePlantRecipesChat);
+          host.appendChild(close);
+
+          const title = document.createElement("div");
+          title.className = "plant-chat-title";
+          title.textContent = T("carepath.plantRecipes", "Plant-Based Recipes");
+          host.appendChild(title);
 
           const scroll = document.createElement("div");
-          scroll.className = "companion-scroll flow";
-          scroll.style.gap = "12px";
+          scroll.className = "companion-scroll flow plant-chat-scroll";
 
           // Inject greeting + first question once per session.
           if (!recipeChat.greetingApplied) {
@@ -3964,7 +4133,7 @@
                 });
                 fetchRecipeVideos();
               }
-              renderMode();
+              renderPlantRecipesChat();
             }
 
             // Focus the input automatically so the user can just start typing.
@@ -4012,7 +4181,7 @@
                 };
                 // Re-point the local closure to the fresh object.
                 Object.assign(recipeChat, state.recipeChat);
-                renderMode();
+                renderPlantRecipesChat();
               });
               scroll.appendChild(restart);
             } else if (recipeChat.videos && !recipeChat.videos.length) {
@@ -4024,9 +4193,24 @@
             }
           }
 
-          pane.appendChild(scroll);
-          return pane;
+          host.appendChild(scroll);
         }
+
+        function showPlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          host.hidden = false;
+          document.body.classList.add("plant-chat-open");
+          renderPlantRecipesChat();
+        }
+        function hidePlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          host.hidden = true;
+          document.body.classList.remove("plant-chat-open");
+        }
+        // Expose so the sidebar handler at the bottom of the file can use them.
+        window.__swPlantRecipes = { show: showPlantRecipesChat, hide: hidePlantRecipesChat };
 
         // Hits the existing /api/aria/recipes endpoint with a synthesized
         // dish prompt that folds in the user's 3 answers. The server's
@@ -4051,12 +4235,12 @@
             .then((data) => {
               recipeChat.loadingVideos = false;
               recipeChat.videos = Array.isArray(data && data.videos) ? data.videos : [];
-              renderMode();
+              renderPlantRecipesChat();
             })
             .catch(() => {
               recipeChat.loadingVideos = false;
               recipeChat.videos = [];
-              renderMode();
+              renderPlantRecipesChat();
             });
         }
 
@@ -4142,14 +4326,15 @@
           return card;
         }
 
-        // Sidebar "Plant-Based Recipes" → switch chat into recipes mode
-        // and scroll the companion into view so the new chat is in focus.
+        // Sidebar "Plant-Based Recipes" → open the ChatGPT-style chat as an
+        // overlay above the companion. The 3 companion tabs (Meal Plan,
+        // Recipes, Journaling) are untouched and reappear as soon as any
+        // tab — or the close button — is clicked.
         const plantBtn = document.getElementById("btnPlantRecipes");
         if (plantBtn) {
           plantBtn.addEventListener("click", () => {
-            if (state.mode !== "recipes") {
-              state.mode = "recipes";
-              renderMode();
+            if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
+              window.__swPlantRecipes.show();
             }
             try {
               root.scrollIntoView({ behavior: "smooth", block: "start" });
