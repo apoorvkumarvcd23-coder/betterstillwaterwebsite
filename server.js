@@ -3174,7 +3174,10 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
       body: JSON.stringify({
         model,
         temperature: 0.7,
-        max_tokens: 700,
+        // 450 keeps us inside the OpenRouter free-tier per-request cap
+        // (free accounts 402 above ~450). Bump back to 700+ once the
+        // OpenRouter account has credit topped up.
+        max_tokens: 450,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
       }),
     });
