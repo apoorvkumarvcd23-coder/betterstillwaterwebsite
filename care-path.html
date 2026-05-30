@@ -1472,6 +1472,75 @@
         color: #f4f1ea;
         border: 1px solid rgba(47, 72, 66, 0.28);
       }
+
+      /* Perplexity-style "Answer" view: assistant replies render as clean
+         full-width prose directly on the page background — no bubble. The
+         first greeting message keeps its bubble (it is NOT given the
+         .recipe-chat-prose class). Compound selector keeps these overrides
+         winning over the base + mobile .recipe-chat-bubble rules. */
+      .recipe-chat-bubble.recipe-chat-prose {
+        align-self: stretch;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 2px 6px 4px;
+        white-space: normal;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+      .recipe-chat-prose > :first-child { margin-top: 0; }
+      .recipe-chat-prose > :last-child { margin-bottom: 0; }
+      .recipe-chat-prose p { margin: 0 0 0.8em; }
+      .recipe-chat-prose ul,
+      .recipe-chat-prose ol { margin: 0 0 0.8em; padding-left: 1.4em; }
+      .recipe-chat-prose li { margin: 0.25em 0; }
+      .recipe-chat-prose h3,
+      .recipe-chat-prose h4,
+      .recipe-chat-prose h5,
+      .recipe-chat-prose h6 {
+        margin: 1.1em 0 0.45em;
+        line-height: 1.3;
+        color: var(--c-ink, #2f3a32);
+      }
+      .recipe-chat-prose h3 { font-size: 1.18em; }
+      .recipe-chat-prose h4 { font-size: 1.06em; }
+      .recipe-chat-prose h5,
+      .recipe-chat-prose h6 { font-size: 1em; }
+      .recipe-chat-prose a {
+        color: var(--c-sage-deep, #5f7656);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        word-break: break-word;
+      }
+      .recipe-chat-prose code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.88em;
+        background: rgba(47, 72, 66, 0.07);
+        padding: 1px 5px;
+        border-radius: 5px;
+      }
+      /* Markdown tables: thin row dividers + a subtle header row. */
+      .recipe-chat-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.4em 0 0.9em;
+        font-size: 0.95em;
+      }
+      .recipe-chat-prose th,
+      .recipe-chat-prose td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.12);
+        vertical-align: top;
+      }
+      .recipe-chat-prose thead th {
+        font-weight: 700;
+        color: var(--c-ink, #2f3a32);
+        background: rgba(47, 72, 66, 0.04);
+        border-bottom: 1px solid rgba(47, 72, 66, 0.20);
+      }
+      .recipe-chat-prose tbody tr:last-child td { border-bottom: none; }
       .recipe-chat-compose {
         display: flex; align-items: flex-end; gap: 8px;
         margin-top: 4px;
@@ -1771,38 +1840,57 @@
         border-color: rgba(95, 179, 179, 0.55);
       }
 
-      /* Per-assistant-message follow-up chips (rendered under each Aria
-         reply, Claude-style "suggested follow-up questions") */
+      /* Per-assistant-message follow-up questions — Perplexity-style LIST:
+         full-width rows separated by thin dividers, a muted ↳ prefix, and a
+         subtle row highlight on hover. These are list rows (not pill buttons)
+         but keep their click-to-send behavior. */
       .plant-chat-msg-wrap {
         display: flex;
         flex-direction: column;
-        gap: 8px;
-        align-self: flex-start;
-        max-width: 88%;
+        gap: 6px;
+        align-self: stretch;
+        max-width: 100%;
       }
       .plant-chat-msg-wrap > .recipe-chat-bubble { max-width: 100%; }
       .plant-chat-followups {
         display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        padding-left: 4px;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 6px;
+        padding-left: 0;
+        border-top: 1px solid rgba(47, 72, 66, 0.14);
       }
       .plant-chat-followup {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
         font: inherit;
-        font-size: 12.5px;
-        line-height: 1.35;
-        background: rgba(47, 72, 66, 0.05);
-        border: 1px solid rgba(47, 72, 66, 0.18);
-        color: var(--c-ink, #1c2a2a);
-        padding: 6px 12px;
-        border-radius: 999px;
-        cursor: pointer;
+        font-size: 14px;
+        line-height: 1.45;
         text-align: left;
+        color: var(--c-ink, #2f3a32);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 0;
+        padding: 12px 8px;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-chat-followup::before {
+        content: "\21B3";
+        flex-shrink: 0;
+        color: var(--c-ink-soft, #5d6b5e);
+        font-size: 15px;
+        line-height: 1.4;
+        transition: color 0.15s ease;
       }
       .plant-chat-followup:hover {
-        background: rgba(95, 179, 179, 0.14);
-        border-color: rgba(95, 179, 179, 0.45);
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
       }
+      .plant-chat-followup:hover::before { color: var(--c-sage-deep, #5f7656); }
 
       /* ── Stilwater AI Chat — mobile (≤ 600px) ────────────────────────── */
       @media (max-width: 600px) {
@@ -1817,12 +1905,13 @@
         .plant-chat-clear svg { width: 12px; height: 12px; }
 
         .recipe-chat-bubble { max-width: 100%; font-size: 13.5px; padding: 9px 12px; }
+        .recipe-chat-bubble.recipe-chat-prose { padding: 2px 2px 4px; font-size: 14.5px; }
         .plant-chat-msg-wrap { max-width: 100%; }
 
-        .plant-chat-starters,
-        .plant-chat-followups { gap: 6px; padding-left: 0; }
+        .plant-chat-starters { gap: 6px; padding-left: 0; }
         .plant-chat-starter { font-size: 12px; padding: 7px 11px; }
-        .plant-chat-followup { font-size: 11.5px; padding: 5px 10px; }
+        .plant-chat-followups { gap: 0; padding-left: 0; }
+        .plant-chat-followup { font-size: 13px; padding: 11px 6px; }
 
         /* Compose bar: shrink icon buttons + paddings so all 4 elements
            (+ textarea + mic + send) fit on a single phone-width line. */
@@ -4534,10 +4623,74 @@
           // Returns ONE node. If the assistant reply has followups attached,
           // wraps the bubble + chip row in a column so the chips render
           // directly beneath that specific reply.
-          const renderBubble = (msg) => {
+          // Minimal, SAFE Markdown → HTML for Aria's answers (Perplexity-style
+          // prose). The text is HTML-escaped FIRST, then markdown is applied to
+          // the escaped string, so nothing the model emits can inject raw HTML.
+          // Any failure falls back to plain escaped text — the chat never breaks.
+          const mdToHtml = (src) => {
+            try {
+              const inline = (s) => s
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                  (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>')
+                .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+                  (m, pre, u) => pre + '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+              const isSep = (l) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(l);
+              const cells = (l) => l.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map((c) => inline(c.trim()));
+              const lines = escapeHtml(String(src || "")).split(/\r?\n/);
+              const out = [];
+              let i = 0;
+              while (i < lines.length) {
+                const line = lines[i];
+                if (/^\s*$/.test(line)) { i++; continue; }
+                // Table (header row + separator row)
+                if (line.indexOf("|") !== -1 && i + 1 < lines.length && isSep(lines[i + 1])) {
+                  const head = cells(line); i += 2; const rows = [];
+                  while (i < lines.length && lines[i].indexOf("|") !== -1 && !/^\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+                  out.push("<table><thead><tr>" + head.map((h) => "<th>" + h + "</th>").join("") + "</tr></thead><tbody>"
+                    + rows.map((r) => "<tr>" + r.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") + "</tbody></table>");
+                  continue;
+                }
+                // Heading (#..###### → h3..h6)
+                const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
+                if (h) { const lvl = Math.min(6, h[1].length + 2); out.push("<h" + lvl + ">" + inline(h[2].trim()) + "</h" + lvl + ">"); i++; continue; }
+                // Unordered list
+                if (/^\s*[-*+]\s+/.test(line)) {
+                  const items = [];
+                  while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) { items.push("<li>" + inline(lines[i].replace(/^\s*[-*+]\s+/, "")) + "</li>"); i++; }
+                  out.push("<ul>" + items.join("") + "</ul>"); continue;
+                }
+                // Ordered list
+                if (/^\s*\d+[.)]\s+/.test(line)) {
+                  const items = [];
+                  while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) { items.push("<li>" + inline(lines[i].replace(/^\s*\d+[.)]\s+/, "")) + "</li>"); i++; }
+                  out.push("<ol>" + items.join("") + "</ol>"); continue;
+                }
+                // Paragraph (gather consecutive non-block lines)
+                const para = [];
+                while (i < lines.length && !/^\s*$/.test(lines[i])
+                  && !/^\s*#{1,6}\s+/.test(lines[i])
+                  && !/^\s*[-*+]\s+/.test(lines[i])
+                  && !/^\s*\d+[.)]\s+/.test(lines[i])
+                  && !(lines[i].indexOf("|") !== -1 && i + 1 < lines.length && isSep(lines[i + 1]))) {
+                  para.push(lines[i]); i++;
+                }
+                out.push("<p>" + inline(para.join("<br>")) + "</p>");
+              }
+              return out.join("");
+            } catch (_) {
+              return escapeHtml(String(src || ""));
+            }
+          };
+
+          const renderBubble = (msg, opts) => {
+            opts = opts || {};
+            const isProse = msg.role === "assistant" && !opts.isGreeting;
             const bubble = document.createElement("div");
-            bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
-            let html = escapeHtml(msg.text || "");
+            bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role + (isProse ? " recipe-chat-prose" : "");
+            let html = isProse ? mdToHtml(msg.text || "") : escapeHtml(msg.text || "");
             if (msg.attachment && msg.attachment.name) {
               html += (msg.text ? '<br/>' : '') +
                 '<span class="plant-attach-chip" style="margin-top:6px;">' +
@@ -4568,7 +4721,9 @@
           };
 
           if (recipeChat.messages.length > 0) {
-            scroll.appendChild(renderBubble(recipeChat.messages[0]));
+            // The first message is Aria's intro/greeting — keep it as the
+            // existing bubble (NOT prose), exactly as before.
+            scroll.appendChild(renderBubble(recipeChat.messages[0], { isGreeting: true }));
           }
 
           // Starter chips — always visible, fixed position just under the
@@ -4631,7 +4786,11 @@
               const thinking = liveScroll.querySelector(".recipe-chat-meta");
               if (thinking) thinking.remove();
               liveBubble = document.createElement("div");
-              liveBubble.className = "recipe-chat-bubble recipe-chat-assistant";
+              // Stream as prose (matches the final answer style). Plain text is
+              // shown via textContent during the stream, so force pre-wrap to
+              // preserve line breaks; the final re-render swaps in markdown.
+              liveBubble.className = "recipe-chat-bubble recipe-chat-assistant recipe-chat-prose";
+              liveBubble.style.whiteSpace = "pre-wrap";
               // The compose bar is the last child of the scroll container
               // (pinned to the bottom via margin-top:auto), so insert the
               // streaming reply BEFORE it — otherwise the live answer renders
