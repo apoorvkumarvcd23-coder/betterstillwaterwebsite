@@ -5057,6 +5057,11 @@
             // Focus the input automatically so the user can just start typing.
             requestAnimationFrame(() => { try { ta.focus(); } catch (_) {} });
           }
+
+          // (Re)rendering rebuilds the message list from scratch, which resets
+          // the scroll to the top. Snap to the bottom so the newest question /
+          // answer is always in view — no manual scrolling after each turn.
+          requestAnimationFrame(() => { try { scroll.scrollTop = scroll.scrollHeight; } catch (_) {} });
         }
 
         function updateSidebarToggleLabel() {
