@@ -1738,6 +1738,39 @@
         border-color: rgba(95, 179, 179, 0.55);
       }
 
+      /* Per-assistant-message follow-up chips (rendered under each Aria
+         reply, like Claude's "suggested follow-up questions" pattern) */
+      .plant-chat-msg-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        align-self: flex-start;
+        max-width: 88%;
+      }
+      .plant-chat-msg-wrap > .recipe-chat-bubble { max-width: 100%; }
+      .plant-chat-followups {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-left: 4px;
+      }
+      .plant-chat-followup {
+        font: inherit;
+        font-size: 12.5px;
+        line-height: 1.35;
+        background: rgba(47, 72, 66, 0.05);
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        color: var(--c-ink, #1c2a2a);
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        text-align: left;
+      }
+      .plant-chat-followup:hover {
+        background: rgba(95, 179, 179, 0.14);
+        border-color: rgba(95, 179, 179, 0.45);
+      }
+
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         background: var(--c-mist); overflow: hidden;
@@ -4411,6 +4444,9 @@
           // Render the greeting (first assistant message), then pin the 3
           // starter chips directly under it so they're always at the top.
           // The rest of the conversation streams below.
+          // Returns ONE node — either a single bubble or a small wrapper
+          // containing the bubble + follow-up chips when the assistant
+          // reply has them.
           const renderBubble = (msg) => {
             const bubble = document.createElement("div");
             bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role;
@@ -4423,7 +4459,26 @@
                 '</span>';
             }
             bubble.innerHTML = html;
-            return bubble;
+
+            const followups = Array.isArray(msg.followups) ? msg.followups : [];
+            if (msg.role !== "assistant" || followups.length === 0) return bubble;
+
+            // Aria bubble + its per-message follow-up chips beneath it.
+            const wrap = document.createElement("div");
+            wrap.className = "plant-chat-msg-wrap";
+            wrap.appendChild(bubble);
+            const fu = document.createElement("div");
+            fu.className = "plant-chat-followups";
+            followups.forEach((q) => {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "plant-chat-followup";
+              chip.textContent = q;
+              chip.addEventListener("click", () => sendMessage(q));
+              fu.appendChild(chip);
+            });
+            wrap.appendChild(fu);
+            return wrap;
           };
 
           if (recipeChat.messages.length > 0) {
@@ -4499,7 +4554,8 @@
                 }
                 const reply = (data && data.reply ? String(data.reply) : "").trim()
                   || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
-                recipeChat.messages.push({ role: "assistant", text: reply });
+                const followups = Array.isArray(data && data.followups) ? data.followups : [];
+                recipeChat.messages.push({ role: "assistant", text: reply, followups });
                 try { savePersistedState(); } catch (_) {}
                 renderPlantRecipesChat();
               })
