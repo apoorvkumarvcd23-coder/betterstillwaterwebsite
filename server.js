@@ -3114,7 +3114,36 @@ rather than guessing.
 # KEY LINKS (use only when relevant)
 - Providers / doctors: https://stillwater-test.onrender.com/partners.html
 - Wellness Assessment (personalize plan): https://stillwater-test.onrender.com/intake.html
-- Home: https://stillwater-test.onrender.com/`;
+- Home: https://stillwater-test.onrender.com/
+
+# FOLLOW-UP QUESTIONS (REQUIRED OUTPUT FORMAT)
+After your main reply, on a NEW LINE, output exactly 3 short follow-up questions
+the user might naturally ask next. They MUST stay inside Stilwater's scope
+(plant-based food, yoga, meditation, lifestyle, Stilwater features) and feel
+like a natural next step from what the user just asked. Output them in this
+EXACT format on the LAST line of your response with no other text after the
+closing tag:
+  [FOLLOWUPS] question 1 || question 2 || question 3 [/FOLLOWUPS]
+Each question is short (max 12 words), no numbering, no markdown.`;
+}
+
+// Parses Aria's raw reply into user-facing text plus an optional follow-up
+// suggestions array. The system prompt asks the model to end with
+// [FOLLOWUPS] q1 || q2 || q3 [/FOLLOWUPS] on the last line. If missing or
+// malformed, returns the raw reply unchanged with an empty followups list —
+// the chat still works, just without chips for that turn.
+function parseStilwaterReply(raw) {
+  const text = String(raw || "");
+  const re = /\[FOLLOWUPS\]([\s\S]*?)\[\/FOLLOWUPS\]\s*$/i;
+  const match = text.match(re);
+  if (!match) return { reply: text.trim(), followups: [] };
+  const followups = match[1]
+    .split(/\|\|/)
+    .map((s) => s.trim().replace(/^[\d.\-•\s]+/, ""))
+    .filter((s) => s.length > 0 && s.length <= 140)
+    .slice(0, 3);
+  const clean = text.slice(0, match.index).trim();
+  return { reply: clean, followups };
 }
 
 app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
@@ -3165,14 +3194,17 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
 
     const data = await upstream.json();
     const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
-    const reply =
+    const raw =
       (choice && choice.message && typeof choice.message.content === "string"
         ? choice.message.content
         : ""
       ).trim();
 
+    const { reply, followups } = parseStilwaterReply(raw);
+
     return res.json({
       reply: reply || "I'm here — could you ask that a different way?",
+      followups,
       model,
       condition,
       prompt: systemPrompt,
