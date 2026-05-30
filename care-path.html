@@ -4632,7 +4632,13 @@
               if (thinking) thinking.remove();
               liveBubble = document.createElement("div");
               liveBubble.className = "recipe-chat-bubble recipe-chat-assistant";
-              liveScroll.appendChild(liveBubble);
+              // The compose bar is the last child of the scroll container
+              // (pinned to the bottom via margin-top:auto), so insert the
+              // streaming reply BEFORE it — otherwise the live answer renders
+              // underneath the input box.
+              const compose = liveScroll.querySelector(".plant-compose");
+              if (compose) liveScroll.insertBefore(liveBubble, compose);
+              else liveScroll.appendChild(liveBubble);
             };
             const showVisible = (txt) => {
               ensureBubble();
