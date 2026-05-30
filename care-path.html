@@ -1608,6 +1608,28 @@
         font-weight: 600;
         color: var(--c-ink, #1c2a2a);
       }
+      /* Mobile hamburger inside the chat header. The AI Chat is the default
+         landing view and hides the companion-shell — which holds the only
+         other sidebar toggle — so without this button the off-canvas
+         drawer (and every feature in it) is unreachable on phones. */
+      .plant-chat-menu {
+        display: none;
+        width: 36px; height: 36px;
+        flex-shrink: 0;
+        align-items: center; justify-content: center;
+        padding: 0;
+        border-radius: 10px;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: transparent;
+        color: var(--c-ink, #1c2a2a);
+        cursor: pointer;
+      }
+      .plant-chat-menu svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .plant-chat-menu:hover { background: rgba(47, 72, 66, 0.06); }
+      @media (max-width: 768px) {
+        .plant-chat-menu { display: inline-flex; }
+        .plant-chat-title { margin-right: auto; }
+      }
       .plant-chat-clear {
         display: inline-flex;
         align-items: center;
@@ -4445,6 +4467,24 @@
 
           const header = document.createElement("div");
           header.className = "plant-chat-header";
+
+          // Mobile-only hamburger: the chat view hides the companion-shell
+          // that holds the sidebar toggle, so surface our own here. It opens
+          // the same off-canvas drawer through the existing #careMenuBtn
+          // wiring (clicking it works even while that button is hidden).
+          const menuBtn = document.createElement("button");
+          menuBtn.type = "button";
+          menuBtn.className = "plant-chat-menu";
+          menuBtn.setAttribute("aria-label", "Open menu");
+          menuBtn.setAttribute("aria-controls", "careSidebar");
+          menuBtn.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+          menuBtn.addEventListener("click", () => {
+            const m = document.getElementById("careMenuBtn");
+            if (m) m.click();
+          });
+          header.appendChild(menuBtn);
+
           const title = document.createElement("div");
           title.className = "plant-chat-title";
           title.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");

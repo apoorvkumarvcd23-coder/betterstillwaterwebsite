@@ -30,6 +30,27 @@
       background: #ffffff;
     }
     .sw-backbar a:hover { background: #eef6ec; }
+
+    /* Mobile: this page is inline-styled with multi-column grids and no
+       responsive rules, so it overflowed on phones. Collapse every inline
+       grid to a single column and tame the hero. */
+    @media (max-width: 820px) {
+      main { padding: 24px 14px 44px !important; }
+      main [style*="grid-template-columns"] { grid-template-columns: 1fr !important; }
+      main section { padding: 30px 22px !important; }
+      main section h1 { font-size: 34px !important; letter-spacing: -0.5px !important; }
+      main section h2 { font-size: 23px !important; }
+      main section p[style*="max-width:760px"],
+      main section p[style*="max-width:920px"] { max-width: 100% !important; }
+      main img[alt="Amar Eye Yoga logo"] {
+        width: 60px !important; height: 60px !important;
+        top: 18px !important; right: 18px !important;
+      }
+    }
+    @media (max-width: 420px) {
+      main section h1 { font-size: 28px !important; }
+      main section { padding: 24px 18px !important; }
+    }
   </style>
   <!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
     <script>
