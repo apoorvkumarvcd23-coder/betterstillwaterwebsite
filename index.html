@@ -483,6 +483,63 @@
     * { animation: none !important; }
     .eyebrow, h1.hero-title .l1, h1.hero-title .l2, .hero-body, .hero-actions { opacity: 1 !important; }
   }
+
+  /* ── Mobile polish (≤ 760px and below) ─────────────────────────────── */
+  @media (max-width: 760px) {
+    .nav-inner { padding: 14px 0; }
+    /* Hide the decorative hero arcs SVG on phones — it overflows. */
+    .hero .arcs { display: none; }
+    .hero { min-height: 78vh; }
+    .hero-content { padding: 56px 0 36px; }
+    .eyebrow { margin-bottom: 22px; gap: 14px; font-size: 0.68rem; letter-spacing: 0.22em; }
+    .eyebrow .line { width: 30px; }
+    h1.hero-title { margin-bottom: 22px; line-height: 1.02; }
+    .hero-body { margin-bottom: 26px; }
+    .hero-actions { gap: 14px; }
+    .btn-primary { padding: 14px 28px; font-size: 0.98rem; }
+    .btn-link { font-size: 0.98rem; }
+
+    section.band { padding: 64px 0; }
+    h2.section-title { font-size: clamp(1.85rem, 7vw, 2.4rem); }
+
+    /* Aria circle shrinks so it doesn't dominate the screen */
+    .aria-visual { max-width: 320px; }
+    .aria-text p { font-size: 1rem; line-height: 1.6; }
+
+    .pillars-grid { gap: 16px; margin-top: 36px; }
+    .pillar { padding: 28px 22px; }
+    .pillar h3 { font-size: 1.3rem; }
+    .pillar .icon { width: 54px; height: 54px; margin-bottom: 18px; }
+
+    .how-grid { gap: 14px; margin-top: 36px; }
+    .step { padding: 22px 18px; }
+    .step .num { font-size: 2.1rem; margin-bottom: 8px; }
+
+    .price-card { padding: 32px 22px; margin-top: 36px; }
+    .price-card .price { font-size: 3.4rem; }
+    .price-card .feature-list li { font-size: 0.92rem; }
+
+    .foot-grid { gap: 28px; margin-bottom: 24px; }
+    .foot-bottom { flex-direction: column; gap: 8px; }
+
+    /* Auth dropdown pill stays inside the right edge on phones */
+    #authMenuWrap { font-size: 0.85rem; }
+    .nav-cta { padding: 8px 16px; font-size: 0.88rem; }
+  }
+
+  /* Tiny phones (≤ 420px) — tighten further */
+  @media (max-width: 420px) {
+    .container { padding: 0 18px; }
+    .hero-content { padding: 44px 0 28px; }
+    h1.hero-title { font-size: clamp(2.2rem, 11vw, 3rem); }
+    .hero-body { font-size: 1rem; }
+    .btn-primary { width: 100%; text-align: center; padding: 14px 18px; }
+    .hero-actions { flex-direction: column; align-items: flex-start; gap: 16px; }
+    .btn-link { align-self: flex-start; }
+    .aria-visual { max-width: 240px; }
+    .aria-mark { font-size: clamp(3rem, 14vw, 4.5rem); }
+    .price-card .price { font-size: 2.8rem; }
+  }
 </style>
 </head>
 <body>

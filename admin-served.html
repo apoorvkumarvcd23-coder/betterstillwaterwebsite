@@ -348,6 +348,33 @@
       }
       .auth-back:hover { color: var(--white); }
 
+      /* ── Auth pages — mobile (≤ 540px) ──────────────────────────────── */
+      @media (max-width: 540px) {
+        .right { padding: 1.5rem 1.25rem 2rem; overflow-y: auto; }
+        #formTitle { font-size: 2rem; line-height: 1.15; margin-top: 0.5rem; }
+        .form-subtitle {
+          font-size: 0.78rem;
+          margin-bottom: 1.5rem;
+          letter-spacing: 0.06em;
+        }
+        .auth-cta {
+          padding: 0.95rem 1rem;
+          font-size: 0.72rem;
+          letter-spacing: 0.10em;
+          gap: 0.6rem;
+        }
+        .auth-cta svg { width: 18px; height: 18px; }
+        .auth-or { font-size: 0.62rem; letter-spacing: 0.24em; gap: 8px; }
+        .auth-safety {
+          margin-top: 22px;
+          font-size: 0.7rem;
+          gap: 6px;
+          line-height: 1.5;
+        }
+        .auth-safety svg { width: 14px; height: 14px; flex-shrink: 0; }
+        .back-link { font-size: 0.7rem; letter-spacing: 0.18em; }
+      }
+
       .text-center {
         text-align: center;
       }

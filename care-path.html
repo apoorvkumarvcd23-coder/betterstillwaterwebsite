@@ -1098,6 +1098,17 @@
         color: rgba(122, 143, 126, 0.9);
         flex-shrink: 0;
       }
+      @media (max-width: 540px) {
+        .mp-form-header { padding: 0; gap: 8px; }
+        .mp-form-header-text { gap: 4px; }
+        .mp-safety-note {
+          font-size: 11.5px;
+          padding: 8px 12px;
+          align-items: flex-start;
+          line-height: 1.4;
+        }
+        .mp-safety-note svg { margin-top: 2px; }
+      }
 
       .companion-choice {
         display: flex; align-items: flex-start; gap: 14px;
@@ -1769,6 +1780,42 @@
       .plant-chat-followup:hover {
         background: rgba(95, 179, 179, 0.14);
         border-color: rgba(95, 179, 179, 0.45);
+      }
+
+      /* ── Stilwater AI Chat — mobile (≤ 600px) ────────────────────────── */
+      @media (max-width: 600px) {
+        .plant-chat-overlay {
+          padding: 16px 12px 12px;
+          min-height: 60vh;
+          border-radius: 14px;
+        }
+        .plant-chat-header { padding-right: 0; flex-wrap: wrap; gap: 8px; }
+        .plant-chat-title { font-size: 1.05rem; }
+        .plant-chat-clear { font-size: 11.5px; padding: 5px 10px; }
+        .plant-chat-clear svg { width: 12px; height: 12px; }
+
+        .recipe-chat-bubble { max-width: 100%; font-size: 13.5px; padding: 9px 12px; }
+        .plant-chat-msg-wrap { max-width: 100%; }
+
+        .plant-chat-starters,
+        .plant-chat-followups { gap: 6px; padding-left: 0; }
+        .plant-chat-starter { font-size: 12px; padding: 7px 11px; }
+        .plant-chat-followup { font-size: 11.5px; padding: 5px 10px; }
+
+        /* Compose bar: shrink icon buttons + paddings so all 4 elements
+           (+ textarea + mic + send) fit on a single phone-width line. */
+        .plant-compose { gap: 2px; padding: 5px 6px 5px 4px; }
+        .plant-compose .plant-icon-btn { width: 34px; height: 34px; }
+        .plant-compose .plant-icon-btn svg { width: 18px; height: 18px; }
+        .plant-compose .plant-input { font-size: 14px; padding: 6px 2px; }
+        .plant-compose .plant-send-btn { width: 36px; height: 36px; }
+        .plant-compose .plant-send-btn svg { width: 16px; height: 16px; }
+
+        .companion-back-to-chat {
+          top: 10px; right: 10px;
+          width: 32px; height: 32px;
+        }
+        .companion-back-to-chat svg { width: 16px; height: 16px; }
       }
 
       .companion-recipe-card {
