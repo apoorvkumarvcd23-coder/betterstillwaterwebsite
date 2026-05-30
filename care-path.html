@@ -4618,34 +4618,93 @@
               content: m.text + (m.attachment ? "\n[attached: " + m.attachment.name + "]" : ""),
             }));
 
-            fetch("/api/stilwater/chat", {
-              method: "POST",
-              credentials: "same-origin",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                condition: activeCondition(),
-                language: LANG(),
-                messages: apiMessages,
-              }),
-            })
-              .then((r) => r.json().catch(() => ({})))
-              .then((data) => {
-                recipeChat.loading = false;
-                if (data && data.prompt) {
-                  recipeChat.lastPrompt = data.prompt;
-                  recipeChat.lastModel = data.model || "";
-                  // Also log to console so it shows up in DevTools.
-                  console.log("[Stilwater AI Chat] System prompt sent:\n" + data.prompt);
-                  if (data.model) console.log("[Stilwater AI Chat] Model:", data.model);
+            // Stream the reply token-by-token (SSE) into a live bubble so the
+            // answer starts appearing almost immediately instead of after the
+            // whole reply + 3 follow-ups finish generating. The DOM is touched
+            // cheaply (one text node) during the stream, with a single full
+            // re-render at the end to lay out the follow-up chips. Falls back
+            // to a plain JSON read if the server didn't stream.
+            const liveScroll = document.querySelector("#plantRecipesChat .plant-chat-scroll");
+            let liveBubble = null;
+            const ensureBubble = () => {
+              if (liveBubble || !liveScroll) return;
+              const thinking = liveScroll.querySelector(".recipe-chat-meta");
+              if (thinking) thinking.remove();
+              liveBubble = document.createElement("div");
+              liveBubble.className = "recipe-chat-bubble recipe-chat-assistant";
+              liveScroll.appendChild(liveBubble);
+            };
+            const showVisible = (txt) => {
+              ensureBubble();
+              if (!liveBubble) return;
+              liveBubble.textContent = txt;
+              requestAnimationFrame(() => { if (liveScroll) liveScroll.scrollTop = liveScroll.scrollHeight; });
+            };
+            const finish = (reply, followups, info) => {
+              recipeChat.loading = false;
+              if (info && info.prompt) {
+                recipeChat.lastPrompt = info.prompt;
+                recipeChat.lastModel = info.model || "";
+                console.log("[Stilwater AI Chat] System prompt sent:\n" + info.prompt);
+                if (info.model) console.log("[Stilwater AI Chat] Model:", info.model);
+              }
+              const text = String(reply || "").trim()
+                || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
+              recipeChat.messages.push({
+                role: "assistant",
+                text,
+                followups: Array.isArray(followups) ? followups : [],
+              });
+              try { savePersistedState(); } catch (_) {}
+              renderPlantRecipesChat();
+            };
+
+            (async () => {
+              try {
+                const resp = await fetch("/api/stilwater/chat", {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    condition: activeCondition(),
+                    language: LANG(),
+                    messages: apiMessages,
+                  }),
+                });
+
+                const ctype = resp.headers.get("content-type") || "";
+                // Fallback: error JSON, or a server build without streaming.
+                if (!resp.ok || !resp.body || ctype.indexOf("text/event-stream") === -1) {
+                  const data = await resp.json().catch(() => ({}));
+                  finish(data.reply, data.followups, data);
+                  return;
                 }
-                const reply = (data && data.reply ? String(data.reply) : "").trim()
-                  || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
-                const followups = Array.isArray(data && data.followups) ? data.followups : [];
-                recipeChat.messages.push({ role: "assistant", text: reply, followups });
-                try { savePersistedState(); } catch (_) {}
-                renderPlantRecipesChat();
-              })
-              .catch(() => {
+
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buf = "";
+                let visible = "";
+                let done = null;
+                while (true) {
+                  const chunk = await reader.read();
+                  if (chunk.done) break;
+                  buf += decoder.decode(chunk.value, { stream: true });
+                  let i;
+                  while ((i = buf.indexOf("\n\n")) !== -1) {
+                    const evt = buf.slice(0, i);
+                    buf = buf.slice(i + 2);
+                    const dataLine = evt.split("\n").find((l) => l.startsWith("data:"));
+                    if (!dataLine) continue;
+                    const json = dataLine.slice(5).trim();
+                    if (!json) continue;
+                    let obj;
+                    try { obj = JSON.parse(json); } catch (_) { continue; }
+                    if (typeof obj.delta === "string") { visible += obj.delta; showVisible(visible); }
+                    if (obj.done) done = obj;
+                  }
+                }
+                finish(done && done.reply ? done.reply : visible, done && done.followups, done || {});
+              } catch (_) {
                 recipeChat.loading = false;
                 recipeChat.messages.push({
                   role: "assistant",
@@ -4653,7 +4712,8 @@
                 });
                 try { savePersistedState(); } catch (_) {}
                 renderPlantRecipesChat();
-              });
+              }
+            })();
           }
           // Expose for the chip handlers above (avoids hoisting issues).
           recipeChat._send = sendMessage;

@@ -3182,35 +3182,98 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
         model,
         temperature: 0.7,
         max_tokens: 700,
+        // Stream tokens so the answer starts appearing in ~1-2s instead of
+        // after the whole 700-token reply (plus the 3 follow-up questions)
+        // has finished generating. Same model, same output — just delivered
+        // incrementally.
+        stream: true,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
       }),
     });
 
-    if (!upstream.ok) {
+    if (!upstream.ok || !upstream.body) {
       const errText = await upstream.text().catch(() => "");
       console.error("[stilwater-chat] upstream error", upstream.status, errText);
       return res.status(502).json({ error: "Upstream chat error", status: upstream.status });
     }
 
-    const data = await upstream.json();
-    const choice = data && Array.isArray(data.choices) ? data.choices[0] : null;
-    const raw =
-      (choice && choice.message && typeof choice.message.content === "string"
-        ? choice.message.content
-        : ""
-      ).trim();
+    // Relay the upstream stream to the client as Server-Sent Events. We keep
+    // the trailing [FOLLOWUPS]...[/FOLLOWUPS] block OUT of the visible stream
+    // (so the raw marker never flashes on screen) and parse it once at the
+    // end, emitting the chips in a final "done" event.
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    if (typeof res.flushHeaders === "function") res.flushHeaders();
+    const sse = (obj) => res.write("data: " + JSON.stringify(obj) + "\n\n");
 
-    const { reply, followups } = parseStilwaterReply(raw);
+    const FOLLOWUP_OPEN = "[FOLLOWUPS]";
+    let fullRaw = "";
+    let emittedLen = 0;
+    let sawFollowups = false;
 
-    return res.json({
-      reply: reply || "I'm here — could you ask that a different way?",
+    // Emit everything that is safe to show. Once the followups marker appears
+    // we stop at it; before then we hold back the last few chars so a marker
+    // forming across chunk boundaries is never partially shown.
+    const flushVisible = (isFinal) => {
+      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      let visibleEnd;
+      if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
+      else if (isFinal) visibleEnd = fullRaw.length;
+      else visibleEnd = Math.max(0, fullRaw.length - FOLLOWUP_OPEN.length);
+      if (visibleEnd > emittedLen) {
+        sse({ delta: fullRaw.slice(emittedLen, visibleEnd) });
+        emittedLen = visibleEnd;
+      }
+    };
+
+    let sseBuf = "";
+    const decoder = new TextDecoder();
+    const reader = upstream.body.getReader();
+    try {
+      while (true) {
+        const { value, done: rdDone } = await reader.read();
+        if (rdDone) break;
+        sseBuf += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = sseBuf.indexOf("\n")) !== -1) {
+          const line = sseBuf.slice(0, nl).trim();
+          sseBuf = sseBuf.slice(nl + 1);
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let parsed;
+          try { parsed = JSON.parse(payload); } catch (_) { continue; }
+          const piece = parsed?.choices?.[0]?.delta?.content;
+          if (typeof piece === "string" && piece) {
+            fullRaw += piece;
+            if (!sawFollowups) flushVisible(false);
+          }
+        }
+      }
+    } catch (streamErr) {
+      console.error("[stilwater-chat] stream error", streamErr);
+    }
+    flushVisible(true);
+
+    const { reply, followups } = parseStilwaterReply(fullRaw);
+    sse({
+      done: true,
+      reply: (reply || "").trim() || "I'm here — could you ask that a different way?",
       followups,
       model,
       condition,
       prompt: systemPrompt,
     });
+    return res.end();
   } catch (err) {
     console.error("[stilwater-chat] failed:", err);
+    // If we've already started streaming (headers sent), we can't switch to a
+    // JSON error — just close the stream so the client falls back gracefully.
+    if (res.headersSent) { try { return res.end(); } catch (_) { return; } }
     return res.status(500).json({ error: "Stilwater chat failed" });
   }
 });
