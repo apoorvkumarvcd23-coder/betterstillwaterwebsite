@@ -1817,28 +1817,46 @@
       .plant-attach-chip svg { width: 13px; height: 13px; }
 
       /* Stilwater AI Chat — starter chips + prompt debug panel */
+      /* Starter questions under the greeting — same Perplexity-style LIST as
+         the per-reply follow-ups, so the first 3 match the rest. */
       .plant-chat-starters {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin: 4px 0 12px;
+        flex-direction: column;
+        gap: 0;
+        margin: 8px 0 14px;
+        border-top: 1px solid rgba(47, 72, 66, 0.14);
       }
       .plant-chat-starter {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
         font: inherit;
-        font-size: 13px;
-        background: rgba(95, 179, 179, 0.10);
-        border: 1px solid rgba(95, 179, 179, 0.32);
-        color: var(--c-ink, #1c2a2a);
-        padding: 8px 14px;
-        border-radius: 999px;
-        cursor: pointer;
-        line-height: 1.35;
+        font-size: 14px;
+        line-height: 1.45;
         text-align: left;
+        color: var(--c-ink, #2f3a32);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 0;
+        padding: 12px 8px;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-chat-starter::before {
+        content: "\21B3";
+        flex-shrink: 0;
+        color: var(--c-ink-soft, #5d6b5e);
+        font-size: 15px;
+        line-height: 1.4;
+        transition: color 0.15s ease;
       }
       .plant-chat-starter:hover {
-        background: rgba(95, 179, 179, 0.18);
-        border-color: rgba(95, 179, 179, 0.55);
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
       }
+      .plant-chat-starter:hover::before { color: var(--c-sage-deep, #5f7656); }
 
       /* Per-assistant-message follow-up questions — Perplexity-style LIST:
          full-width rows separated by thin dividers, a muted ↳ prefix, and a
@@ -1908,8 +1926,8 @@
         .recipe-chat-bubble.recipe-chat-prose { padding: 2px 2px 4px; font-size: 14.5px; }
         .plant-chat-msg-wrap { max-width: 100%; }
 
-        .plant-chat-starters { gap: 6px; padding-left: 0; }
-        .plant-chat-starter { font-size: 12px; padding: 7px 11px; }
+        .plant-chat-starters { gap: 0; padding-left: 0; }
+        .plant-chat-starter { font-size: 13px; padding: 11px 6px; }
         .plant-chat-followups { gap: 0; padding-left: 0; }
         .plant-chat-followup { font-size: 13px; padding: 11px 6px; }
 
