@@ -87,6 +87,27 @@
         fill: none;
         flex-shrink: 0;
       }
+      /* Clear-chat lives at the BOTTOM of the sidebar (pushed down by the
+         auto top-margin). */
+      .care-sidebar-clear {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: transparent;
+        color: rgba(232, 238, 233, 0.85);
+        font: inherit;
+        font-size: 0.9rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.18s ease, color 0.18s ease;
+      }
+      .care-sidebar-clear svg { width: 17px; height: 17px; flex-shrink: 0; }
+      .care-sidebar-clear:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
 
       /* The chat area fills the rest of the viewport */
       .care-stage {
@@ -100,6 +121,19 @@
       .care-menu-btn { display: none; }
       .care-sidebar-scrim { display: none; }
       .care-sidebar-close { display: none; }
+
+      /* Desktop: pin the sidebar to the viewport and let ONLY the chat /
+         message area scroll (app-style), instead of the whole page scrolling.
+         Mobile keeps normal page scroll + the slide-in drawer. */
+      @media (min-width: 769px) {
+        .care-shell { height: calc(100vh - 4.5rem); overflow: hidden; }
+        .care-sidebar { height: 100%; overflow-y: auto; }
+        .care-stage { min-height: 0; overflow: hidden; }
+        .companion-chat { min-height: 0; overflow: hidden; }
+        .plant-chat-overlay { flex: 1 1 auto; min-height: 0; }
+        .plant-chat-scroll { min-height: 0; }
+        .companion-shell { min-height: 0; }
+      }
 
       /* Care-path mobile: the shared mobile rule on #authActions uses
          max-width + overflow:hidden, which (a) can squeeze the language
@@ -2261,6 +2295,10 @@
             <path d="M5 12c3-2 6-2 8 0s5 2 8 0"/>
           </svg>
           <span data-i18n="carepath.plantRecipes">Plant-Based Recipes</span>
+        </button>
+        <button type="button" class="care-sidebar-clear" id="careSidebarClear">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          <span data-i18n="aria.chat.clear">Clear chat</span>
         </button>
       </aside>
       <div class="care-stage">
@@ -4597,33 +4635,8 @@
           title.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
           header.appendChild(title);
 
-          // Clear-history button — only meaningful once the user has sent
-          // at least one message (greeting alone shouldn't be wiped).
-          if (recipeChat.messages.some((m) => m.role === "user")) {
-            const clearBtn = document.createElement("button");
-            clearBtn.type = "button";
-            clearBtn.className = "plant-chat-clear";
-            clearBtn.innerHTML =
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>' +
-              '<span>' + escapeHtml(T("aria.chat.clear", "Clear chat")) + '</span>';
-            clearBtn.addEventListener("click", () => {
-              if (!confirm(T("aria.chat.clearConfirm", "Clear this conversation? This can't be undone."))) return;
-              state.recipeChat = {
-                messages: [],
-                loading: false,
-                greetingApplied: false,
-                draft: "",
-                pendingAttachment: null,
-                lastPrompt: "",
-                lastModel: "",
-                showPrompt: false,
-              };
-              Object.assign(recipeChat, state.recipeChat);
-              savePersistedState();
-              renderPlantRecipesChat();
-            });
-            header.appendChild(clearBtn);
-          }
+          // (Clear chat now lives at the bottom of the left sidebar —
+          // see clearRecipeChat() + the #careSidebarClear wiring below.)
           host.appendChild(header);
 
           const scroll = document.createElement("div");
@@ -4901,6 +4914,11 @@
           // Expose for the chip handlers above (avoids hoisting issues).
           recipeChat._send = sendMessage;
 
+          // Mount the scrollable message list now; the compose bar is appended
+          // to the overlay AFTER it (below) so the input stays pinned at the
+          // bottom while only the messages scroll.
+          host.appendChild(scroll);
+
           // ChatGPT-style compose bar: + attach, textarea, mic, send.
           // Always shown — the chat is free-form, not a 3-step script.
           if (true) {
@@ -5005,7 +5023,9 @@
             sendBtn.addEventListener("click", submitAnswer);
             composeWrap.appendChild(sendBtn);
 
-            scroll.appendChild(composeWrap);
+            // Append to the overlay (sibling AFTER the scroll list) so the
+            // compose bar is pinned to the bottom, not scrolled with messages.
+            host.appendChild(composeWrap);
 
             // Pending attachment chip preview
             if (recipeChat.pendingAttachment) {
@@ -5037,8 +5057,6 @@
             // Focus the input automatically so the user can just start typing.
             requestAnimationFrame(() => { try { ta.focus(); } catch (_) {} });
           }
-
-          host.appendChild(scroll);
         }
 
         function updateSidebarToggleLabel() {
@@ -5105,6 +5123,30 @@
         }
         // Expose so the sidebar handler at the bottom of the file can use them.
         window.__swPlantRecipes = { show: showPlantRecipesChat, hide: hidePlantRecipesChat };
+
+        // Clear chat — moved to the bottom of the left sidebar. Wipes the
+        // conversation (greeting re-appears on the next render).
+        function clearRecipeChat() {
+          if (!confirm(T("aria.chat.clearConfirm", "Clear this conversation? This can't be undone."))) return;
+          recipeChat.messages = [];
+          recipeChat.greetingApplied = false;
+          recipeChat.draft = "";
+          recipeChat.pendingAttachment = null;
+          recipeChat.lastPrompt = "";
+          recipeChat.lastModel = "";
+          recipeChat.loading = false;
+          state.recipeChat = recipeChat;
+          savePersistedState();
+          const host = document.getElementById("plantRecipesChat");
+          if (host && !host.hidden) renderPlantRecipesChat();
+          // On mobile, close the slide-in drawer so the fresh chat is visible.
+          if (window.matchMedia("(max-width: 768px)").matches) {
+            const closeBtn = document.getElementById("careSidebarClose");
+            if (closeBtn) closeBtn.click();
+          }
+        }
+        const sidebarClearBtn = document.getElementById("careSidebarClear");
+        if (sidebarClearBtn) sidebarClearBtn.addEventListener("click", clearRecipeChat);
 
         // Cache of per-dish video fetches so re-renders don't re-hit the API.
         const recipeCache = state.recipeCache || (state.recipeCache = {});
