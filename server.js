@@ -3157,8 +3157,15 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
     }
 
     const systemPrompt = buildStilwaterSystemPrompt(condition, language);
+    // Dedicated env var for the Stilwater AI Chat agent so it can run on a
+    // different model than the rest of the OpenRouter calls. Falls back
+    // through the older shared variables if the dedicated one isn't set,
+    // and finally to a sensible open-weights default.
     const model = String(
-      process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b"
+      process.env.STILWATER_CHAT_MODEL
+        || process.env.OPENROUTER_MODEL
+        || process.env.OPENROUTER_CHAT_MODEL
+        || "openai/gpt-oss-120b"
     ).trim();
 
     const upstream = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
