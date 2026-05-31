@@ -2415,7 +2415,6 @@
       <section class="sw-launcher" id="swLauncher" hidden>
         <div class="sw-launcher-inner">
           <h1 class="sw-launcher-title" data-i18n="launcher.title">Welcome to your wellness journey</h1>
-          <p class="sw-launcher-sub" data-i18n="launcher.subtitle">Choose where you'd like to begin.</p>
           <div class="sw-launch-grid">
             <button type="button" class="sw-launch-card" id="swLaunchYoga">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -4705,6 +4704,10 @@
         // row backing the active chat (null until the first message is saved).
         let recipeChat = _normalizeChat(null);
         let currentSessionId = null;
+        // The chat mode the recipes companion ("Explore Plant-Based Recipes")
+        // was opened from, so its back button returns there (not wherever
+        // chatMode happens to be).
+        let companionReturnMode = null;
 
         // Chat mode: "general" = the condition-tuned Aria chat
         // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
@@ -5428,11 +5431,17 @@
         // Recipes" item shows. Reveal #companionRoot with the chat overlay
         // hidden so the shell is visible.
         function showCompanion() {
+          companionReturnMode = chatMode; // remember where we came from
           const l = swLauncherEl(); if (l) l.hidden = true;
           const y = swYogaEl(); if (y) y.hidden = true;
           const c = companionEl(); if (c) c.hidden = false;
           hidePlantRecipesChat();
           setSidebarVisible(false);
+        }
+        // Back out of the recipes companion → the chat we opened it from.
+        function backFromCompanion() {
+          if (companionReturnMode) chatMode = companionReturnMode;
+          showPlantRecipesChat();
         }
         // Practice Meditation = the existing AI Driven Meditation video modal,
         // opened over the launcher (its ✕ returns to the options).
@@ -5542,6 +5551,7 @@
           showLauncher: showLauncher,
           showYoga: showYoga,
           showCompanion: showCompanion,
+          backFromCompanion: backFromCompanion,
           showMeditation: showMeditation,
           newChat: newChat,
           loadSession: loadSession,
@@ -5685,13 +5695,16 @@
           });
         }
 
-        // ✕ button overlaid on the companion shell → switches back to chat
+        // ✕ button overlaid on the companion shell → return to the chat the
+        // companion was opened from (Plant-Based Nutrition), not wherever
+        // chatMode last was.
         const backToChatBtn = document.getElementById("companionBackToChat");
         if (backToChatBtn) {
           backToChatBtn.addEventListener("click", () => {
-            if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
-              window.__swPlantRecipes.show();
-            }
+            const api = window.__swPlantRecipes;
+            if (!api) return;
+            if (typeof api.backFromCompanion === "function") api.backFromCompanion();
+            else if (typeof api.show === "function") api.show();
           });
         }
 
