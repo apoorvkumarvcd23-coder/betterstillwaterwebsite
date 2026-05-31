@@ -236,6 +236,9 @@
 
     // Care-path sidebar
     "carepath.yourPath": { en: "Your Wellness Journey", hi: "आपकी वेलनेस यात्रा" },
+    "carepath.newChat": { en: "New chat", hi: "नई चैट" },
+    "carepath.chats": { en: "Chats", hi: "चैट्स" },
+    "carepath.noChats": { en: "No chats yet.", hi: "अभी तक कोई चैट नहीं।" },
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },

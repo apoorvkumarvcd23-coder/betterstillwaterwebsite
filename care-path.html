@@ -109,6 +109,32 @@
       .care-sidebar-clear svg { width: 17px; height: 17px; flex-shrink: 0; }
       .care-sidebar-clear:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
 
+      /* ChatGPT-style chat history sidebar */
+      .care-newchat {
+        display: flex; align-items: center; gap: 10px; width: 100%;
+        padding: 11px 12px; margin-bottom: 8px;
+        border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.05); color: #e8eee9;
+        font: inherit; font-size: 0.93rem; font-weight: 600; text-align: left; cursor: pointer;
+      }
+      .care-newchat svg { width: 18px; height: 18px; flex-shrink: 0; }
+      .care-newchat:hover { background: rgba(255, 255, 255, 0.1); }
+      .care-chat-history {
+        flex: 1; min-height: 0; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 2px;
+        margin-bottom: 8px;
+      }
+      .care-chat-item {
+        display: block; width: 100%; text-align: left; cursor: pointer;
+        padding: 9px 12px; border-radius: 9px; border: none; background: transparent;
+        color: #e8eee9; font: inherit;
+      }
+      .care-chat-item:hover { background: rgba(255, 255, 255, 0.06); }
+      .care-chat-item.is-active { background: rgba(255, 255, 255, 0.1); }
+      .care-chat-item .cc-title { font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .care-chat-item .cc-meta { font-size: 0.7rem; color: rgba(232, 238, 233, 0.5); margin-top: 2px; }
+      .care-chat-empty { font-size: 0.82rem; color: rgba(232, 238, 233, 0.45); padding: 8px 12px; }
+
       /* The chat area fills the rest of the viewport */
       .care-stage {
         flex: 1;
@@ -2363,46 +2389,14 @@
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <div class="care-sidebar-title" data-i18n="carepath.yourPath">Your Wellness Journey</div>
-        <a class="care-sidebar-item" href="partners.html" data-ga-event="cta_verified_providers">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <path d="M9 12l2 2 4-4"/>
-            <circle cx="12" cy="12" r="10"/>
-          </svg>
-          <span data-i18n="carepath.providers">Verified Wellness Providers</span>
-        </a>
-        <button type="button" class="care-sidebar-item" id="btnYogaSidebar">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <circle cx="12" cy="5" r="2"/>
-            <path d="M12 7v6"/>
-            <path d="M5 11l7-2 7 2"/>
-            <path d="M9 22l3-9 3 9"/>
-          </svg>
-          <span data-i18n="carepath.yoga">Practice Yoga with AI</span>
+        <button type="button" class="care-newchat" id="swNewChat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="carepath.newChat">New chat</span>
         </button>
-        <a class="care-sidebar-item" href="intake.html" data-ga-event="cta_take_assessment">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-            <rect x="9" y="3" width="6" height="4" rx="1"/>
-            <path d="M9 12l2 2 4-4"/>
-          </svg>
-          <span data-i18n="carepath.wellnessAssessment">Take Wellness Assessment</span>
-        </a>
-        <button type="button" class="care-sidebar-item" id="btnMeditation">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <circle cx="12" cy="12" r="3"/>
-            <circle cx="12" cy="12" r="6.5"/>
-            <circle cx="12" cy="12" r="10"/>
-          </svg>
-          <span data-i18n="carepath.meditation">AI Driven Meditation</span>
-        </button>
-        <button type="button" class="care-sidebar-item" id="btnPlantRecipes" data-ga-event="menu_recipes">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <path d="M12 2c-2 3-2 6 0 8s2 5 0 8"/>
-            <path d="M5 12c3-2 6-2 8 0s5 2 8 0"/>
-          </svg>
-          <span data-i18n="carepath.plantRecipes">Plant-Based Recipes</span>
-        </button>
+        <div class="care-sidebar-title" data-i18n="carepath.chats">Chats</div>
+        <div class="care-chat-history" id="careChatHistory">
+          <div class="care-chat-empty" data-i18n="carepath.noChats">No chats yet.</div>
+        </div>
         <button type="button" class="care-sidebar-clear" id="careSidebarClear" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           <span data-i18n="aria.chat.clear">Clear chat</span>
@@ -3352,7 +3346,7 @@
         const overlay = document.getElementById("meditationModal");
         const closeBtn = document.getElementById("meditationModalClose");
         const video = document.getElementById("meditationVideo");
-        if (!openBtn || !overlay || !video) return;
+        if (!overlay || !video) return;
 
         let previousBodyOverflow = "";
         const open = () => {
@@ -3371,8 +3365,12 @@
           try { video.pause(); } catch (_) {}
         };
 
-        openBtn.addEventListener("click", open);
-        closeBtn.addEventListener("click", close);
+        // The sidebar button was replaced by the launcher's "Practice
+        // Meditation" card, so expose open() for it (and keep the legacy
+        // button wired if present).
+        window.__swMeditation = { open: open, close: close };
+        if (openBtn) openBtn.addEventListener("click", open);
+        if (closeBtn) closeBtn.addEventListener("click", close);
         overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape" && !overlay.hidden) close();
@@ -3519,18 +3517,8 @@
           try {
             // Slim each per-mode chat to just the persistable fields — drop
             // transients like the SpeechRecognition handle and the loading
-            // flag. Cap message history at 100 to keep localStorage bounded.
-            const slimChat = (c) => c ? {
-              messages: Array.isArray(c.messages) ? c.messages.slice(-100) : [],
-              greetingApplied: !!c.greetingApplied,
-              draft: typeof c.draft === "string" ? c.draft : "",
-            } : null;
-            const chatHistories = {};
-            if (state.chatHistories) {
-              ["general", "nutrition", "chronic"].forEach((m) => {
-                if (state.chatHistories[m]) chatHistories[m] = slimChat(state.chatHistories[m]);
-              });
-            }
+            // flag. The Aria chat itself is now persisted server-side
+            // (aria.chat_sessions), so it is intentionally NOT stored here.
             const slim = {
               mode: state.mode,
               messages: Array.isArray(state.messages) ? state.messages.slice(-50) : [],
@@ -3544,7 +3532,6 @@
               todayPlan: state.todayPlan,
               todayMeta: state.todayMeta,
               searchedDish: state.searchedDish,
-              chatHistories,
             };
             localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(slim));
           } catch (_e) {}
@@ -4706,13 +4693,12 @@
           base.pendingAttachment = null;
           return base;
         }
-        const chatHistories = state.chatHistories || (state.chatHistories = {});
-        // Migrate a pre-existing single chat into the general bucket.
-        if (!chatHistories.general && state.recipeChat) chatHistories.general = state.recipeChat;
-        ["general", "nutrition", "chronic"].forEach((m) => {
-          chatHistories[m] = _normalizeChat(chatHistories[m]);
-        });
-        let recipeChat = chatHistories.general;
+        // Chat history is now SERVER-side (aria.chat_sessions). The active chat
+        // is a single in-memory object; each login/visit starts a new chat and
+        // past chats live in the left sidebar. `currentSessionId` is the server
+        // row backing the active chat (null until the first message is saved).
+        let recipeChat = _normalizeChat(null);
+        let currentSessionId = null;
 
         // Chat mode: "general" = the condition-tuned Aria chat
         // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
@@ -5097,6 +5083,9 @@
               });
               try { savePersistedState(); } catch (_) {}
               renderPlantRecipesChat();
+              // Persist this chat to the server history (creates the session
+              // on first save, then keeps it updated).
+              try { saveCurrentSession(); } catch (_) {}
             };
 
             (async () => {
@@ -5393,12 +5382,12 @@
 
         // When entering a mode with no conversation yet, start fresh so the
         // right greeting + starters show.
-        // Switch the active chat to a mode's own saved history.
+        // Entering a flow starts a FRESH chat (ChatGPT-style); past chats are
+        // in the sidebar history. The server session is created on first save.
         function switchChatMode(mode) {
-          if (!chatHistories[mode]) chatHistories[mode] = _normalizeChat(null);
           chatMode = mode;
-          recipeChat = chatHistories[mode];
-          try { savePersistedState(); } catch (_) {}
+          recipeChat = _normalizeChat(null);
+          currentSessionId = null;
         }
         function showNutritionChat() { switchChatMode("nutrition"); showPlantRecipesChat(); }
         function showGeneralChat() { switchChatMode("general"); showPlantRecipesChat(); }
@@ -5433,8 +5422,97 @@
         // opened over the launcher (its ✕ returns to the options).
         function showMeditation() {
           showLauncher();
-          const b = document.getElementById("btnMeditation");
-          if (b) b.click();
+          if (window.__swMeditation && window.__swMeditation.open) window.__swMeditation.open();
+        }
+
+        // ── Server-side chat history ───────────────────────────────────
+        function chatTitleFrom(messages) {
+          const u = (messages || []).find((m) => m.role === "user");
+          const t = (u && u.text ? u.text : "").trim().replace(/\s+/g, " ");
+          return t ? t.slice(0, 60) : "New chat";
+        }
+        // Persist the active chat to the server (creates the session on first save).
+        async function saveCurrentSession() {
+          try {
+            const msgs = (recipeChat.messages || []).filter((m) => m && (m.role === "user" || m.role === "assistant"));
+            if (!msgs.some((m) => m.role === "user")) return;
+            const payloadMsgs = msgs.map((m) => ({
+              role: m.role, text: m.text || "",
+              followups: Array.isArray(m.followups) ? m.followups : undefined,
+            }));
+            const title = chatTitleFrom(msgs);
+            if (!currentSessionId) {
+              const r = await fetch("/api/chat/sessions", {
+                method: "POST", credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mode: chatMode, title }),
+              });
+              const d = await r.json().catch(() => ({}));
+              if (d && d.session && d.session.id) currentSessionId = d.session.id;
+            }
+            if (!currentSessionId) return;
+            await fetch("/api/chat/sessions/" + encodeURIComponent(currentSessionId), {
+              method: "PUT", credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: payloadMsgs, mode: chatMode, title }),
+            });
+            refreshHistory();
+          } catch (_) {}
+        }
+        // Load a saved chat and continue it.
+        async function loadSession(id) {
+          try {
+            const r = await fetch("/api/chat/sessions/" + encodeURIComponent(id), { credentials: "same-origin" });
+            if (!r.ok) return;
+            const s = (await r.json()).session;
+            if (!s) return;
+            chatMode = s.mode || "general";
+            recipeChat = _normalizeChat({ messages: Array.isArray(s.messages) ? s.messages : [], greetingApplied: true, draft: "" });
+            currentSessionId = s.id;
+            showPlantRecipesChat();
+            refreshHistory();
+            if (window.matchMedia("(max-width: 768px)").matches) {
+              const cb = document.getElementById("careSidebarClose"); if (cb) cb.click();
+            }
+          } catch (_) {}
+        }
+        // Render the sidebar history list.
+        async function refreshHistory() {
+          const box = document.getElementById("careChatHistory");
+          if (!box) return;
+          try {
+            const r = await fetch("/api/chat/sessions", { credentials: "same-origin" });
+            if (!r.ok) return;
+            const sessions = (await r.json()).sessions || [];
+            box.innerHTML = "";
+            if (!sessions.length) {
+              box.innerHTML = '<div class="care-chat-empty">' + escapeHtml(T("carepath.noChats", "No chats yet.")) + '</div>';
+              return;
+            }
+            sessions.forEach((s) => {
+              const item = document.createElement("button");
+              item.type = "button";
+              item.className = "care-chat-item" + (String(s.id) === String(currentSessionId) ? " is-active" : "");
+              let meta = "";
+              try {
+                const w = s.updated_at ? new Date(s.updated_at) : null;
+                if (w) meta = w.toLocaleDateString() + " · " + w.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              } catch (_) {}
+              item.innerHTML = '<div class="cc-title">' + escapeHtml(s.title || "Chat") + '</div>' +
+                               '<div class="cc-meta">' + escapeHtml(meta) + '</div>';
+              item.addEventListener("click", () => loadSession(s.id));
+              box.appendChild(item);
+            });
+          } catch (_) {}
+        }
+        function newChat() {
+          currentSessionId = null;
+          recipeChat = _normalizeChat(null);
+          showLauncher();
+          refreshHistory();
+          if (window.matchMedia("(max-width: 768px)").matches) {
+            const cb = document.getElementById("careSidebarClose"); if (cb) cb.click();
+          }
         }
 
         // Expose so the sidebar / launcher handlers can drive the views.
@@ -5448,7 +5526,17 @@
           showYoga: showYoga,
           showCompanion: showCompanion,
           showMeditation: showMeditation,
+          newChat: newChat,
+          loadSession: loadSession,
+          refreshHistory: refreshHistory,
+          saveSession: saveCurrentSession,
         };
+        // Wire the "New chat" button + populate history on load.
+        (function () {
+          const nb = document.getElementById("swNewChat");
+          if (nb) nb.addEventListener("click", newChat);
+          refreshHistory();
+        })();
 
         // Clear chat — moved to the bottom of the left sidebar. Wipes the
         // conversation (greeting re-appears on the next render).
@@ -5461,6 +5549,9 @@
           recipeChat.lastPrompt = "";
           recipeChat.lastModel = "";
           recipeChat.loading = false;
+          // Clearing detaches from the saved session (it stays in history);
+          // the next message starts a fresh one.
+          currentSessionId = null;
           savePersistedState();
           const host = document.getElementById("plantRecipesChat");
           if (host && !host.hidden) renderPlantRecipesChat();
