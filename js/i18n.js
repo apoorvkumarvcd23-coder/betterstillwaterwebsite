@@ -245,12 +245,16 @@
     // Post-login selection screen (3 options)
     "launcher.title": { en: "Welcome to your wellness journey", hi: "आपकी वेलनेस यात्रा में आपका स्वागत है" },
     "launcher.subtitle": { en: "Choose where you'd like to begin. You can switch anytime from the sidebar.", hi: "तय करें कि आप कहाँ से शुरू करना चाहेंगे। आप साइडबार से कभी भी बदल सकते हैं।" },
-    "launcher.yoga.title": { en: "Yoga Pose Analysis", hi: "योग मुद्रा विश्लेषण" },
+    "launcher.yoga.title": { en: "Practice Yoga", hi: "योग का अभ्यास करें" },
     "launcher.yoga.desc": { en: "Practice asanas with live AI form feedback.", hi: "लाइव AI फ़ॉर्म फ़ीडबैक के साथ आसनों का अभ्यास करें।" },
-    "launcher.nutrition.title": { en: "Nutrition", hi: "पोषण" },
+    "launcher.nutrition.title": { en: "Plant based Nutrition", hi: "पादप-आधारित पोषण" },
     "launcher.nutrition.desc": { en: "Ask Aria for whole-food, plant-based recipes from our cookbook.", hi: "हमारी रेसिपी पुस्तक से संपूर्ण-भोजन, पादप-आधारित रेसिपी के लिए Aria से पूछें।" },
+    "launcher.recipes.title": { en: "Explore Plant-Based Recipes", hi: "पादप-आधारित रेसिपी देखें" },
+    "launcher.recipes.desc": { en: "Browse meal plans, recipe videos, and your journal.", hi: "भोजन योजनाएँ, रेसिपी वीडियो और अपनी जर्नल देखें।" },
     "launcher.chronic.title": { en: "Chronic Disease Management", hi: "दीर्घकालिक रोग प्रबंधन" },
     "launcher.chronic.desc": { en: "Take the Wellness Assessment for guidance tailored to your condition.", hi: "अपनी स्थिति के अनुरूप मार्गदर्शन के लिए स्वास्थ्य आकलन लें।" },
+    "launcher.meditation.title": { en: "Practice Meditation", hi: "ध्यान का अभ्यास करें" },
+    "launcher.meditation.desc": { en: "Follow a calming guided meditation video.", hi: "एक शांत निर्देशित ध्यान वीडियो का अनुसरण करें।" },
     "launcher.back": { en: "Back", hi: "वापस" },
     "launcher.options": { en: "Options", hi: "विकल्प" },
 

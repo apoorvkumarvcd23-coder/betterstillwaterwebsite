@@ -2386,7 +2386,7 @@
           </svg>
           <span data-i18n="carepath.plantRecipes">Plant-Based Recipes</span>
         </button>
-        <button type="button" class="care-sidebar-clear" id="careSidebarClear">
+        <button type="button" class="care-sidebar-clear" id="careSidebarClear" style="display:none">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
           <span data-i18n="aria.chat.clear">Clear chat</span>
         </button>
@@ -2404,15 +2404,22 @@
               <span class="sw-launch-ico" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v6"/><path d="M5 11l7-2 7 2"/><path d="M9 22l3-9 3 9"/></svg>
               </span>
-              <span class="sw-launch-name" data-i18n="launcher.yoga.title">Yoga Pose Analysis</span>
+              <span class="sw-launch-name" data-i18n="launcher.yoga.title">Practice Yoga</span>
               <span class="sw-launch-desc" data-i18n="launcher.yoga.desc">Practice asanas with live AI form feedback.</span>
             </button>
             <button type="button" class="sw-launch-card" id="swLaunchNutrition">
               <span class="sw-launch-ico" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2 3-2 6 0 8s2 5 0 8"/><path d="M5 12c3-2 6-2 8 0s5 2 8 0"/></svg>
               </span>
-              <span class="sw-launch-name" data-i18n="launcher.nutrition.title">Nutrition</span>
+              <span class="sw-launch-name" data-i18n="launcher.nutrition.title">Plant based Nutrition</span>
               <span class="sw-launch-desc" data-i18n="launcher.nutrition.desc">Ask Aria for whole-food, plant-based recipes from our cookbook.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchRecipes">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a3 3 0 0 0 3 3 3 3 0 0 0 3-3V2"/><line x1="6" y1="12" x2="6" y2="22"/><path d="M16 2a4 4 0 0 0-4 4v6h4"/><line x1="16" y1="12" x2="16" y2="22"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.recipes.title">Explore Plant-Based Recipes</span>
+              <span class="sw-launch-desc" data-i18n="launcher.recipes.desc">Browse meal plans, recipe videos, and your journal.</span>
             </button>
             <button type="button" class="sw-launch-card" id="swLaunchChronic">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -2420,6 +2427,13 @@
               </span>
               <span class="sw-launch-name" data-i18n="launcher.chronic.title">Chronic Disease Management</span>
               <span class="sw-launch-desc" data-i18n="launcher.chronic.desc">Take the Wellness Assessment for guidance tailored to your condition.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchMeditation">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="10"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.meditation.title">Practice Meditation</span>
+              <span class="sw-launch-desc" data-i18n="launcher.meditation.desc">Follow a calming guided meditation video.</span>
             </button>
           </div>
         </div>
@@ -2566,7 +2580,7 @@
       <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
         <button class="plant-chat-back yoga-intro-back" type="button" id="yogaIntroBack">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-          <span data-i18n="launcher.options">Options</span>
+          <span data-i18n="launcher.back">Back</span>
         </button>
         <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
         <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
@@ -4797,7 +4811,7 @@
           backBtn.setAttribute("aria-label", T("launcher.back", "Back"));
           backBtn.innerHTML =
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
-            '<span>' + escapeHtml(T("launcher.options", "Options")) + '</span>';
+            '<span>' + escapeHtml(T("launcher.back", "Back")) + '</span>';
           backBtn.addEventListener("click", () => { if (window.__swPlantRecipes) window.__swPlantRecipes.showLauncher(); });
           header.appendChild(backBtn);
 
@@ -5309,6 +5323,12 @@
         const companionEl = () => document.getElementById("companionRoot");
         const swLauncherEl = () => document.getElementById("swLauncher");
         const swYogaEl = () => document.getElementById("swYogaView");
+        // Clear chat only makes sense while an Aria chat is open (Nutrition /
+        // Chronic / general) — hide it on the launcher and other views.
+        const setClearChatVisible = (v) => {
+          const b = document.getElementById("careSidebarClear");
+          if (b) b.style.display = v ? "" : "none";
+        };
 
         function showPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
@@ -5318,6 +5338,7 @@
           const c = companionEl(); if (c) c.hidden = false;
           host.hidden = false;
           document.body.classList.add("plant-chat-open");
+          setClearChatVisible(true);
           renderPlantRecipesChat();
           updateSidebarToggleLabel();
         }
@@ -5326,6 +5347,7 @@
           if (!host) return;
           host.hidden = true;
           document.body.classList.remove("plant-chat-open");
+          setClearChatVisible(false);
           updateSidebarToggleLabel();
         }
 
@@ -5357,6 +5379,23 @@
           const m = document.getElementById("yogaIntroModal");
           if (m) m.hidden = false;
         }
+        // Explore Plant-Based Recipes = the 3-tab companion shell (Meal Plan /
+        // Recipes / Journaling) — same surface the sidebar "Plant-Based
+        // Recipes" item shows. Reveal #companionRoot with the chat overlay
+        // hidden so the shell is visible.
+        function showCompanion() {
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const c = companionEl(); if (c) c.hidden = false;
+          hidePlantRecipesChat();
+        }
+        // Practice Meditation = the existing AI Driven Meditation video modal,
+        // opened over the launcher (its ✕ returns to the options).
+        function showMeditation() {
+          showLauncher();
+          const b = document.getElementById("btnMeditation");
+          if (b) b.click();
+        }
 
         // Expose so the sidebar / launcher handlers can drive the views.
         window.__swPlantRecipes = {
@@ -5367,6 +5406,8 @@
           showChronic: showChronicChat,
           showLauncher: showLauncher,
           showYoga: showYoga,
+          showCompanion: showCompanion,
+          showMeditation: showMeditation,
         };
 
         // Clear chat — moved to the bottom of the left sidebar. Wipes the
@@ -5514,8 +5555,12 @@
         if (cardYoga) cardYoga.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showYoga());
         const cardNutrition = document.getElementById("swLaunchNutrition");
         if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
+        const cardRecipes = document.getElementById("swLaunchRecipes");
+        if (cardRecipes) cardRecipes.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showCompanion());
         const cardChronic = document.getElementById("swLaunchChronic");
         if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
+        const cardMeditation = document.getElementById("swLaunchMeditation");
+        if (cardMeditation) cardMeditation.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showMeditation());
         // ── Initial view routing ────────────────────────────────────────
         //  ?view=select   → 3-option selection screen (post-login default)
         //  ?view=nutrition → Aria chat in recipe-RAG mode
