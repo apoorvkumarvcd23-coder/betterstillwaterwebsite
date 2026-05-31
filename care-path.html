@@ -135,6 +135,12 @@
       .care-chat-item .cc-meta { font-size: 0.7rem; color: rgba(232, 238, 233, 0.5); margin-top: 2px; }
       .care-chat-empty { font-size: 0.82rem; color: rgba(232, 238, 233, 0.45); padding: 8px 12px; }
 
+      /* The chat-history panel is only shown for the Nutrition and Chronic
+         chats. Hidden everywhere else (launcher, Yoga, Meditation, recipes
+         companion) so the stage uses the full width. */
+      body.sw-no-sidebar #careSidebar,
+      body.sw-no-sidebar .care-sidebar-scrim { display: none !important; }
+
       /* The chat area fills the rest of the viewport */
       .care-stage {
         flex: 1;
@@ -2260,7 +2266,7 @@
   })();
     </script>
   </head>
-  <body>
+  <body class="sw-no-sidebar">
     <script src="js/shared.js"></script>
     <header class="header">
       <button class="menu-btn">
@@ -2409,7 +2415,7 @@
       <section class="sw-launcher" id="swLauncher" hidden>
         <div class="sw-launcher-inner">
           <h1 class="sw-launcher-title" data-i18n="launcher.title">Welcome to your wellness journey</h1>
-          <p class="sw-launcher-sub" data-i18n="launcher.subtitle">Choose where you'd like to begin. You can switch anytime from the sidebar.</p>
+          <p class="sw-launcher-sub" data-i18n="launcher.subtitle">Choose where you'd like to begin.</p>
           <div class="sw-launch-grid">
             <button type="button" class="sw-launch-card" id="swLaunchYoga">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -5358,6 +5364,10 @@
           const b = document.getElementById("careSidebarClear");
           if (b) b.style.display = v ? "" : "none";
         };
+        // The left chat-history panel is only for Nutrition & Chronic.
+        const setSidebarVisible = (v) => {
+          document.body.classList.toggle("sw-no-sidebar", !v);
+        };
 
         function showPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
@@ -5368,6 +5378,10 @@
           host.hidden = false;
           document.body.classList.add("plant-chat-open");
           setClearChatVisible(true);
+          // Sidebar (chat history) only for the two modules that have one.
+          const hasHistory = chatMode === "nutrition" || chatMode === "chronic";
+          setSidebarVisible(hasHistory);
+          if (hasHistory) refreshHistory();
           renderPlantRecipesChat();
           updateSidebarToggleLabel();
         }
@@ -5399,6 +5413,7 @@
           const c = companionEl(); if (c) c.hidden = true;
           const y = swYogaEl(); if (y) y.hidden = true;
           const l = swLauncherEl(); if (l) l.hidden = false;
+          setSidebarVisible(false);
         }
         // Yoga = the existing "Practice Yoga Asanas with AI" modal (Tadasana /
         // Balasana / Live Tadasana). Keep the launcher as the base view so
@@ -5417,6 +5432,7 @@
           const y = swYogaEl(); if (y) y.hidden = true;
           const c = companionEl(); if (c) c.hidden = false;
           hidePlantRecipesChat();
+          setSidebarVisible(false);
         }
         // Practice Meditation = the existing AI Driven Meditation video modal,
         // opened over the launcher (its ✕ returns to the options).
@@ -5481,7 +5497,8 @@
           const box = document.getElementById("careChatHistory");
           if (!box) return;
           try {
-            const r = await fetch("/api/chat/sessions", { credentials: "same-origin" });
+            // Per-module history: only show chats for the active module.
+            const r = await fetch("/api/chat/sessions?mode=" + encodeURIComponent(chatMode), { credentials: "same-origin" });
             if (!r.ok) return;
             const sessions = (await r.json()).sessions || [];
             box.innerHTML = "";
@@ -5535,7 +5552,6 @@
         (function () {
           const nb = document.getElementById("swNewChat");
           if (nb) nb.addEventListener("click", newChat);
-          refreshHistory();
         })();
 
         // Clear chat — moved to the bottom of the left sidebar. Wipes the

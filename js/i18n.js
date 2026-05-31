@@ -247,7 +247,7 @@
 
     // Post-login selection screen (3 options)
     "launcher.title": { en: "Welcome to your wellness journey", hi: "आपकी वेलनेस यात्रा में आपका स्वागत है" },
-    "launcher.subtitle": { en: "Choose where you'd like to begin. You can switch anytime from the sidebar.", hi: "तय करें कि आप कहाँ से शुरू करना चाहेंगे। आप साइडबार से कभी भी बदल सकते हैं।" },
+    "launcher.subtitle": { en: "Choose where you'd like to begin.", hi: "तय करें कि आप कहाँ से शुरू करना चाहेंगे।" },
     "launcher.yoga.title": { en: "Practice Yoga", hi: "योग का अभ्यास करें" },
     "launcher.yoga.desc": { en: "Practice asanas with live AI form feedback.", hi: "लाइव AI फ़ॉर्म फ़ीडबैक के साथ आसनों का अभ्यास करें।" },
     "launcher.nutrition.title": { en: "Plant based Nutrition", hi: "पादप-आधारित पोषण" },

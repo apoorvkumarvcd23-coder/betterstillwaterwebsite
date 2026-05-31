@@ -3680,13 +3680,18 @@ app.get("/api/chat/sessions", requireAuthApi, async (req, res) => {
     const type = getAuthUserType(req.user);
     const id = getAuthUserId(req.user);
     if (!id) return res.status(401).json({ error: "Auth required" });
+    // Histories are kept separate per module — filter by ?mode= when given
+    // (Plant-Based Nutrition and Chronic each show only their own chats).
+    const mode = req.query?.mode ? String(req.query.mode).slice(0, 40) : null;
     const r = await pool.query(
       `SELECT id, mode, title, created_at, updated_at,
               jsonb_array_length(messages) AS message_count
          FROM aria.chat_sessions
-        WHERE auth_user_type=$1 AND auth_user_id=$2 AND jsonb_array_length(messages) > 0
+        WHERE auth_user_type=$1 AND auth_user_id=$2
+          AND jsonb_array_length(messages) > 0
+          AND ($3::text IS NULL OR mode = $3)
         ORDER BY updated_at DESC LIMIT 100`,
-      [type, id],
+      [type, id, mode],
     );
     return res.json({ ok: true, sessions: r.rows });
   } catch (err) { console.error("[chat-sessions] list", err.message); return res.status(500).json({ error: "failed" }); }
