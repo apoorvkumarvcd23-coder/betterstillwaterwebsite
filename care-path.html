@@ -1800,9 +1800,28 @@
       }
       .plant-chat-menu svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
       .plant-chat-menu:hover { background: rgba(47, 72, 66, 0.06); }
+      /* Back-to-options pill (every chat view) */
+      .plant-chat-back {
+        display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+        padding: 7px 12px 7px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: transparent;
+        color: var(--c-ink-soft, #5d6b5e);
+        font: inherit; font-size: 13px; font-weight: 600;
+        cursor: pointer;
+      }
+      .plant-chat-back svg { width: 16px; height: 16px; }
+      .plant-chat-back:hover { background: rgba(47, 72, 66, 0.06); color: var(--c-ink, #1c2a2a); }
+      .plant-chat-header .plant-chat-title { margin-right: auto; }
+      /* Back-to-options inside the yoga intro modal: flows top-left, above
+         the heading (the ✕ stays absolute top-right). */
+      .yoga-intro-back { margin: 0 0 12px; }
       @media (max-width: 768px) {
         .plant-chat-menu { display: inline-flex; }
         .plant-chat-title { margin-right: auto; }
+        .plant-chat-back span { display: none; }
+        .plant-chat-back { padding: 7px; }
       }
       .plant-chat-clear {
         display: inline-flex;
@@ -2406,21 +2425,6 @@
         </div>
       </section>
 
-      <!-- Yoga Pose Analysis — external app embedded in-shell (no redirect). -->
-      <section class="sw-embed-view" id="swYogaView" hidden>
-        <div class="sw-embed-bar">
-          <button type="button" class="sw-embed-back" id="swYogaBack">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
-            <span data-i18n="launcher.back">Back</span>
-          </button>
-          <span class="sw-embed-title" data-i18n="launcher.yoga.title">Yoga Pose Analysis</span>
-          <a class="sw-embed-ext" id="swYogaExt" href="https://ai-all-yoga-pose-analysis.onrender.com" target="_blank" rel="noopener" title="Open in a new tab">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          </a>
-        </div>
-        <div class="sw-embed-frame-wrap" id="swYogaFrameWrap"></div>
-      </section>
-
       <section class="care-head">
         <h1 style="margin: 0 0 0.6rem; font-size: 1.6rem; letter-spacing: 0.01em">
           Your Verified Healing Partners
@@ -2560,6 +2564,10 @@
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
     <div class="modal-overlay" id="yogaIntroModal" hidden>
       <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
+        <button class="plant-chat-back yoga-intro-back" type="button" id="yogaIntroBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span data-i18n="launcher.options">Options</span>
+        </button>
         <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
         <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
           <div class="yoga-beta-head">
@@ -2586,6 +2594,16 @@
                 <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Try the AI Coach
+              </button>
+            </div>
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Live Tadasana Practice</strong>
+                <span>(Tadasana &mdash; Mountain Pose, realtime)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaLiveOpen">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 Try the AI Coach
               </button>
@@ -2989,10 +3007,16 @@
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
       (function () {
-        const POSE_APP_URL =
-          "https://static-tadasha-pose-detection-c3tk.onrender.com/";
+        // Tadasana practice surfaces. The "Try the AI Coach" card uses the
+        // static detector; the new "Live Tadasana Practice" card reuses this
+        // exact flow (intro video → choice → practice + "Tap to talk" avatar)
+        // but swaps in the realtime detector.
+        const POSE_APP_URL_STATIC = "https://static-tadasha-pose-detection-c3tk.onrender.com/";
+        const POSE_APP_URL_LIVE = "https://realtime-tadasha-pose-detection-hrp4.onrender.com/";
+        let activePoseUrl = POSE_APP_URL_STATIC;
 
         const openBtn = document.getElementById("yogaBetaOpen");
+        const liveOpenBtn = document.getElementById("yogaLiveOpen");
         const overlay = document.getElementById("yogaModal");
         const card = document.getElementById("yogaModalCard");
         const closeBtn = document.getElementById("yogaModalClose");
@@ -3141,7 +3165,7 @@
         };
 
         const launchPractice = () => {
-          frame.src = POSE_APP_URL;
+          frame.src = activePoseUrl;
           showStage("frame");
         };
 
@@ -3158,7 +3182,8 @@
           }
         };
 
-        openBtn.addEventListener("click", openModal);
+        openBtn.addEventListener("click", () => { activePoseUrl = POSE_APP_URL_STATIC; openModal(); });
+        if (liveOpenBtn) liveOpenBtn.addEventListener("click", () => { activePoseUrl = POSE_APP_URL_LIVE; openModal(); });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -3181,6 +3206,7 @@
       (function () {
         const modal = document.getElementById("yogaIntroModal");
         const close = document.getElementById("yogaIntroClose");
+        const backOptions = document.getElementById("yogaIntroBack");
         if (!modal) return;
         const open = () => { modal.hidden = false; };
         const hide = () => { modal.hidden = true; };
@@ -3189,6 +3215,11 @@
           document.getElementById("btnYogaSidebar"),
         ].forEach((btn) => btn && btn.addEventListener("click", open));
         if (close) close.addEventListener("click", hide);
+        // Back to the 3-option selection screen.
+        if (backOptions) backOptions.addEventListener("click", () => {
+          hide();
+          if (window.__swPlantRecipes && window.__swPlantRecipes.showLauncher) window.__swPlantRecipes.showLauncher();
+        });
         modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
       })();
 
@@ -3462,19 +3493,19 @@
         }
         function savePersistedState() {
           try {
-            // Slim the recipeChat down to just the persistable fields — drop
+            // Slim each per-mode chat to just the persistable fields — drop
             // transients like the SpeechRecognition handle and the loading
             // flag. Cap message history at 100 to keep localStorage bounded.
-            let chat = null;
-            if (state.recipeChat) {
-              const msgs = Array.isArray(state.recipeChat.messages)
-                ? state.recipeChat.messages.slice(-100)
-                : [];
-              chat = {
-                messages: msgs,
-                greetingApplied: !!state.recipeChat.greetingApplied,
-                draft: typeof state.recipeChat.draft === "string" ? state.recipeChat.draft : "",
-              };
+            const slimChat = (c) => c ? {
+              messages: Array.isArray(c.messages) ? c.messages.slice(-100) : [],
+              greetingApplied: !!c.greetingApplied,
+              draft: typeof c.draft === "string" ? c.draft : "",
+            } : null;
+            const chatHistories = {};
+            if (state.chatHistories) {
+              ["general", "nutrition", "chronic"].forEach((m) => {
+                if (state.chatHistories[m]) chatHistories[m] = slimChat(state.chatHistories[m]);
+              });
             }
             const slim = {
               mode: state.mode,
@@ -3489,7 +3520,7 @@
               todayPlan: state.todayPlan,
               todayMeta: state.todayMeta,
               searchedDish: state.searchedDish,
-              recipeChat: chat,
+              chatHistories,
             };
             localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(slim));
           } catch (_e) {}
@@ -4636,8 +4667,12 @@
         // Hydrates the recipeChat from persisted state (if any) and tops up
         // every field so a partially-restored object can't blow up the
         // render. Always resets transient flags (loading, pending attachment).
-        const recipeChat = (function () {
-          const base = state.recipeChat || (state.recipeChat = {});
+        // Separate saved chat history PER mode so Nutrition, the
+        // condition-tuned Chronic chat, and the general Aria chat never mix.
+        // Each is persisted under state.chatHistories[mode]; `recipeChat`
+        // points at the active mode's object (reassigned on mode switch).
+        function _normalizeChat(base) {
+          base = base || {};
           if (!Array.isArray(base.messages)) base.messages = [];
           if (typeof base.greetingApplied !== "boolean") base.greetingApplied = false;
           if (typeof base.draft !== "string") base.draft = "";
@@ -4646,7 +4681,14 @@
           base.loading = false;
           base.pendingAttachment = null;
           return base;
-        })();
+        }
+        const chatHistories = state.chatHistories || (state.chatHistories = {});
+        // Migrate a pre-existing single chat into the general bucket.
+        if (!chatHistories.general && state.recipeChat) chatHistories.general = state.recipeChat;
+        ["general", "nutrition", "chronic"].forEach((m) => {
+          chatHistories[m] = _normalizeChat(chatHistories[m]);
+        });
+        let recipeChat = chatHistories.general;
 
         // Chat mode: "general" = the condition-tuned Aria chat
         // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
@@ -4748,6 +4790,17 @@
           const header = document.createElement("div");
           header.className = "plant-chat-header";
 
+          // Back to the 3-option selection screen (present on every chat view).
+          const backBtn = document.createElement("button");
+          backBtn.type = "button";
+          backBtn.className = "plant-chat-back";
+          backBtn.setAttribute("aria-label", T("launcher.back", "Back"));
+          backBtn.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
+            '<span>' + escapeHtml(T("launcher.options", "Options")) + '</span>';
+          backBtn.addEventListener("click", () => { if (window.__swPlantRecipes) window.__swPlantRecipes.showLauncher(); });
+          header.appendChild(backBtn);
+
           // Mobile-only hamburger: the chat view hides the companion-shell
           // that holds the sidebar toggle, so surface our own here. It opens
           // the same off-canvas drawer through the existing #careMenuBtn
@@ -4767,7 +4820,11 @@
 
           const title = document.createElement("div");
           title.className = "plant-chat-title";
-          title.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
+          title.textContent = chatMode === "nutrition"
+            ? T("launcher.nutrition.title", "Nutrition")
+            : (chatMode === "chronic"
+              ? T("launcher.chronic.title", "Chronic Disease Management")
+              : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
           header.appendChild(title);
 
           // (Clear chat now lives at the bottom of the left sidebar —
@@ -5274,13 +5331,16 @@
 
         // When entering a mode with no conversation yet, start fresh so the
         // right greeting + starters show.
-        function applyChatModeFresh(mode) {
+        // Switch the active chat to a mode's own saved history.
+        function switchChatMode(mode) {
+          if (!chatHistories[mode]) chatHistories[mode] = _normalizeChat(null);
           chatMode = mode;
-          const noUser = !recipeChat.messages.some((m) => m.role === "user");
-          if (noUser) { recipeChat.messages = []; recipeChat.greetingApplied = false; }
+          recipeChat = chatHistories[mode];
+          try { savePersistedState(); } catch (_) {}
         }
-        function showNutritionChat() { applyChatModeFresh("nutrition"); showPlantRecipesChat(); }
-        function showGeneralChat() { applyChatModeFresh("general"); showPlantRecipesChat(); }
+        function showNutritionChat() { switchChatMode("nutrition"); showPlantRecipesChat(); }
+        function showGeneralChat() { switchChatMode("general"); showPlantRecipesChat(); }
+        function showChronicChat() { switchChatMode("chronic"); showPlantRecipesChat(); }
 
         // ── Launcher (3-option selection screen) + embedded Yoga app ────
         function showLauncher() {
@@ -5289,22 +5349,13 @@
           const y = swYogaEl(); if (y) y.hidden = true;
           const l = swLauncherEl(); if (l) l.hidden = false;
         }
-        const YOGA_EMBED_URL = "https://ai-all-yoga-pose-analysis.onrender.com";
+        // Yoga = the existing "Practice Yoga Asanas with AI" modal (Tadasana /
+        // Balasana / Live Tadasana). Keep the launcher as the base view so
+        // closing the modal returns to the 3 options.
         function showYoga() {
-          hidePlantRecipesChat();
-          const c = companionEl(); if (c) c.hidden = true;
-          const l = swLauncherEl(); if (l) l.hidden = true;
-          const y = swYogaEl(); if (!y) return;
-          y.hidden = false;
-          const wrap = document.getElementById("swYogaFrameWrap");
-          if (wrap && !wrap.querySelector("iframe")) {
-            const f = document.createElement("iframe");
-            f.src = YOGA_EMBED_URL;
-            f.title = "Yoga Pose Analysis";
-            f.allow = "camera; microphone; fullscreen; autoplay";
-            f.setAttribute("allowfullscreen", "");
-            wrap.appendChild(f);
-          }
+          showLauncher();
+          const m = document.getElementById("yogaIntroModal");
+          if (m) m.hidden = false;
         }
 
         // Expose so the sidebar / launcher handlers can drive the views.
@@ -5313,6 +5364,7 @@
           hide: hidePlantRecipesChat,
           showNutrition: showNutritionChat,
           showGeneral: showGeneralChat,
+          showChronic: showChronicChat,
           showLauncher: showLauncher,
           showYoga: showYoga,
         };
@@ -5328,7 +5380,6 @@
           recipeChat.lastPrompt = "";
           recipeChat.lastModel = "";
           recipeChat.loading = false;
-          state.recipeChat = recipeChat;
           savePersistedState();
           const host = document.getElementById("plantRecipesChat");
           if (host && !host.hidden) renderPlantRecipesChat();
@@ -5465,17 +5516,16 @@
         if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
         const cardChronic = document.getElementById("swLaunchChronic");
         if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
-        const yogaBack = document.getElementById("swYogaBack");
-        if (yogaBack) yogaBack.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showLauncher());
-
         // ── Initial view routing ────────────────────────────────────────
         //  ?view=select   → 3-option selection screen (post-login default)
         //  ?view=nutrition → Aria chat in recipe-RAG mode
-        //  ?view=yoga      → embedded Yoga Pose Analysis
-        //  otherwise (incl. ?submissionId= from the assessment) → the
-        //  condition-tuned Aria chat, exactly as before.
+        //  ?view=yoga      → Practice-Yoga modal over the launcher
+        //  ?submissionId=  → Chronic chat (condition-tuned, own history) after
+        //                    completing the Wellness Assessment
+        //  otherwise       → the general Aria chat
         const swParams = new URLSearchParams(window.location.search);
         const swView = (swParams.get("view") || "").toLowerCase();
+        const hasSubmission = !!swParams.get("submissionId");
         if (window.__swPlantRecipes) {
           if (swView === "select") {
             window.__swPlantRecipes.showLauncher();
@@ -5483,6 +5533,8 @@
             window.__swPlantRecipes.showNutrition();
           } else if (swView === "yoga") {
             window.__swPlantRecipes.showYoga();
+          } else if (hasSubmission) {
+            window.__swPlantRecipes.showChronic();
           } else {
             window.__swPlantRecipes.showGeneral();
           }

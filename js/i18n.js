@@ -252,6 +252,7 @@
     "launcher.chronic.title": { en: "Chronic Disease Management", hi: "दीर्घकालिक रोग प्रबंधन" },
     "launcher.chronic.desc": { en: "Take the Wellness Assessment for guidance tailored to your condition.", hi: "अपनी स्थिति के अनुरूप मार्गदर्शन के लिए स्वास्थ्य आकलन लें।" },
     "launcher.back": { en: "Back", hi: "वापस" },
+    "launcher.options": { en: "Options", hi: "विकल्प" },
 
     // Aria — Plant-Based Recipes chat (3-question ChatGPT-style flow)
     "aria.recipes.chat.greetDiabetes": {
