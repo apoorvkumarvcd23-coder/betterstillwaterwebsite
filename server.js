@@ -1050,7 +1050,10 @@ async function generateRagAnswer(prompt) {
 // To add another book later: OCR it to a new JSON in data/nutrition/ and
 // re-run the ingest; retrieval searches across the whole KB.
 const NUTRITION_DATA_DIR = path.join(__dirname, "data", "nutrition");
-const NUTRITION_TOP_K = 5;
+// Keep retrieval lean so the prompt (chunks + system + history) stays within
+// the free-tier OpenRouter budget, leaving room for a full recipe + the
+// follow-up block. Raise this once OpenRouter credits are added.
+const NUTRITION_TOP_K = 3;
 
 let nutritionIngestInFlight = false;
 
@@ -3452,10 +3455,14 @@ app.post("/api/nutrition/chat", requireAuthApi, async (req, res) => {
     }
     const language = String(req.body?.language || "en").trim();
     const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    // Recipe replies are long; keeping a big history (plus the retrieved
+    // chunks) blew past the free-tier budget and truncated later answers
+    // before their [FOLLOWUPS] block. Keep only the last few turns and cap
+    // each message so the request stays lean.
     const messages = rawMessages
       .filter((m) => m && (m.role === "user" || m.role === "assistant"))
-      .map((m) => ({ role: m.role, content: String(m.content || "").slice(0, 4000) }))
-      .slice(-20);
+      .map((m) => ({ role: m.role, content: String(m.content || "").slice(0, 1500) }))
+      .slice(-6);
     if (!messages.length) {
       return res.status(400).json({ error: "messages[] is required" });
     }
@@ -3522,7 +3529,11 @@ ${contextBlock || "(No matching passages were retrieved for this question.)"}`;
       body: JSON.stringify({
         model,
         temperature: 0.6,
-        max_tokens: 700,
+        // Recipes are long; leave enough room to finish the reply AND emit the
+        // trailing [FOLLOWUPS] block (otherwise the chips never render). Paired
+        // with a trimmed prompt (fewer chunks + shorter history) below so the
+        // whole request stays within the free-tier OpenRouter budget.
+        max_tokens: 1100,
         stream: true,
         messages: [{ role: "system", content: systemPrompt }, ...messages],
       }),
