@@ -465,6 +465,27 @@ async function initDb() {
       ON aria.meal_plan_daily (user_id, plan_date DESC)
   `);
 
+  // ── Aria chat history (ChatGPT-style; one row per chat session) ──────
+  // The full message list lives in `messages` JSONB; saved continuously so it
+  // survives logout. Each login starts a new session; old ones are listed by
+  // updated_at and reopened to continue.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS aria.chat_sessions (
+      id              BIGSERIAL PRIMARY KEY,
+      auth_user_type  TEXT NOT NULL,
+      auth_user_id    TEXT NOT NULL,
+      mode            TEXT,
+      title           TEXT,
+      messages        JSONB NOT NULL DEFAULT '[]'::jsonb,
+      created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_aria_chat_sessions_user_updated
+      ON aria.chat_sessions (auth_user_type, auth_user_id, updated_at DESC)
+  `);
+
   // ── Nutrition knowledge base (RAG over recipe / nutrition PDFs) ──────
   // A scalable two-table design: one row per source PDF in
   // nutrition.documents, its text chunks (+ pgvector embeddings) in
@@ -3633,6 +3654,283 @@ app.get("/api/admin/nutrition/status", requireRole("admin"), async (_req, res) =
     return res.json({ ok: true, totalChunks: cnt.rows[0]?.n || 0, documents: docs.rows });
   } catch (err) {
     return res.status(500).json({ ok: false, reason: err.message });
+  }
+});
+
+// ── Aria chat history (ChatGPT-style, server-side per user) ─────────────
+app.post("/api/chat/sessions", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const mode = String(req.body?.mode || "general").slice(0, 40);
+    const title = (String(req.body?.title || "").slice(0, 200)) || null;
+    const r = await pool.query(
+      `INSERT INTO aria.chat_sessions (auth_user_type, auth_user_id, mode, title, messages)
+       VALUES ($1,$2,$3,$4,'[]'::jsonb)
+       RETURNING id, mode, title, created_at, updated_at`,
+      [type, id, mode, title],
+    );
+    return res.json({ ok: true, session: r.rows[0] });
+  } catch (err) { console.error("[chat-sessions] create", err.message); return res.status(500).json({ error: "failed" }); }
+});
+
+app.get("/api/chat/sessions", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const r = await pool.query(
+      `SELECT id, mode, title, created_at, updated_at,
+              jsonb_array_length(messages) AS message_count
+         FROM aria.chat_sessions
+        WHERE auth_user_type=$1 AND auth_user_id=$2 AND jsonb_array_length(messages) > 0
+        ORDER BY updated_at DESC LIMIT 100`,
+      [type, id],
+    );
+    return res.json({ ok: true, sessions: r.rows });
+  } catch (err) { console.error("[chat-sessions] list", err.message); return res.status(500).json({ error: "failed" }); }
+});
+
+app.get("/api/chat/sessions/:id", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    const r = await pool.query(
+      `SELECT id, mode, title, messages, created_at, updated_at
+         FROM aria.chat_sessions WHERE id=$1 AND auth_user_type=$2 AND auth_user_id=$3`,
+      [String(req.params.id), type, id],
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "not found" });
+    return res.json({ ok: true, session: r.rows[0] });
+  } catch (err) { console.error("[chat-sessions] get", err.message); return res.status(500).json({ error: "failed" }); }
+});
+
+app.put("/api/chat/sessions/:id", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    const messages = Array.isArray(req.body?.messages) ? req.body.messages.slice(-200) : [];
+    const mode = req.body?.mode ? String(req.body.mode).slice(0, 40) : null;
+    const title = req.body?.title ? String(req.body.title).slice(0, 200) : null;
+    const r = await pool.query(
+      `UPDATE aria.chat_sessions
+          SET messages=$1::jsonb,
+              mode=COALESCE($2, mode),
+              title=COALESCE($3, title),
+              updated_at=NOW()
+        WHERE id=$4 AND auth_user_type=$5 AND auth_user_id=$6
+        RETURNING id`,
+      [JSON.stringify(messages), mode, title, String(req.params.id), type, id],
+    );
+    if (!r.rows[0]) return res.status(404).json({ error: "not found" });
+    return res.json({ ok: true });
+  } catch (err) { console.error("[chat-sessions] update", err.message); return res.status(500).json({ error: "failed" }); }
+});
+
+app.delete("/api/chat/sessions/:id", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    await pool.query(
+      `DELETE FROM aria.chat_sessions WHERE id=$1 AND auth_user_type=$2 AND auth_user_id=$3`,
+      [String(req.params.id), type, id],
+    );
+    return res.json({ ok: true });
+  } catch (err) { return res.status(500).json({ error: "failed" }); }
+});
+
+// Retrieve top-K testimonial passages for a dataset (Sharan / Amar Eye / etc.).
+async function retrieveTestimonials(dataset, query, topK) {
+  const cfg = resolveDatasetConfig(dataset);
+  const present = await hasEmbeddingColumn(cfg.ragPool, cfg.table);
+  if (!present) return { rows: [], dataset: cfg.dataset };
+  const vec = toVectorLiteral(await embedText(query));
+  const r = await cfg.ragPool.query(
+    `SELECT title, url, testimonial, 1 - (embedding <=> $1::vector) AS score
+       FROM ${cfg.table}
+      WHERE embedding IS NOT NULL
+      ORDER BY embedding <=> $1::vector
+      LIMIT $2`,
+    [vec, topK],
+  );
+  return { rows: r.rows || [], dataset: cfg.dataset };
+}
+
+// Chronic Disease Management chat — same streaming UX as the other Aria chats,
+// but the "brain" is one of three testimonial-RAG backends chosen by condition:
+//   diabetes -> Sharan Diabetes Mate AI   (dataset: diabetes)
+//   eye      -> Amar Eye Vision Mate AI   (dataset: amar_eye_yoga, OpenAI model)
+//   other    -> Holistic Wellness AI      (dataset: holistic_wellness)
+app.post("/api/chronic/chat", requireAuthApi, async (req, res) => {
+  try {
+    if (!OPENROUTER_API_KEY) {
+      return res.status(503).json({ error: "OpenRouter is not configured on this server." });
+    }
+    const condition = String(req.body?.condition || "general").trim().toLowerCase();
+    const language = String(req.body?.language || "en").trim();
+    const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    const messages = rawMessages
+      .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+      .map((m) => ({ role: m.role, content: String(m.content || "").slice(0, 2000) }))
+      .slice(-8);
+    if (!messages.length) return res.status(400).json({ error: "messages[] is required" });
+
+    // Condition → backend (dataset + model + recommendation).
+    let backend;
+    if (condition === "diabetes") {
+      backend = {
+        name: "Sharan Diabetes Mate AI", dataset: "diabetes",
+        model: String(process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b").trim(),
+        recommend: 'When it fits naturally, gently recommend SHARAN (Stilwater\'s diabetes partner) and include this line: "Please, if you want, connect with Stilwater."',
+      };
+    } else if (condition === "eye") {
+      backend = {
+        name: "Amar Eye Vision Mate AI", dataset: "amar_eye_yoga",
+        model: String(process.env.AMAR_EYE_MODEL || "openai/gpt-4o-mini").trim(),
+        recommend: "When it fits naturally, gently recommend Amar Eye Yoga for natural eye care.",
+      };
+    } else {
+      backend = {
+        name: "Holistic Wellness AI", dataset: "holistic_wellness",
+        model: String(process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b").trim(),
+        recommend: 'When it fits naturally, include this line: "Please connect with Stilwater."',
+      };
+    }
+
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    let context = "";
+    try {
+      const { rows } = lastUser ? await retrieveTestimonials(backend.dataset, lastUser.content, 4) : { rows: [] };
+      context = rows
+        .map((r, i) => `SOURCE ${i + 1}\nTITLE: ${r.title || ""}\nURL: ${r.url || ""}\nTESTIMONIAL:\n${r.testimonial || ""}`)
+        .join("\n\n");
+    } catch (e) { console.error("[chronic-chat] retrieval failed:", e.message); }
+
+    const isHindi = String(language).toLowerCase().startsWith("hi");
+    const langClause = isHindi
+      ? "Respond in clear, simple Hindi mixed with English where natural."
+      : "Respond in clear, simple English.";
+
+    const systemPrompt = `# IDENTITY
+You are Aria, the Stilwater wellness companion (${backend.name}). You support
+people managing chronic conditions through plant-based nutrition, gentle
+movement, and calm — grounded in real Stilwater testimonials.
+
+# KNOWLEDGE SOURCE (HARD RULE)
+Base your answer on the TESTIMONIAL CONTEXT below (real experiences from
+Stilwater's community). Draw on what worked for them. If the context doesn't
+cover the question, give warm, general whole-food plant-based lifestyle
+guidance — never clinical/medical advice. For anything medical, route to a
+Stilwater verified provider.
+
+# RECOMMENDATION
+${backend.recommend}
+
+# OUTPUT FORMAT — PLAIN TEXT ONLY (HARD RULE)
+The chat does NOT render markdown. No asterisks, no #, no markdown bullets.
+Natural sentences and short paragraphs; simple numbered steps (1. 2. 3.) only
+when truly needed.
+
+# STYLE
+Warm, encouraging, concise (2-4 short paragraphs). ${langClause}
+Always end with ONE short encouraging sentence.
+
+# FOLLOW-UP QUESTIONS (REQUIRED OUTPUT FORMAT)
+After your main reply, on the LAST line, output exactly 3 short follow-up
+questions in this EXACT format with no other text after the closing tag:
+  [FOLLOWUPS] question 1 || question 2 || question 3 [/FOLLOWUPS]
+Each question is short (max 12 words), no numbering, no markdown.
+
+# TESTIMONIAL CONTEXT
+${context || "(No matching testimonials were retrieved for this question.)"}`;
+
+    const upstream = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: buildOpenRouterHeaders(),
+      body: JSON.stringify({
+        model: backend.model,
+        temperature: 0.6,
+        max_tokens: 900,
+        stream: true,
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+      }),
+    });
+    if (!upstream.ok || !upstream.body) {
+      const errText = await upstream.text().catch(() => "");
+      console.error("[chronic-chat] upstream error", upstream.status, errText);
+      return res.status(502).json({ error: "Upstream chat error", status: upstream.status });
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    if (typeof res.flushHeaders === "function") res.flushHeaders();
+    const sse = (obj) => res.write("data: " + JSON.stringify(obj) + "\n\n");
+
+    const FOLLOWUP_OPEN = "[FOLLOWUPS]";
+    let fullRaw = "";
+    let emittedLen = 0;
+    let sawFollowups = false;
+    const flushVisible = (isFinal) => {
+      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      let visibleEnd;
+      if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
+      else if (isFinal) visibleEnd = fullRaw.length;
+      else visibleEnd = Math.max(0, fullRaw.length - FOLLOWUP_OPEN.length);
+      if (visibleEnd > emittedLen) {
+        sse({ delta: fullRaw.slice(emittedLen, visibleEnd) });
+        emittedLen = visibleEnd;
+      }
+    };
+
+    let sseBuf = "";
+    const decoder = new TextDecoder();
+    const reader = upstream.body.getReader();
+    try {
+      while (true) {
+        const { value, done: rdDone } = await reader.read();
+        if (rdDone) break;
+        sseBuf += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = sseBuf.indexOf("\n")) !== -1) {
+          const line = sseBuf.slice(0, nl).trim();
+          sseBuf = sseBuf.slice(nl + 1);
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let parsed;
+          try { parsed = JSON.parse(payload); } catch (_) { continue; }
+          const piece = parsed?.choices?.[0]?.delta?.content;
+          if (typeof piece === "string" && piece) {
+            fullRaw += piece;
+            if (!sawFollowups) flushVisible(false);
+          }
+        }
+      }
+    } catch (streamErr) {
+      console.error("[chronic-chat] stream error", streamErr);
+    }
+    flushVisible(true);
+
+    const { reply, followups } = parseStilwaterReply(fullRaw);
+    sse({
+      done: true,
+      reply: (reply || "").trim() || "I'm here — could you ask that a different way?",
+      followups,
+      model: backend.model,
+      backend: backend.name,
+      condition,
+      prompt: systemPrompt,
+    });
+    return res.end();
+  } catch (err) {
+    console.error("[chronic-chat] failed:", err);
+    if (res.headersSent) { try { return res.end(); } catch (_) { return; } }
+    return res.status(500).json({ error: "Chronic chat failed" });
   }
 });
 

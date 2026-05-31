@@ -4866,6 +4866,19 @@
             header.appendChild(exploreBtn);
           }
 
+          // Chronic only: a tab beside the title to (re)open the Wellness
+          // Assessment form.
+          if (chatMode === "chronic") {
+            const assessBtn = document.createElement("button");
+            assessBtn.type = "button";
+            assessBtn.className = "plant-chat-explore";
+            assessBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>' +
+              '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
+            assessBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
+            header.appendChild(assessBtn);
+          }
+
           // (Clear chat now lives at the bottom of the left sidebar —
           // see clearRecipeChat() + the #careSidebarClear wiring below.)
           host.appendChild(header);
@@ -5090,7 +5103,9 @@
               try {
                 const endpoint = chatMode === "nutrition"
                   ? "/api/nutrition/chat"
-                  : "/api/stilwater/chat";
+                  : (chatMode === "chronic"
+                    ? "/api/chronic/chat"
+                    : "/api/stilwater/chat");
                 const resp = await fetch(endpoint, {
                   method: "POST",
                   credentials: "same-origin",
@@ -5601,7 +5616,9 @@
             window.__swPlantRecipes.showNutrition();
           } else if (swView === "yoga") {
             window.__swPlantRecipes.showYoga();
-          } else if (hasSubmission) {
+          } else if (swView === "chronic" || hasSubmission) {
+            // Chronic chat. With no assessment (skip / ?view=chronic) the
+            // condition resolves to "general" → Holistic Wellness AI.
             window.__swPlantRecipes.showChronic();
           } else {
             window.__swPlantRecipes.showGeneral();
