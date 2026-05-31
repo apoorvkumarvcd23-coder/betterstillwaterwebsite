@@ -117,6 +117,77 @@
         flex-direction: column;
       }
 
+      /* These views use display:flex, which would otherwise beat the [hidden]
+         attribute — force them hidden when toggled off. */
+      .sw-launcher[hidden],
+      .sw-embed-view[hidden],
+      #companionRoot[hidden] { display: none !important; }
+
+      /* ── Post-login selection screen ───────────────────────────────── */
+      .sw-launcher {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 56px);
+      }
+      .sw-launcher-inner { width: 100%; max-width: 1000px; }
+      .sw-launcher-title {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(1.55rem, 3.2vw, 2.4rem);
+        color: #243b30; margin: 0 0 0.4rem; letter-spacing: -0.01em;
+      }
+      .sw-launcher-sub { color: #5d6b5e; font-size: 1rem; margin: 0 0 1.8rem; line-height: 1.5; }
+      .sw-launch-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+      .sw-launch-card {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+        text-align: left;
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 20px;
+        padding: 26px 22px;
+        cursor: pointer; font: inherit;
+        box-shadow: 0 10px 30px -18px rgba(44, 72, 55, 0.25);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      }
+      .sw-launch-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 42px -20px rgba(44, 72, 55, 0.35);
+        border-color: rgba(125, 148, 113, 0.6);
+      }
+      .sw-launch-ico {
+        width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+        background: linear-gradient(140deg, #7d9471, #5f7656); color: #fff;
+      }
+      .sw-launch-ico svg { width: 26px; height: 26px; }
+      .sw-launch-name { font-family: "Fraunces", Georgia, serif; font-size: 1.2rem; font-weight: 600; color: #243b30; }
+      .sw-launch-desc { font-size: 0.92rem; color: #5d6b5e; line-height: 1.5; }
+
+      /* ── Embedded external app (Yoga Pose Analysis) ────────────────── */
+      .sw-embed-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+      .sw-embed-bar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 16px; border-bottom: 1px solid rgba(47, 72, 66, 0.12); background: #fbfaf6;
+      }
+      .sw-embed-back, .sw-embed-ext {
+        display: inline-flex; align-items: center; gap: 7px;
+        border: 1px solid rgba(47, 72, 66, 0.18); background: #fff; color: #2b4338;
+        border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.9rem;
+        font-weight: 600; cursor: pointer; text-decoration: none;
+      }
+      .sw-embed-back:hover, .sw-embed-ext:hover { background: rgba(47, 72, 66, 0.06); }
+      .sw-embed-back svg, .sw-embed-ext svg { width: 16px; height: 16px; }
+      .sw-embed-ext { padding: 7px 10px; }
+      .sw-embed-title {
+        font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 1.05rem;
+        color: #243b30; margin-right: auto;
+      }
+      .sw-embed-frame-wrap { flex: 1; min-height: 70vh; position: relative; }
+      .sw-embed-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+      @media (max-width: 860px) { .sw-launch-grid { grid-template-columns: 1fr; } }
+
       /* Mobile drawer toggle + scrim (hidden by default on desktop) */
       .care-menu-btn { display: none; }
       .care-sidebar-scrim { display: none; }
@@ -2302,6 +2373,54 @@
         </button>
       </aside>
       <div class="care-stage">
+      <!-- Post-login selection screen: 3 entry points, shown by default
+           (view=select). Yoga + Nutrition switch views in-shell; Chronic
+           goes to the Wellness Assessment. -->
+      <section class="sw-launcher" id="swLauncher" hidden>
+        <div class="sw-launcher-inner">
+          <h1 class="sw-launcher-title" data-i18n="launcher.title">Welcome to your wellness journey</h1>
+          <p class="sw-launcher-sub" data-i18n="launcher.subtitle">Choose where you'd like to begin. You can switch anytime from the sidebar.</p>
+          <div class="sw-launch-grid">
+            <button type="button" class="sw-launch-card" id="swLaunchYoga">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v6"/><path d="M5 11l7-2 7 2"/><path d="M9 22l3-9 3 9"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.yoga.title">Yoga Pose Analysis</span>
+              <span class="sw-launch-desc" data-i18n="launcher.yoga.desc">Practice asanas with live AI form feedback.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchNutrition">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2 3-2 6 0 8s2 5 0 8"/><path d="M5 12c3-2 6-2 8 0s5 2 8 0"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.nutrition.title">Nutrition</span>
+              <span class="sw-launch-desc" data-i18n="launcher.nutrition.desc">Ask Aria for whole-food, plant-based recipes from our cookbook.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchChronic">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><path d="M3.5 12h4l2-4 4 8 2-4h4"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.chronic.title">Chronic Disease Management</span>
+              <span class="sw-launch-desc" data-i18n="launcher.chronic.desc">Take the Wellness Assessment for guidance tailored to your condition.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Yoga Pose Analysis — external app embedded in-shell (no redirect). -->
+      <section class="sw-embed-view" id="swYogaView" hidden>
+        <div class="sw-embed-bar">
+          <button type="button" class="sw-embed-back" id="swYogaBack">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span data-i18n="launcher.back">Back</span>
+          </button>
+          <span class="sw-embed-title" data-i18n="launcher.yoga.title">Yoga Pose Analysis</span>
+          <a class="sw-embed-ext" id="swYogaExt" href="https://ai-all-yoga-pose-analysis.onrender.com" target="_blank" rel="noopener" title="Open in a new tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          </a>
+        </div>
+        <div class="sw-embed-frame-wrap" id="swYogaFrameWrap"></div>
+      </section>
+
       <section class="care-head">
         <h1 style="margin: 0 0 0.6rem; font-size: 1.6rem; letter-spacing: 0.01em">
           Your Verified Healing Partners
@@ -4529,6 +4648,11 @@
           return base;
         })();
 
+        // Chat mode: "general" = the condition-tuned Aria chat
+        // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
+        // (/api/nutrition/chat). Set by the launcher's Nutrition card.
+        let chatMode = "general";
+
         function activeCondition() {
           const f = window.__swCareFlags || {};
           if (f.hasDiabetes) return "diabetes";
@@ -4557,6 +4681,10 @@
           const c = activeCondition();
           const name = getUserFirstName();
           const hi = name ? "Hi " + name + ", " : "Hi, ";
+          if (chatMode === "nutrition") {
+            return hi + T("aria.chat.greetNutrition",
+              "I'm Aria. Ask me about whole-food, plant-based recipes from our cookbook “Timeless Recipes for Healthy Living” — ingredients, steps, or what to cook tonight. Pick a starter below or type your own.");
+          }
           if (c === "diabetes") {
             return hi + T("aria.chat.greetDiabetes",
               "I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.");
@@ -4577,6 +4705,13 @@
         // to typing it and hitting Send.
         function recipeChatStarters() {
           const c = activeCondition();
+          if (chatMode === "nutrition") {
+            return [
+              T("aria.chat.startNutrition.1", "Suggest a simple plant-based dinner from the cookbook."),
+              T("aria.chat.startNutrition.2", "What's a healthy breakfast recipe I can try?"),
+              T("aria.chat.startNutrition.3", "Share a recipe that's gentle on blood sugar."),
+            ];
+          }
           if (c === "diabetes") {
             return [
               T("aria.chat.startDiabetes.1", "What plant-based foods help stabilize blood sugar?"),
@@ -4857,7 +4992,10 @@
 
             (async () => {
               try {
-                const resp = await fetch("/api/stilwater/chat", {
+                const endpoint = chatMode === "nutrition"
+                  ? "/api/nutrition/chat"
+                  : "/api/stilwater/chat";
+                const resp = await fetch(endpoint, {
                   method: "POST",
                   credentials: "same-origin",
                   headers: { "Content-Type": "application/json" },
@@ -5111,9 +5249,16 @@
           tick();
         })();
 
+        const companionEl = () => document.getElementById("companionRoot");
+        const swLauncherEl = () => document.getElementById("swLauncher");
+        const swYogaEl = () => document.getElementById("swYogaView");
+
         function showPlantRecipesChat() {
           const host = document.getElementById("plantRecipesChat");
           if (!host) return;
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const c = companionEl(); if (c) c.hidden = false;
           host.hidden = false;
           document.body.classList.add("plant-chat-open");
           renderPlantRecipesChat();
@@ -5126,8 +5271,51 @@
           document.body.classList.remove("plant-chat-open");
           updateSidebarToggleLabel();
         }
-        // Expose so the sidebar handler at the bottom of the file can use them.
-        window.__swPlantRecipes = { show: showPlantRecipesChat, hide: hidePlantRecipesChat };
+
+        // When entering a mode with no conversation yet, start fresh so the
+        // right greeting + starters show.
+        function applyChatModeFresh(mode) {
+          chatMode = mode;
+          const noUser = !recipeChat.messages.some((m) => m.role === "user");
+          if (noUser) { recipeChat.messages = []; recipeChat.greetingApplied = false; }
+        }
+        function showNutritionChat() { applyChatModeFresh("nutrition"); showPlantRecipesChat(); }
+        function showGeneralChat() { applyChatModeFresh("general"); showPlantRecipesChat(); }
+
+        // ── Launcher (3-option selection screen) + embedded Yoga app ────
+        function showLauncher() {
+          hidePlantRecipesChat();
+          const c = companionEl(); if (c) c.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const l = swLauncherEl(); if (l) l.hidden = false;
+        }
+        const YOGA_EMBED_URL = "https://ai-all-yoga-pose-analysis.onrender.com";
+        function showYoga() {
+          hidePlantRecipesChat();
+          const c = companionEl(); if (c) c.hidden = true;
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (!y) return;
+          y.hidden = false;
+          const wrap = document.getElementById("swYogaFrameWrap");
+          if (wrap && !wrap.querySelector("iframe")) {
+            const f = document.createElement("iframe");
+            f.src = YOGA_EMBED_URL;
+            f.title = "Yoga Pose Analysis";
+            f.allow = "camera; microphone; fullscreen; autoplay";
+            f.setAttribute("allowfullscreen", "");
+            wrap.appendChild(f);
+          }
+        }
+
+        // Expose so the sidebar / launcher handlers can drive the views.
+        window.__swPlantRecipes = {
+          show: showPlantRecipesChat,
+          hide: hidePlantRecipesChat,
+          showNutrition: showNutritionChat,
+          showGeneral: showGeneralChat,
+          showLauncher: showLauncher,
+          showYoga: showYoga,
+        };
 
         // Clear chat — moved to the bottom of the left sidebar. Wipes the
         // conversation (greeting re-appears on the next render).
@@ -5248,7 +5436,7 @@
             if (isOpen) {
               window.__swPlantRecipes.hide();
             } else {
-              window.__swPlantRecipes.show();
+              window.__swPlantRecipes.showGeneral();
             }
             try {
               root.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -5270,12 +5458,34 @@
 
         renderMode();
 
-        // Default landing view = Plant-Based Recipes chat. The 3-tab
-        // companion (Meal Plan / Recipes / Journaling) appears as soon as
-        // the user clicks ✕ on the chat, any of the 3 tabs, or the
-        // sidebar "Plant-Based Recipes" item (which toggles).
-        if (window.__swPlantRecipes && typeof window.__swPlantRecipes.show === "function") {
-          window.__swPlantRecipes.show();
+        // ── Launcher card wiring ────────────────────────────────────────
+        const cardYoga = document.getElementById("swLaunchYoga");
+        if (cardYoga) cardYoga.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showYoga());
+        const cardNutrition = document.getElementById("swLaunchNutrition");
+        if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
+        const cardChronic = document.getElementById("swLaunchChronic");
+        if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
+        const yogaBack = document.getElementById("swYogaBack");
+        if (yogaBack) yogaBack.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showLauncher());
+
+        // ── Initial view routing ────────────────────────────────────────
+        //  ?view=select   → 3-option selection screen (post-login default)
+        //  ?view=nutrition → Aria chat in recipe-RAG mode
+        //  ?view=yoga      → embedded Yoga Pose Analysis
+        //  otherwise (incl. ?submissionId= from the assessment) → the
+        //  condition-tuned Aria chat, exactly as before.
+        const swParams = new URLSearchParams(window.location.search);
+        const swView = (swParams.get("view") || "").toLowerCase();
+        if (window.__swPlantRecipes) {
+          if (swView === "select") {
+            window.__swPlantRecipes.showLauncher();
+          } else if (swView === "nutrition") {
+            window.__swPlantRecipes.showNutrition();
+          } else if (swView === "yoga") {
+            window.__swPlantRecipes.showYoga();
+          } else {
+            window.__swPlantRecipes.showGeneral();
+          }
         }
       })();
     </script>

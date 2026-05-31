@@ -37,6 +37,8 @@
     "pg": "^8.20.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.54.2"
+    "@playwright/test": "^1.54.2",
+    "pdf-parse": "^1.1.4",
+    "pdfjs-dist": "^6.0.227"
   }
 }

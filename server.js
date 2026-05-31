@@ -7,6 +7,7 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 const LocalStrategy = require("passport-local").Strategy;
 const bcrypt = require("bcrypt");
 const path = require("path");
+const fs = require("fs");
 const cors = require("cors");
 const { Pool } = require("pg");
 const PgSession = require("connect-pg-simple")(session);
@@ -463,6 +464,45 @@ async function initDb() {
     CREATE INDEX IF NOT EXISTS idx_aria_meal_plan_daily_user_date
       ON aria.meal_plan_daily (user_id, plan_date DESC)
   `);
+
+  // ── Nutrition knowledge base (RAG over recipe / nutrition PDFs) ──────
+  // A scalable two-table design: one row per source PDF in
+  // nutrition.documents, its text chunks (+ pgvector embeddings) in
+  // nutrition.chunks. Adding a new PDF tomorrow is just another document +
+  // its chunks — retrieval searches across the whole KB. Wrapped so a
+  // pgvector hiccup can't take down the rest of the app at boot.
+  try {
+    await pool.query(`CREATE SCHEMA IF NOT EXISTS nutrition`);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS nutrition.documents (
+        id          BIGSERIAL PRIMARY KEY,
+        title       TEXT NOT NULL,
+        filename    TEXT NOT NULL,
+        source      TEXT,
+        num_chunks  INT NOT NULL DEFAULT 0,
+        created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT nutrition_documents_filename_unique UNIQUE (filename)
+      )
+    `);
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS nutrition.chunks (
+        id           BIGSERIAL PRIMARY KEY,
+        document_id  BIGINT NOT NULL REFERENCES nutrition.documents(id) ON DELETE CASCADE,
+        chunk_index  INT NOT NULL,
+        content      TEXT NOT NULL,
+        page         INT,
+        embedding    vector(1536),
+        created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT nutrition_chunks_doc_idx_unique UNIQUE (document_id, chunk_index)
+      )
+    `);
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_nutrition_chunks_document
+        ON nutrition.chunks (document_id)
+    `);
+  } catch (err) {
+    console.error("[nutrition-kb] schema init failed (RAG nutrition chat will be unavailable):", err.message);
+  }
 }
 
 async function incrementPhoneUserCount() {
@@ -545,17 +585,14 @@ const getDefaultPostAuthRedirectForUser = async (user) => {
     return "/admin.html";
   }
 
-  // If the user has a completed wellness assessment, go straight to
-  // care-path with the submissionId so the personalized recommendation
-  // cards render immediately. New users (no assessment yet) are sent to
-  // the intake form first; that form now has a Skip button so they can
-  // bypass it and land on the bare care-path if they're not ready to
-  // fill it out.
-  const latest = await getLatestCompletedAssessmentForUser(user);
-  if (latest && latest.id) {
-    return `${CUSTOMER_CARE_PATH_REDIRECT}?submissionId=${encodeURIComponent(String(latest.id))}`;
-  }
-  return "/intake.html";
+  // New post-login flow: every customer lands on the 3-option selection
+  // screen (Yoga Pose Analysis / Nutrition / Chronic Disease Management),
+  // rendered inside the care-path shell. From there:
+  //   - Yoga     → embedded yoga-pose-analysis app (iframe, in-shell)
+  //   - Nutrition→ Aria chat in recipe-RAG mode
+  //   - Chronic  → the Wellness Assessment (intake.html), which still
+  //                redirects to care-path?submissionId=… after submission.
+  return `${CUSTOMER_CARE_PATH_REDIRECT}?view=select`;
 };
 
 const resolvePostAuthRedirect = async (value, user) => {
@@ -1003,6 +1040,117 @@ async function generateRagAnswer(prompt) {
     return generateRagAnswerWithOpenRouter(prompt);
   }
   return generateRagAnswerWithGemini(prompt);
+}
+
+// ── Nutrition knowledge base (RAG over recipe / nutrition PDFs) ─────────
+// The recipe PDFs are image-only (no text layer), so text is OCR-extracted
+// OFFLINE into small JSON files under data/nutrition/ (see
+// scripts/ocr-nutrition-pdf.mjs). At runtime the server only embeds those
+// pre-extracted chunks — no PDF, no OCR, no heavy parsing on the box.
+// To add another book later: OCR it to a new JSON in data/nutrition/ and
+// re-run the ingest; retrieval searches across the whole KB.
+const NUTRITION_DATA_DIR = path.join(__dirname, "data", "nutrition");
+const NUTRITION_TOP_K = 5;
+
+let nutritionIngestInFlight = false;
+
+// Embed every chunk in each data/nutrition/*.json into nutrition.chunks.
+// Idempotent: a document already populated is skipped unless force=true.
+async function ingestNutritionDocs({ force = false } = {}) {
+  if (nutritionIngestInFlight) return { ok: false, reason: "ingest already in flight" };
+  nutritionIngestInFlight = true;
+  try {
+    if (!hasRagProviderConfig()) {
+      return { ok: false, reason: "embedding provider not configured" };
+    }
+    if (!fs.existsSync(NUTRITION_DATA_DIR)) {
+      return { ok: false, reason: "no data/nutrition directory" };
+    }
+    const files = fs.readdirSync(NUTRITION_DATA_DIR).filter((f) => f.toLowerCase().endsWith(".json"));
+    if (!files.length) return { ok: false, reason: "no nutrition JSON files" };
+
+    const summary = [];
+    for (const file of files) {
+      let doc;
+      try { doc = JSON.parse(fs.readFileSync(path.join(NUTRITION_DATA_DIR, file), "utf8")); }
+      catch (e) { summary.push({ file, ok: false, reason: "bad JSON" }); continue; }
+
+      const filename = doc.filename || file;
+      const title = doc.title || filename;
+      const chunks = Array.isArray(doc.chunks)
+        ? doc.chunks.filter((c) => c && String(c.content || "").trim())
+        : [];
+      if (!chunks.length) { summary.push({ file, ok: false, reason: "no chunks" }); continue; }
+
+      const existing = await pool.query(
+        "SELECT id FROM nutrition.documents WHERE filename = $1",
+        [filename],
+      );
+      if (existing.rows[0] && !force) {
+        const cnt = await pool.query(
+          "SELECT COUNT(*)::int AS n FROM nutrition.chunks WHERE document_id = $1",
+          [existing.rows[0].id],
+        );
+        if ((cnt.rows[0]?.n || 0) > 0) {
+          summary.push({ file, ok: true, skipped: true, chunks: cnt.rows[0].n });
+          continue;
+        }
+      }
+
+      const docRes = await pool.query(
+        `INSERT INTO nutrition.documents (title, filename, source, num_chunks)
+         VALUES ($1, $2, $3, 0)
+         ON CONFLICT (filename) DO UPDATE SET title = EXCLUDED.title
+         RETURNING id`,
+        [title, filename, doc.ocr ? "OCR PDF" : "PDF"],
+      );
+      const documentId = docRes.rows[0].id;
+      await pool.query("DELETE FROM nutrition.chunks WHERE document_id = $1", [documentId]);
+
+      let inserted = 0;
+      for (let k = 0; k < chunks.length; k++) {
+        const c = chunks[k];
+        const chunkIndex = Number.isInteger(c.chunk_index) ? c.chunk_index : k;
+        try {
+          const vec = toVectorLiteral(await embedText(c.content));
+          await pool.query(
+            `INSERT INTO nutrition.chunks (document_id, chunk_index, content, page, embedding)
+             VALUES ($1, $2, $3, $4, $5::vector)
+             ON CONFLICT (document_id, chunk_index) DO UPDATE
+               SET content = EXCLUDED.content, page = EXCLUDED.page, embedding = EXCLUDED.embedding`,
+            [documentId, chunkIndex, c.content, c.page ?? null, vec],
+          );
+          inserted++;
+        } catch (e) {
+          console.error(`[nutrition-kb] embed/insert failed (${file} #${k}):`, e.message);
+        }
+      }
+      await pool.query("UPDATE nutrition.documents SET num_chunks = $1 WHERE id = $2", [inserted, documentId]);
+      console.log(`[nutrition-kb] ${file}: ingested ${inserted}/${chunks.length} chunks`);
+      summary.push({ file, ok: true, chunks: inserted, total: chunks.length });
+    }
+    return { ok: true, documents: summary };
+  } catch (err) {
+    console.error("[nutrition-kb] ingest failed:", err.message);
+    return { ok: false, reason: err.message };
+  } finally {
+    nutritionIngestInFlight = false;
+  }
+}
+
+// Cosine-similarity retrieval across the whole nutrition KB.
+async function retrieveNutritionContext(query, topK = NUTRITION_TOP_K) {
+  if (!hasRagProviderConfig()) return [];
+  const vec = toVectorLiteral(await embedText(query));
+  const result = await pool.query(
+    `SELECT content, page, 1 - (embedding <=> $1::vector) AS score
+       FROM nutrition.chunks
+      WHERE embedding IS NOT NULL
+      ORDER BY embedding <=> $1::vector
+      LIMIT $2`,
+    [vec, topK],
+  );
+  return result.rows || [];
 }
 
 // Session Configuration
@@ -3293,6 +3441,190 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
   }
 });
 
+// Nutrition chat — same Aria streaming UX as /api/stilwater/chat, but the
+// answer is GROUNDED in the recipe PDF via the nutrition RAG pipeline. Top-K
+// chunks are retrieved by cosine similarity and injected into the system
+// prompt; the same gpt-oss-120b model streams the reply + follow-up chips.
+app.post("/api/nutrition/chat", requireAuthApi, async (req, res) => {
+  try {
+    if (!OPENROUTER_API_KEY) {
+      return res.status(503).json({ error: "OpenRouter is not configured on this server." });
+    }
+    const language = String(req.body?.language || "en").trim();
+    const rawMessages = Array.isArray(req.body?.messages) ? req.body.messages : [];
+    const messages = rawMessages
+      .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+      .map((m) => ({ role: m.role, content: String(m.content || "").slice(0, 4000) }))
+      .slice(-20);
+    if (!messages.length) {
+      return res.status(400).json({ error: "messages[] is required" });
+    }
+
+    // Retrieve recipe passages for the latest user question.
+    const lastUser = [...messages].reverse().find((m) => m.role === "user");
+    let contextBlock = "";
+    let sources = [];
+    try {
+      const rows = lastUser ? await retrieveNutritionContext(lastUser.content, NUTRITION_TOP_K) : [];
+      sources = rows.map((r, i) => ({ index: i + 1, page: r.page || null, score: Number(r.score) }));
+      contextBlock = rows
+        .map((r, i) => `PASSAGE ${i + 1}${r.page ? ` (p.${r.page})` : ""}:\n${r.content}`)
+        .join("\n\n");
+    } catch (e) {
+      console.error("[nutrition-chat] retrieval failed:", e.message);
+    }
+
+    const isHindi = String(language).toLowerCase().startsWith("hi");
+    const langClause = isHindi
+      ? "Respond in clear, simple Hindi mixed with English where natural."
+      : "Respond in clear, simple English.";
+
+    const systemPrompt = `# IDENTITY
+You are Aria, the Stilwater nutrition companion. You help people eat well with
+whole-food, plant-based recipes and gentle, practical guidance.
+
+# KNOWLEDGE SOURCE (HARD RULE)
+Answer food, recipe, ingredient and meal questions using the RECIPE KNOWLEDGE
+BASE passages below, drawn from Stilwater's book "Timeless Recipes for Healthy
+Living". Ground your answer in those passages and quote their ingredients and
+steps. If the passages do not cover the question, say so warmly, give the
+closest whole-food plant-based guidance you can, and invite them to ask about a
+dish in our recipe collection. Do not invent recipes that contradict the
+passages. No medical advice; for anything clinical, point them to a Stilwater
+verified provider.
+
+# OUTPUT FORMAT — PLAIN TEXT ONLY (HARD RULE)
+The chat does NOT render markdown. No asterisks, no #, no markdown bullets.
+Write in natural sentences and short paragraphs. For a recipe, use plain labels
+on their own line like "Ingredients:" and "Directions:", then list each item on
+its own line as plain words or simple numbers (1. 2. 3.) with no symbols in front.
+
+# STYLE
+Warm, encouraging, concise (2-4 short paragraphs). ${langClause}
+Always end with ONE short encouraging sentence.
+
+# FOLLOW-UP QUESTIONS (REQUIRED OUTPUT FORMAT)
+After your main reply, on the LAST line, output exactly 3 short follow-up
+questions in this EXACT format with no other text after the closing tag:
+  [FOLLOWUPS] question 1 || question 2 || question 3 [/FOLLOWUPS]
+Each question is short (max 12 words), no numbering, no markdown.
+
+# RECIPE KNOWLEDGE BASE
+${contextBlock || "(No matching passages were retrieved for this question.)"}`;
+
+    const model = String(
+      process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b"
+    ).trim();
+
+    const upstream = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
+      method: "POST",
+      headers: buildOpenRouterHeaders(),
+      body: JSON.stringify({
+        model,
+        temperature: 0.6,
+        max_tokens: 700,
+        stream: true,
+        messages: [{ role: "system", content: systemPrompt }, ...messages],
+      }),
+    });
+
+    if (!upstream.ok || !upstream.body) {
+      const errText = await upstream.text().catch(() => "");
+      console.error("[nutrition-chat] upstream error", upstream.status, errText);
+      return res.status(502).json({ error: "Upstream chat error", status: upstream.status });
+    }
+
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no",
+    });
+    if (typeof res.flushHeaders === "function") res.flushHeaders();
+    const sse = (obj) => res.write("data: " + JSON.stringify(obj) + "\n\n");
+
+    const FOLLOWUP_OPEN = "[FOLLOWUPS]";
+    let fullRaw = "";
+    let emittedLen = 0;
+    let sawFollowups = false;
+    const flushVisible = (isFinal) => {
+      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      let visibleEnd;
+      if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
+      else if (isFinal) visibleEnd = fullRaw.length;
+      else visibleEnd = Math.max(0, fullRaw.length - FOLLOWUP_OPEN.length);
+      if (visibleEnd > emittedLen) {
+        sse({ delta: fullRaw.slice(emittedLen, visibleEnd) });
+        emittedLen = visibleEnd;
+      }
+    };
+
+    let sseBuf = "";
+    const decoder = new TextDecoder();
+    const reader = upstream.body.getReader();
+    try {
+      while (true) {
+        const { value, done: rdDone } = await reader.read();
+        if (rdDone) break;
+        sseBuf += decoder.decode(value, { stream: true });
+        let nl;
+        while ((nl = sseBuf.indexOf("\n")) !== -1) {
+          const line = sseBuf.slice(0, nl).trim();
+          sseBuf = sseBuf.slice(nl + 1);
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload || payload === "[DONE]") continue;
+          let parsed;
+          try { parsed = JSON.parse(payload); } catch (_) { continue; }
+          const piece = parsed?.choices?.[0]?.delta?.content;
+          if (typeof piece === "string" && piece) {
+            fullRaw += piece;
+            if (!sawFollowups) flushVisible(false);
+          }
+        }
+      }
+    } catch (streamErr) {
+      console.error("[nutrition-chat] stream error", streamErr);
+    }
+    flushVisible(true);
+
+    const { reply, followups } = parseStilwaterReply(fullRaw);
+    sse({
+      done: true,
+      reply: (reply || "").trim() || "I'm here — ask me about a recipe or ingredient and I'll help.",
+      followups,
+      model,
+      sources,
+      prompt: systemPrompt,
+    });
+    return res.end();
+  } catch (err) {
+    console.error("[nutrition-chat] failed:", err);
+    if (res.headersSent) { try { return res.end(); } catch (_) { return; } }
+    return res.status(500).json({ error: "Nutrition chat failed" });
+  }
+});
+
+// Admin: (re)build the nutrition vector DB from the committed PDF. Also runs
+// automatically (once) in the background on boot if the KB is empty.
+app.post("/api/admin/nutrition/ingest", requireRole("admin"), async (req, res) => {
+  const force = String(req.query?.force || req.body?.force || "") === "1"
+    || req.query?.force === true || req.body?.force === true;
+  const result = await ingestNutritionDocs({ force });
+  return res.status(result.ok ? 200 : 500).json(result);
+});
+
+// Lightweight status (admin) — how many chunks are indexed.
+app.get("/api/admin/nutrition/status", requireRole("admin"), async (_req, res) => {
+  try {
+    const docs = await pool.query("SELECT id, title, filename, num_chunks, created_at FROM nutrition.documents ORDER BY created_at DESC");
+    const cnt = await pool.query("SELECT COUNT(*)::int AS n FROM nutrition.chunks");
+    return res.json({ ok: true, totalChunks: cnt.rows[0]?.n || 0, documents: docs.rows });
+  } catch (err) {
+    return res.status(500).json({ ok: false, reason: err.message });
+  }
+});
+
 app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
   try {
     const dish = String(req.body?.dish || "").trim();
@@ -4556,6 +4888,14 @@ initDb()
         `🌊 Stilwater Digital Sanctuary running on http://localhost:${PORT}`,
       );
     });
+    // Populate the nutrition vector DB once, in the background, if it's empty.
+    // Non-blocking so a slow/failed ingest never delays or crashes boot;
+    // re-runnable any time via POST /api/admin/nutrition/ingest.
+    setTimeout(() => {
+      ingestNutritionDocs()
+        .then((r) => { if (r) console.log("[nutrition-kb] boot ingest:", JSON.stringify(r)); })
+        .catch((e) => console.error("[nutrition-kb] boot ingest error:", e.message));
+    }, 4000);
   })
   .catch((err) => {
     console.error("Failed to initialize database:", err);

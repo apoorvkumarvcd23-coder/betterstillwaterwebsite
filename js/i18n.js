@@ -242,6 +242,17 @@
     "carepath.plantRecipes": { en: "Plant-Based Recipes", hi: "पादप-आधारित रेसिपी" },
     "carepath.stilwaterAIChat": { en: "Stilwater AI Chat", hi: "Stilwater AI चैट" },
 
+    // Post-login selection screen (3 options)
+    "launcher.title": { en: "Welcome to your wellness journey", hi: "आपकी वेलनेस यात्रा में आपका स्वागत है" },
+    "launcher.subtitle": { en: "Choose where you'd like to begin. You can switch anytime from the sidebar.", hi: "तय करें कि आप कहाँ से शुरू करना चाहेंगे। आप साइडबार से कभी भी बदल सकते हैं।" },
+    "launcher.yoga.title": { en: "Yoga Pose Analysis", hi: "योग मुद्रा विश्लेषण" },
+    "launcher.yoga.desc": { en: "Practice asanas with live AI form feedback.", hi: "लाइव AI फ़ॉर्म फ़ीडबैक के साथ आसनों का अभ्यास करें।" },
+    "launcher.nutrition.title": { en: "Nutrition", hi: "पोषण" },
+    "launcher.nutrition.desc": { en: "Ask Aria for whole-food, plant-based recipes from our cookbook.", hi: "हमारी रेसिपी पुस्तक से संपूर्ण-भोजन, पादप-आधारित रेसिपी के लिए Aria से पूछें।" },
+    "launcher.chronic.title": { en: "Chronic Disease Management", hi: "दीर्घकालिक रोग प्रबंधन" },
+    "launcher.chronic.desc": { en: "Take the Wellness Assessment for guidance tailored to your condition.", hi: "अपनी स्थिति के अनुरूप मार्गदर्शन के लिए स्वास्थ्य आकलन लें।" },
+    "launcher.back": { en: "Back", hi: "वापस" },
+
     // Aria — Plant-Based Recipes chat (3-question ChatGPT-style flow)
     "aria.recipes.chat.greetDiabetes": {
       en: "Hi, I'm Aria. I see you're managing diabetes — let's find plant-based meals that keep your blood sugar steady and still taste great. Three quick questions and I'll pull cooking videos you can try tonight.",
@@ -327,6 +338,13 @@
     "aria.chat.startGeneral.1": { en: "What's a simple plant-based meal I can try tonight?", hi: "आज रात बनाने के लिए एक सरल पादप-आधारित भोजन क्या है?" },
     "aria.chat.startGeneral.2": { en: "How do I start a daily mindfulness practice?", hi: "मैं रोज़ की सजगता-साधना कैसे शुरू करूँ?" },
     "aria.chat.startGeneral.3": { en: "What are some gentle yoga poses for stress?", hi: "तनाव के लिए कुछ सौम्य योगासन कौन से हैं?" },
+    "aria.chat.greetNutrition": {
+      en: "I'm Aria. Ask me about whole-food, plant-based recipes from our cookbook “Timeless Recipes for Healthy Living” — ingredients, steps, or what to cook tonight. Pick a starter below or type your own.",
+      hi: "मैं Aria हूँ। हमारी रेसिपी पुस्तक “Timeless Recipes for Healthy Living” से संपूर्ण-भोजन, पादप-आधारित रेसिपी के बारे में पूछें — सामग्री, विधि, या आज रात क्या बनाएँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.startNutrition.1": { en: "Suggest a simple plant-based dinner from the cookbook.", hi: "रेसिपी पुस्तक से एक सरल पादप-आधारित रात्रिभोज सुझाएँ।" },
+    "aria.chat.startNutrition.2": { en: "What's a healthy breakfast recipe I can try?", hi: "मैं कौन सी स्वस्थ नाश्ते की रेसिपी आज़मा सकता हूँ?" },
+    "aria.chat.startNutrition.3": { en: "Share a recipe that's gentle on blood sugar.", hi: "रक्त शर्करा के लिए सौम्य कोई रेसिपी साझा करें।" },
     "aria.chat.thinking": { en: "Aria is thinking…", hi: "Aria सोच रही है…" },
     "aria.chat.viewPrompt": { en: "View system prompt being sent", hi: "भेजा जा रहा सिस्टम प्रॉम्प्ट देखें" },
     "aria.chat.errorGeneric": { en: "I couldn't reach the AI just now. Please try again.", hi: "मैं अभी AI तक नहीं पहुँच पाई। कृपया फिर से प्रयास करें।" },
