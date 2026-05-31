@@ -1814,6 +1814,23 @@
       .plant-chat-back svg { width: 16px; height: 16px; }
       .plant-chat-back:hover { background: rgba(47, 72, 66, 0.06); color: var(--c-ink, #1c2a2a); }
       .plant-chat-header .plant-chat-title { margin-right: auto; }
+      /* "Explore Plant-Based Recipes" tab inside the Nutrition chat header. */
+      .plant-chat-explore {
+        display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+        padding: 7px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 148, 113, 0.5);
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
+        font: inherit; font-size: 13px; font-weight: 600;
+        cursor: pointer;
+      }
+      .plant-chat-explore svg { width: 16px; height: 16px; }
+      .plant-chat-explore:hover { background: rgba(125, 148, 113, 0.2); }
+      @media (max-width: 768px) {
+        .plant-chat-explore span { display: none; }
+        .plant-chat-explore { padding: 7px; }
+      }
       /* Back-to-options inside the yoga intro modal: flows top-left, above
          the heading (the ✕ stays absolute top-right). */
       .yoga-intro-back { margin: 0 0 12px; }
@@ -2413,13 +2430,6 @@
               </span>
               <span class="sw-launch-name" data-i18n="launcher.nutrition.title">Plant based Nutrition</span>
               <span class="sw-launch-desc" data-i18n="launcher.nutrition.desc">Ask Aria for whole-food, plant-based recipes from our cookbook.</span>
-            </button>
-            <button type="button" class="sw-launch-card" id="swLaunchRecipes">
-              <span class="sw-launch-ico" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v7a3 3 0 0 0 3 3 3 3 0 0 0 3-3V2"/><line x1="6" y1="12" x2="6" y2="22"/><path d="M16 2a4 4 0 0 0-4 4v6h4"/><line x1="16" y1="12" x2="16" y2="22"/></svg>
-              </span>
-              <span class="sw-launch-name" data-i18n="launcher.recipes.title">Explore Plant-Based Recipes</span>
-              <span class="sw-launch-desc" data-i18n="launcher.recipes.desc">Browse meal plans, recipe videos, and your journal.</span>
             </button>
             <button type="button" class="sw-launch-card" id="swLaunchChronic">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -4841,6 +4851,21 @@
               : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
           header.appendChild(title);
 
+          // Nutrition only: a tab beside the title to open the full Explore
+          // Plant-Based Recipes surface (the 3-tab companion shell).
+          if (chatMode === "nutrition") {
+            const exploreBtn = document.createElement("button");
+            exploreBtn.type = "button";
+            exploreBtn.className = "plant-chat-explore";
+            exploreBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7a3 3 0 0 0 3 3 3 3 0 0 0 3-3V2"/><line x1="6" y1="12" x2="6" y2="22"/><path d="M16 2a4 4 0 0 0-4 4v6h4"/><line x1="16" y1="12" x2="16" y2="22"/></svg>' +
+              '<span>' + escapeHtml(T("launcher.recipes.title", "Explore Plant-Based Recipes")) + '</span>';
+            exploreBtn.addEventListener("click", () => {
+              if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
+            });
+            header.appendChild(exploreBtn);
+          }
+
           // (Clear chat now lives at the bottom of the left sidebar —
           // see clearRecipeChat() + the #careSidebarClear wiring below.)
           host.appendChild(header);
@@ -5555,8 +5580,6 @@
         if (cardYoga) cardYoga.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showYoga());
         const cardNutrition = document.getElementById("swLaunchNutrition");
         if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
-        const cardRecipes = document.getElementById("swLaunchRecipes");
-        if (cardRecipes) cardRecipes.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showCompanion());
         const cardChronic = document.getElementById("swLaunchChronic");
         if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
         const cardMeditation = document.getElementById("swLaunchMeditation");
