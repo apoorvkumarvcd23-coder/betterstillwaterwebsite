@@ -102,7 +102,7 @@
       hi: "Stilwater एक AI वेलनेस साथी है जो तीन आधारों पर बना है — योग, ध्यान और पादप-आधारित पोषण — मधुमेह और उच्च रक्तचाप के साथ जी रहे लोगों के लिए स्वस्थ जीवन का समर्थन करता है।",
     },
     "home.heroPillars": { en: "Yoga · Meditation · Plant-based nutrition.", hi: "योग · ध्यान · पादप-आधारित पोषण।" },
-    "home.startJourney": { en: "Start your journey", hi: "अपनी यात्रा शुरू करें" },
+    "home.startJourney": { en: "Start wellness journey", hi: "वेलनेस यात्रा शुरू करें" },
     "home.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
 
     // Home — Aria section
