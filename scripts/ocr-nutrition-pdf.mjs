@@ -21,7 +21,7 @@ import { createWorker } from "tesseract.js";
 
 const CHUNK_CHARS = 1100;
 const CHUNK_OVERLAP = 180;
-const RENDER_SCALE = 2.0; // higher DPI → better OCR
+const RENDER_SCALE = 1.6; // DPI for OCR (lowered to bound native canvas memory)
 
 function chunkPlainText(text, size, overlap) {
   const clean = String(text || "").replace(/\r\n/g, "\n").replace(/[ \t]+/g, " ")
@@ -59,42 +59,67 @@ async function main() {
   const numPages = Math.min(doc.numPages, maxPages);
   console.log(`PDF pages: ${doc.numPages} — OCR'ing ${numPages} at scale ${RENDER_SCALE}`);
 
-  const worker = await createWorker("eng");
-  const pageTexts = [];
-  for (let p = 1; p <= numPages; p++) {
-    const page = await doc.getPage(p);
-    const viewport = page.getViewport({ scale: RENDER_SCALE });
-    const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
-    const ctx = canvas.getContext("2d");
-    await page.render({ canvasContext: ctx, viewport }).promise;
-    const png = canvas.toBuffer("image/png");
-    const { data: { text } } = await worker.recognize(png);
-    const clean = (text || "").trim();
-    pageTexts.push({ page: p, text: clean });
-    process.stdout.write(`  p${p}: ${clean.length} chars\n`);
-  }
-  await worker.terminate();
-
-  // Build chunks per page so we can keep page numbers for citations.
-  const allChunks = [];
-  let idx = 0;
-  for (const { page, text } of pageTexts) {
-    for (const content of chunkPlainText(text, CHUNK_CHARS, CHUNK_OVERLAP)) {
-      allChunks.push({ chunk_index: idx++, content, page });
-    }
-  }
-
   const outDir = path.resolve(process.cwd(), "data", "nutrition");
   fs.mkdirSync(outDir, { recursive: true });
   const slug = path.basename(pdfArg).replace(/\.[^.]+$/, "").toLowerCase()
     .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   const outPath = path.join(outDir, slug + ".json");
+  // Per-page checkpoint so a crash/OOM never loses progress — re-running
+  // resumes from where it stopped.
+  const ckptPath = path.join(outDir, slug + ".pages.json");
+  let pages = {};
+  if (fs.existsSync(ckptPath)) {
+    try { pages = JSON.parse(fs.readFileSync(ckptPath, "utf8")) || {}; } catch (_) { pages = {}; }
+    console.log(`Resuming — ${Object.keys(pages).length} pages already done.`);
+  }
+  const flush = () => fs.writeFileSync(ckptPath, JSON.stringify(pages), "utf8");
+
+  const worker = await createWorker("eng");
+  let failed = 0;
+  for (let p = 1; p <= numPages; p++) {
+    if (Object.prototype.hasOwnProperty.call(pages, p)) continue; // resume
+    let canvas = null;
+    try {
+      const page = await doc.getPage(p);
+      const viewport = page.getViewport({ scale: RENDER_SCALE });
+      canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
+      const ctx = canvas.getContext("2d");
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const png = canvas.toBuffer("image/png");
+      const { data: { text } } = await worker.recognize(png);
+      pages[p] = (text || "").trim();
+      process.stdout.write(`  p${p}: ${pages[p].length} chars\n`);
+      try { page.cleanup(); } catch (_) {}
+    } catch (e) {
+      failed++;
+      pages[p] = ""; // mark done (empty) so resume doesn't retry forever
+      process.stdout.write(`  p${p}: SKIPPED (${e && e.message ? e.message : e})\n`);
+    } finally {
+      // Release the native canvas surface to bound memory across 100s of pages.
+      if (canvas) { try { canvas.width = 0; canvas.height = 0; } catch (_) {} }
+      if (p % 5 === 0) flush();
+      if (global.gc && p % 10 === 0) { try { global.gc(); } catch (_) {} }
+    }
+  }
+  flush();
+  try { await worker.terminate(); } catch (_) {}
+  if (failed) console.log(`(${failed} page(s) skipped due to render errors)`);
+
+  // Build chunks per page (page order) so citations keep page numbers.
+  const allChunks = [];
+  let idx = 0;
+  Object.keys(pages).map(Number).sort((a, b) => a - b).forEach((page) => {
+    for (const content of chunkPlainText(pages[page], CHUNK_CHARS, CHUNK_OVERLAP)) {
+      allChunks.push({ chunk_index: idx++, content, page });
+    }
+  });
+
   fs.writeFileSync(outPath, JSON.stringify({
     title, filename: path.basename(pdfArg), slug,
     numPages: doc.numPages, ocr: true, chunkChars: CHUNK_CHARS, chunkOverlap: CHUNK_OVERLAP,
     chunks: allChunks,
   }, null, 2), "utf8");
-  const totalChars = pageTexts.reduce((s, p) => s + p.text.length, 0);
+  const totalChars = Object.values(pages).reduce((s, t) => s + (t ? t.length : 0), 0);
   console.log(`OCR total chars: ${totalChars}, chunks: ${allChunks.length}`);
   console.log(`Wrote -> ${outPath} (${Math.round(fs.statSync(outPath).size / 1024)} KB)`);
 }
