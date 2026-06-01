@@ -2658,6 +2658,41 @@
       .mgmp-prefrow:last-child { border-bottom: none; }
       .mgmp-prefrow strong { color: #243a31; }
       @media (max-width: 1040px) { .mgmp-grid { grid-template-columns: 1fr; } }
+
+      /* ---- Hero cards for each tab (Meal Plan / Recipes / Journaling) ---- */
+      .companion-shell .mg-hero-card {
+        display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 26px; align-items: center;
+        background: rgba(255, 253, 250, 0.78); border: 1px solid #e3dacd; border-radius: 30px;
+        padding: 30px; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+        margin-bottom: 22px; overflow: hidden; position: relative;
+      }
+      .companion-shell .mg-hero-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px; background: #e9f0ea; color: #264f45;
+        font-size: 13px; font-weight: 800; margin-bottom: 14px;
+      }
+      .companion-shell .mg-hero-copy h1 {
+        margin: 0; font-family: Georgia, "Times New Roman", serif; color: #173a32;
+        font-size: clamp(32px, 4vw, 50px); line-height: 1; letter-spacing: -0.8px;
+      }
+      .companion-shell .mg-hero-copy p { margin: 12px 0 0; color: #63736a; font-size: 16px; line-height: 1.6; max-width: 720px; }
+      .companion-shell .mg-hero-art { min-height: 150px; display: grid; place-items: center; }
+      .companion-shell .mg-hero-art svg { width: 100%; height: auto; max-width: 250px; }
+      @media (max-width: 1040px) {
+        .companion-shell .mg-hero-card { grid-template-columns: 1fr; padding: 24px; }
+        .companion-shell .mg-hero-art { display: none; }
+      }
+
+      /* ---- Whole-page scroll for the meal generator: one scroller on the
+         companion view (#companionRoot), instead of a cramped inner box.
+         Scoped to body:not(.plant-chat-open) so the chat view is untouched. ---- */
+      @media (min-width: 769px) {
+        body:not(.plant-chat-open) #companionRoot { overflow-y: auto; overflow-x: hidden; }
+        body:not(.plant-chat-open) #companionRoot .companion-body,
+        body:not(.plant-chat-open) #companionRoot .companion-pane,
+        body:not(.plant-chat-open) #companionRoot .companion-scroll { overflow: visible; min-height: 0; }
+        body:not(.plant-chat-open) #companionRoot .companion-shell { flex: 0 0 auto; min-height: 100%; }
+      }
     </style>
   </head>
   <body class="sw-no-sidebar">
@@ -4057,6 +4092,12 @@
 
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll";
+          scroll.appendChild(heroCard(
+            "📔",
+            T("aria.journal.eyebrow", "Daily journal"),
+            T("aria.journal.title2", "Journal your day"),
+            T("aria.journal.heroSub", "Log what you ate, how you moved, how you slept, and how you feel. Type or use the mic, set the time, and keep a simple running record.")
+          ));
           state.messages.forEach((msg) => scroll.appendChild(bubbleEl(msg)));
           pane.appendChild(scroll);
 
@@ -4331,6 +4372,39 @@
           return wrap;
         }
 
+        // Reusable hero-card (eyebrow + serif title + subtitle + bowl art),
+        // matching meal_generator.html. Used at the top of each tab/section.
+        const MG_BOWL_SVG =
+          '<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">' +
+            '<ellipse cx="120" cy="80" rx="78" ry="50" fill="#eaf0e3"/>' +
+            '<path d="M55 78 Q120 122 185 78 L172 100 Q120 130 68 100 Z" fill="#f1ead8" stroke="#cdc4ad" stroke-width="1.5"/>' +
+            '<ellipse cx="120" cy="78" rx="65" ry="10" fill="#e7decc" stroke="#cdc4ad" stroke-width="1.5"/>' +
+            '<path d="M85 70 q-8 -20 8 -34 q12 10 6 28 q-6 8 -14 6z" fill="#7ea27a"/>' +
+            '<path d="M105 64 q-10 -22 10 -36 q14 12 6 30 q-8 8 -16 6z" fill="#5f8a5f"/>' +
+            '<path d="M130 66 q-6 -18 14 -30 q10 12 2 26 q-8 6 -16 4z" fill="#88ad84"/>' +
+            '<circle cx="148" cy="78" r="10" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+            '<circle cx="148" cy="78" r="6" fill="#fff4c2"/>' +
+            '<circle cx="166" cy="86" r="7" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+            '<circle cx="166" cy="86" r="4" fill="#fff4c2"/>' +
+          '</svg>';
+        function heroCard(eyebrowIcon, eyebrowText, title, subtitle) {
+          const card = document.createElement("div");
+          card.className = "mg-hero-card";
+          const copy = document.createElement("div");
+          copy.className = "mg-hero-copy";
+          copy.innerHTML =
+            '<div class="mg-hero-eyebrow">' + eyebrowIcon + ' ' + escapeHtml(eyebrowText) + '</div>' +
+            '<h1>' + escapeHtml(title) + '</h1>' +
+            (subtitle ? '<p>' + escapeHtml(subtitle) + '</p>' : '');
+          const art = document.createElement("div");
+          art.className = "mg-hero-art";
+          art.setAttribute("aria-hidden", "true");
+          art.innerHTML = MG_BOWL_SVG;
+          card.appendChild(copy);
+          card.appendChild(art);
+          return card;
+        }
+
         function choiceCard(opts) {
           const b = document.createElement("button");
           b.type = "button";
@@ -4530,50 +4604,13 @@
             // Header block: title + subtitle on the left, decorative bowl
             // illustration on the right (purely cosmetic — matches the new
             // mock; no behavior change).
-            // Eyebrow pill (matches the meal_generator.html mock).
-            const eyebrow = document.createElement("div");
-            eyebrow.className = "mgmp-eyebrow";
-            eyebrow.textContent = "🌿 " + T("aria.mp.eyebrow", "Personalized nutrition planner");
-            wrap.appendChild(eyebrow);
-
-            // Hero block: title + subtitle on the left, decorative bowl
-            // illustration on the right (purely cosmetic — no behavior change).
-            const headerWrap = document.createElement("div");
-            headerWrap.className = "mp-form-header";
-            const headerText = document.createElement("div");
-            headerText.className = "mp-form-header-text";
-            const titleRow = backRow(T("aria.mp.weekly.title", "Stilwater weekly plan"));
-            const note = document.createElement("p");
-            note.className = "companion-intro-body";
-            note.style.marginTop = "-6px";
-            note.textContent = T("aria.mp.weekly.hint", "Tell Aria your preferred cuisines, foods you love, and foods you want to avoid. Your weekly meal plan will be shaped around your taste, lifestyle, and wellness goals.");
-            headerText.appendChild(titleRow);
-            headerText.appendChild(note);
-            const headerArt = document.createElement("div");
-            headerArt.className = "mp-form-header-art";
-            headerArt.setAttribute("aria-hidden", "true");
-            headerArt.innerHTML =
-              '<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">' +
-                // soft cream backdrop blob
-                '<ellipse cx="120" cy="80" rx="78" ry="50" fill="#eaf0e3"/>' +
-                // bowl
-                '<path d="M55 78 Q120 122 185 78 L172 100 Q120 130 68 100 Z" fill="#f1ead8" stroke="#cdc4ad" stroke-width="1.5"/>' +
-                '<ellipse cx="120" cy="78" rx="65" ry="10" fill="#e7decc" stroke="#cdc4ad" stroke-width="1.5"/>' +
-                // greens / leaves
-                '<path d="M85 70 q-8 -20 8 -34 q12 10 6 28 q-6 8 -14 6z" fill="#7ea27a"/>' +
-                '<path d="M105 64 q-10 -22 10 -36 q14 12 6 30 q-8 8 -16 6z" fill="#5f8a5f"/>' +
-                '<path d="M130 66 q-6 -18 14 -30 q10 12 2 26 q-8 6 -16 4z" fill="#88ad84"/>' +
-                // lemon halves
-                '<circle cx="148" cy="78" r="10" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
-                '<circle cx="148" cy="78" r="6" fill="#fff4c2"/>' +
-                '<line x1="148" y1="72" x2="148" y2="84" stroke="#d6b85a" stroke-width="0.8"/>' +
-                '<line x1="142" y1="78" x2="154" y2="78" stroke="#d6b85a" stroke-width="0.8"/>' +
-                '<circle cx="166" cy="86" r="7" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
-                '<circle cx="166" cy="86" r="4" fill="#fff4c2"/>' +
-              '</svg>';
-            headerWrap.appendChild(headerText);
-            headerWrap.appendChild(headerArt);
-            wrap.appendChild(headerWrap);
+            // Hero card (eyebrow + serif title + subtitle + bowl art).
+            wrap.appendChild(heroCard(
+              "🌿",
+              T("aria.mp.eyebrow", "Personalized nutrition planner"),
+              T("aria.mp.weekly.title", "Stilwater weekly plan"),
+              T("aria.mp.weekly.hint", "Tell Aria your preferred cuisines, foods you love, and foods you want to avoid. Your weekly meal plan will be shaped around your taste, lifestyle, and wellness goals.")
+            ));
 
             // Two columns: build form-card (left) + info aside (right).
             const grid = document.createElement("div");
@@ -4771,7 +4808,12 @@
           wrap.style.gap = "16px";
 
           if (!hasPlan()) {
-            wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
+            wrap.appendChild(heroCard(
+            "🌿",
+            T("aria.mp.eyebrow", "Personalized nutrition planner"),
+            T("aria.mp.today.title", "Today's plan"),
+            T("aria.mp.today.heroSub", "Today's meals, shaped from your weekly plan and yesterday's journal.")
+          ));
             const empty = document.createElement("div");
             empty.className = "companion-empty-card";
             empty.innerHTML =
@@ -4804,7 +4846,12 @@
             state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
           }
 
-          wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
+          wrap.appendChild(heroCard(
+            "🌿",
+            T("aria.mp.eyebrow", "Personalized nutrition planner"),
+            T("aria.mp.today.title", "Today's plan"),
+            T("aria.mp.today.heroSub", "Today's meals, shaped from your weekly plan and yesterday's journal.")
+          ));
           if (state.todayPlan) {
             const meta = document.createElement("div");
             meta.className = "companion-meta";
@@ -5087,16 +5134,21 @@
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow";
 
-          const head = document.createElement("div");
-          head.innerHTML =
-            '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
-            '<p class="companion-intro-body">' +
-              escapeHtml(state.todayPlan
-                ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
-                : T("aria.recipes.searchIntro", "Search any dish — Aria finds 3 plant-based cooking videos.")) +
-            '</p>' +
-            (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
-          scroll.appendChild(head);
+          scroll.appendChild(heroCard(
+            "🍲",
+            T("aria.recipes.eyebrow", "Plant-based recipes"),
+            T("aria.recipes.title2", "Find a recipe"),
+            state.todayPlan
+              ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
+              : T("aria.recipes.heroSub", "Type any dish — or tap one from your generated weekly plan — and Aria gives you a simple whole-food, plant-based recipe, with a video to cook along to.")
+          ));
+          if (state.todayPlan && state.todayMeta) {
+            const recMeta = document.createElement("div");
+            recMeta.className = "companion-meta";
+            recMeta.style.marginTop = "-8px";
+            recMeta.textContent = state.todayMeta;
+            scroll.appendChild(recMeta);
+          }
 
           // Search row — typing a dish + Find opens the 3-video popup
           // (same agent used by the weekly-plan and today-plan buttons).
