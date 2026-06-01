@@ -4727,7 +4727,12 @@
               '<span>' + escapeHtml(T("aria.mp.safetyNote", "Aria offers lifestyle guidance and does not replace your doctor’s advice.")) + '</span>';
             wrap.appendChild(safety);
           } else {
-            wrap.appendChild(backRow(T("aria.mp.yourWeekly", "Your weekly plan")));
+            wrap.appendChild(heroCard(
+              "🌿",
+              T("aria.mp.eyebrow", "Personalized nutrition planner"),
+              T("aria.mp.yourWeekly", "Your weekly plan"),
+              T("aria.mp.weeklyResultSub", "Your personalized week of plant-based meals. Tap a meal for cooking videos, or edit your preferences.")
+            ));
             const row = document.createElement("div");
             row.className = "companion-row";
             row.style.marginTop = "-6px";
