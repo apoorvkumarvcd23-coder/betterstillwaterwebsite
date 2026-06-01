@@ -2333,11 +2333,17 @@
       }
       .plant-chat-header {
         flex: 0 0 auto;
-        display: flex; align-items: center; gap: 12px;
+        display: flex; align-items: center; gap: 14px;
         padding: 14px 24px;
         border-bottom: 1px solid #e8dfd2;
         background: rgba(255, 251, 246, 0.96);
       }
+      .plant-chat-header .plant-chat-title {
+        font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        font-size: clamp(20px, 2.2vw, 28px); font-weight: 600;
+        color: #153d31; letter-spacing: -0.4px; margin-right: auto;
+      }
+      @media (max-width: 760px) { .plant-chat-header .plant-chat-title { font-size: 19px; } }
 
       /* --- Two-column layout: main chat + side panel --- */
       .pbn-layout {
@@ -5302,6 +5308,16 @@
           backBtn.addEventListener("click", () => { if (window.__swPlantRecipes) window.__swPlantRecipes.showLauncher(); });
           header.appendChild(backBtn);
 
+          // Page title sits to the right of the Back button.
+          const headTitle = document.createElement("div");
+          headTitle.className = "plant-chat-title";
+          headTitle.textContent = chatMode === "nutrition"
+            ? T("launcher.nutrition.title", "Plant based Nutrition")
+            : (chatMode === "chronic"
+              ? T("launcher.chronic.title", "Chronic Disease Management")
+              : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
+          header.appendChild(headTitle);
+
           // Mobile-only hamburger: the chat view hides the companion-shell
           // that holds the sidebar toggle, so surface our own here. It opens
           // the same off-canvas drawer through the existing #careMenuBtn
@@ -5328,16 +5344,6 @@
           // ---- New layout: main chat column + per-mode side panel ----
           const isNutrition = chatMode === "nutrition";
           const isChronic = chatMode === "chronic";
-          const heroTitle = isNutrition
-            ? T("launcher.nutrition.title", "Plant based Nutrition")
-            : (isChronic
-              ? T("launcher.chronic.title", "Chronic Disease Management")
-              : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
-          const heroSub = isNutrition
-            ? T("pbn.hero.nutritionSub", "Your AI companion for whole-food, plant-based living.")
-            : (isChronic
-              ? T("pbn.hero.chronicSub", "Guidance and gentle daily practices tailored to your condition.")
-              : T("pbn.hero.generalSub", "Your Stilwater wellness companion."));
 
           const layout = document.createElement("div");
           layout.className = "pbn-layout";
@@ -5345,15 +5351,8 @@
           mainCol.className = "pbn-main";
           layout.appendChild(mainCol);
 
-          const hero = document.createElement("div");
-          hero.className = "pbn-hero";
-          const heroH1 = document.createElement("h1");
-          heroH1.textContent = heroTitle;
-          const heroP = document.createElement("p");
-          heroP.textContent = heroSub;
-          hero.appendChild(heroH1);
-          hero.appendChild(heroP);
-          mainCol.appendChild(hero);
+          // (Title now lives in the header beside Back; the hero block and its
+          // subtitle were removed.)
 
           // Suggestion cards = the per-condition starters (replaces the old
           // in-chat starter chips). Clicking one sends it, exactly as before.
