@@ -13,11 +13,12 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **Live (head of test)**: `18dff27` — mobile responsiveness pass on
-  recent UI work.
-- **Live (head of main)**: `e91be1b` — much older. Test is **~33 commits
-  ahead of main** as of this handoff (mostly Stilwater AI Chat work,
-  homepage redesign, auth-page redesign, new videos, mobile pass).
+- **Live (head of test)**: `694011a` — home hero tightened (see §12 for the
+  full 2026-06-01 session: post-login selection screen, Nutrition + Chronic
+  RAG, ChatGPT-style server chat history, streaming chat, chat restyle).
+- **Live (head of main)**: `e91be1b` — much older. Test is **far ahead of
+  main** (all of the §12 work plus the earlier Stilwater AI Chat, homepage,
+  auth-page, videos, mobile passes). Promote when ready.
 - **Local checkout**: always returns to `test` after a promotion
   (saved user preference).
 - **Standing user rule**: never push to main without explicit
@@ -416,4 +417,109 @@ their mobile behavior from `css/index.css`.
 
 ---
 
-_Generated 2026-05-30 from test branch head `18dff27`._
+## 12. Update — 2026-06-01 session (big one)
+
+Everything below was added on top of `18dff27`. Test head is now `694011a`.
+
+### 12.1 Post-login selection screen (the new landing)
+After Google/phone login, customers land on a **4-card selection screen**
+("launcher") rendered inside the care-path shell, not the assessment.
+- Server: `getDefaultPostAuthRedirectForUser` → `/care-path.html?view=select`.
+- Cards: **Practice Yoga**, **Plant based Nutrition**, **Chronic Disease
+  Management**, **Practice Meditation**. Lives in `care-path.html`
+  (`#swLauncher`); driven by `?view=` and the `window.__swPlantRecipes`
+  view API (`showLauncher/showNutrition/showChronic/showYoga/showCompanion/
+  showMeditation/newChat/loadSession/refreshHistory/backFromCompanion`).
+- **Yoga** → opens the existing "Practice Yoga Asanas with AI" modal
+  (`#yogaIntroModal`) over the launcher, now with a 3rd card **"Live Tadasana
+  Practice"** → `realtime-tadasha-pose-detection-hrp4.onrender.com`
+  (Tadasana card still uses the static detector; both reuse the LemonSlice
+  "Tap to talk" avatar). The old `ai-all-yoga-pose-analysis` iframe was dropped.
+- **Practice Meditation** → the existing AI-Driven-Meditation video modal,
+  now opened via `window.__swMeditation.open()` (its sidebar button was removed).
+- i18n keys under `launcher.*` (EN+HI). The subtitle line was removed per
+  feedback.
+
+### 12.2 Three Aria chat "modes" (same UI, different brain + endpoint)
+The chat UI (`renderPlantRecipesChat` in care-path.html) is shared; `chatMode`
+selects the backend:
+- **nutrition** → `POST /api/nutrition/chat` (recipe RAG, §12.3). Header shows
+  an **"Explore Plant-Based Recipes"** tab → opens the 3-tab companion shell.
+- **chronic** → `POST /api/chronic/chat` (condition RAG, §12.4). Header shows a
+  **"Take Wellness Assessment"** tab → intake.html.
+- **general** → `POST /api/stilwater/chat` (unchanged condition-tuned chat).
+All three **stream** via SSE (`data:{delta}` … final `data:{done,…}`) with the
+`[FOLLOWUPS]` block parsed server-side into chips. The chat was restyled
+Perplexity-style: assistant replies render as full-width prose (markdown via a
+small safe `mdToHtml`), follow-ups + starter chips are a divided list with a ↳
+prefix. The greeting bubble is left as a bubble. Auto-scrolls to the newest
+message; compose bar pinned at the bottom; "← Back" returns to the launcher.
+
+### 12.3 Nutrition RAG — the vector DB (THE one to know)
+- **Schema: `nutrition` in the primary Postgres** (same `DATABASE_URL`).
+  `nutrition.documents` (one row per book) + `nutrition.chunks`
+  (`embedding vector(1536)`, cosine search). Auto-created on boot.
+- The recipe/diabetes PDFs are **image-only** (no text layer), so text is
+  **OCR-extracted offline** with `scripts/ocr-nutrition-pdf.mjs` (pdfjs +
+  @napi-rs/canvas + tesseract.js; checkpoint/resume + per-page canvas release
+  for big PDFs) into `data/nutrition/<slug>.json`. Those JSONs are committed;
+  the **source PDFs and `*.pages.json` checkpoints are gitignored**.
+- Ingest: `ingestNutritionDocs()` scans `data/nutrition/*.json` and embeds each
+  as a document into `nutrition.chunks` (idempotent per filename; appends — no
+  per-book tables). Runs in the background on boot if empty; re-runnable via
+  **`POST /api/admin/nutrition/ingest`** (`?force=1` to re-embed) / status at
+  **`GET /api/admin/nutrition/status`** (admin only).
+- **Two books currently indexed**: "Timeless Recipes for Healthy Living"
+  (217/217 chunks) and "Reversing Diabetes in 21 Days" (**469/623** — the rest
+  were free-tier OpenRouter embedding rate-limits; a forced re-ingest after a
+  credit top-up fills them). To add a book: OCR → drop a JSON in
+  `data/nutrition/` → boot or force ingest.
+
+### 12.4 Chronic Disease Management — RAG by condition
+`POST /api/chronic/chat` picks the backend from the condition (from the
+assessment flags / `activeCondition()`), grounded in the existing
+**testimonial RAG datasets** (`/api/rag/chat` infra, `resolveDatasetConfig`):
+- **diabetes → Sharan Diabetes Mate AI** (`diabetes` dataset)
+- **eye → Amar Eye Vision Mate AI** (`amar_eye_yoga` dataset, model
+  `openai/gpt-4o-mini` via OpenRouter — override with `AMAR_EYE_MODEL`)
+- **anything else / Skip → Holistic Wellness AI** (`holistic_wellness`)
+Each retrieves top-K testimonials, weaves in the per-condition recommendation
+(Sharan / Amar Eye Yoga / "Please connect with Stilwater."), and streams.
+Assessment **Skip** now goes to `/care-path.html?view=chronic` → Holistic.
+
+### 12.5 ChatGPT-style chat history (server-side)
+- New table **`aria.chat_sessions`** (`auth_user_type/id, mode, title,
+  messages JSONB, …`). REST: `POST/GET/GET:id/PUT/DELETE /api/chat/sessions`
+  (`GET` accepts `?mode=` to filter).
+- Client: chat is no longer in localStorage; the active chat is in-memory +
+  `currentSessionId`. **Every visit/login starts a new chat**; saved to the
+  server on every reply (survives logout); past chats listed in the left panel
+  (title + date/time), click to resume; "New chat" → launcher.
+- **Left panel = chat history ONLY in Nutrition & Chronic** (hidden on the
+  launcher, Yoga, Meditation, companion via `body.sw-no-sidebar`). Histories
+  are **separate per module** (the `?mode=` filter) — Nutrition and Chronic
+  never show each other's chats.
+
+### 12.6 Misc
+- Streaming + free-tier: `/api/nutrition/chat` trims to top-3 chunks + last 6
+  msgs + `max_tokens 1100` so the reply + follow-ups fit the free budget.
+- `partner-amar-eye.html` mobile overflow fixed; care-path mobile hamburger
+  reachable; home hero whitespace tightened + single "Start wellness journey"
+  CTA (Meet Aria button removed).
+- New deps for offline OCR are **devDependencies** (`pdf-parse`, `pdfjs-dist`);
+  `@napi-rs/canvas` + `tesseract.js` are installed ad-hoc (`npm i -D …`).
+
+### 12.7 New env var
+- `AMAR_EYE_MODEL` (optional) — OpenRouter model for the Amar Eye chronic flow
+  (default `openai/gpt-4o-mini`).
+
+### 12.8 Open items
+- Top up OpenRouter credits to (a) remove the chat free-tier prompt cap and
+  (b) finish embedding the diabetes book (469→623) via
+  `POST /api/admin/nutrition/ingest?force=1`.
+- Promote `test → main` when ready (still untouched this whole session).
+
+---
+
+_Updated 2026-06-01 from test branch head `694011a`. Original generated
+2026-05-30 from `18dff27`._
