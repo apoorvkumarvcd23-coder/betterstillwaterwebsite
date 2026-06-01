@@ -121,7 +121,6 @@
     position: relative;
     min-height: auto;
     overflow: hidden;
-    display: flex; align-items: center;
     background:
       radial-gradient(120% 90% at 100% 100%, rgba(246,241,233,0.9) 0%, rgba(246,241,233,0) 55%),
       radial-gradient(130% 110% at 0% 100%, var(--cream) 0%, rgba(243,239,230,0) 60%),
@@ -134,7 +133,7 @@
     pointer-events: none; opacity: 0.9;
   }
   .hero .arcs svg { width: 100%; height: 100%; }
-  .hero-content { position: relative; z-index: 1; max-width: 1000px; padding: 44px 0 40px; }
+  .hero-content { position: relative; z-index: 1; padding-top: 44px; padding-bottom: 40px; }
 
   .eyebrow {
     display: flex; align-items: center; gap: 22px;
@@ -490,7 +489,7 @@
     /* Hide the decorative hero arcs SVG on phones — it overflows. */
     .hero .arcs { display: none; }
     .hero { min-height: auto; }
-    .hero-content { padding: 32px 0 28px; }
+    .hero-content { padding-top: 32px; padding-bottom: 28px; }
     .eyebrow { margin-bottom: 22px; gap: 14px; font-size: 0.68rem; letter-spacing: 0.22em; }
     .eyebrow .line { width: 30px; }
     h1.hero-title { margin-bottom: 22px; line-height: 1.02; }
@@ -530,7 +529,7 @@
   /* Tiny phones (≤ 420px) — tighten further */
   @media (max-width: 420px) {
     .container { padding: 0 18px; }
-    .hero-content { padding: 28px 0 24px; }
+    .hero-content { padding-top: 28px; padding-bottom: 24px; }
     h1.hero-title { font-size: clamp(2.2rem, 11vw, 3rem); }
     .hero-body { font-size: 1rem; }
     .btn-primary { width: 100%; text-align: center; padding: 14px 18px; }
@@ -551,8 +550,7 @@
       <img src="images/stilwater-logov3.png" alt="Stilwater" style="height:42px;width:auto;display:block;" />
     </a>
     <div class="nav-links" id="authActions">
-      <a href="#aria" data-i18n="home.nav.meetAria">Meet Aria</a>
-      <a href="#pillars" data-i18n="home.nav.platform">The Platform</a>
+      <a href="#pillars" data-i18n="home.nav.product">Product</a>
       <a href="#how" data-i18n="home.nav.how">How it works</a>
       <a href="#pricing" data-i18n="home.nav.pricing">Pricing</a>
       <!-- Auth dropdown — populated and shown/hidden by js/shared.js based

@@ -2265,6 +2265,348 @@
     })(window, document, "clarity", "script", "ww8pdzkpcp");
   })();
     </script>
+    <style>
+      /* ============================================================
+         Chat redesign (Plant-Based Nutrition / Chronic Disease Mgmt)
+         Source of visual design: Plant_Based_Nutrition.html.
+         Restyle only — behaviour, data, follow-ups, history dates,
+         and per-mode separation are unchanged.
+         ============================================================ */
+
+      /* --- Left sidebar (chat history) --- */
+      .care-sidebar {
+        background: radial-gradient(circle at top right, #2c5a4f 0%, #21483f 38%, #173a32 100%) !important;
+      }
+      .care-newchat {
+        justify-content: center;
+        border: none;
+        border-radius: 15px;
+        background: #264f45;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 8px 18px rgba(23, 58, 50, 0.14);
+      }
+      .care-newchat:hover { background: #173a32; }
+      .care-sidebar-title {
+        font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+        text-transform: uppercase; color: #d7e7dd;
+      }
+      .care-chat-history { gap: 9px; }
+      .care-chat-item {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) 14px;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 10px;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .care-chat-item:hover { background: rgba(255, 255, 255, 0.08); }
+      .care-chat-item.is-active {
+        background: rgba(38, 79, 69, 0.72);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      .care-chat-item .cc-icon {
+        width: 30px; height: 30px; border-radius: 10px;
+        display: grid; place-items: center;
+        background: rgba(255, 255, 255, 0.10); color: #dff0dc; font-size: 14px;
+      }
+      .care-chat-item .cc-body { min-width: 0; }
+      .care-chat-item .cc-title { font-size: 13px; font-weight: 600; }
+      .care-chat-item .cc-meta { font-size: 11px; color: #c5d9cf; margin-top: 4px; }
+      .care-chat-item .cc-dots { color: #d0ddd6; font-size: 16px; text-align: center; }
+      .care-sidebar-clear {
+        border-radius: 15px;
+        border: 1px solid rgba(224, 239, 233, 0.16);
+        background: rgba(255, 255, 255, 0.03);
+        color: #eef6f1; font-weight: 700;
+      }
+
+      /* --- Chat overlay shell --- */
+      .plant-chat-overlay {
+        display: flex;
+        flex-direction: column;
+        background: #f7f3ec;
+        overflow: hidden;
+      }
+      .plant-chat-header {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 24px;
+        border-bottom: 1px solid #e8dfd2;
+        background: rgba(255, 251, 246, 0.96);
+      }
+
+      /* --- Two-column layout: main chat + side panel --- */
+      .pbn-layout {
+        flex: 1 1 auto; min-height: 0; min-width: 0;
+        overflow-y: auto; overflow-x: hidden;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 300px;
+        gap: 22px;
+        align-items: start;
+        padding: 26px 28px 22px;
+      }
+      .pbn-main { min-width: 0; display: flex; flex-direction: column; }
+      .pbn-hero h1 {
+        margin: 0;
+        font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        font-size: clamp(32px, 3.6vw, 52px);
+        line-height: 1.0; letter-spacing: -1px; color: #153d31;
+      }
+      .pbn-hero p { margin: 9px 0 0; font-size: 16px; line-height: 1.45; color: #68736b; }
+
+      .pbn-suggestions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0 18px;
+        min-width: 0;
+      }
+      .pbn-suggestion {
+        min-width: 0;
+        display: flex; align-items: center; gap: 10px;
+        background: #fffdfa; border: 1px solid #e8dfd2;
+        border-radius: 18px; padding: 14px; min-height: 72px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08);
+        cursor: pointer; text-align: left; font: inherit; color: #2b4037;
+        transition: 0.2s ease;
+      }
+      .pbn-suggestion:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(24, 55, 39, 0.1);
+        border-color: rgba(38, 79, 69, 0.22);
+      }
+      .pbn-s-ico {
+        width: 34px; height: 34px; border-radius: 12px;
+        display: grid; place-items: center;
+        background: #e9f0ea; color: #264f45; font-size: 17px; flex: 0 0 auto;
+      }
+      .pbn-s-text { min-width: 0; font-size: 13px; line-height: 1.32; font-weight: 600; flex: 1; }
+      .pbn-chev { font-size: 20px; color: #7b817c; flex: 0 0 auto; }
+
+      .pbn-chat-card {
+        background: #fffdfa; border: 1px solid #e8dfd2; border-radius: 22px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08);
+        padding: 16px;
+        display: flex; flex-direction: column; gap: 14px;
+        height: calc(100vh - 300px); min-height: 340px;
+      }
+      .pbn-disclaimer { text-align: center; color: #70776f; font-size: 13px; margin-top: 12px; }
+
+      .pbn-side {
+        min-width: 0; position: sticky; top: 26px;
+        background: linear-gradient(180deg, #f6f2ea, #f4efdf);
+        border: 1px solid #e8dfd2; border-radius: 22px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); padding: 22px;
+      }
+      .pbn-side h3 { margin: 0 0 10px; font-size: 18px; color: #234135; }
+      .pbn-side p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #657168; }
+      .pbn-side .cta {
+        width: 100%; background: #264f45; color: #ffffff; border: none;
+        border-radius: 999px; padding: 14px 18px; font-size: 14px; font-weight: 700;
+        box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16); cursor: pointer; transition: 0.2s ease;
+      }
+      .pbn-side .cta:hover { background: #173a32; transform: translateY(-1px); }
+
+      /* --- Messages: avatar + bubble + Aria name --- */
+      .pbn-chat-card .plant-chat-scroll {
+        flex: 1 1 auto; min-height: 0;
+        overflow-y: auto; overflow-x: hidden;
+        display: flex; flex-direction: column; gap: 14px;
+        padding: 4px 2px;
+      }
+      .plant-chat-scroll .message { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+      .plant-chat-scroll .message.user { flex-direction: row-reverse; }
+      .plant-chat-scroll .avatar-small {
+        width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto;
+        position: relative; overflow: hidden;
+        background: linear-gradient(180deg, #d8c6b0, #f7e8d8 65%, #b88b63);
+      }
+      .plant-chat-scroll .avatar-small::before {
+        content: ""; position: absolute; inset: auto 12% 0 12%; height: 58%;
+        border-radius: 50% 50% 38% 38%; background: #45291f; transform: translateY(8%); opacity: 0.95;
+      }
+      .plant-chat-scroll .avatar-small::after {
+        content: ""; position: absolute; left: 25%; right: 25%; top: 18%; bottom: 26%;
+        border-radius: 42% 42% 48% 48%;
+        background: radial-gradient(circle at 50% 35%, #f8e2cd 0, #f2d5bb 58%, #ddb28f 100%);
+      }
+      .plant-chat-scroll .message.user .avatar-small { background: linear-gradient(180deg, #2c5a4f, #173a32); }
+      .plant-chat-scroll .message.user .avatar-small::before,
+      .plant-chat-scroll .message.user .avatar-small::after { content: none; }
+      .plant-chat-scroll .message .bubble {
+        max-width: 600px; min-width: 0;
+        background: #eef0e9; border-radius: 17px; padding: 14px 16px;
+        color: #34473e; font-size: 15px; line-height: 1.5;
+      }
+      .plant-chat-scroll .message.user .bubble {
+        background: #264f45; color: #f3fbf5; border-bottom-right-radius: 6px;
+      }
+      .plant-chat-scroll .bubble-name { font-weight: 700; margin-bottom: 6px; color: #1d3f34; }
+      .plant-chat-scroll .bubble.recipe-chat-prose { background: #eef0e9; padding: 14px 16px; }
+
+      /* Follow-ups (Perplexity-style ↳ list) stay; align under the bubble */
+      .plant-chat-scroll .plant-chat-msg-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+      .plant-chat-scroll .plant-chat-msg-wrap .plant-chat-followups { margin-left: 48px; }
+
+      /* --- Composer pill inside the chat card --- */
+      .pbn-chat-card .plant-compose {
+        margin-top: auto;
+        border: 1px solid #e8dfd2; border-radius: 999px;
+        padding: 9px 10px; display: flex; align-items: center; gap: 10px;
+        background: #ffffff; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+      }
+      .pbn-chat-card .plant-compose:focus-within {
+        border-color: rgba(38, 79, 69, 0.42); box-shadow: 0 0 0 3px rgba(38, 79, 69, 0.08);
+      }
+      .pbn-chat-card .plant-send-btn { background: #264f45; color: #ffffff; border: none; }
+      .pbn-chat-card .plant-send-btn:hover { background: #173a32; }
+
+      @media (max-width: 1024px) {
+        .pbn-layout { grid-template-columns: 1fr; }
+        .pbn-side { position: static; order: -1; }
+      }
+      @media (max-width: 720px) {
+        .plant-chat-header { padding: 12px 14px; }
+        .pbn-layout { padding: 16px 14px; gap: 16px; }
+        .pbn-suggestions { grid-template-columns: 1fr; }
+        .pbn-hero h1 { font-size: 32px; }
+        .plant-chat-scroll .message .bubble { max-width: 100%; }
+        .plant-chat-scroll .plant-chat-msg-wrap .plant-chat-followups { margin-left: 0; }
+      }
+    </style>
+    <style>
+      /* ============================================================
+         Meal-generator (companion) redesign — VISUAL ONLY.
+         Source of design: meal_generator.html. No behaviour/logic change.
+         ============================================================ */
+      /* New page header with Back button */
+      .mg-topbar {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 22px;
+        border-bottom: 1px solid #e3dacd;
+        background: rgba(255, 251, 246, 0.96);
+      }
+      .mg-back {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 16px; border-radius: 999px;
+        border: 1px solid #e3dacd; background: #fffdfa;
+        color: #264f45; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); cursor: pointer;
+      }
+      .mg-back:hover { background: #f2eee5; }
+      .mg-back svg { width: 18px; height: 18px; }
+      .mg-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 20px; font-weight: 600; color: #173a32;
+      }
+      .mg-eyebrow {
+        margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+        padding: 7px 12px; border-radius: 999px;
+        background: #e9f0ea; color: #264f45; font-size: 13px; font-weight: 800;
+      }
+      @media (max-width: 760px) { .mg-topbar { padding: 12px 14px; } .mg-title, .mg-eyebrow { display: none; } }
+
+      /* Shell background → new gradient */
+      .companion-shell {
+        background:
+          radial-gradient(circle at top right, rgba(38, 79, 69, 0.08), transparent 30%),
+          linear-gradient(180deg, #fbf8f1 0%, #f7f3ec 56%, #f2eee5 100%);
+      }
+
+      /* Tabs row (Meal Plan / Recipes / Journaling) */
+      .companion-shell .companion-head {
+        justify-content: center; gap: 18px;
+        background: rgba(255, 253, 250, 0.78);
+        border-bottom: 1px solid #e3dacd; padding: 12px 22px;
+      }
+      .companion-shell .companion-mode-tabs {
+        background: #f4f0e8; border: 1px solid #e3dacd; border-radius: 18px;
+        padding: 5px; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .companion-shell .companion-mode-tab {
+        border-radius: 14px; padding: 11px 16px; font-size: 15px; font-weight: 700; color: #5b6b62;
+      }
+      .companion-shell .companion-mode-tab.is-active {
+        background: #fffdfa; color: #273a32; box-shadow: 0 6px 14px rgba(24, 55, 39, 0.07);
+      }
+      .companion-shell .companion-mode-tab.is-active svg { stroke: #264f45; }
+      .companion-shell .companion-greeting { color: #56685f; font-weight: 700; font-size: 15px; }
+
+      /* Weekly / Today sub-tabs */
+      .companion-shell .companion-subtabs {
+        gap: 10px; background: rgba(255, 253, 250, 0.72);
+        border-bottom: 1px solid #e3dacd; padding: 12px 22px;
+      }
+      .companion-shell .companion-subtab {
+        padding: 11px 16px; border-radius: 13px; font-weight: 800; color: #5b6b62; border: 1px solid transparent;
+      }
+      .companion-shell .companion-subtab.is-active {
+        background: #f5f1e9; border-color: #e3dacd; color: #273a32; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+
+      /* Centered content shell */
+      .companion-shell .companion-scroll {
+        max-width: 1220px; width: 100%; margin: 0 auto; padding: 28px 22px 30px;
+      }
+
+      /* Serif headings */
+      .companion-shell .companion-intro-title {
+        font-family: Georgia, "Times New Roman", serif;
+        color: #173a32; font-size: clamp(28px, 3.4vw, 46px);
+        line-height: 1.05; letter-spacing: -0.6px; margin: 0 0 6px;
+      }
+      .companion-shell .companion-intro-body { color: #63736a; font-size: 16px; line-height: 1.6; }
+
+      /* Cards */
+      .companion-shell .companion-day-card,
+      .companion-shell .companion-today-card,
+      .companion-shell .companion-empty-card,
+      .companion-shell .companion-uploaded {
+        border: 1px solid #e3dacd; border-radius: 20px; background: #fbf8f1;
+        box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .companion-shell .companion-day-head {
+        background: #e9f0ea; color: #264f45; font-weight: 900;
+        text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e3dacd;
+      }
+      .companion-shell .companion-meal-slot,
+      .companion-shell .companion-today-slot {
+        color: #c69255; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;
+      }
+      .companion-shell .companion-meal-name,
+      .companion-shell .companion-today-meal { color: #27392f; font-weight: 700; }
+
+      /* Green primary buttons */
+      .companion-shell .companion-primary,
+      .companion-shell .companion-send {
+        background: #264f45; color: #fff; border: none; border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(23, 58, 50, 0.18); font-weight: 800;
+      }
+      .companion-shell .companion-primary:hover,
+      .companion-shell .companion-send:hover { background: #173a32; }
+
+      /* Inputs → soft input-wrap look */
+      .companion-shell .companion-voice-field .vf-input,
+      .companion-shell .companion-input-row {
+        border: 1px solid #e3dacd; border-radius: 17px; background: #fbf8f1;
+      }
+      .companion-shell .companion-voice-field .vf-input:focus-within,
+      .companion-shell .companion-input-row:focus-within {
+        border-color: rgba(38, 79, 69, 0.4); box-shadow: 0 0 0 4px rgba(38, 79, 69, 0.08); background: #fffdf9;
+      }
+      .companion-shell .vf-mic, .companion-shell .companion-icon-btn { color: #264f45; }
+
+      /* Footer note */
+      .companion-hint {
+        background: rgba(255, 253, 250, 0.96); border-top: 1px solid #e3dacd;
+        color: #65736b; text-align: center; font-size: 13px; padding: 13px 18px; margin: 0;
+      }
+    </style>
   </head>
   <body class="sw-no-sidebar">
     <script src="js/shared.js"></script>
@@ -2565,6 +2907,15 @@
           <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div class="companion-shell">
+          <!-- Meal-generator page header (back → Plant-Based Nutrition chat). -->
+          <header class="mg-topbar">
+            <button type="button" class="mg-back" id="mgBackBtn" aria-label="Back to Plant-Based Nutrition">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span data-i18n="launcher.back">Back</span>
+            </button>
+            <span class="mg-title">Stilwater Meal Planner</span>
+            <span class="mg-eyebrow" aria-hidden="true">🌿 Aria</span>
+          </header>
           <header class="companion-head">
             <button type="button" class="care-menu-btn" id="careMenuBtn" aria-label="Open menu" aria-controls="careSidebar">
               <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
@@ -4837,46 +5188,103 @@
           });
           header.appendChild(menuBtn);
 
-          const title = document.createElement("div");
-          title.className = "plant-chat-title";
-          title.textContent = chatMode === "nutrition"
-            ? T("launcher.nutrition.title", "Nutrition")
-            : (chatMode === "chronic"
+          // (Title + the Explore / Wellness-Assessment action now live in the
+          // hero + side panel below. The header stays a slim bar: Back + the
+          // mobile menu button only. Clear chat lives at the bottom of the
+          // left sidebar — see clearRecipeChat() + #careSidebarClear wiring.)
+          host.appendChild(header);
+
+          // ---- New layout: main chat column + per-mode side panel ----
+          const isNutrition = chatMode === "nutrition";
+          const isChronic = chatMode === "chronic";
+          const heroTitle = isNutrition
+            ? T("launcher.nutrition.title", "Plant based Nutrition")
+            : (isChronic
               ? T("launcher.chronic.title", "Chronic Disease Management")
               : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
-          header.appendChild(title);
+          const heroSub = isNutrition
+            ? T("pbn.hero.nutritionSub", "Your AI companion for whole-food, plant-based living.")
+            : (isChronic
+              ? T("pbn.hero.chronicSub", "Guidance and gentle daily practices tailored to your condition.")
+              : T("pbn.hero.generalSub", "Your Stilwater wellness companion."));
 
-          // Nutrition only: a tab beside the title to open the full Explore
-          // Plant-Based Recipes surface (the 3-tab companion shell).
-          if (chatMode === "nutrition") {
-            const exploreBtn = document.createElement("button");
-            exploreBtn.type = "button";
-            exploreBtn.className = "plant-chat-explore";
-            exploreBtn.innerHTML =
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2v7a3 3 0 0 0 3 3 3 3 0 0 0 3-3V2"/><line x1="6" y1="12" x2="6" y2="22"/><path d="M16 2a4 4 0 0 0-4 4v6h4"/><line x1="16" y1="12" x2="16" y2="22"/></svg>' +
-              '<span>' + escapeHtml(T("launcher.recipes.title", "Explore Plant-Based Recipes")) + '</span>';
-            exploreBtn.addEventListener("click", () => {
-              if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
-            });
-            header.appendChild(exploreBtn);
+          const layout = document.createElement("div");
+          layout.className = "pbn-layout";
+          const mainCol = document.createElement("div");
+          mainCol.className = "pbn-main";
+          layout.appendChild(mainCol);
+
+          const hero = document.createElement("div");
+          hero.className = "pbn-hero";
+          const heroH1 = document.createElement("h1");
+          heroH1.textContent = heroTitle;
+          const heroP = document.createElement("p");
+          heroP.textContent = heroSub;
+          hero.appendChild(heroH1);
+          hero.appendChild(heroP);
+          mainCol.appendChild(hero);
+
+          // Suggestion cards = the per-condition starters (replaces the old
+          // in-chat starter chips). Clicking one sends it, exactly as before.
+          const sugWrap = document.createElement("div");
+          sugWrap.className = "pbn-suggestions";
+          const sugIcons = isChronic ? ["🌿", "🧘", "💧"] : ["🥣", "☀️", "💚"];
+          recipeChatStarters().forEach((q, i) => {
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = "pbn-suggestion";
+            card.innerHTML =
+              '<span class="pbn-s-ico" aria-hidden="true">' + (sugIcons[i] || "🌿") + '</span>' +
+              '<span class="pbn-s-text">' + escapeHtml(q) + '</span>' +
+              '<span class="pbn-chev" aria-hidden="true">›</span>';
+            card.addEventListener("click", () => sendMessage(q));
+            sugWrap.appendChild(card);
+          });
+          mainCol.appendChild(sugWrap);
+
+          // Bordered chat card holds the message stream + composer.
+          const chatCard = document.createElement("div");
+          chatCard.className = "pbn-chat-card card";
+          mainCol.appendChild(chatCard);
+
+          const disclaimer = document.createElement("div");
+          disclaimer.className = "pbn-disclaimer";
+          disclaimer.textContent = T("aria.chat.disclaimer",
+            "🌿 Aria offers lifestyle guidance and does not replace your doctor's advice.");
+          mainCol.appendChild(disclaimer);
+
+          // Per-mode side panel (Nutrition → recipe library; Chronic →
+          // wellness assessment). Same actions as the old header tabs.
+          if (isNutrition || isChronic) {
+            const side = document.createElement("aside");
+            side.className = "pbn-side";
+            const sH = document.createElement("h3");
+            const sP = document.createElement("p");
+            const sBtn = document.createElement("button");
+            sBtn.type = "button";
+            sBtn.className = "cta";
+            if (isNutrition) {
+              sH.textContent = T("pbn.side.recipes.title", "Plant-Based Recipe Library");
+              sP.textContent = T("pbn.side.recipes.body",
+                "Explore curated whole-food, plant-based recipes from the Stilwater nutrition cookbook.");
+              sBtn.textContent = "🍽 " + T("launcher.recipes.title", "Explore Plant-Based Recipes");
+              sBtn.addEventListener("click", () => {
+                if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
+              });
+            } else {
+              sH.textContent = T("pbn.side.assess.title", "Wellness Assessment");
+              sP.textContent = T("pbn.side.assess.body",
+                "Take the assessment for guidance tailored to your condition.");
+              sBtn.textContent = T("carepath.wellnessAssessment", "Take Wellness Assessment");
+              sBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
+            }
+            side.appendChild(sH);
+            side.appendChild(sP);
+            side.appendChild(sBtn);
+            layout.appendChild(side);
           }
 
-          // Chronic only: a tab beside the title to (re)open the Wellness
-          // Assessment form.
-          if (chatMode === "chronic") {
-            const assessBtn = document.createElement("button");
-            assessBtn.type = "button";
-            assessBtn.className = "plant-chat-explore";
-            assessBtn.innerHTML =
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>' +
-              '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
-            assessBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
-            header.appendChild(assessBtn);
-          }
-
-          // (Clear chat now lives at the bottom of the left sidebar —
-          // see clearRecipeChat() + the #careSidebarClear wiring below.)
-          host.appendChild(header);
+          host.appendChild(layout);
 
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow plant-chat-scroll";
@@ -4959,8 +5367,11 @@
             opts = opts || {};
             const isProse = msg.role === "assistant" && !opts.isGreeting;
             const bubble = document.createElement("div");
-            bubble.className = "recipe-chat-bubble recipe-chat-" + msg.role + (isProse ? " recipe-chat-prose" : "");
-            let html = isProse ? mdToHtml(msg.text || "") : escapeHtml(msg.text || "");
+            bubble.className = "bubble" + (isProse ? " recipe-chat-prose" : "");
+            let html = (msg.role === "assistant")
+              ? '<div class="bubble-name">' + escapeHtml(T("aria.name", "Aria")) + '</div>'
+              : '';
+            html += isProse ? mdToHtml(msg.text || "") : escapeHtml(msg.text || "");
             if (msg.attachment && msg.attachment.name) {
               html += (msg.text ? '<br/>' : '') +
                 '<span class="plant-attach-chip" style="margin-top:6px;">' +
@@ -4970,12 +5381,21 @@
             }
             bubble.innerHTML = html;
 
+            // New-design row: avatar + bubble (user rows reverse via CSS).
+            const row = document.createElement("div");
+            row.className = "message" + (msg.role === "user" ? " user" : "");
+            const avatar = document.createElement("div");
+            avatar.className = "avatar-small";
+            avatar.setAttribute("aria-hidden", "true");
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+
             const followups = Array.isArray(msg.followups) ? msg.followups : [];
-            if (msg.role !== "assistant" || followups.length === 0) return bubble;
+            if (msg.role !== "assistant" || followups.length === 0) return row;
 
             const wrap = document.createElement("div");
             wrap.className = "plant-chat-msg-wrap";
-            wrap.appendChild(bubble);
+            wrap.appendChild(row);
             const fu = document.createElement("div");
             fu.className = "plant-chat-followups";
             followups.forEach((q) => {
@@ -4991,24 +5411,14 @@
           };
 
           if (recipeChat.messages.length > 0) {
-            // The first message is Aria's intro/greeting — keep it as the
-            // existing bubble (NOT prose), exactly as before.
+            // The first message is Aria's intro/greeting — rendered as a
+            // normal assistant bubble (avatar + "Aria" name).
             scroll.appendChild(renderBubble(recipeChat.messages[0], { isGreeting: true }));
           }
 
-          // Starter chips — always visible, fixed position just under the
-          // greeting so users can always reach the suggested prompts.
-          const chipsWrap = document.createElement("div");
-          chipsWrap.className = "plant-chat-starters";
-          recipeChatStarters().forEach((q) => {
-            const chip = document.createElement("button");
-            chip.type = "button";
-            chip.className = "plant-chat-starter";
-            chip.textContent = q;
-            chip.addEventListener("click", () => sendMessage(q));
-            chipsWrap.appendChild(chip);
-          });
-          scroll.appendChild(chipsWrap);
+          // Starter prompts now render as suggestion cards ABOVE the chat card
+          // (see .pbn-suggestions in the layout scaffolding) instead of inside
+          // the message stream.
 
           // Rest of the conversation (everything after the greeting).
           for (let i = 1; i < recipeChat.messages.length; i++) {
@@ -5055,19 +5465,21 @@
               if (liveBubble || !liveScroll) return;
               const thinking = liveScroll.querySelector(".recipe-chat-meta");
               if (thinking) thinking.remove();
+              // New-design row: avatar + bubble. liveBubble is the bubble that
+              // receives streamed text (plain text via textContent → force
+              // pre-wrap to preserve line breaks; the final re-render swaps in
+              // markdown and the "Aria" name label).
+              const row = document.createElement("div");
+              row.className = "message";
+              const avatar = document.createElement("div");
+              avatar.className = "avatar-small";
+              avatar.setAttribute("aria-hidden", "true");
               liveBubble = document.createElement("div");
-              // Stream as prose (matches the final answer style). Plain text is
-              // shown via textContent during the stream, so force pre-wrap to
-              // preserve line breaks; the final re-render swaps in markdown.
-              liveBubble.className = "recipe-chat-bubble recipe-chat-assistant recipe-chat-prose";
+              liveBubble.className = "bubble recipe-chat-prose";
               liveBubble.style.whiteSpace = "pre-wrap";
-              // The compose bar is the last child of the scroll container
-              // (pinned to the bottom via margin-top:auto), so insert the
-              // streaming reply BEFORE it — otherwise the live answer renders
-              // underneath the input box.
-              const compose = liveScroll.querySelector(".plant-compose");
-              if (compose) liveScroll.insertBefore(liveBubble, compose);
-              else liveScroll.appendChild(liveBubble);
+              row.appendChild(avatar);
+              row.appendChild(liveBubble);
+              liveScroll.appendChild(row);
             };
             const showVisible = (txt) => {
               ensureBubble();
@@ -5161,10 +5573,10 @@
           // Expose for the chip handlers above (avoids hoisting issues).
           recipeChat._send = sendMessage;
 
-          // Mount the scrollable message list now; the compose bar is appended
-          // to the overlay AFTER it (below) so the input stays pinned at the
-          // bottom while only the messages scroll.
-          host.appendChild(scroll);
+          // Mount the scrollable message list inside the chat card; the
+          // compose bar is appended to the same card AFTER it (below) so the
+          // input stays pinned at the bottom while only the messages scroll.
+          chatCard.appendChild(scroll);
 
           // ChatGPT-style compose bar: + attach, textarea, mic, send.
           // Always shown — the chat is free-form, not a 3-step script.
@@ -5270,9 +5682,9 @@
             sendBtn.addEventListener("click", submitAnswer);
             composeWrap.appendChild(sendBtn);
 
-            // Append to the overlay (sibling AFTER the scroll list) so the
+            // Append to the chat card (sibling AFTER the scroll list) so the
             // compose bar is pinned to the bottom, not scrolled with messages.
-            host.appendChild(composeWrap);
+            chatCard.appendChild(composeWrap);
 
             // Pending attachment chip preview
             if (recipeChat.pendingAttachment) {
@@ -5302,7 +5714,9 @@
             }
 
             // Focus the input automatically so the user can just start typing.
-            requestAnimationFrame(() => { try { ta.focus(); } catch (_) {} });
+            // preventScroll: focusing the input must NOT scroll the layout
+            // down past the hero + suggestion cards.
+            requestAnimationFrame(() => { try { ta.focus({ preventScroll: true }); } catch (_) { try { ta.focus(); } catch (_e) {} } });
           }
 
           // (Re)rendering rebuilds the message list from scratch, which resets
@@ -5524,8 +5938,13 @@
                 const w = s.updated_at ? new Date(s.updated_at) : null;
                 if (w) meta = w.toLocaleDateString() + " · " + w.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
               } catch (_) {}
-              item.innerHTML = '<div class="cc-title">' + escapeHtml(s.title || "Chat") + '</div>' +
-                               '<div class="cc-meta">' + escapeHtml(meta) + '</div>';
+              item.innerHTML =
+                '<span class="cc-icon" aria-hidden="true">🌿</span>' +
+                '<div class="cc-body">' +
+                  '<div class="cc-title">' + escapeHtml(s.title || "Chat") + '</div>' +
+                  '<div class="cc-meta">' + escapeHtml(meta) + '</div>' +
+                '</div>' +
+                '<span class="cc-dots" aria-hidden="true">⋮</span>';
               item.addEventListener("click", () => loadSession(s.id));
               box.appendChild(item);
             });
@@ -5705,6 +6124,19 @@
             if (!api) return;
             if (typeof api.backFromCompanion === "function") api.backFromCompanion();
             else if (typeof api.show === "function") api.show();
+          });
+        }
+
+        // New meal-generator header Back button → Plant-Based Nutrition chat
+        // (care-path.html?submissionId=1). Uses the same in-app return as the
+        // ✕, with a hard-nav fallback to the requested URL.
+        const mgBackBtn = document.getElementById("mgBackBtn");
+        if (mgBackBtn) {
+          mgBackBtn.addEventListener("click", () => {
+            const api = window.__swPlantRecipes;
+            if (api && typeof api.backFromCompanion === "function") api.backFromCompanion();
+            else if (api && typeof api.showNutrition === "function") api.showNutrition();
+            else window.location.href = "care-path.html?submissionId=1";
           });
         }
 

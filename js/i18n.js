@@ -90,6 +90,7 @@
     // Home — nav
     "home.nav.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
     "home.nav.platform": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
+    "home.nav.product": { en: "Product", hi: "उत्पाद" },
     "home.nav.how": { en: "How it works", hi: "यह कैसे काम करता है" },
     "home.nav.pricing": { en: "Pricing", hi: "मूल्य निर्धारण" },
 
@@ -622,7 +623,10 @@
       // [name]" / "Continue Care Path". Fallback: float top-right.
       const auth = document.getElementById("authActions");
       if (auth) {
-        auth.insertBefore(wrap, auth.firstChild);
+        // Place the toggle just before the auth pill (#authMenuWrap) so the
+        // nav order reads: [page links] → language toggle → Hi, [name] / Login.
+        const anchor = auth.querySelector("#authMenuWrap") || auth.firstChild;
+        auth.insertBefore(wrap, anchor);
       } else {
         wrap.classList.add("sw-lang-wrap-floating");
         document.body.appendChild(wrap);

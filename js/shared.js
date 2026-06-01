@@ -636,6 +636,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         activeUser = user;
+
+        // Returning logged-in customers who come back to the site land on the
+        // care-path selection screen instead of the marketing home page. Only
+        // fires when *arriving* at home (direct visit / bookmark / external
+        // link — referrer is empty or off-site); internal navigation such as
+        // the care-path "Home" / logo link still shows the home page. Logged-out
+        // visitors are never redirected (this whole branch is auth-only).
+        const homePath = (window.location.pathname || "").toLowerCase();
+        const onHomePage =
+          homePath === "/" || homePath === "/index.html" || homePath.endsWith("/index.html");
+        if (onHomePage && !hasAdminRole(user)) {
+          let internalNav = false;
+          try {
+            internalNav =
+              Boolean(document.referrer) &&
+              new URL(document.referrer).origin === window.location.origin;
+          } catch (_e) {
+            internalNav = false;
+          }
+          if (!internalNav) {
+            window.location.replace("/care-path.html?view=select");
+            return;
+          }
+        }
+
         const latestSubmissionId =
           typeof user.latestSubmissionId === "string" && user.latestSubmissionId.trim()
             ? user.latestSubmissionId.trim()
