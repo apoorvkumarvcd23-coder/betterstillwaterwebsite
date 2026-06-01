@@ -2392,7 +2392,6 @@
         box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08);
         padding: 16px;
         display: flex; flex-direction: column; gap: 14px;
-        height: calc(100vh - 300px); min-height: 340px;
       }
       .pbn-disclaimer { text-align: center; color: #70776f; font-size: 13px; margin-top: 12px; }
 
@@ -2413,8 +2412,8 @@
 
       /* --- Messages: avatar + bubble + Aria name --- */
       .pbn-chat-card .plant-chat-scroll {
-        flex: 1 1 auto; min-height: 0;
-        overflow-y: auto; overflow-x: hidden;
+        /* No inner scroll — the whole .pbn-layout is the single scroller. */
+        overflow: visible;
         display: flex; flex-direction: column; gap: 14px;
         padding: 4px 2px;
       }
@@ -2606,6 +2605,53 @@
         background: rgba(255, 253, 250, 0.96); border-top: 1px solid #e3dacd;
         color: #65736b; text-align: center; font-size: 13px; padding: 13px 18px; margin: 0;
       }
+
+      /* ---- Weekly build form: hero eyebrow + form-card + aside (matches mock) ---- */
+      .mgmp-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+        padding: 8px 12px; border-radius: 999px; background: #e9f0ea; color: #264f45;
+        font-size: 13px; font-weight: 800; margin-bottom: 4px;
+      }
+      .mgmp-grid {
+        display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 22px; align-items: start;
+      }
+      .mgmp-formcard, .mgmp-card {
+        background: #fffdfa; border: 1px solid #e3dacd; border-radius: 24px;
+        box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .mgmp-formcard { padding: 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+      .mgmp-formhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      .mgmp-formhead h3 { margin: 0; font-size: 20px; color: #243a31; }
+      .mgmp-formhead p { margin: 6px 0 0; color: #63736a; font-size: 14px; line-height: 1.5; }
+      .mgmp-badge {
+        display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+        background: #f4efe7; border: 1px solid #e3dacd; color: #264f45;
+        border-radius: 999px; padding: 9px 12px; font-size: 13px; font-weight: 800; white-space: nowrap;
+      }
+      .mgmp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .mgmp-chip {
+        border: 1px solid #e3dacd; background: #fffdfa; color: #52655c;
+        border-radius: 999px; padding: 8px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+      }
+      .mgmp-chip:hover { background: #f2eee5; }
+      .mgmp-aside { display: grid; gap: 16px; align-content: start; }
+      .mgmp-card { padding: 20px; }
+      .mgmp-card h4 { margin: 0 0 10px; color: #243a31; font-size: 18px; }
+      .mgmp-card > p { margin: 0; color: #63736a; font-size: 14px; line-height: 1.55; }
+      .mgmp-steps { display: grid; gap: 12px; margin-top: 14px; }
+      .mgmp-step { display: flex; gap: 10px; align-items: flex-start; color: #465a51; font-size: 14px; line-height: 1.45; }
+      .mgmp-num {
+        width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto;
+        background: #e9f0ea; color: #264f45; font-size: 12px; font-weight: 900;
+      }
+      .mgmp-prefs { display: grid; gap: 10px; }
+      .mgmp-prefrow {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 11px 0; border-bottom: 1px solid #e3dacd; color: #465a51; font-size: 14px;
+      }
+      .mgmp-prefrow:last-child { border-bottom: none; }
+      .mgmp-prefrow strong { color: #243a31; }
+      @media (max-width: 1040px) { .mgmp-grid { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body class="sw-no-sidebar">
@@ -4478,6 +4524,14 @@
             // Header block: title + subtitle on the left, decorative bowl
             // illustration on the right (purely cosmetic — matches the new
             // mock; no behavior change).
+            // Eyebrow pill (matches the meal_generator.html mock).
+            const eyebrow = document.createElement("div");
+            eyebrow.className = "mgmp-eyebrow";
+            eyebrow.textContent = "🌿 " + T("aria.mp.eyebrow", "Personalized nutrition planner");
+            wrap.appendChild(eyebrow);
+
+            // Hero block: title + subtitle on the left, decorative bowl
+            // illustration on the right (purely cosmetic — no behavior change).
             const headerWrap = document.createElement("div");
             headerWrap.className = "mp-form-header";
             const headerText = document.createElement("div");
@@ -4486,7 +4540,7 @@
             const note = document.createElement("p");
             note.className = "companion-intro-body";
             note.style.marginTop = "-6px";
-            note.textContent = T("aria.mp.weekly.hint", "Tell us what you like and what to skip. Tap the mic to speak, or just type.");
+            note.textContent = T("aria.mp.weekly.hint", "Tell Aria your preferred cuisines, foods you love, and foods you want to avoid. Your weekly meal plan will be shaped around your taste, lifestyle, and wellness goals.");
             headerText.appendChild(titleRow);
             headerText.appendChild(note);
             const headerArt = document.createElement("div");
@@ -4515,21 +4569,60 @@
             headerWrap.appendChild(headerArt);
             wrap.appendChild(headerWrap);
 
-            wrap.appendChild(voiceField({
+            // Two columns: build form-card (left) + info aside (right).
+            const grid = document.createElement("div");
+            grid.className = "mgmp-grid";
+
+            const formCard = document.createElement("div");
+            formCard.className = "mgmp-formcard";
+            const fhead = document.createElement("div");
+            fhead.className = "mgmp-formhead";
+            fhead.innerHTML =
+              '<div><h3>' + escapeHtml(T("aria.mp.buildTitle", "Build your weekly meal plan")) + '</h3>' +
+              '<p>' + escapeHtml(T("aria.mp.buildHint", "Use short phrases or tap the mic for voice input. Clean, simple, and no spreadsheet trauma.")) + '</p></div>' +
+              '<span class="mgmp-badge">⚡ ' + escapeHtml(T("aria.mp.weeklyMode", "Weekly mode")) + '</span>';
+            formCard.appendChild(fhead);
+
+            // A voice field plus quick-chips that append to that same field.
+            const fieldWithChips = (opts, chips) => {
+              const holder = document.createElement("div");
+              holder.appendChild(voiceField(opts));
+              if (chips && chips.length) {
+                const cw = document.createElement("div");
+                cw.className = "mgmp-chips";
+                chips.forEach((c) => {
+                  const b = document.createElement("button");
+                  b.type = "button";
+                  b.className = "mgmp-chip";
+                  b.textContent = c;
+                  b.addEventListener("click", () => {
+                    const cur = state[opts.field] || "";
+                    state[opts.field] = cur ? (cur.replace(/\s*$/, "") + ", " + c) : c;
+                    renderMode();
+                  });
+                  cw.appendChild(b);
+                });
+                holder.appendChild(cw);
+              }
+              return holder;
+            };
+
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.cuisinesLabel", "Cuisines you prefer"), value: state.cuisine, field: "cuisine",
               placeholder: T("aria.mp.cuisinesPlaceholder", "e.g. Mediterranean, South Indian, Japanese"),
               onChange: (v) => { state.cuisine = v; },
-            }));
-            wrap.appendChild(voiceField({
+            }, [T("aria.mp.chipSouthIndian", "South Indian"), T("aria.mp.chipMediterranean", "Mediterranean"), T("aria.mp.chipHighProtein", "High protein")]));
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.likeLabel", "Food I like to eat"), value: state.like || "", field: "like",
               placeholder: T("aria.mp.likePlaceholder", "e.g. dal, paneer-free curries, oats, fruits"),
               onChange: (v) => { state.like = v; },
-            }));
-            wrap.appendChild(voiceField({
+            }, [T("aria.mp.chipDal", "Dal"), T("aria.mp.chipOats", "Oats"), T("aria.mp.chipSeasonalFruits", "Seasonal fruits")]));
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.avoidLabel", "Food I don't like to eat"), value: state.avoid, field: "avoid",
               placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, mushrooms, bitter gourd"),
               onChange: (v) => { state.avoid = v; },
-            }));
+            }, [T("aria.mp.chipPeanuts", "Peanuts"), T("aria.mp.chipMushrooms", "Mushrooms"), T("aria.mp.chipTooSpicy", "Too spicy")]));
+
             const weeklyBtn = primaryBtn(
               state.generatingWeekly ? T("aria.mp.generating", "Generating…") : T("aria.mp.generateBtn", "Generate weekly plan"),
               state.generatingWeekly ? null : "sparkles",
@@ -4537,13 +4630,51 @@
               state.generatingWeekly,
             );
             weeklyBtn.setAttribute("data-ga-event", "btn_generate_weekly_plan");
-            wrap.appendChild(weeklyBtn);
+            formCard.appendChild(weeklyBtn);
             if (state.weeklyError) {
               const err = document.createElement("div");
               err.className = "companion-upload-error";
               err.textContent = state.weeklyError;
-              wrap.appendChild(err);
+              formCard.appendChild(err);
             }
+            grid.appendChild(formCard);
+
+            // Info aside: "How Aria uses this" + "Current settings".
+            const aside = document.createElement("aside");
+            aside.className = "mgmp-aside";
+            const howCard = document.createElement("div");
+            howCard.className = "mgmp-card";
+            const steps = [
+              T("aria.mp.step1", "Pick your preferred cuisines."),
+              T("aria.mp.step2", "Add foods you enjoy regularly."),
+              T("aria.mp.step3", "List foods to skip or avoid."),
+              T("aria.mp.step4", "Generate a weekly plan you can review."),
+            ];
+            howCard.innerHTML =
+              '<h4>' + escapeHtml(T("aria.mp.howTitle", "How Aria uses this")) + '</h4>' +
+              '<p>' + escapeHtml(T("aria.mp.howBody", "Your preferences help Aria suggest meals that feel practical, familiar, and easier to follow.")) + '</p>' +
+              '<div class="mgmp-steps">' +
+                steps.map((s, i) => '<div class="mgmp-step"><span class="mgmp-num">' + (i + 1) + '</span><span>' + escapeHtml(s) + '</span></div>').join("") +
+              '</div>';
+            aside.appendChild(howCard);
+
+            const setCard = document.createElement("div");
+            setCard.className = "mgmp-card";
+            const prefs = [
+              [T("aria.mp.prefPlan", "Plan type"), T("aria.mp.weekly.tab", "Weekly")],
+              [T("aria.mp.prefAssistant", "Assistant"), "Aria"],
+              [T("aria.mp.prefInput", "Input mode"), T("aria.mp.prefVoiceText", "Voice + Text")],
+              [T("aria.mp.prefFocus", "Focus"), T("aria.mp.prefLifestyle", "Lifestyle")],
+            ];
+            setCard.innerHTML =
+              '<h4>' + escapeHtml(T("aria.mp.settingsTitle", "Current settings")) + '</h4>' +
+              '<div class="mgmp-prefs">' +
+                prefs.map((p) => '<div class="mgmp-prefrow"><span>' + escapeHtml(p[0]) + '</span><strong>' + escapeHtml(p[1]) + '</strong></div>').join("") +
+              '</div>';
+            aside.appendChild(setCard);
+            grid.appendChild(aside);
+
+            wrap.appendChild(grid);
 
             // Safety note (matches Plant-Based Recipes chat footer)
             const safety = document.createElement("div");
@@ -5485,7 +5616,7 @@
               ensureBubble();
               if (!liveBubble) return;
               liveBubble.textContent = txt;
-              requestAnimationFrame(() => { if (liveScroll) liveScroll.scrollTop = liveScroll.scrollHeight; });
+              requestAnimationFrame(() => { const lay = liveScroll && liveScroll.closest(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; });
             };
             const finish = (reply, followups, info) => {
               recipeChat.loading = false;
@@ -5722,7 +5853,7 @@
           // (Re)rendering rebuilds the message list from scratch, which resets
           // the scroll to the top. Snap to the bottom so the newest question /
           // answer is always in view — no manual scrolling after each turn.
-          requestAnimationFrame(() => { try { scroll.scrollTop = scroll.scrollHeight; } catch (_) {} });
+          requestAnimationFrame(() => { try { const lay = host.querySelector(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; } catch (_) {} });
         }
 
         function updateSidebarToggleLabel() {
