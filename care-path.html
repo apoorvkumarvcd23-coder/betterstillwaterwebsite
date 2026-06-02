@@ -2341,16 +2341,28 @@
       .plant-chat-header .plant-chat-title {
         font-family: "Fraunces", Georgia, "Times New Roman", serif;
         font-size: clamp(20px, 2.2vw, 28px); font-weight: 600;
-        color: #153d31; letter-spacing: -0.4px; margin-right: auto;
+        color: #153d31; letter-spacing: -0.4px;
       }
-      @media (max-width: 760px) { .plant-chat-header .plant-chat-title { font-size: 19px; } }
+      /* Action button beside the title (Recipe Library / Wellness Assessment) */
+      .plant-chat-header .plant-chat-action {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border-radius: 999px; border: none;
+        background: #264f45; color: #fff; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16); cursor: pointer; white-space: nowrap;
+      }
+      .plant-chat-header .plant-chat-action:hover { background: #173a32; }
+      .plant-chat-header .plant-chat-action svg { width: 16px; height: 16px; }
+      @media (max-width: 760px) {
+        .plant-chat-header .plant-chat-title { font-size: 19px; }
+        .plant-chat-header .plant-chat-action { padding: 8px 12px; font-size: 13px; }
+      }
 
-      /* --- Two-column layout: main chat + side panel --- */
+      /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
         flex: 1 1 auto; min-height: 0; min-width: 0;
         overflow-y: auto; overflow-x: hidden;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) 300px;
+        grid-template-columns: minmax(0, 1fr);
         gap: 22px;
         align-items: start;
         padding: 26px 28px 22px;
@@ -5375,6 +5387,29 @@
               : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
           header.appendChild(headTitle);
 
+          // Action button beside the title (same functionality as before):
+          // Nutrition → Recipe Library (opens the companion); Chronic →
+          // Wellness Assessment.
+          if (chatMode === "nutrition") {
+            const actBtn = document.createElement("button");
+            actBtn.type = "button";
+            actBtn.className = "plant-chat-action";
+            actBtn.textContent = "🍽 " + T("aria.recipes.libraryBtn", "Recipe Library");
+            actBtn.addEventListener("click", () => {
+              if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
+            });
+            header.appendChild(actBtn);
+          } else if (chatMode === "chronic") {
+            const actBtn = document.createElement("button");
+            actBtn.type = "button";
+            actBtn.className = "plant-chat-action";
+            actBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>' +
+              '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
+            actBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
+            header.appendChild(actBtn);
+          }
+
           // Mobile-only hamburger: the chat view hides the companion-shell
           // that holds the sidebar toggle, so surface our own here. It opens
           // the same off-canvas drawer through the existing #careMenuBtn
@@ -5440,36 +5475,8 @@
             "🌿 Aria offers lifestyle guidance and does not replace your doctor's advice.");
           mainCol.appendChild(disclaimer);
 
-          // Per-mode side panel (Nutrition → recipe library; Chronic →
-          // wellness assessment). Same actions as the old header tabs.
-          if (isNutrition || isChronic) {
-            const side = document.createElement("aside");
-            side.className = "pbn-side";
-            const sH = document.createElement("h3");
-            const sP = document.createElement("p");
-            const sBtn = document.createElement("button");
-            sBtn.type = "button";
-            sBtn.className = "cta";
-            if (isNutrition) {
-              sH.textContent = T("pbn.side.recipes.title", "Plant-Based Recipe Library");
-              sP.textContent = T("pbn.side.recipes.body",
-                "Explore curated whole-food, plant-based recipes from the Stilwater nutrition cookbook.");
-              sBtn.textContent = "🍽 " + T("launcher.recipes.title", "Explore Plant-Based Recipes");
-              sBtn.addEventListener("click", () => {
-                if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
-              });
-            } else {
-              sH.textContent = T("pbn.side.assess.title", "Wellness Assessment");
-              sP.textContent = T("pbn.side.assess.body",
-                "Take the assessment for guidance tailored to your condition.");
-              sBtn.textContent = T("carepath.wellnessAssessment", "Take Wellness Assessment");
-              sBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
-            }
-            side.appendChild(sH);
-            side.appendChild(sP);
-            side.appendChild(sBtn);
-            layout.appendChild(side);
-          }
+          // (The old right-side panel was removed — its action now lives as a
+          // button in the header beside the title. The chat is full-width.)
 
           host.appendChild(layout);
 
