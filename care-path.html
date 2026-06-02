@@ -2352,6 +2352,18 @@
       }
       .plant-chat-header .plant-chat-action:hover { background: #173a32; }
       .plant-chat-header .plant-chat-action svg { width: 16px; height: 16px; }
+      /* Chronic recommendation chip (logo + provider name) beside the title */
+      .plant-chat-header .plant-chat-reco {
+        display: inline-flex; align-items: center; gap: 9px;
+        padding: 6px 14px 6px 8px; border-radius: 999px;
+        background: #fffdfa; border: 1px solid #e8dfd2; color: #173a32;
+        font: inherit; font-weight: 700; font-size: 14px; text-decoration: none;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); white-space: nowrap;
+      }
+      .plant-chat-header .plant-chat-reco:hover { background: #f2eee5; }
+      .plant-chat-header .plant-chat-reco .plant-chat-reco-logo {
+        height: 26px; width: auto; max-width: 96px; object-fit: contain; display: block; border-radius: 6px;
+      }
       @media (max-width: 760px) {
         .plant-chat-header .plant-chat-title { font-size: 19px; }
         .plant-chat-header .plant-chat-action { padding: 8px 12px; font-size: 13px; }
@@ -5400,14 +5412,34 @@
             });
             header.appendChild(actBtn);
           } else if (chatMode === "chronic") {
-            const actBtn = document.createElement("button");
-            actBtn.type = "button";
-            actBtn.className = "plant-chat-action";
-            actBtn.innerHTML =
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12l2 2 4-4"/></svg>' +
-              '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
-            actBtn.addEventListener("click", () => { window.location.href = "intake.html"; });
-            header.appendChild(actBtn);
+            // Condition-aware recommendation chip (logo + name) beside the
+            // title. Condition comes from the assessment (activeCondition()).
+            // The chat backend already routes by condition server-side:
+            //   diabetes -> SHARAN (diabetes RAG), eye -> Amar Eye
+            //   (amar_eye_yoga RAG), else -> Holistic (holistic_wellness RAG).
+            const cond = activeCondition();
+            let recoLogo, recoLabel, recoHref;
+            if (cond === "diabetes") {
+              recoLogo = "images/new_Sharan_logo.png";
+              recoLabel = T("carepath.reco.sharan", "SHARAN");
+              recoHref = "testimonials-diabetes.html";
+            } else if (cond === "eye") {
+              recoLogo = "images/new_amar_eye_logo.png";
+              recoLabel = T("carepath.reco.amarEye", "Amar Eye Yoga");
+              recoHref = "testimonials-amar-eye-yoga.html";
+            } else {
+              // hypertension / general / skip → Stilwater + assessment form.
+              recoLogo = "images/stilwater-logov3.png";
+              recoLabel = T("carepath.wellnessAssessment", "Take Wellness Assessment");
+              recoHref = "intake.html";
+            }
+            const recoChip = document.createElement("a");
+            recoChip.href = recoHref;
+            recoChip.className = "plant-chat-reco";
+            recoChip.innerHTML =
+              '<img src="' + recoLogo + '" alt="" class="plant-chat-reco-logo" />' +
+              '<span>' + escapeHtml(recoLabel) + '</span>';
+            header.appendChild(recoChip);
           }
 
           // Mobile-only hamburger: the chat view hides the companion-shell
