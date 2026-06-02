@@ -3171,6 +3171,50 @@ async function multiYoutubeVideoIds(query, max, excludeIds, opts = {}) {
   }
 }
 
+// Like multiYoutubeVideoIds, but also captures each video's real title from
+// the scraped ytInitialData. Returns [{ id, title }] (title may be "" if it
+// couldn't be parsed — caller should fall back to the dish name).
+async function multiYoutubeVideos(query, max, excludeIds, opts = {}) {
+  const timeoutMs = typeof opts.timeoutMs === "number" ? opts.timeoutMs : 4000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const filter = opts.videosOnly === false ? "" : "&sp=EgIQAQ%253D%253D";
+    const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}${filter}`;
+    const resp = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        Cookie: "CONSENT=YES+1; SOCS=CAESEwgDEgk0ODE3Nzk3MjQaAmVuIAEaBgiA_LyaBg",
+      },
+    });
+    if (!resp.ok) return [];
+    const html = await resp.text();
+    // videoId, then the nearest title ("runs":[{"text":"…"}] or "simpleText":"…")
+    // inside the same videoRenderer. Non-greedy so it stays within the block.
+    const re = /"videoRenderer":\{"videoId":"([A-Za-z0-9_-]{11})"[\s\S]{0,600}?"title":\{(?:"runs":\[\{"text":"((?:\\.|[^"\\])*)"|"simpleText":"((?:\\.|[^"\\])*)")/g;
+    const out = [];
+    let m;
+    while ((m = re.exec(html)) !== null) {
+      const id = m[1];
+      if (excludeIds.has(id)) continue;
+      excludeIds.add(id);
+      let title = "";
+      const raw = m[2] || m[3] || "";
+      if (raw) { try { title = JSON.parse('"' + raw + '"'); } catch (_) { title = raw; } }
+      out.push({ id, title: String(title || "").trim() });
+      if (out.length >= max) break;
+    }
+    return out;
+  } catch (_e) {
+    return [];
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 // ── Stilwater AI Chat (Plant-Based Recipes sidebar) ────────────────────────
 // Holistic wellness chat tailored to the user's wellness-assessment condition
 // (diabetes / eye / hypertension / general). Calls OpenRouter using the
@@ -3959,23 +4003,24 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
       `${dish} recipe`,
       dish,
     ];
-    const ids = [];
+    const found = [];
     for (const q of queries) {
-      const need = count - ids.length;
+      const need = count - found.length;
       if (need <= 0) break;
-      const more = await multiYoutubeVideoIds(q, need, seen, { timeoutMs: 4000 });
-      for (const id of more) {
-        if (ids.length >= count) break;
-        ids.push(id);
+      const more = await multiYoutubeVideos(q, need, seen, { timeoutMs: 4000 });
+      for (const v of more) {
+        if (found.length >= count) break;
+        found.push(v);
       }
     }
 
     let videos;
-    if (ids.length) {
-      videos = ids.map((id) => ({
-        title: dish,
+    if (found.length) {
+      videos = found.map((v) => ({
+        // Real YouTube title when we could parse it; otherwise the dish name.
+        title: v.title && v.title.trim() ? v.title.trim() : dish,
         channel: "YouTube",
-        url: `https://www.youtube.com/watch?v=${id}`,
+        url: `https://www.youtube.com/watch?v=${v.id}`,
       }));
     } else {
       // Last-ditch fallback: a single search URL so the popup is never empty.

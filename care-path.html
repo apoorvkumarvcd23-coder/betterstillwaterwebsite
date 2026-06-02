@@ -4433,6 +4433,101 @@
           return card;
         }
 
+        // ── PDF export ──────────────────────────────────────────────────
+        // Lazy-load jsPDF (UMD) from CDN on first use; resolves the ctor.
+        let _jsPdfPromise = null;
+        function ensureJsPdf() {
+          if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+          if (_jsPdfPromise) return _jsPdfPromise;
+          _jsPdfPromise = new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            s.onload = () => (window.jspdf && window.jspdf.jsPDF) ? resolve(window.jspdf.jsPDF) : reject(new Error("jsPDF missing"));
+            s.onerror = () => reject(new Error("jsPDF load failed"));
+            document.head.appendChild(s);
+          });
+          return _jsPdfPromise;
+        }
+        function ytSearchUrl(dish) {
+          return "https://www.youtube.com/results?search_query=" + encodeURIComponent(dish + " vegan recipe");
+        }
+        // jsPDF core fonts are Latin-1 only; drop anything outside that range
+        // so non-English meal/video names don't render as garbage.
+        function pdfSafe(s) { return String(s == null ? "" : s).replace(/[^\x20-\x7E]/g, "").trim(); }
+        const PDF_DISCLAIMER = "Aria offers lifestyle guidance and does not replace your doctor's advice.";
+
+        async function buildPlanPdf(opts) {
+          // opts: { title, meta, days: [{ name, meals: [{slot, dish}] }] }
+          const JsPDF = await ensureJsPdf();
+          const doc = new JsPDF({ unit: "pt", format: "a4" });
+          const pageH = doc.internal.pageSize.getHeight();
+          const left = 40, right = doc.internal.pageSize.getWidth() - 40;
+          let y = 54;
+          const pageBreak = (need) => { if (y + (need || 0) > pageH - 56) { doc.addPage(); y = 54; } };
+          doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(23, 58, 50);
+          doc.text(pdfSafe(opts.title), left, y); y += 22;
+          if (opts.meta) { doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(110); doc.text(pdfSafe(opts.meta), left, y); y += 18; }
+          (opts.days || []).forEach((day) => {
+            pageBreak(40);
+            doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(38, 79, 69);
+            doc.text(pdfSafe(day.name), left, y); y += 16;
+            (day.meals || []).forEach((m) => {
+              pageBreak(16);
+              doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(40);
+              doc.text(pdfSafe(m.slot.toUpperCase() + ":  " + m.dish), left + 8, y);
+              doc.setTextColor(38, 79, 69);
+              doc.textWithLink("Watch videos", right - 78, y, { url: ytSearchUrl(m.dish) });
+              y += 15;
+            });
+            y += 8;
+          });
+          doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(120);
+          doc.text(PDF_DISCLAIMER, left, pageH - 30);
+          return doc;
+        }
+
+        async function downloadWeeklyPdf() {
+          if (!state.weeklyPlan) return;
+          const days = WEEK_DAYS.map((d) => ({
+            name: d,
+            meals: MEAL_SLOTS
+              .map((slot) => ({ slot, dish: mealEnglish(state.weeklyPlan[d] && state.weeklyPlan[d][slot] && state.weeklyPlan[d][slot].meal) || "" }))
+              .filter((m) => m.dish),
+          }));
+          try { (await buildPlanPdf({ title: "Stilwater Weekly Plan", meta: state.weeklyMeta || "", days })).save("stilwater-weekly-plan.pdf"); }
+          catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
+        }
+
+        async function downloadTodayPdf() {
+          if (!state.todayPlan) return;
+          const meals = MEAL_SLOTS
+            .map((slot) => ({ slot, dish: mealEnglish(state.todayPlan[slot] && state.todayPlan[slot].meal) || "" }))
+            .filter((m) => m.dish);
+          try { (await buildPlanPdf({ title: "Stilwater Today's Plan", meta: state.todayMeta || "", days: [{ name: "Today", meals }] })).save("stilwater-today-plan.pdf"); }
+          catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
+        }
+
+        async function downloadRecipePdf(dish, videos) {
+          try {
+            const JsPDF = await ensureJsPdf();
+            const doc = new JsPDF({ unit: "pt", format: "a4" });
+            const left = 40, right = doc.internal.pageSize.getWidth() - 40;
+            let y = 54;
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(23, 58, 50);
+            doc.text(pdfSafe("Recipe videos — " + dish), left, y); y += 26;
+            doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+            (videos || []).forEach((v, i) => {
+              doc.setTextColor(40);
+              doc.text(pdfSafe((i + 1) + ". " + (v.title || dish)).slice(0, 90), left, y);
+              doc.setTextColor(38, 79, 69);
+              doc.textWithLink("Open", right - 36, y, { url: v.url });
+              y += 20;
+            });
+            const slug = String(dish || "recipe").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "recipe";
+            doc.save("stilwater-recipe-" + slug + ".pdf");
+          } catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
+        }
+
         function choiceCard(opts) {
           const b = document.createElement("button");
           b.type = "button";
@@ -4770,6 +4865,12 @@
             edit.className = "companion-edit-btn";
             edit.textContent = T("aria.mp.editPrefs", "Edit prefs");
             edit.addEventListener("click", () => { state.weeklyPlan = null; state.todayPlan = null; state.todayMeta = ""; renderMode(); });
+            const dl = document.createElement("button");
+            dl.type = "button";
+            dl.className = "companion-edit-btn";
+            dl.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+            dl.addEventListener("click", () => downloadWeeklyPdf());
+            row.appendChild(dl);
             row.appendChild(edit);
             wrap.appendChild(row);
             WEEK_DAYS.forEach((day) => {
@@ -4886,11 +4987,17 @@
             T("aria.mp.today.heroSub", "Today's meals, shaped from your weekly plan and yesterday's journal.")
           ));
           if (state.todayPlan) {
-            const meta = document.createElement("div");
-            meta.className = "companion-meta";
-            meta.style.marginTop = "-6px";
-            meta.textContent = state.todayMeta;
-            wrap.appendChild(meta);
+            const todayRow = document.createElement("div");
+            todayRow.className = "companion-row";
+            todayRow.style.marginTop = "-6px";
+            todayRow.innerHTML = '<div class="companion-meta">' + escapeHtml(state.todayMeta) + '</div>';
+            const dlToday = document.createElement("button");
+            dlToday.type = "button";
+            dlToday.className = "companion-edit-btn";
+            dlToday.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+            dlToday.addEventListener("click", () => downloadTodayPdf());
+            todayRow.appendChild(dlToday);
+            wrap.appendChild(todayRow);
             MEAL_SLOTS.forEach((slot) => {
               const card = document.createElement("div");
               card.className = "companion-today-card";
@@ -5071,6 +5178,16 @@
           const title = document.createElement("h3");
           title.textContent = T("aria.recipes.popupTitle", "Recipe videos for") + " " + (displayName || "");
           header.appendChild(title);
+          let lastRecipeVideos = [];
+          const dlRecipe = document.createElement("button");
+          dlRecipe.type = "button";
+          dlRecipe.className = "companion-edit-btn";
+          dlRecipe.style.marginLeft = "auto";
+          dlRecipe.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+          dlRecipe.addEventListener("click", () => {
+            if (lastRecipeVideos.length) downloadRecipePdf(displayName || dishEn || "Recipe", lastRecipeVideos);
+          });
+          header.appendChild(dlRecipe);
           const closeBtn = document.createElement("button");
           closeBtn.type = "button";
           closeBtn.className = "companion-recipe-modal-close";
@@ -5103,6 +5220,7 @@
             body.appendChild(s);
           };
           const renderVideos = (videos) => {
+            lastRecipeVideos = Array.isArray(videos) ? videos : [];
             body.innerHTML = "";
             videos.forEach((v, i) => {
               const a = document.createElement("a");

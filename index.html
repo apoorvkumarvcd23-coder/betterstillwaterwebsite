@@ -553,6 +553,13 @@
       <a href="#pillars" data-i18n="home.nav.product">Product</a>
       <a href="#how" data-i18n="home.nav.how">How it works</a>
       <a href="#pricing" data-i18n="home.nav.pricing">Pricing</a>
+      <!-- Dashboard: only shown when logged in (js/shared.js toggles it).
+           Logged-out users see the Login button instead. -->
+      <a href="care-path.html?submissionId=1"
+         id="btnDashboard"
+         data-ga-event="nav_dashboard"
+         data-i18n="home.nav.dashboard"
+         hidden>Dashboard</a>
       <!-- Auth dropdown — populated and shown/hidden by js/shared.js based
            on the /api/auth/me response. When logged in, authMenuButton
            shows "Hi, [name]" and the dropdown holds the Log out link. -->

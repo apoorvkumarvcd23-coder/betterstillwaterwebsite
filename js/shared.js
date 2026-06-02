@@ -499,6 +499,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById("btnLogin");
     const btnAdmin = document.getElementById("btnAdmin");
     const btnIntake = document.getElementById("btnIntake");
+    const btnDashboard = document.getElementById("btnDashboard");
     const AUTH_COMPACT_BREAKPOINT = 1039;
     const MAX_COMPACT_NAME_CHARS = 8;
     const MAX_FULL_NAME_CHARS = 22;
@@ -572,6 +573,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isAuthenticated) {
         if (btnAdmin) btnAdmin.style.display = "none";
         if (btnIntake) btnIntake.style.display = "none";
+        if (btnDashboard) btnDashboard.hidden = true;
         if (btnLogin) btnLogin.style.display = "inline-flex";
         if (authMenuButton) {
           authMenuButton.style.display = "none";
@@ -581,6 +583,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (btnLogin) btnLogin.style.display = "none";
+      // Logged in → show the Dashboard nav link (home page only; the element
+      // simply doesn't exist on other pages).
+      if (btnDashboard) btnDashboard.hidden = false;
 
       const safeName =
         typeof activeUser.name === "string" && activeUser.name.trim()

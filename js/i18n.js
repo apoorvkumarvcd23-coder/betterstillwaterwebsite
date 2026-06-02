@@ -91,6 +91,7 @@
     "home.nav.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
     "home.nav.platform": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
     "home.nav.product": { en: "Product", hi: "उत्पाद" },
+    "home.nav.dashboard": { en: "Dashboard", hi: "डैशबोर्ड" },
     "home.nav.how": { en: "How it works", hi: "यह कैसे काम करता है" },
     "home.nav.pricing": { en: "Pricing", hi: "मूल्य निर्धारण" },
 
