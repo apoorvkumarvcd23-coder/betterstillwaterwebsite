@@ -4490,8 +4490,10 @@
           if (!state.weeklyPlan) return;
           const days = WEEK_DAYS.map((d) => ({
             name: d,
+            // weeklyPlan[day][slot] IS the meal value (string or {en,hi}) —
+            // unlike todayPlan[slot].meal. Match the on-screen render.
             meals: MEAL_SLOTS
-              .map((slot) => ({ slot, dish: mealEnglish(state.weeklyPlan[d] && state.weeklyPlan[d][slot] && state.weeklyPlan[d][slot].meal) || "" }))
+              .map((slot) => ({ slot, dish: mealEnglish(state.weeklyPlan[d] && state.weeklyPlan[d][slot]) || "" }))
               .filter((m) => m.dish),
           }));
           try { (await buildPlanPdf({ title: "Stilwater Weekly Plan", meta: state.weeklyMeta || "", days })).save("stilwater-weekly-plan.pdf"); }
