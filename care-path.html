@@ -2360,7 +2360,11 @@
         font: inherit; font-weight: 700; font-size: 14px; text-decoration: none;
         box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); white-space: nowrap;
       }
-      .plant-chat-header .plant-chat-reco:hover { background: #f2eee5; }
+      a.plant-chat-reco:hover { background: #f2eee5; }
+      div.plant-chat-reco { cursor: default; }
+      .plant-chat-header .plant-chat-reco .plant-chat-reco-pre {
+        font-weight: 600; font-size: 12.5px; color: #63736a;
+      }
       .plant-chat-header .plant-chat-reco .plant-chat-reco-logo {
         height: 26px; width: auto; max-width: 96px; object-fit: contain; display: block; border-radius: 6px;
       }
@@ -5342,6 +5346,44 @@
               T("aria.chat.startNutrition.3", "Share a recipe that's gentle on blood sugar."),
             ];
           }
+          if (chatMode === "chronic") {
+            // Match the "Sample Questions" shown on the corresponding
+            // testimonials page (js/testimonials.js → SAMPLE_QUESTIONS_BY_DATASET):
+            //   diabetes → diabetes dataset, eye → amar_eye_yoga,
+            //   else (hypertension/general/skip) → holistic_wellness.
+            const hi = (typeof LANG === "function") && LANG() === "hi";
+            if (c === "diabetes") {
+              return hi ? [
+                "पौधा-आधारित आहार अपनाने के बाद जिन लोगों ने मधुमेह की दवाएं कम कीं, ऐसे प्रशंसापत्र दिखाएं",
+                "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+                "क्या टाइप 2 मधुमेह रिवर्स हो सकता है?",
+              ] : [
+                "Find testimonials where people reduced diabetes medicine after switching to plant-based diet",
+                "Give me testimonial of patient who reduced type 2 diabetes",
+                "Can type 2 diabetes be reversed?",
+              ];
+            }
+            if (c === "eye") {
+              return hi ? [
+                "अमर आई योग आने से पहले लोगों को किस तरह की आंखों की समस्याएं थीं?",
+                "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+                "ट्रेनिंग, वातावरण और सपोर्ट का उनके रिकवरी सफर पर क्या असर पड़ा?",
+              ] : [
+                "What kind of eye problems are people facing before coming to Amar Eye Yoga?",
+                "What improvements do people notice after following the eye exercises and treatment?",
+                "How does the overall experience (training, environment, support) impact their recovery journey?",
+              ];
+            }
+            return hi ? [
+              "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+              "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+              "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
+            ] : [
+              "Give me testimonial of patient who reduced type 2 diabetes",
+              "What improvements do people notice after following the eye exercises and treatment?",
+              "Find one testimonial showing measurable improvements after natural healing steps.",
+            ];
+          }
           if (c === "diabetes") {
             return [
               T("aria.chat.startDiabetes.1", "What plant-based foods help stabilize blood sugar?"),
@@ -5418,28 +5460,30 @@
             //   diabetes -> SHARAN (diabetes RAG), eye -> Amar Eye
             //   (amar_eye_yoga RAG), else -> Holistic (holistic_wellness RAG).
             const cond = activeCondition();
-            let recoLogo, recoLabel, recoHref;
-            if (cond === "diabetes") {
-              recoLogo = "images/new_Sharan_logo.png";
-              recoLabel = T("carepath.reco.sharan", "SHARAN");
-              recoHref = "testimonials-diabetes.html";
-            } else if (cond === "eye") {
-              recoLogo = "images/new_amar_eye_logo.png";
-              recoLabel = T("carepath.reco.amarEye", "Amar Eye Yoga");
-              recoHref = "testimonials-amar-eye-yoga.html";
+            if (cond === "diabetes" || cond === "eye") {
+              // Recommendation badge only — NOT a link. The chronic chat
+              // already runs the matching testimonial-RAG pipeline server-side
+              // (diabetes → SHARAN dataset, eye → amar_eye_yoga dataset), so
+              // there's nothing to navigate to.
+              const isEye = cond === "eye";
+              const recoChip = document.createElement("div");
+              recoChip.className = "plant-chat-reco";
+              recoChip.innerHTML =
+                '<span class="plant-chat-reco-pre">' + escapeHtml(T("carepath.reco.recommending", "Recommending")) + '</span>' +
+                '<img src="' + (isEye ? "images/new_amar_eye_logo.png" : "images/new_Sharan_logo.png") + '" alt="" class="plant-chat-reco-logo" />' +
+                '<span>' + escapeHtml(isEye ? T("carepath.reco.amarEye", "Amar Eye Yoga") : T("carepath.reco.sharan", "SHARAN")) + '</span>';
+              header.appendChild(recoChip);
             } else {
-              // hypertension / general / skip → Stilwater + assessment form.
-              recoLogo = "images/stilwater-logov3.png";
-              recoLabel = T("carepath.wellnessAssessment", "Take Wellness Assessment");
-              recoHref = "intake.html";
+              // hypertension / general / skip → Stilwater + a link to the
+              // wellness-assessment form. (Chat uses the Holistic dataset.)
+              const recoChip = document.createElement("a");
+              recoChip.href = "intake.html";
+              recoChip.className = "plant-chat-reco";
+              recoChip.innerHTML =
+                '<img src="images/stilwater-logov3.png" alt="" class="plant-chat-reco-logo" />' +
+                '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
+              header.appendChild(recoChip);
             }
-            const recoChip = document.createElement("a");
-            recoChip.href = recoHref;
-            recoChip.className = "plant-chat-reco";
-            recoChip.innerHTML =
-              '<img src="' + recoLogo + '" alt="" class="plant-chat-reco-logo" />' +
-              '<span>' + escapeHtml(recoLabel) + '</span>';
-            header.appendChild(recoChip);
           }
 
           // Mobile-only hamburger: the chat view hides the companion-shell
