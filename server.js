@@ -3365,15 +3365,21 @@ Each question is short (max 12 words), no numbering, no markdown.`;
 // the chat still works, just without chips for that turn.
 function parseStilwaterReply(raw) {
   const text = String(raw || "");
-  const re = /\[FOLLOWUPS\]([\s\S]*?)\[\/FOLLOWUPS\]\s*$/i;
-  const match = text.match(re);
-  if (!match) return { reply: text.trim(), followups: [] };
-  const followups = match[1]
+  // The model sometimes deviates from the exact "[FOLLOWUPS] … [/FOLLOWUPS]"
+  // format — e.g. "[ FOLLOWUPS ]" with spaces, or omitting the closing tag.
+  // Be tolerant: find the opening marker (any inner whitespace), then drop the
+  // closing tag (if present) and anything after it.
+  const open = /\[\s*FOLLOWUPS\s*\]/i.exec(text);
+  if (!open) return { reply: text.trim(), followups: [] };
+  const block = text
+    .slice(open.index + open[0].length)
+    .replace(/\[\s*\/\s*FOLLOWUPS\s*\][\s\S]*$/i, "");
+  const followups = block
     .split(/\|\|/)
     .map((s) => s.trim().replace(/^[\d.\-•\s]+/, ""))
     .filter((s) => s.length > 0 && s.length <= 140)
     .slice(0, 3);
-  const clean = text.slice(0, match.index).trim();
+  const clean = text.slice(0, open.index).trim();
   return { reply: clean, followups };
 }
 
@@ -3450,7 +3456,8 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
     // we stop at it; before then we hold back the last few chars so a marker
     // forming across chunk boundaries is never partially shown.
     const flushVisible = (isFinal) => {
-      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      const _fu = /\[\s*FOLLOWUPS/i.exec(fullRaw);
+      const idx = _fu ? _fu.index : -1;
       let visibleEnd;
       if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
       else if (isFinal) visibleEnd = fullRaw.length;
@@ -3618,7 +3625,8 @@ ${contextBlock || "(No matching passages were retrieved for this question.)"}`;
     let emittedLen = 0;
     let sawFollowups = false;
     const flushVisible = (isFinal) => {
-      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      const _fu = /\[\s*FOLLOWUPS/i.exec(fullRaw);
+      const idx = _fu ? _fu.index : -1;
       let visibleEnd;
       if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
       else if (isFinal) visibleEnd = fullRaw.length;
@@ -3919,7 +3927,8 @@ ${context || "(No matching testimonials were retrieved for this question.)"}`;
     let emittedLen = 0;
     let sawFollowups = false;
     const flushVisible = (isFinal) => {
-      const idx = fullRaw.indexOf(FOLLOWUP_OPEN);
+      const _fu = /\[\s*FOLLOWUPS/i.exec(fullRaw);
+      const idx = _fu ? _fu.index : -1;
       let visibleEnd;
       if (idx !== -1) { visibleEnd = idx; sawFollowups = true; }
       else if (isFinal) visibleEnd = fullRaw.length;
