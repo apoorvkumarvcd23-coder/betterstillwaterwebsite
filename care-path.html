@@ -2427,20 +2427,6 @@
         body.sw-chronic-partner .companion-chat { overflow: visible; min-height: 0; }
       }
 
-      /* Nutrition / general chat: same full-page scroll. Unwind the app-shell's
-         fixed-height / overflow pinning so the BODY scrolls, and let the chat
-         column fill the viewport so the composer stays near the bottom when the
-         conversation is short, then grows + page-scrolls as it extends. */
-      body.sw-chat-fullpage .pbn-layout,
-      body.sw-chat-fullpage .pbn-main,
-      body.sw-chat-fullpage .plant-chat-overlay { overflow: visible; }
-      body.sw-chat-fullpage .pbn-main { min-height: calc(100vh - 300px); display: flex; flex-direction: column; }
-      body.sw-chat-fullpage .pbn-chat-card { flex: 1 1 auto; }
-      @media (min-width: 769px) {
-        body.sw-chat-fullpage .care-shell { height: auto; overflow: visible; }
-        body.sw-chat-fullpage .care-stage { overflow: visible; min-height: 0; }
-        body.sw-chat-fullpage .companion-chat { overflow: visible; min-height: 0; }
-      }
 
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
@@ -5773,11 +5759,6 @@
           // removed; Nutrition keeps its chat + sidebar.)
           if (isChronic) setSidebarVisible(false);
           document.body.classList.toggle("sw-chronic-partner", isChronic);
-          // Nutrition / general chat also scrolls as a full page (not a trapped
-          // inner region). The chat column fills the viewport so the composer
-          // sits near the bottom when the conversation is short, then grows and
-          // page-scrolls as it extends.
-          document.body.classList.toggle("sw-chat-fullpage", !isChronic);
 
           // Suggestion cards = the per-condition starters (replaces the old
           // in-chat starter chips). Clicking one sends it, exactly as before.
@@ -6069,11 +6050,7 @@
               ensureBubble();
               if (!liveBubble) return;
               liveBubble.textContent = txt;
-              requestAnimationFrame(() => {
-                const lay = liveScroll && liveScroll.closest(".pbn-layout");
-                if (lay && lay.scrollHeight - lay.clientHeight > 4) lay.scrollTop = lay.scrollHeight;
-                else window.scrollTo(0, document.documentElement.scrollHeight);
-              });
+              requestAnimationFrame(() => { const lay = liveScroll && liveScroll.closest(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; });
             };
             const finish = (reply, followups, info) => {
               recipeChat.loading = false;
@@ -6310,18 +6287,7 @@
           // (Re)rendering rebuilds the message list from scratch, which resets
           // the scroll to the top. Snap to the bottom so the newest question /
           // answer is always in view — no manual scrolling after each turn.
-          requestAnimationFrame(() => {
-            try {
-              const lay = host.querySelector(".pbn-layout");
-              if (lay && lay.scrollHeight - lay.clientHeight > 4) { lay.scrollTop = lay.scrollHeight; return; }
-              // Full-page mode: only follow to the bottom once a conversation
-              // has started — don't yank a fresh greeting-only chat up under
-              // the header.
-              if (recipeChat.messages.some((m) => m.role === "user")) {
-                window.scrollTo(0, document.documentElement.scrollHeight);
-              }
-            } catch (_) {}
-          });
+          requestAnimationFrame(() => { try { const lay = host.querySelector(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; } catch (_) {} });
         }
 
         function updateSidebarToggleLabel() {
@@ -6407,7 +6373,6 @@
           host.hidden = true;
           document.body.classList.remove("plant-chat-open");
           document.body.classList.remove("sw-chronic-partner");
-          document.body.classList.remove("sw-chat-fullpage");
           setClearChatVisible(false);
           updateSidebarToggleLabel();
         }
