@@ -737,22 +737,39 @@
 
       // Mark every mandatory field's label with a red asterisk, kept in sync
       // with each control's `required` state (which toggles per condition).
+      function setStar(label, req) {
+        let star = label.querySelector(".req-star");
+        if (req && !star) {
+          star = document.createElement("span");
+          star.className = "req-star";
+          star.setAttribute("aria-hidden", "true");
+          star.style.color = "#c0392b";
+          star.style.fontWeight = "700";
+          star.textContent = " *";
+          label.appendChild(star);
+        } else if (!req && star) {
+          star.remove();
+        }
+      }
       function refreshRequiredStars() {
+        // 1) Labels linked to a single control via [for] (Name, Phone, Age,
+        //    HbA1c, medications, etc.).
         document.querySelectorAll(".form-label[for]").forEach((label) => {
           const ctrl = document.getElementById(label.getAttribute("for"));
-          const req = !!(ctrl && ctrl.required);
-          let star = label.querySelector(".req-star");
-          if (req && !star) {
-            star = document.createElement("span");
-            star.className = "req-star";
-            star.setAttribute("aria-hidden", "true");
-            star.style.color = "#c0392b";
-            star.style.fontWeight = "700";
-            star.textContent = " *";
-            label.appendChild(star);
-          } else if (!req && star) {
-            star.remove();
-          }
+          setStar(label, !!(ctrl && ctrl.required));
+        });
+        // 2) Group labels (.form-label WITHOUT [for]) that head a cluster of
+        //    inputs/radios — e.g. "Are you on Insulin?" (radio group) or
+        //    "What is your blood pressure levels" (systolic + diastolic). Star
+        //    them whenever ANY control in their .form-group is required.
+        document.querySelectorAll(".form-label:not([for])").forEach((label) => {
+          const group = label.closest(".form-group");
+          if (!group) return;
+          const req = Array.prototype.some.call(
+            group.querySelectorAll("input, select, textarea"),
+            (c) => c.required,
+          );
+          setStar(label, req);
         });
       }
       intakeForm.addEventListener("change", refreshRequiredStars);

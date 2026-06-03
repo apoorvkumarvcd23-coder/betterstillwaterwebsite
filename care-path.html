@@ -5703,17 +5703,10 @@
                 '<img src="' + (isEye ? "images/new_amar_eye_logo.png" : "images/new_Sharan_logo.png") + '" alt="" class="plant-chat-reco-logo" />' +
                 '<span>' + escapeHtml(isEye ? T("carepath.reco.amarEye", "Amar Eye Yoga") : T("carepath.reco.sharan", "SHARAN")) + '</span>';
               header.appendChild(recoChip);
-            } else {
-              // hypertension / general / skip → Stilwater + a link to the
-              // wellness-assessment form. (Chat uses the Holistic dataset.)
-              const recoChip = document.createElement("a");
-              recoChip.href = "intake.html";
-              recoChip.className = "plant-chat-reco";
-              recoChip.innerHTML =
-                '<img src="images/stilwater-logov3.png" alt="" class="plant-chat-reco-logo" />' +
-                '<span>' + escapeHtml(T("carepath.wellnessAssessment", "Take Wellness Assessment")) + '</span>';
-              header.appendChild(recoChip);
             }
+            // (Removed the "Take Wellness Assessment" header chip for the
+            // skip / non-diabetes-eye case — the assessment-prompt page
+            // already has its own CTA, so no extra chip is needed here.)
           }
 
           // Mobile-only hamburger: the chat view hides the companion-shell
