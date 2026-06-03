@@ -2380,9 +2380,30 @@
         box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); display: block;
       }
       @media (max-width: 760px) { .pbn-partner-frame { min-height: calc(100vh - 180px); } }
-      /* Full-page partner view: no card chrome, sidebar hidden, disclaimer off. */
+      /* Full-page partner view: no card chrome, sidebar hidden, disclaimer off,
+         and drop the now-pointless hamburger (no sidebar to open). */
       body.sw-chronic-partner .pbn-partner-frame { border: none; border-radius: 0; box-shadow: none; }
       body.sw-chronic-partner .pbn-disclaimer { display: none; }
+      body.sw-chronic-partner .plant-chat-menu { display: none; }
+
+      /* Skipped / no condition → full-page assessment prompt (no chat). */
+      .pbn-assess {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; gap: 16px; padding: 40px 24px; min-height: calc(100vh - 230px);
+      }
+      .pbn-assess img { height: 52px; width: auto; }
+      .pbn-assess h2 {
+        margin: 0; font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        color: #173a32; font-size: clamp(24px, 3vw, 34px); letter-spacing: -0.4px;
+      }
+      .pbn-assess p { margin: 0; color: #63736a; font-size: 15px; line-height: 1.6; max-width: 460px; }
+      .pbn-assess-cta {
+        margin-top: 6px; display: inline-flex; align-items: center; justify-content: center;
+        background: #264f45; color: #fff; text-decoration: none; font-weight: 800; font-size: 15px;
+        padding: 14px 24px; border-radius: 999px; box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16);
+      }
+      .pbn-assess-cta:hover { background: #173a32; }
+      @media (max-width: 768px) { .pbn-assess { min-height: calc(100vh - 170px); padding: 32px 18px; } }
       /* Desktop: fixed-height shell → iframe fills it, ONE scroller (iframe's),
          outer .pbn-layout doesn't scroll. */
       @media (min-width: 769px) {
@@ -5693,11 +5714,13 @@
           // downstream code doesn't break — just hidden, not removed).
           const partnerPage = isChronic ? chronicPartnerPage() : null;
 
-          // Partner page = full-page: hide the left chat-history sidebar (it's
-          // only useful for the fallback chat) and switch on full-page styling
-          // (single scroller). For the fallback chat, keep the sidebar.
-          if (isChronic) setSidebarVisible(!partnerPage);
-          document.body.classList.toggle("sw-chronic-partner", !!partnerPage);
+          // Chronic is always full-page now (no chat): a partner page when a
+          // condition matched, else an assessment prompt for skipped users.
+          // Hide the left chat-history sidebar in both cases. (The chat is
+          // still built below but never mounted for chronic — hidden, not
+          // removed; Nutrition keeps its chat + sidebar.)
+          if (isChronic) setSidebarVisible(false);
+          document.body.classList.toggle("sw-chronic-partner", isChronic);
 
           // Suggestion cards = the per-condition starters (replaces the old
           // in-chat starter chips). Clicking one sends it, exactly as before.
@@ -5727,6 +5750,21 @@
             frame.title = T("carepath.chronic.partner", "Recommended for you");
             frame.setAttribute("loading", "lazy");
             mainCol.appendChild(frame);
+          } else if (isChronic) {
+            // Skipped / no condition → ask the user to complete the assessment
+            // (full-page message + button). The chat is NOT shown.
+            const assess = document.createElement("div");
+            assess.className = "pbn-assess";
+            assess.innerHTML =
+              '<img src="images/stilwater-logov3.png" alt="Stilwater" />' +
+              '<h2>' + escapeHtml(T("carepath.assess.title", "Take the Wellness Assessment")) + '</h2>' +
+              '<p>' + escapeHtml(T("carepath.assess.body", "Fill out a short assessment and Aria will tailor your guidance and recommend the right partner for your condition.")) + '</p>';
+            const aBtn = document.createElement("a");
+            aBtn.href = "intake.html";
+            aBtn.className = "pbn-assess-cta";
+            aBtn.textContent = T("carepath.wellnessAssessment", "Take Wellness Assessment");
+            assess.appendChild(aBtn);
+            mainCol.appendChild(assess);
           } else {
             mainCol.appendChild(sugWrap);
             mainCol.appendChild(chatCard);
