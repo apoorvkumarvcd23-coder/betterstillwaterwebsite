@@ -4662,6 +4662,11 @@ app.get(
         // generic). Falls back to false on a skipped/missing assessment.
         hasDiabetes: conditionSet.has("diabetes"),
         hasHypertension: conditionSet.has("hypertension"),
+        // Exposed so Chronic Disease Management can route to the right
+        // partner page (Sharan / Yoga / Amar) per condition.
+        hasDepression: conditionSet.has("depression"),
+        hasAnxiety: conditionSet.has("anxiety"),
+        hasSleep: conditionSet.has("sleep_issues"),
       });
     } catch (err) {
       console.error("Failed to fetch submission flags:", err);

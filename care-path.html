@@ -2373,6 +2373,14 @@
         .plant-chat-header .plant-chat-action { padding: 8px 12px; font-size: 13px; }
       }
 
+      /* Embedded partner page (Chronic Disease Management → Sharan/Yoga/Amar) */
+      .pbn-partner-frame {
+        width: 100%; min-height: calc(100vh - 220px); border: 1px solid #e8dfd2;
+        border-radius: 22px; background: #fffdfa;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); display: block;
+      }
+      @media (max-width: 760px) { .pbn-partner-frame { min-height: calc(100vh - 180px); } }
+
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
         flex: 1 1 auto; min-height: 0; min-width: 0;
@@ -3292,7 +3300,7 @@
       // Cached on window so the companion chat (renderRecipes) can read
       // the user's assessed conditions and tailor Aria's welcome greeting.
       window.__swCareFlags = window.__swCareFlags || {};
-      const applyFlags = ({ hasOther, hasEye, hasHolistic, hasDiabetes, hasHypertension }) => {
+      const applyFlags = ({ hasOther, hasEye, hasHolistic, hasDiabetes, hasHypertension, hasDepression, hasAnxiety, hasSleep }) => {
         if (hasOther) document.getElementById("sharanReco").hidden = false;
         if (hasEye) document.getElementById("eyeReco").hidden = false;
         if (hasHolistic) document.getElementById("healyReco").hidden = false;
@@ -3302,6 +3310,9 @@
           hasHolistic: !!hasHolistic,
           hasDiabetes: !!hasDiabetes,
           hasHypertension: !!hasHypertension,
+          hasDepression: !!hasDepression,
+          hasAnxiety: !!hasAnxiety,
+          hasSleep: !!hasSleep,
         };
         // The Stilwater AI Chat may have rendered its greeting BEFORE these
         // flags arrived (default landing = chat open, flags fetched async).
@@ -3344,6 +3355,9 @@
             hasHolistic: params.get("hasHolistic") === "1",
             hasDiabetes: params.get("hasDiabetes") === "1",
             hasHypertension: params.get("hasHypertension") === "1",
+            hasDepression: params.get("hasDepression") === "1",
+            hasAnxiety: params.get("hasAnxiety") === "1",
+            hasSleep: params.get("hasSleep") === "1",
           });
           return;
         }
@@ -3361,6 +3375,9 @@
             hasHolistic: Boolean(data.hasHolistic),
             hasDiabetes: Boolean(data.hasDiabetes),
             hasHypertension: Boolean(data.hasHypertension),
+            hasDepression: Boolean(data.hasDepression),
+            hasAnxiety: Boolean(data.hasAnxiety),
+            hasSleep: Boolean(data.hasSleep),
           });
         } catch (_) {
           // network error — leave cards hidden; UI degrades gracefully
@@ -5415,6 +5432,18 @@
           return "general";
         }
 
+        // Chronic Disease Management routes to a partner page based on the
+        // assessment conditions. Priority: Sharan → Sleep → Yoga → Eyesight.
+        // Returns null when no condition matches (→ keep the chat).
+        function chronicPartnerPage() {
+          const f = window.__swCareFlags || {};
+          if (f.hasDiabetes || f.hasHypertension) return "partner_sharan.html";
+          if (f.hasSleep) return "recommend_stilwater_yoga_sharan.html";
+          if (f.hasDepression || f.hasAnxiety) return "stilwater_yoga.html";
+          if (f.hasEye) return "partner_amar.html";
+          return null;
+        }
+
         // Pulls the logged-in user's first name out of the header's
         // "Hi, [name]" pill that shared.js populates from /api/auth/me.
         // Returns "" if not yet ready or not logged in.
@@ -5642,6 +5671,12 @@
           // (Title now lives in the header beside Back; the hero block and its
           // subtitle were removed.)
 
+          // Chronic Disease Management routes to a recommended partner page
+          // based on the assessment conditions. When one applies, embed it as
+          // an iframe and DON'T mount the chat (it's still built below so the
+          // downstream code doesn't break — just hidden, not removed).
+          const partnerPage = isChronic ? chronicPartnerPage() : null;
+
           // Suggestion cards = the per-condition starters (replaces the old
           // in-chat starter chips). Clicking one sends it, exactly as before.
           const sugWrap = document.createElement("div");
@@ -5658,12 +5693,22 @@
             card.addEventListener("click", () => sendMessage(q));
             sugWrap.appendChild(card);
           });
-          mainCol.appendChild(sugWrap);
 
           // Bordered chat card holds the message stream + composer.
           const chatCard = document.createElement("div");
           chatCard.className = "pbn-chat-card card";
-          mainCol.appendChild(chatCard);
+
+          if (partnerPage) {
+            const frame = document.createElement("iframe");
+            frame.className = "pbn-partner-frame";
+            frame.src = partnerPage;
+            frame.title = T("carepath.chronic.partner", "Recommended for you");
+            frame.setAttribute("loading", "lazy");
+            mainCol.appendChild(frame);
+          } else {
+            mainCol.appendChild(sugWrap);
+            mainCol.appendChild(chatCard);
+          }
 
           const disclaimer = document.createElement("div");
           disclaimer.className = "pbn-disclaimer";
