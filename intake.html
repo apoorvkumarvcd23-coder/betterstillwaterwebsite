@@ -727,6 +727,29 @@
       refreshConditionalFields();
       updateConditionDetails();
 
+      // Mark every mandatory field's label with a red asterisk, kept in sync
+      // with each control's `required` state (which toggles per condition).
+      function refreshRequiredStars() {
+        document.querySelectorAll(".form-label[for]").forEach((label) => {
+          const ctrl = document.getElementById(label.getAttribute("for"));
+          const req = !!(ctrl && ctrl.required);
+          let star = label.querySelector(".req-star");
+          if (req && !star) {
+            star = document.createElement("span");
+            star.className = "req-star";
+            star.setAttribute("aria-hidden", "true");
+            star.style.color = "#c0392b";
+            star.style.fontWeight = "700";
+            star.textContent = " *";
+            label.appendChild(star);
+          } else if (!req && star) {
+            star.remove();
+          }
+        });
+      }
+      intakeForm.addEventListener("change", refreshRequiredStars);
+      refreshRequiredStars();
+
       function autosizeNotes() {
         additionalNotes.style.height = "auto";
         additionalNotes.style.height = additionalNotes.scrollHeight + "px";

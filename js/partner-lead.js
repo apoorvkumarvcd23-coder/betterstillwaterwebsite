@@ -24,6 +24,7 @@
       ".sw-lead-card h3{margin:0 0 4px;font-family:Georgia,'Times New Roman',serif;color:#173a32;font-size:22px;}" +
       ".sw-lead-card p.sub{margin:0 0 4px;color:#63736a;font-size:14px;line-height:1.5;}" +
       ".sw-lead-card label{display:block;font-size:13px;font-weight:700;color:#2c4037;margin:14px 0 6px;}" +
+      ".sw-lead-card label .sw-req{color:#c0392b;}" +
       ".sw-lead-card input{width:100%;box-sizing:border-box;border:1px solid #e3dacd;border-radius:12px;padding:12px 14px;font-size:15px;background:#fbf8f1;color:#2e4038;}" +
       ".sw-lead-card input:focus{outline:none;border-color:rgba(38,79,69,.45);box-shadow:0 0 0 3px rgba(38,79,69,.1);background:#fffdf9;}" +
       ".sw-lead-actions{display:flex;gap:10px;margin-top:20px;}" +
@@ -42,9 +43,9 @@
         '<div class="sw-lead-form">' +
           "<h3>Book a consultation</h3>" +
           '<p class="sub">Share your details and a Stilwater representative will reach out to you<span class="sw-lead-about"></span>.</p>' +
-          "<label>Name</label><input type=\"text\" id=\"swLeadName\" autocomplete=\"name\" />" +
-          "<label>Phone number</label><input type=\"tel\" id=\"swLeadPhone\" autocomplete=\"tel\" />" +
-          "<label>Email</label><input type=\"email\" id=\"swLeadEmail\" autocomplete=\"email\" />" +
+          "<label>Name <span class=\"sw-req\">*</span></label><input type=\"text\" id=\"swLeadName\" autocomplete=\"name\" required />" +
+          "<label>Phone number <span class=\"sw-req\">*</span></label><input type=\"tel\" id=\"swLeadPhone\" autocomplete=\"tel\" required />" +
+          "<label>Email <span class=\"sw-req\">*</span></label><input type=\"email\" id=\"swLeadEmail\" autocomplete=\"email\" required />" +
           '<div class="sw-lead-err" id="swLeadErr"></div>' +
           '<div class="sw-lead-actions">' +
             '<button type="button" class="sw-lead-cancel" id="swLeadCancel">Cancel</button>' +
