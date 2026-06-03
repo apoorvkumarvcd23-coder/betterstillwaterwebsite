@@ -837,6 +837,13 @@
           const hasEye = getRadioValue("eyesightIssues") === "true";
           if (hasOther) params.set("hasOther", "1");
           if (hasEye) params.set("hasEye", "1");
+          // Also pass the granular condition flags — care-path's partner
+          // routing needs these specific flags, not just the hasOther roll-up.
+          if (selectedConditions.includes("diabetes")) params.set("hasDiabetes", "1");
+          if (selectedConditions.includes("hypertension")) params.set("hasHypertension", "1");
+          if (selectedConditions.includes("depression")) params.set("hasDepression", "1");
+          if (selectedConditions.includes("anxiety")) params.set("hasAnxiety", "1");
+          if (selectedConditions.includes("sleep_issues")) params.set("hasSleep", "1");
 
           window.setTimeout(() => {
             const query = params.toString();

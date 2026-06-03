@@ -3392,50 +3392,62 @@
           });
       }
 
+      // Read the granular condition flags carried in the URL (set by the
+      // intake redirect). Used as a fallback when the server fetch fails.
+      const flagsFromUrl = () => ({
+        hasOther: params.get("hasOther") === "1",
+        hasEye: params.get("hasEye") === "1",
+        hasHolistic: params.get("hasHolistic") === "1",
+        hasDiabetes: params.get("hasDiabetes") === "1",
+        hasHypertension: params.get("hasHypertension") === "1",
+        hasDepression: params.get("hasDepression") === "1",
+        hasAnxiety: params.get("hasAnxiety") === "1",
+        hasSleep: params.get("hasSleep") === "1",
+      });
+
       (async () => {
-        if (hasFlagInUrl) {
-          applyFlags({
-            hasOther: params.get("hasOther") === "1",
-            hasEye: params.get("hasEye") === "1",
-            hasHolistic: params.get("hasHolistic") === "1",
-            hasDiabetes: params.get("hasDiabetes") === "1",
-            hasHypertension: params.get("hasHypertension") === "1",
-            hasDepression: params.get("hasDepression") === "1",
-            hasAnxiety: params.get("hasAnxiety") === "1",
-            hasSleep: params.get("hasSleep") === "1",
-          });
-          return;
-        }
-        if (!submissionId) return;
-        // Flags are fetched async — tell the Chronic view to wait (spinner)
-        // rather than render the assessment prompt before they arrive.
-        window.__swCareFlagsLoaded = false;
-        try {
-          const res = await fetch(
-            `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
-            { credentials: "same-origin" },
-          );
-          if (res.ok) {
-            const data = await res.json();
-            applyFlags({
-              hasOther: Boolean(data.hasOther),
-              hasEye: Boolean(data.hasEye),
-              hasHolistic: Boolean(data.hasHolistic),
-              hasDiabetes: Boolean(data.hasDiabetes),
-              hasHypertension: Boolean(data.hasHypertension),
-              hasDepression: Boolean(data.hasDepression),
-              hasAnxiety: Boolean(data.hasAnxiety),
-              hasSleep: Boolean(data.hasSleep),
-            });
+        // When we have a submissionId, the server's saved flags are the
+        // authoritative, COMPLETE source. The intake redirect only carries a
+        // coarse `hasOther` roll-up in the URL, which is NOT enough for the
+        // partner routing (chronicPartnerPage needs the specific condition
+        // flags). So always fetch the server flags and show the spinner
+        // meanwhile; only fall back to URL flags if that fetch fails.
+        if (submissionId) {
+          window.__swCareFlagsLoaded = false;
+          try {
+            const res = await fetch(
+              `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
+              { credentials: "same-origin" },
+            );
+            if (res.ok) {
+              const data = await res.json();
+              applyFlags({
+                hasOther: Boolean(data.hasOther),
+                hasEye: Boolean(data.hasEye),
+                hasHolistic: Boolean(data.hasHolistic),
+                hasDiabetes: Boolean(data.hasDiabetes),
+                hasHypertension: Boolean(data.hasHypertension),
+                hasDepression: Boolean(data.hasDepression),
+                hasAnxiety: Boolean(data.hasAnxiety),
+                hasSleep: Boolean(data.hasSleep),
+              });
+              return;
+            }
+          } catch (_) {
+            // network error — fall through to the fallback below
+          }
+          // Fetch failed or non-OK → use the URL flags if present, else stop
+          // waiting and let the view fall back to the assessment prompt.
+          if (hasFlagInUrl) {
+            applyFlags(flagsFromUrl());
             return;
           }
-        } catch (_) {
-          // network error — fall through to the fallback below
+          window.__swCareFlagsLoaded = true;
+          window.dispatchEvent(new CustomEvent("sw:flagsready"));
+          return;
         }
-        // Fetch failed or non-OK → stop waiting and let the view fall back to
-        // the assessment prompt (don't leave the spinner up forever).
-        window.__swCareFlagsLoaded = true;
-        window.dispatchEvent(new CustomEvent("sw:flagsready"));
+        // No submission (legacy deep links) — URL flags are all we have.
+        if (hasFlagInUrl) applyFlags(flagsFromUrl());
       })();
 
       const SHARE_CONFIG = {
