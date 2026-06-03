@@ -2414,11 +2414,18 @@
       @keyframes pbnspin { to { transform: rotate(360deg); } }
       /* Full-page scroll: the iframe is auto-sized to its full content height
          (see sizeFrame() in renderPlantRecipesChat), so it never scrolls
-         internally — the outer .pbn-layout is the single scroller and the whole
-         partner page scrolls as one. Same on desktop and mobile. */
-      body.sw-chronic-partner .pbn-layout { padding: 0; overflow-y: auto; overflow-x: hidden; }
-      body.sw-chronic-partner .pbn-main { min-height: 0; }
+         internally, and we unwind the app-shell's fixed-height / overflow
+         pinning so the BODY grows with the iframe and the WHOLE PAGE scrolls
+         (not a trapped inner region). Same on desktop and mobile. */
+      body.sw-chronic-partner .pbn-layout { padding: 0; overflow: visible; }
+      body.sw-chronic-partner .pbn-main { min-height: 0; overflow: visible; }
       body.sw-chronic-partner .pbn-partner-frame { height: auto; min-height: calc(100vh - 130px); }
+      body.sw-chronic-partner .plant-chat-overlay { overflow: visible; }
+      @media (min-width: 769px) {
+        body.sw-chronic-partner .care-shell { height: auto; overflow: visible; }
+        body.sw-chronic-partner .care-stage { overflow: visible; min-height: 0; }
+        body.sw-chronic-partner .companion-chat { overflow: visible; min-height: 0; }
+      }
 
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
