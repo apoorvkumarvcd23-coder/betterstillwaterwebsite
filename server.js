@@ -3585,8 +3585,11 @@ The questions have to be related to the question asked by the user. For example,
 # RECIPE KNOWLEDGE BASE
 ${contextBlock || "(No matching passages were retrieved for this question.)"}`;
 
+    // Plant-Based Nutrition chat model. NUTRITION_MODEL overrides for THIS chat
+    // only (set it to e.g. "anthropic/claude-sonnet-4.5"); otherwise it falls
+    // back to the shared OPENROUTER_MODEL / OPENROUTER_CHAT_MODEL / default.
     const model = String(
-      process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b"
+      process.env.NUTRITION_MODEL || process.env.OPENROUTER_MODEL || process.env.OPENROUTER_CHAT_MODEL || "openai/gpt-oss-120b"
     ).trim();
 
     const upstream = await fetch(`${OPENROUTER_BASE_URL}/chat/completions`, {
