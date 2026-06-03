@@ -157,7 +157,15 @@
 
     <main class="intake-shell">
       <section class="intake-card">
-        <h1 class="text-caption" style="font-size: 1.5rem; display: block">Wellness Assessment</h1>
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <h1 class="text-caption" style="font-size: 1.5rem; display: block; margin: 0">Wellness Assessment</h1>
+          <a href="/care-path.html?view=chronic"
+             class="btn btn-ghost"
+             style="text-decoration: none; flex: none;"
+             aria-label="Skip the wellness assessment and continue to care path"
+             data-i18n="intake.skipForNow"
+          >Skip for now &rarr;</a>
+        </div>
         <p style="color: var(--color-text-secondary); margin-top: 0.75rem">
           Please fill this form for yourself or your family member.
         </p>
