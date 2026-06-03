@@ -127,6 +127,21 @@ async function initDb() {
     )
   `);
 
+  // Lead-capture from the Chronic Disease Management partner pages
+  // (Book / Consult / Connect → name, phone, email).
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS partner_leads (
+      id BIGSERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      phone TEXT NOT NULL,
+      email TEXT NOT NULL,
+      partner TEXT,
+      auth_user_type TEXT,
+      auth_user_id TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `);
+
   await pool.query(`
     CREATE TABLE IF NOT EXISTS intake_submissions (
       id BIGSERIAL PRIMARY KEY,
@@ -4050,6 +4065,37 @@ app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
   } catch (err) {
     console.error("Aria recipes failed:", err);
     return res.status(500).json({ error: "Aria couldn't fetch recipes right now. Please try again." });
+  }
+});
+
+// Lead capture from the Chronic Disease Management partner pages
+// (Book / Consult / Connect). Public (no auth required) so it works whether
+// the partner page is embedded or standalone; attaches the user id if a
+// session happens to exist.
+app.post("/api/partner-lead", async (req, res) => {
+  try {
+    const name = String(req.body?.name || "").trim().slice(0, 200);
+    const phone = String(req.body?.phone || "").trim().slice(0, 40);
+    const email = String(req.body?.email || "").trim().slice(0, 200);
+    const partner = String(req.body?.partner || "").trim().slice(0, 200) || null;
+    if (!name || !phone || !email) {
+      return res.status(400).json({ error: "Name, phone and email are required." });
+    }
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      return res.status(400).json({ error: "Please enter a valid email." });
+    }
+    let authType = null;
+    let authId = null;
+    if (req.user) { authType = getAuthUserType(req.user); authId = getAuthUserId(req.user); }
+    await pool.query(
+      `INSERT INTO partner_leads (name, phone, email, partner, auth_user_type, auth_user_id)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [name, phone, email, partner, authType, authId],
+    );
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[partner-lead] failed:", err.message);
+    return res.status(500).json({ error: "Could not save your request right now." });
   }
 });
 

@@ -5474,6 +5474,14 @@
         // Returns null when no condition matches (→ keep the chat).
         function chronicPartnerPage() {
           const f = window.__swCareFlags || {};
+          const active = [f.hasDiabetes, f.hasHypertension, f.hasDepression, f.hasAnxiety, f.hasSleep, f.hasEye]
+            .filter(Boolean).length;
+          // ── Combinations (2+ conditions) ──
+          // Eyesight + anything else → combined Amar + Sharan page.
+          if (f.hasEye && active >= 2) return "recommend_amar_sharan.html";
+          // Any other multi-condition combination (e.g. diabetes + anxiety) → SHARAN.
+          if (active >= 2) return "partner_sharan.html";
+          // ── Single condition ──
           if (f.hasDiabetes || f.hasHypertension) return "partner_sharan.html";
           if (f.hasSleep) return "recommend_stilwater_yoga_sharan.html";
           if (f.hasDepression || f.hasAnxiety) return "stilwater_yoga.html";
