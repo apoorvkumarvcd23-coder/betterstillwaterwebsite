@@ -521,5 +521,111 @@ Assessment **Skip** now goes to `/care-path.html?view=chronic` → Holistic.
 
 ---
 
-_Updated 2026-06-01 from test branch head `694011a`. Original generated
-2026-05-30 from `18dff27`._
+## 13. Update — 2026-06-03 session
+
+Built on top of §12. `main` is still untouched; everything below is on `test`
+(code head `169c40f`). Two **untracked design-reference** files were added to the
+repo root and used as the source of the redesigns: `Plant_Based_Nutrition.html`
+(chat pages) and `meal_generator.html` (companion/meal planner).
+
+### 13.1 Homepage (`index.html`, `js/shared.js`, `js/i18n.js`)
+- Nav: removed **Meet Aria**; **"The Platform" → "Product"** (still scrolls to
+  `#pillars`); language toggle now mounts **after Pricing** (before
+  `#authMenuWrap` in `js/i18n.js`). New i18n keys `home.nav.product`,
+  `home.nav.dashboard`.
+- New **Dashboard** nav item (after Pricing) → `care-path.html?view=select`,
+  shown **only when logged in** (`js/shared.js` toggles `#btnDashboard.hidden`).
+- Hero is **left-aligned** (removed the flex auto-margin centering on `.hero`).
+- Section order is now Hero → **The Platform** → **Meet Aria** → How it works →
+  Pricing.
+- **"Start wellness journey"** CTA → `care-path.html?view=select` (the launcher),
+  NOT `?submissionId=1` (which opens the Chronic chat). `data-care-cta` removed
+  so it keeps its label.
+- **Logged-in return redirect** (`js/shared.js`): an authenticated customer who
+  *arrives* at home (direct/bookmark/external referrer) is sent to
+  `/care-path.html?view=select`. Internal nav (same-origin referrer, e.g. the
+  care-path Home/logo link) still shows home; logged-out users never redirect.
+
+### 13.2 Chat pages redesign — Nutrition + Chronic (`care-path.html`)
+`renderPlantRecipesChat` rebuilt to match `Plant_Based_Nutrition.html`: slim
+header (Back + mobile menu + **title beside Back** + a per-mode action),
+suggestion **cards** (per-condition starters, replacing the in-chat chips), and
+message **bubbles** (avatar + "Aria" name; user bubbles green/right). The
+dark-green left sidebar is the chat history (icon + title + date/time + dots).
+Behaviour unchanged: streaming, **follow-up chips**, per-`mode` history, dates.
+- **Single outer scroller** — the messages area no longer scrolls internally;
+  `.pbn-layout` is the one scroller (auto-scroll retargeted to it).
+- **Header action** (the old right-side panel is gone): Nutrition → green
+  **"🍽 Recipe Library"** button (`showCompanion()`); Chronic → a non-clickable
+  **"Recommending [logo] NAME"** badge (SHARAN / Amar Eye Yoga), or for
+  skip/other a Stilwater **"Take Wellness Assessment"** link. Chat is full-width.
+- Chronic starter questions mirror the matching testimonials page's "Sample
+  Questions" (`js/testimonials.js → SAMPLE_QUESTIONS_BY_DATASET`), EN+HI.
+
+### 13.3 Meal generator (companion) redesign (`care-path.html`)
+Restyled to `meal_generator.html`:
+- New page header with a **Back** button → returns to the Plant-Based Nutrition
+  chat (`#mgBackBtn` → `backFromCompanion()`).
+- Each tab gets a **hero-card** (eyebrow + serif title + subtitle + bowl) via the
+  `heroCard()` helper: Meal Plan (Weekly build, Weekly result, Today), Recipes,
+  Journaling. The Weekly build form is a **2-col form-card + aside** ("How Aria
+  uses this" + "Current settings") with quick chips that pre-fill the inputs.
+- **Whole-page scroll**: the companion view (`#companionRoot`) is the single
+  scroller on desktop (≥769px), scoped to `body:not(.plant-chat-open)`.
+- **Download PDF** (jsPDF, lazy-loaded from CDN, `buildPlanPdf` /
+  `downloadWeeklyPdf` / `downloadTodayPdf` / `downloadRecipePdf`): Weekly & Today
+  (each meal links to its YouTube search) and the recipe-video popup. ⚠ Gotcha:
+  `weeklyPlan[day][slot]` IS the meal value (string/`{en,hi}`); `todayPlan[slot]`
+  wraps it as `.meal` — don't confuse the two.
+
+### 13.4 Chronic Disease Management → partner pages (`care-path.html`, `server.js`)
+After the assessment, Chronic embeds a **partner page (iframe)** chosen by
+condition instead of the chat. Priority **Sharan → Sleep → Yoga → Eyesight**
+(`chronicPartnerPage()`):
+- diabetes / hypertension → `partner_sharan.html`
+- sleep_issues → `recommend_stilwater_yoga_sharan.html`
+- depression / anxiety → `stilwater_yoga.html`
+- eyesight → `partner_amar.html`
+- none / skipped → the existing **Holistic chat** (fallback; the chat is built
+  but not mounted when a partner page applies — hidden, not removed).
+The partner view is **full-page**: left chat-history sidebar hidden
+(`body.sw-chronic-partner` + `sw-no-sidebar`), header/Back kept, single scroller
+(the iframe's). `/api/intake-submissions/:id/flags` now also returns
+**`hasDepression` / `hasAnxiety` / `hasSleep`**, carried through `applyFlags`
+(URL + fetch) into `window.__swCareFlags`. The four partner HTML pages are
+**committed** to the repo root.
+
+### 13.5 Nutrition prompt + follow-ups (`server.js`)
+- The **`/api/nutrition/chat` system prompt** was rewritten: Aria as a
+  plant-based whole-food companion, grounded in **Dr. Nandita Shah's "Reversing
+  Diabetes in 21 Days"** but **without naming the book/passages**, first person,
+  ≤2 paragraphs, 8-word question-relevant follow-ups.
+- **`parseStilwaterReply`** is now whitespace-tolerant (`[ FOLLOWUPS ]`) and
+  handles a missing `[/FOLLOWUPS]` — fixes the raw block leaking into the answer
+  / missing chips. The streaming hide-logic detects the spaced marker too.
+  Applies to nutrition, chronic, and general chats.
+
+### 13.6 Real recipe-video titles (`server.js`)
+- `/api/aria/recipes` now scrapes **real YouTube titles** (`multiYoutubeVideos`)
+  so the recipe popup shows distinct video names (falls back to the dish name).
+
+### 13.7 Ops note
+- The OpenRouter free-tier key hit **HTTP 402 "insufficient credits"** after a
+  data ingest — embeddings AND chat share `OPENROUTER_API_KEY`, so a big ingest
+  drains the budget and breaks the chat too. Top up at
+  `openrouter.ai/settings/credits`; consider a **separate key for
+  embeddings/ingest** vs chat.
+
+### 13.8 Open items (carried + new)
+- Still: top up OpenRouter credits; finish embedding the diabetes book
+  (469→623) via `POST /api/admin/nutrition/ingest?force=1`.
+- Promote `test → main` when ready (still untouched).
+- The nutrition prompt says "PLAIN TEXT ONLY (no markdown)" but the client
+  renders markdown — relax that line if you want richer formatting.
+- The "Start wellness journey"/Dashboard links use `?view=select`; the Dashboard
+  link href is fixed (not per-user).
+
+---
+
+_Updated 2026-06-03 from test branch head `169c40f`. Earlier: 2026-06-01
+`694011a`, 2026-05-30 `18dff27`._
