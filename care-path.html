@@ -2380,15 +2380,22 @@
         box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); display: block;
       }
       @media (max-width: 760px) { .pbn-partner-frame { min-height: calc(100vh - 180px); } }
-      /* Full-page partner view: one scroller (the iframe's), no outer scroll,
-         no card chrome, sidebar hidden. */
-      body.sw-chronic-partner .pbn-layout { overflow: hidden; padding: 0; align-items: stretch; }
-      body.sw-chronic-partner .pbn-main { height: 100%; min-height: 0; }
-      body.sw-chronic-partner .pbn-partner-frame {
-        flex: 1 1 auto; height: 100%; min-height: 0;
-        border: none; border-radius: 0; box-shadow: none;
-      }
+      /* Full-page partner view: no card chrome, sidebar hidden, disclaimer off. */
+      body.sw-chronic-partner .pbn-partner-frame { border: none; border-radius: 0; box-shadow: none; }
       body.sw-chronic-partner .pbn-disclaimer { display: none; }
+      /* Desktop: fixed-height shell → iframe fills it, ONE scroller (iframe's),
+         outer .pbn-layout doesn't scroll. */
+      @media (min-width: 769px) {
+        body.sw-chronic-partner .pbn-layout { overflow: hidden; padding: 0; align-items: stretch; }
+        body.sw-chronic-partner .pbn-main { height: 100%; min-height: 0; }
+        body.sw-chronic-partner .pbn-partner-frame { flex: 1 1 auto; height: 100%; min-height: 0; }
+      }
+      /* Mobile: the page scrolls (no fixed-height parent), so size the iframe to
+         ~a screenful instead of height:100% (which would collapse it). */
+      @media (max-width: 768px) {
+        body.sw-chronic-partner .pbn-layout { padding: 0; }
+        body.sw-chronic-partner .pbn-partner-frame { height: auto; min-height: calc(100vh - 120px); }
+      }
 
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
