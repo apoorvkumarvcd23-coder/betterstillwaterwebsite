@@ -2404,19 +2404,21 @@
       }
       .pbn-assess-cta:hover { background: #173a32; }
       @media (max-width: 768px) { .pbn-assess { min-height: calc(100vh - 170px); padding: 32px 18px; } }
-      /* Desktop: fixed-height shell → iframe fills it, ONE scroller (iframe's),
-         outer .pbn-layout doesn't scroll. */
-      @media (min-width: 769px) {
-        body.sw-chronic-partner .pbn-layout { overflow: hidden; padding: 0; align-items: stretch; }
-        body.sw-chronic-partner .pbn-main { height: 100%; min-height: 0; }
-        body.sw-chronic-partner .pbn-partner-frame { flex: 1 1 auto; height: 100%; min-height: 0; }
+      /* Loading spinner shown while the assessment flags resolve (avoids
+         flashing the assessment prompt before the partner page is known). */
+      .pbn-loading .pbn-spinner {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 3px solid #e0d8c9; border-top-color: #264f45;
+        animation: pbnspin 0.8s linear infinite;
       }
-      /* Mobile: the page scrolls (no fixed-height parent), so size the iframe to
-         ~a screenful instead of height:100% (which would collapse it). */
-      @media (max-width: 768px) {
-        body.sw-chronic-partner .pbn-layout { padding: 0; }
-        body.sw-chronic-partner .pbn-partner-frame { height: auto; min-height: calc(100vh - 120px); }
-      }
+      @keyframes pbnspin { to { transform: rotate(360deg); } }
+      /* Full-page scroll: the iframe is auto-sized to its full content height
+         (see sizeFrame() in renderPlantRecipesChat), so it never scrolls
+         internally — the outer .pbn-layout is the single scroller and the whole
+         partner page scrolls as one. Same on desktop and mobile. */
+      body.sw-chronic-partner .pbn-layout { padding: 0; overflow-y: auto; overflow-x: hidden; }
+      body.sw-chronic-partner .pbn-main { min-height: 0; }
+      body.sw-chronic-partner .pbn-partner-frame { height: auto; min-height: calc(100vh - 130px); }
 
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
@@ -3337,6 +3339,11 @@
       // Cached on window so the companion chat (renderRecipes) can read
       // the user's assessed conditions and tailor Aria's welcome greeting.
       window.__swCareFlags = window.__swCareFlags || {};
+      // Whether the assessment flags have resolved. Default true (no submission
+      // → nothing to wait for). When a submission's flags are fetched async we
+      // flip this to false so the Chronic view waits (spinner) instead of
+      // flashing the assessment prompt before the partner page is known.
+      if (window.__swCareFlagsLoaded === undefined) window.__swCareFlagsLoaded = true;
       const applyFlags = ({ hasOther, hasEye, hasHolistic, hasDiabetes, hasHypertension, hasDepression, hasAnxiety, hasSleep }) => {
         if (hasOther) document.getElementById("sharanReco").hidden = false;
         if (hasEye) document.getElementById("eyeReco").hidden = false;
@@ -3351,6 +3358,7 @@
           hasAnxiety: !!hasAnxiety,
           hasSleep: !!hasSleep,
         };
+        window.__swCareFlagsLoaded = true;
         // The Stilwater AI Chat may have rendered its greeting BEFORE these
         // flags arrived (default landing = chat open, flags fetched async).
         // If the user hasn't sent anything yet, regenerate the greeting to
@@ -3399,26 +3407,35 @@
           return;
         }
         if (!submissionId) return;
+        // Flags are fetched async — tell the Chronic view to wait (spinner)
+        // rather than render the assessment prompt before they arrive.
+        window.__swCareFlagsLoaded = false;
         try {
           const res = await fetch(
             `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
             { credentials: "same-origin" },
           );
-          if (!res.ok) return;
-          const data = await res.json();
-          applyFlags({
-            hasOther: Boolean(data.hasOther),
-            hasEye: Boolean(data.hasEye),
-            hasHolistic: Boolean(data.hasHolistic),
-            hasDiabetes: Boolean(data.hasDiabetes),
-            hasHypertension: Boolean(data.hasHypertension),
-            hasDepression: Boolean(data.hasDepression),
-            hasAnxiety: Boolean(data.hasAnxiety),
-            hasSleep: Boolean(data.hasSleep),
-          });
+          if (res.ok) {
+            const data = await res.json();
+            applyFlags({
+              hasOther: Boolean(data.hasOther),
+              hasEye: Boolean(data.hasEye),
+              hasHolistic: Boolean(data.hasHolistic),
+              hasDiabetes: Boolean(data.hasDiabetes),
+              hasHypertension: Boolean(data.hasHypertension),
+              hasDepression: Boolean(data.hasDepression),
+              hasAnxiety: Boolean(data.hasAnxiety),
+              hasSleep: Boolean(data.hasSleep),
+            });
+            return;
+          }
         } catch (_) {
-          // network error — leave cards hidden; UI degrades gracefully
+          // network error — fall through to the fallback below
         }
+        // Fetch failed or non-OK → stop waiting and let the view fall back to
+        // the assessment prompt (don't leave the spinner up forever).
+        window.__swCareFlagsLoaded = true;
+        window.dispatchEvent(new CustomEvent("sw:flagsready"));
       })();
 
       const SHARE_CONFIG = {
@@ -5757,7 +5774,41 @@
             frame.src = partnerPage;
             frame.title = T("carepath.chronic.partner", "Recommended for you");
             frame.setAttribute("loading", "lazy");
+            // Auto-size the iframe to its full content height so it never
+            // scrolls internally — the outer page scrolls as one. The partner
+            // pages are same-origin, so we can read their scrollHeight directly.
+            const sizeFrame = () => {
+              try {
+                const d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+                if (!d || !d.documentElement) return;
+                const h = Math.max(
+                  d.documentElement.scrollHeight,
+                  d.body ? d.body.scrollHeight : 0
+                );
+                if (h > 0) frame.style.height = h + "px";
+              } catch (_) { /* cross-origin guard — keep CSS min-height */ }
+            };
+            frame.addEventListener("load", () => {
+              sizeFrame();
+              // Re-measure as late assets (images, fonts) settle.
+              setTimeout(sizeFrame, 300);
+              setTimeout(sizeFrame, 1200);
+              try {
+                if (frame.contentWindow) frame.contentWindow.addEventListener("resize", sizeFrame);
+              } catch (_) {}
+            });
+            window.addEventListener("resize", sizeFrame);
             mainCol.appendChild(frame);
+          } else if (isChronic && window.__swCareFlagsLoaded === false) {
+            // Assessment flags still loading — show a brief spinner instead of
+            // flashing the "Take the Assessment" prompt before the real partner
+            // page resolves. refreshGreetingIfStale re-renders on sw:flagsready.
+            const loading = document.createElement("div");
+            loading.className = "pbn-assess pbn-loading";
+            loading.innerHTML =
+              '<div class="pbn-spinner" aria-hidden="true"></div>' +
+              '<p>' + escapeHtml(T("carepath.loadingReco", "Finding the right guidance for your condition…")) + '</p>';
+            mainCol.appendChild(loading);
           } else if (isChronic) {
             // Skipped / no condition → ask the user to complete the assessment
             // (full-page message + button). The chat is NOT shown.
