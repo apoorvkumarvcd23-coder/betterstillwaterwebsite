@@ -2380,6 +2380,15 @@
         box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); display: block;
       }
       @media (max-width: 760px) { .pbn-partner-frame { min-height: calc(100vh - 180px); } }
+      /* Full-page partner view: one scroller (the iframe's), no outer scroll,
+         no card chrome, sidebar hidden. */
+      body.sw-chronic-partner .pbn-layout { overflow: hidden; padding: 0; align-items: stretch; }
+      body.sw-chronic-partner .pbn-main { height: 100%; min-height: 0; }
+      body.sw-chronic-partner .pbn-partner-frame {
+        flex: 1 1 auto; height: 100%; min-height: 0;
+        border: none; border-radius: 0; box-shadow: none;
+      }
+      body.sw-chronic-partner .pbn-disclaimer { display: none; }
 
       /* --- Full-width chat layout (single column) --- */
       .pbn-layout {
@@ -5677,6 +5686,12 @@
           // downstream code doesn't break — just hidden, not removed).
           const partnerPage = isChronic ? chronicPartnerPage() : null;
 
+          // Partner page = full-page: hide the left chat-history sidebar (it's
+          // only useful for the fallback chat) and switch on full-page styling
+          // (single scroller). For the fallback chat, keep the sidebar.
+          if (isChronic) setSidebarVisible(!partnerPage);
+          document.body.classList.toggle("sw-chronic-partner", !!partnerPage);
+
           // Suggestion cards = the per-condition starters (replaces the old
           // in-chat starter chips). Clicking one sends it, exactly as before.
           const sugWrap = document.createElement("div");
@@ -6242,6 +6257,7 @@
           if (!host) return;
           host.hidden = true;
           document.body.classList.remove("plant-chat-open");
+          document.body.classList.remove("sw-chronic-partner");
           setClearChatVisible(false);
           updateSidebarToggleLabel();
         }
