@@ -655,7 +655,32 @@
         width: 14px;
         height: 14px;
       }
-      .yoga-intro-card { width: min(720px, 100%); }
+      /* Yoga intro renders as a full page (like the Chronic recommendation
+         view), not a dark-dimmed floating popup. Keeps the site header
+         visible and uses the page background. */
+      #yogaIntroModal {
+        top: 4.5rem;
+        background: #f4f1ea;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 56px);
+        overflow-y: auto;
+        z-index: 150;
+      }
+      #yogaIntroModal .yoga-intro-card {
+        width: 100%;
+        max-width: 920px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        max-height: none;
+        overflow: visible;
+      }
+      /* On a full page the ✕ is redundant with the Back button. */
+      #yogaIntroModal .modal-close { display: none; }
       .yoga-pose-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -3124,32 +3149,22 @@
           <div class="yoga-pose-grid">
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Yoga Asanas with AI</strong>
+                <strong>Practice Tadasana</strong>
                 <span>(Tadasana &mdash; Mountain Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Try the AI Coach
+                Watch &amp; Learn
               </button>
             </div>
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Yoga Asanas with AI</strong>
+                <strong>Practice Balasana</strong>
                 <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Try the AI Coach
-              </button>
-            </div>
-            <div class="yoga-pose-card">
-              <div class="yoga-pose-title">
-                <strong>Live Tadasana Practice</strong>
-                <span>(Tadasana &mdash; Mountain Pose, realtime)</span>
-              </div>
-              <button type="button" class="yoga-beta-cta" id="yogaLiveOpen">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Try the AI Coach
+                Watch &amp; Learn
               </button>
             </div>
           </div>
@@ -3587,16 +3602,13 @@
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
       (function () {
-        // Tadasana practice surfaces. The "Try the AI Coach" card uses the
-        // static detector; the new "Live Tadasana Practice" card reuses this
-        // exact flow (intro video → choice → practice + "Tap to talk" avatar)
-        // but swaps in the realtime detector.
+        // Tadasana practice surface. The "Watch & Learn" card uses the
+        // static detector (intro video → choice → practice + "Tap to talk"
+        // avatar).
         const POSE_APP_URL_STATIC = "https://static-tadasha-pose-detection-c3tk.onrender.com/";
-        const POSE_APP_URL_LIVE = "https://realtime-tadasha-pose-detection-hrp4.onrender.com/";
         let activePoseUrl = POSE_APP_URL_STATIC;
 
         const openBtn = document.getElementById("yogaBetaOpen");
-        const liveOpenBtn = document.getElementById("yogaLiveOpen");
         const overlay = document.getElementById("yogaModal");
         const card = document.getElementById("yogaModalCard");
         const closeBtn = document.getElementById("yogaModalClose");
@@ -3763,7 +3775,6 @@
         };
 
         openBtn.addEventListener("click", () => { activePoseUrl = POSE_APP_URL_STATIC; openModal(); });
-        if (liveOpenBtn) liveOpenBtn.addEventListener("click", () => { activePoseUrl = POSE_APP_URL_LIVE; openModal(); });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -3800,7 +3811,8 @@
           hide();
           if (window.__swPlantRecipes && window.__swPlantRecipes.showLauncher) window.__swPlantRecipes.showLauncher();
         });
-        modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
+        // Full-page view (not a popup): no backdrop-click-to-close — the user
+        // exits via the Back button.
       })();
 
       // ── Balasana — mirrors the Tadasana three-stage flow ─────────────
@@ -6398,9 +6410,9 @@
           const l = swLauncherEl(); if (l) l.hidden = false;
           setSidebarVisible(false);
         }
-        // Yoga = the existing "Practice Yoga Asanas with AI" modal (Tadasana /
-        // Balasana / Live Tadasana). Keep the launcher as the base view so
-        // closing the modal returns to the 3 options.
+        // Yoga = the "Practice Yoga Asanas with AI" full-page view (Tadasana /
+        // Balasana). Keep the launcher as the base view so closing it returns
+        // to the dashboard options.
         function showYoga() {
           showLauncher();
           const m = document.getElementById("yogaIntroModal");
