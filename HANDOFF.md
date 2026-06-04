@@ -13,9 +13,11 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **Live (head of test)**: `694011a` — home hero tightened (see §12 for the
-  full 2026-06-01 session: post-login selection screen, Nutrition + Chronic
-  RAG, ChatGPT-style server chat history, streaming chat, chat restyle).
+- **Live (head of test)**: `1aa5a68` — see §14 for the 2026-06-04 session
+  (Chronic routes from authoritative server flags, true full-page partner
+  scroll, assessment Skip button + group-label asterisks, header-chip removal,
+  duplicate-disclaimer removal). §12 is the 2026-06-01 baseline; §13 the
+  2026-06-03 session.
 - **Live (head of main)**: `e91be1b` — much older. Test is **far ahead of
   main** (all of the §12 work plus the earlier Stilwater AI Chat, homepage,
   auth-page, videos, mobile passes). Promote when ready.
@@ -627,5 +629,77 @@ The partner view is **full-page**: left chat-history sidebar hidden
 
 ---
 
-_Updated 2026-06-03 from test branch head `169c40f`. Earlier: 2026-06-01
-`694011a`, 2026-05-30 `18dff27`._
+## 14. 2026-06-04 session (test head `1aa5a68`)
+
+All on `test`. Builds on §13's Chronic → partner-page work.
+
+### 14.1 Chronic routes from authoritative server flags (`care-path.html`, `intake.html`)
+**Bug**: after submitting, the Chronic view flashed the *"Take the Wellness
+Assessment"* prompt and only showed the partner page after a manual reload.
+Cause: the intake redirect put only a coarse **`hasOther=1`** roll-up in the URL
+(e.g. `?submissionId=18&hasOther=1`); with `hasFlagInUrl` true, care-path applied
+the incomplete URL flags synchronously and **skipped** the server fetch — but
+`hasOther` alone matches no partner in `chronicPartnerPage()`.
+- **Fix (care-path)**: when a `submissionId` is present, **always fetch**
+  `/api/intake-submissions/:id/flags` (the complete, authoritative source with
+  the granular `hasDiabetes/hasHypertension/hasDepression/hasAnxiety/hasSleep`).
+  A new `window.__swCareFlagsLoaded` flag drives a **spinner** while the fetch is
+  pending so the prompt never flashes; URL flags are only a fallback if the fetch
+  fails. Skip / no-submission still shows the prompt immediately.
+- **Fix (intake)**: the redirect now also passes the granular flags
+  (`hasDiabetes`, … `hasSleep`) so the fallback path is accurate too.
+
+### 14.2 Updated Chronic routing matrix (`chronicPartnerPage()`)
+Current logic (`active` = count of diabetes/hypertension/depression/anxiety/
+sleep/eye that are true):
+- **Eyesight + any other (2+ total)** → `recommend_amar_sharan.html`
+- **Any other 2+ combination** (e.g. diabetes+anxiety) → `partner_sharan.html`
+- diabetes / hypertension (single) → `partner_sharan.html`
+- sleep (single) → `recommend_stilwater_yoga_sharan.html`
+- depression / anxiety (single) → `stilwater_yoga.html`
+- eyesight (single) → `partner_amar.html`
+- none / skipped → full-page **assessment prompt** (no chat)
+
+### 14.3 True full-page scroll for the Chronic partner page (`care-path.html`)
+The embedded partner iframe previously scrolled inside a trapped region. Now:
+- The iframe is **auto-sized to its full content height** (same-origin
+  `scrollHeight`, re-measured on load/resize) so it never scrolls internally.
+- For `body.sw-chronic-partner`, the app-shell height/overflow pinning is
+  unwound (`.care-shell` height:auto + overflow visible down through
+  `.care-stage`/`.companion-chat`/`.plant-chat-overlay`/`.pbn-layout`) so the
+  **whole page (body) scrolls** as one. Verified desktop + mobile.
+
+### 14.4 Assessment form: Skip button + complete asterisks (`intake.html`)
+- Added a **"Skip for now →"** button at the **top-right** of the form header
+  (mirrors the existing bottom one → `/care-path.html?view=chronic`).
+- `refreshRequiredStars()` now also stars **group labels without `[for]`** (e.g.
+  *"Are you on Insulin?"* radio group, *"What is your blood pressure levels"*
+  systolic/diastolic) — previously only `.form-label[for]` got the red `*`.
+
+### 14.5 Chronic header chip removed (`care-path.html`)
+Removed the **"Take Wellness Assessment"** chip from the Chronic header (the
+skip / non-diabetes-eye case) — the assessment-prompt page already has its own
+centre CTA. **Unchanged**: the Nutrition header's **🍽 Recipe Library** action
+and the **"Recommending SHARAN/Amar Eye Yoga"** chip (diabetes/eye).
+
+### 14.6 Nutrition chat: duplicate disclaimer removed; full-page scroll reverted
+- Removed the inner per-chat `.pbn-disclaimer` (it duplicated the page-level
+  `.companion-hint` at the bottom of every view) — frees the wasted space.
+- A full-page-scroll mode for the Nutrition/general chat (`sw-chat-fullpage`)
+  was added then **rolled back per user request** — the chat keeps its original
+  app-style in-pane scroll. (The duplicate-disclaimer removal was kept; only the
+  scrolling change was reverted.)
+
+### 14.7 Open items (carried)
+- Same as §13.8: top up OpenRouter credits; finish embedding the diabetes book
+  (469→623); promote `test → main` when ready.
+- `NUTRITION_MODEL` env override exists (only the nutrition chat can use e.g.
+  `anthropic/claude-sonnet-4.5`) — needs setting on Render + OpenRouter credits.
+- Lead-capture form (`js/partner-lead.js` → `POST /api/partner-lead` →
+  `partner_leads` table) is wired on the partner pages; verify the DB insert on
+  the deployed site.
+
+---
+
+_Updated 2026-06-04 from test branch head `1aa5a68`. Earlier: 2026-06-03
+`169c40f`, 2026-06-01 `694011a`, 2026-05-30 `18dff27`._
