@@ -2393,6 +2393,32 @@
       .plant-chat-header .plant-chat-reco .plant-chat-reco-logo {
         height: 26px; width: auto; max-width: 96px; object-fit: contain; display: block; border-radius: 6px;
       }
+      /* Trusted Partners dropdown (chronic header) */
+      .plant-chat-header .sw-partners { position: relative; }
+      .plant-chat-header .sw-partners-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border-radius: 999px; border: 1px solid #e8dfd2;
+        background: #fffdfa; color: #173a32; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); cursor: pointer; white-space: nowrap;
+      }
+      .plant-chat-header .sw-partners-btn:hover { background: #f2eee5; }
+      .plant-chat-header .sw-partners-btn svg { width: 16px; height: 16px; }
+      .plant-chat-header .sw-partners-chev { transition: transform 0.15s ease; }
+      .plant-chat-header .sw-partners-btn[aria-expanded="true"] .sw-partners-chev { transform: rotate(180deg); }
+      .plant-chat-header .sw-partners-menu {
+        position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+        min-width: 200px; padding: 6px; border-radius: 14px;
+        background: #fffdfa; border: 1px solid #e8dfd2;
+        box-shadow: 0 16px 40px rgba(24, 55, 39, 0.16);
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .plant-chat-header .sw-partners-menu[hidden] { display: none; }
+      .plant-chat-header .sw-partners-item {
+        display: flex; align-items: center; gap: 10px; text-align: left;
+        padding: 10px 12px; border-radius: 10px; border: none; background: none;
+        font: inherit; font-size: 14px; font-weight: 600; color: #173a32; cursor: pointer;
+      }
+      .plant-chat-header .sw-partners-item:hover { background: #f2eee5; }
       @media (max-width: 760px) {
         .plant-chat-header .plant-chat-title { font-size: 19px; }
         .plant-chat-header .plant-chat-action { padding: 8px 12px; font-size: 13px; }
@@ -5660,6 +5686,57 @@
           if (!host) return;
           host.innerHTML = "";
 
+          // ── Trusted-Partners embed state (chronic) ─────────────────────
+          // The chronic view embeds a partner page in an iframe. The header's
+          // "Trusted Partners" menu can swap it to any partner; each swap
+          // appends ?swback=<previous> so the partner page's in-page Back
+          // returns to wherever it was opened from.
+          let partnerFrame = null;
+          let partnerCurrentUrl = null;
+          function mountPartnerFrame(src) {
+            const frame = document.createElement("iframe");
+            frame.className = "pbn-partner-frame";
+            frame.src = src;
+            frame.title = T("carepath.chronic.partner", "Recommended for you");
+            frame.setAttribute("loading", "lazy");
+            const sizeFrame = () => {
+              try {
+                const d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+                if (!d || !d.documentElement) return;
+                const h = Math.max(d.documentElement.scrollHeight, d.body ? d.body.scrollHeight : 0);
+                if (h > 0) frame.style.height = h + "px";
+              } catch (_) { /* cross-origin guard — keep CSS min-height */ }
+            };
+            frame.addEventListener("load", () => {
+              // Keep partnerCurrentUrl in sync with whatever the frame shows
+              // (covers in-page Back navigations too) so the next swback is right.
+              try {
+                const w = frame.contentWindow;
+                if (w && w.location) partnerCurrentUrl = (w.location.href.split("/").pop()) || partnerCurrentUrl;
+              } catch (_) {}
+              sizeFrame();
+              setTimeout(sizeFrame, 300);
+              setTimeout(sizeFrame, 1200);
+              try { if (frame.contentWindow) frame.contentWindow.addEventListener("resize", sizeFrame); } catch (_) {}
+            });
+            window.addEventListener("resize", sizeFrame);
+            partnerFrame = frame;
+            return frame;
+          }
+          // Open a partner page in the embedded view, recording the current
+          // page as its back-target (?swback) so the partner's Back returns here.
+          function openPartner(page) {
+            const base = partnerCurrentUrl || "";
+            const url = base ? page + "?swback=" + encodeURIComponent(base) : page;
+            if (partnerFrame) {
+              partnerFrame.src = url;
+            } else {
+              const main = document.querySelector(".pbn-main");
+              if (main) { main.innerHTML = ""; main.appendChild(mountPartnerFrame(url)); }
+            }
+            partnerCurrentUrl = url;
+          }
+
           const header = document.createElement("div");
           header.className = "plant-chat-header";
 
@@ -5720,6 +5797,56 @@
             // (Removed the "Take Wellness Assessment" header chip for the
             // skip / non-diabetes-eye case — the assessment-prompt page
             // already has its own CTA, so no extra chip is needed here.)
+
+            // Trusted Partners dropdown — open any partner page (SHARAN /
+            // Healy / Amar Eye) in the embedded view. Lives in the header so
+            // it stays available across every partner page.
+            const partnersList = [
+              { name: T("carepath.partners.sharan", "SHARAN"), page: "partner_sharan.html" },
+              { name: T("carepath.partners.healy", "Healy"), page: "partner_healy.html" },
+              { name: T("carepath.partners.amar", "Amar Eye"), page: "partner_amar.html" },
+            ];
+            const partnersWrap = document.createElement("div");
+            partnersWrap.className = "sw-partners";
+            const partnersBtn = document.createElement("button");
+            partnersBtn.type = "button";
+            partnersBtn.className = "sw-partners-btn";
+            partnersBtn.setAttribute("aria-haspopup", "true");
+            partnersBtn.setAttribute("aria-expanded", "false");
+            partnersBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+              '<span>' + escapeHtml(T("carepath.partners.title", "Trusted Partners")) + '</span>' +
+              '<svg class="sw-partners-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+            const partnersMenu = document.createElement("div");
+            partnersMenu.className = "sw-partners-menu";
+            partnersMenu.hidden = true;
+            partnersList.forEach((p) => {
+              const item = document.createElement("button");
+              item.type = "button";
+              item.className = "sw-partners-item";
+              item.textContent = p.name;
+              item.addEventListener("click", () => {
+                partnersMenu.hidden = true;
+                partnersBtn.setAttribute("aria-expanded", "false");
+                openPartner(p.page);
+              });
+              partnersMenu.appendChild(item);
+            });
+            partnersBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const show = partnersMenu.hidden;
+              partnersMenu.hidden = !show;
+              partnersBtn.setAttribute("aria-expanded", String(show));
+            });
+            document.addEventListener("click", () => {
+              if (!partnersMenu.hidden) {
+                partnersMenu.hidden = true;
+                partnersBtn.setAttribute("aria-expanded", "false");
+              }
+            });
+            partnersWrap.appendChild(partnersBtn);
+            partnersWrap.appendChild(partnersMenu);
+            header.appendChild(partnersWrap);
           }
 
           // Mobile-only hamburger: the chat view hides the companion-shell
@@ -5794,36 +5921,12 @@
           chatCard.className = "pbn-chat-card card";
 
           if (partnerPage) {
-            const frame = document.createElement("iframe");
-            frame.className = "pbn-partner-frame";
-            frame.src = partnerPage;
-            frame.title = T("carepath.chronic.partner", "Recommended for you");
-            frame.setAttribute("loading", "lazy");
             // Auto-size the iframe to its full content height so it never
             // scrolls internally — the outer page scrolls as one. The partner
-            // pages are same-origin, so we can read their scrollHeight directly.
-            const sizeFrame = () => {
-              try {
-                const d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
-                if (!d || !d.documentElement) return;
-                const h = Math.max(
-                  d.documentElement.scrollHeight,
-                  d.body ? d.body.scrollHeight : 0
-                );
-                if (h > 0) frame.style.height = h + "px";
-              } catch (_) { /* cross-origin guard — keep CSS min-height */ }
-            };
-            frame.addEventListener("load", () => {
-              sizeFrame();
-              // Re-measure as late assets (images, fonts) settle.
-              setTimeout(sizeFrame, 300);
-              setTimeout(sizeFrame, 1200);
-              try {
-                if (frame.contentWindow) frame.contentWindow.addEventListener("resize", sizeFrame);
-              } catch (_) {}
-            });
-            window.addEventListener("resize", sizeFrame);
-            mainCol.appendChild(frame);
+            // pages are same-origin (see mountPartnerFrame above). The Trusted
+            // Partners menu can later swap this frame to another partner.
+            mainCol.appendChild(mountPartnerFrame(partnerPage));
+            partnerCurrentUrl = partnerPage;
           } else if (isChronic && window.__swCareFlagsLoaded === false) {
             // Assessment flags still loading — show a brief spinner instead of
             // flashing the "Take the Assessment" prompt before the real partner

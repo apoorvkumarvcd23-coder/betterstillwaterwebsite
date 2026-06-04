@@ -246,6 +246,10 @@
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
     "carepath.plantRecipes": { en: "Plant-Based Recipes", hi: "पादप-आधारित रेसिपी" },
     "carepath.stilwaterAIChat": { en: "Stilwater AI Chat", hi: "Stilwater AI चैट" },
+    "carepath.partners.title": { en: "Trusted Partners", hi: "विश्वसनीय साझेदार" },
+    "carepath.partners.sharan": { en: "SHARAN", hi: "SHARAN" },
+    "carepath.partners.healy": { en: "Healy", hi: "Healy" },
+    "carepath.partners.amar": { en: "Amar Eye", hi: "Amar Eye" },
 
     // Post-login selection screen (3 options)
     "launcher.title": { en: "Welcome to your wellness journey", hi: "आपकी वेलनेस यात्रा में आपका स्वागत है" },

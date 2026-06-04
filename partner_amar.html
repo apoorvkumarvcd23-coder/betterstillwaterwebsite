@@ -258,6 +258,33 @@
 </head>
 <body>
 
+  <!-- In-app Back: shown only when this page was opened from the Trusted
+       Partners menu (care-path passes ?swback=<previous>). Returns there. -->
+  <div class="sw-partner-backbar" id="swPartnerBackBar" hidden>
+    <button type="button" id="swPartnerBack" class="sw-partner-back" aria-label="Back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <span>Back</span>
+    </button>
+  </div>
+  <style>
+    .sw-partner-backbar{padding:12px 16px 0}
+    .sw-partner-backbar[hidden]{display:none}
+    .sw-partner-back{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:999px;background:#fff;border:1px solid rgba(47,72,66,.18);color:#2f4842;font:600 14px/1 system-ui,'Segoe UI',Arial,sans-serif;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.08)}
+    .sw-partner-back:hover{background:#f4f1ea}
+    .sw-partner-back svg{width:16px;height:16px}
+  </style>
+  <script>
+    (function(){
+      var back = new URLSearchParams(window.location.search).get('swback');
+      if(!back) return;
+      var bar = document.getElementById('swPartnerBackBar');
+      var btn = document.getElementById('swPartnerBack');
+      if(!bar || !btn) return;
+      bar.hidden = false;
+      btn.addEventListener('click', function(){ window.location.href = back; });
+    })();
+  </script>
+
   <main class="shell">
 
     <section class="partner" style="--glyph-bg:rgba(191,155,83,.14);--glyph-fg:#a07f37">
