@@ -5548,7 +5548,7 @@
           const hi = name ? "Hi " + name + ", " : "Hi, ";
           if (chatMode === "nutrition") {
             return hi + T("aria.chat.greetNutrition",
-              "I'm Aria. Ask me about whole-food, plant-based recipes from our cookbook “Timeless Recipes for Healthy Living” — ingredients, steps, or what to cook tonight. Pick a starter below or type your own.");
+              "I'm Aria, your AI companion for healthy living. Feel free to ask me anything about healthy living and plant-based recipes.");
           }
           if (c === "diabetes") {
             return hi + T("aria.chat.greetDiabetes",
@@ -5572,9 +5572,9 @@
           const c = activeCondition();
           if (chatMode === "nutrition") {
             return [
-              T("aria.chat.startNutrition.1", "Suggest a simple plant-based dinner from the cookbook."),
-              T("aria.chat.startNutrition.2", "What's a healthy breakfast recipe I can try?"),
-              T("aria.chat.startNutrition.3", "Share a recipe that's gentle on blood sugar."),
+              T("aria.chat.startNutrition.1", "Can Type 2 Diabetes be reversed?"),
+              T("aria.chat.startNutrition.2", "Is animal food good for health?"),
+              T("aria.chat.startNutrition.3", "Suggest some good recipes for breakfast."),
             ];
           }
           if (chatMode === "chronic") {
