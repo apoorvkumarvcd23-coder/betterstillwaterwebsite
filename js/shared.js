@@ -10,6 +10,20 @@
   } catch (_e) {}
 })();
 
+// Register the PWA service worker (makes the site installable + offline-ready).
+// Registered on window load so it never competes with critical page resources.
+// The SW itself is network-first, so it can't serve stale content while online.
+(function registerServiceWorker() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .catch((err) => console.warn("[pwa] SW registration failed", err));
+    });
+  } catch (_e) {}
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   const THEME_STORAGE_KEY = "stillwater_theme";
 
