@@ -701,5 +701,129 @@ and the **"Recommending SHARAN/Amar Eye Yoga"** chip (diabetes/eye).
 
 ---
 
-_Updated 2026-06-04 from test branch head `1aa5a68`. Earlier: 2026-06-03
-`169c40f`, 2026-06-01 `694011a`, 2026-05-30 `18dff27`._
+## 15. 2026-06-04 session #2 (test head `9f237ce`)
+
+All on `test`. Builds on §14. Mostly copy/UX polish on the dashboard + chronic
+flow, plus a new **Trusted Partners** menu, **avatar removal**, and **PWA**.
+
+### 15.1 Nutrition chat copy (`care-path.html`, `js/i18n.js`) — `ddb1b48`
+- Greeting rewritten: the `Hi {name},` prefix is **unchanged** (still
+  `getUserFirstName()`); only the body changed to *"I'm Aria, your AI companion
+  for healthy living. Feel free to ask me anything about healthy living and
+  plant-based recipes."* (`aria.chat.greetNutrition`, EN+HI).
+- The 3 nutrition starters (`aria.chat.startNutrition.{1,2,3}`) are now:
+  **Can Type 2 Diabetes be reversed? / Is animal food good for health? /
+  Suggest some good recipes for breakfast.** They still drive the live chat
+  (click = send).
+
+### 15.2 Dashboard launcher cards (`care-path.html`, `js/i18n.js`) — `a2ddc15`
+`launcher.*` titles/descriptions (EN+HI):
+- Yoga → **"AI Yoga Tutor (Beta)"** (desc unchanged).
+- Nutrition → **"AI Nutritionist for Healthy Living"** + new desc (meal plans +
+  YouTube recipes). This title also drives the nutrition **chat-page header**
+  (`launcher.nutrition.title` reused at the header-title fallback).
+- Chronic → new desc ("Get connected to verified and trusted holistic wellness
+  providers…"); title unchanged.
+- Meditation → **"AI Guided Meditation (Coming Soon)"**.
+- Also: `.sw-launcher-title` bottom margin `0.4rem → 1.6rem` for breathing room
+  under the welcome heading (`406eaf7`).
+
+### 15.3 Dashboard Yoga intro → full-page view (`care-path.html`) — `0a03c94`, fix `2b7df54`
+The AI-Yoga-Tutor intro (`#yogaIntroModal`, opened from the dashboard card / yoga
+header buttons) is no longer a dark-dimmed popup:
+- Restyled to a **light full-page surface** below the site header (page bg
+  `#f4f1ea`, top-aligned, no card chrome, the redundant ✕ hidden, no
+  backdrop-click-to-close — exit via Back).
+- **Removed the "Live Tadasana Practice" card** and its JS
+  (`POSE_APP_URL_LIVE` / `yogaLiveOpen`). Card titles → **"Practice Tadasana" /
+  "Practice Balasana"**; CTA **"Try the AI Coach" → "Watch & Learn"**.
+- ⚠ **z-index fix** (`2b7df54`): the overlay was `z-index:150`, **above** the
+  shared fixed site header (`css/index.css .header` is `z-index:100`) and its
+  EN/auth dropdowns (55–60) — so the header looked dimmed and its menus opened
+  behind it. Lowered `#yogaIntroModal` to **`z-index:40`** (below header + menus,
+  above page content ≤20). If you add more full-page overlays, keep them <100.
+
+### 15.4 Tadasana flow: AI avatar removed entirely (`care-path.html`) — `3c99fb0`
+Removed the **LemonSlice "Tap to talk" avatar** from the whole Tadasana
+(`yogaModal`) flow: the `<script>` include, the pill + `<lemon-slice-widget>`
+markup, all `.static-avatar-*` / `#lemonWidgetContainer` CSS, and the agent JS
+(`showAvatarPill`/`activateAgent`/`teardownAgent`, `agentActivated`, listeners).
+The **"What's next?"** choice now offers only **Practice Now** (promoted to the
+primary green button) and **Repeat Video**. `images/yoga-avatar.jpg` is now
+unused (left in repo). Balasana never had the avatar.
+
+### 15.5 Chronic yoga recommendation page (`stilwater_yoga.html`) — `3ebf7b5`, `d256352`
+This is the page embedded for **depression/anxiety** (see §14.2 routing). Reworked
+the hero:
+- Dropped the **"Guided Practice"** eyebrow and the *"We're building an AI
+  avatar…"* lede.
+- Added intro line **"Based on your Wellness assessment, we recommend the
+  following wellness regimen:"** above the *"Practice Yoga with Stilwater"*
+  heading, then **"The following AI-guided asanas will help you manage your
+  chronic condition effectively…"** below it.
+- Removed the bottom *"A few mindful minutes…"* reassure line.
+- (Cards there still say "Practice Yoga Asanas with AI" / "Try the AI Coach" —
+  this is a **separate** standalone page from the dashboard modal in §15.3.)
+
+### 15.6 "Other Trusted Providers" menu + per-partner Back (`care-path.html`, partner pages, `js/i18n.js`) — `511e52b`, `5c7c27e`
+New dropdown in the **Chronic header** (built in `renderPlantRecipesChat()`'s
+chronic branch) — present on every chronic page since it lives in the header:
+- Button **"Other Trusted Providers"**; items **SHARAN → `partner_sharan.html`,
+  HEALY → `partner_healy.html`, AMAR EYE YOGA → `partner_amar.html`**
+  (`carepath.partners.*`, EN+HI).
+- Selecting one swaps the embedded iframe to that partner page with
+  **`?swback=<previous-url>`**. The partner iframe was refactored into
+  `mountPartnerFrame()` (keeps the auto-height sizing) and `partnerCurrentUrl`
+  is **synced from the iframe on each load** so the swback chain stays correct
+  even after an in-page Back.
+- Each of the 3 partner pages (`partner_sharan/healy/amar.html`) gained an
+  **in-app Back bar** right after `<body>` that shows **only when `?swback=` is
+  present** and returns there (`window.location.href = back`). Opened directly /
+  as the default route → Back stays hidden. `partner_healy.html` is now tracked.
+- **Routing matrix (`chronicPartnerPage()`) is unchanged** from §14.2.
+
+### 15.7 PWA — installable + offline-ready — `76aa8af`
+New Progressive Web App across mobile + laptop sizes:
+- **`manifest.webmanifest`**: standalone display, theme `#264f45` / bg `#f4f1ea`,
+  icons **192 + 512 (any + maskable)**, and **screenshots** for `narrow`
+  (mobile 1080×1920) + `wide` (desktop 1920×1080) form factors.
+- **`sw.js`**: deliberately **network-first** for same-origin GET (so an online
+  user never gets stale content — important for this fast-moving test site);
+  cache fallback when offline, **`offline.html`** for failed navigations;
+  bypasses non-GET, cross-origin, `/api/`, `/auth/`. Versioned cache
+  `stilwater-v1` — **bump `CACHE_VERSION` in `sw.js`** to force-clear caches.
+- Icons/screenshots generated under **`images/icons/`** (PowerShell
+  System.Drawing, from `images/transparent-stillwater-new-logo.png`).
+- SW registered via **`js/shared.js`** (core pages) + inline on `intake.html`
+  (no shared.js). Manifest link + apple/theme meta added to **index, care-path,
+  auth, intake, portal**. Other pages aren't linked yet (SW scope is `/`, so once
+  installed it covers them — but the **install prompt only appears on the 5
+  linked pages**).
+- Static files (`manifest.webmanifest`, `sw.js`, `offline.html`,
+  `images/icons/*`) are served publicly by `express.static(__dirname)` (no auth);
+  `/` → `index.html`, so `start_url` works.
+
+### 15.8 Home page: pricing hidden (`index.html`) — `9f237ce`
+The pricing band (`#pricing`) and the **Pricing** links in the **header nav** and
+**footer** are hidden via inline **`style="display:none"`** (kept in the DOM with
+a restore comment). To bring pricing back, delete those three inline styles.
+
+### 15.9 Backups
+Local working-tree zips created this session (untracked, per convention):
+`test-backup-2026-06-04_204729.zip` (avatar removal),
+`_215716.zip` (PWA). Made via PowerShell `Compress-Archive` excluding
+`.git` / `node_modules` / `*.zip` — there is **no backup script**; `zip` is not
+available in the bundled bash, use Compress-Archive.
+
+### 15.10 Open items (carried)
+- Same as §14.7 (OpenRouter credits, finish embedding the diabetes book,
+  promote `test → main`, `NUTRITION_MODEL` env, verify `partner_leads` insert).
+- PWA: optionally add the manifest `<link>` to the remaining pages so the install
+  prompt appears everywhere; replace the placeholder screenshots with real app
+  captures.
+
+---
+
+_Updated 2026-06-04 (session #2) from test branch head `9f237ce`. Earlier:
+2026-06-04 `1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01 `694011a`, 2026-05-30
+`18dff27`._
