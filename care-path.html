@@ -665,7 +665,10 @@
         justify-content: center;
         padding: clamp(20px, 5vw, 56px);
         overflow-y: auto;
-        z-index: 150;
+        /* Sit BELOW the fixed site header (z-index 100) and its dropdowns
+           (EN / auth menus, z-index 55–60) so the header stays clickable and
+           its menus open above this view — but still above page content. */
+        z-index: 40;
       }
       #yogaIntroModal .yoga-intro-card {
         width: 100%;
