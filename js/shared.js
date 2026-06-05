@@ -367,6 +367,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cookie Consent Logic
   const initCookieConsent = () => {
     if (!localStorage.getItem("stillwater_cookie_consent")) {
+      // Self-contained styles so the banner + Accept button are always visible,
+      // even on pages that DON'T load css/index.css (e.g. the homepage, where the
+      // button previously inherited a near-invisible default light-grey colour
+      // that blended into the cream page background). #btnAcceptCookies is an id
+      // selector, so it wins over .btn/.btn-solid everywhere.
+      if (!document.getElementById("swCookieStyles")) {
+        const cstyle = document.createElement("style");
+        cstyle.id = "swCookieStyles";
+        cstyle.textContent =
+          ".cookie-banner{position:fixed;left:0;bottom:0;width:100%;box-sizing:border-box;" +
+          "background:#faf8f2;border-top:1px solid rgba(43,67,56,.18);padding:1.1rem 5%;" +
+          "display:flex;flex-direction:column;gap:0.9rem;z-index:9999;transform:translateY(100%);" +
+          "transition:transform .5s cubic-bezier(.16,1,.3,1);box-shadow:0 -10px 40px rgba(0,0,0,.18);}" +
+          "@media(min-width:768px){.cookie-banner{flex-direction:row;align-items:center;justify-content:space-between;}}" +
+          ".cookie-banner.show{transform:translateY(0);}" +
+          ".cookie-banner .cookie-text{flex:1;color:#3f4a44;font-size:.875rem;line-height:1.5;}" +
+          ".cookie-banner .cookie-buttons{display:flex;gap:1rem;align-items:center;flex-shrink:0;}" +
+          "#btnAcceptCookies{background:#2b4338;color:#f4f1ea;border:1px solid #2b4338;border-radius:999px;" +
+          "padding:.6rem 1.7rem;font:600 .8rem/1 inherit;cursor:pointer;white-space:nowrap;}" +
+          "#btnAcceptCookies:hover{background:#20332a;border-color:#20332a;}";
+        (document.head || document.documentElement).appendChild(cstyle);
+      }
       // Create banner dynamically
       const banner = document.createElement("div");
       banner.className = "cookie-banner";
