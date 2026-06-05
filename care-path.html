@@ -3650,7 +3650,7 @@
 
         openBtn.addEventListener("click", () => {
           // Each Tadasana "Watch & Learn" costs 1 credit.
-          if (window.SwCredits) window.SwCredits.spend(1);
+          if (window.SwCredits) window.SwCredits.spend("tadasana_watch_learn");
           activePoseUrl = POSE_APP_URL_STATIC;
           openModal();
         });
@@ -3776,7 +3776,7 @@
 
         openBtn.addEventListener("click", () => {
           // Each Balasana "Watch & Learn" costs 1 credit.
-          if (window.SwCredits) window.SwCredits.spend(1);
+          if (window.SwCredits) window.SwCredits.spend("balasana_watch_learn");
           openModal();
         });
         closeBtn.addEventListener("click", closeModal);
@@ -5990,7 +5990,7 @@
             // Every AI Nutritionist question — a starter card, a follow-up chip,
             // or a typed question — costs 1 credit. This is the single choke
             // point all three paths funnel through.
-            if (window.SwCredits) window.SwCredits.spend(1);
+            if (window.SwCredits) window.SwCredits.spend("nutrition_chat");
             recipeChat.messages.push({
               role: "user",
               text: v,
