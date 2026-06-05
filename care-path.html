@@ -2779,6 +2779,7 @@
   </head>
   <body class="sw-no-sidebar">
     <script src="js/shared.js"></script>
+    <script src="js/credits.js"></script>
     <header class="header">
       <button class="menu-btn">
         <svg
@@ -3648,7 +3649,12 @@
           }
         };
 
-        openBtn.addEventListener("click", () => { activePoseUrl = POSE_APP_URL_STATIC; openModal(); });
+        openBtn.addEventListener("click", () => {
+          // Each Tadasana "Watch & Learn" costs 1 credit.
+          if (window.SwCredits) window.SwCredits.spend(1);
+          activePoseUrl = POSE_APP_URL_STATIC;
+          openModal();
+        });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -3769,7 +3775,11 @@
           }
         };
 
-        openBtn.addEventListener("click", openModal);
+        openBtn.addEventListener("click", () => {
+          // Each Balasana "Watch & Learn" costs 1 credit.
+          if (window.SwCredits) window.SwCredits.spend(1);
+          openModal();
+        });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -5963,6 +5973,10 @@
           function sendMessage(text, attachment) {
             const v = String(text || "").trim();
             if (!v && !attachment) return;
+            // Every AI Nutritionist question — a starter card, a follow-up chip,
+            // or a typed question — costs 1 credit. This is the single choke
+            // point all three paths funnel through.
+            if (window.SwCredits) window.SwCredits.spend(1);
             recipeChat.messages.push({
               role: "user",
               text: v,
