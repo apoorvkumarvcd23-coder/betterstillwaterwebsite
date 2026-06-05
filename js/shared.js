@@ -577,8 +577,82 @@ document.addEventListener("DOMContentLoaded", () => {
       if (link) link.remove();
     };
 
+    // Add a "Dashboard" link (→ the care-path dashboard) to the header on every
+    // page, positioned just before the language toggle. Shown only when logged
+    // in; the home page already ships its own #btnDashboard, so skip it there.
+    // Re-evaluate the Dashboard link whenever the care-path SPA switches views
+    // (the launcher is shown/hidden without a page reload).
+    let _swLauncherObserved = false;
+    const observeLauncherForDashNav = () => {
+      if (_swLauncherObserved) return;
+      const launcher = document.getElementById("swLauncher");
+      if (!launcher) return;
+      _swLauncherObserved = true;
+      try {
+        const cb = () => ensureDashboardNav(Boolean(activeUser));
+        const opts = { attributes: true, attributeFilter: ["hidden"] };
+        new MutationObserver(cb).observe(launcher, opts);
+        // The yoga-intro and meditation views sit ON TOP of the launcher, so
+        // watch them too — the Dashboard link should still show there.
+        ["yogaIntroModal", "meditationModal"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) new MutationObserver(cb).observe(el, opts);
+        });
+      } catch (_e) {}
+    };
+
+    const ensureDashboardNav = (isAuthenticated) => {
+      try {
+        const actions = document.getElementById("authActions");
+        if (!actions) return;
+        observeLauncherForDashNav();
+        let dash = document.getElementById("swDashboardNav");
+        // Hide ONLY on the pure launcher (the 4-card dashboard). The yoga-intro
+        // and meditation views sit on top of the launcher, so keep the link
+        // there (they're not the dashboard).
+        const launcher = document.getElementById("swLauncher");
+        const yogaModal = document.getElementById("yogaIntroModal");
+        const medModal = document.getElementById("meditationModal");
+        const overlayOpen = !!((yogaModal && !yogaModal.hidden) || (medModal && !medModal.hidden));
+        const onDashboard = !!(launcher && !launcher.hidden) && !overlayOpen;
+        if (!isAuthenticated || document.getElementById("btnDashboard") || onDashboard) {
+          if (dash) dash.style.display = "none";
+          return;
+        }
+        if (!ensureDashboardNav._styled) {
+          ensureDashboardNav._styled = true;
+          const s = document.createElement("style");
+          s.textContent =
+            ".sw-dash-nav{display:inline-flex;align-items:center;text-decoration:none;" +
+            "background:rgba(255,255,255,.7);border:1px solid rgba(47,72,66,.18);border-radius:999px;" +
+            "padding:5px 12px;color:#2f4842;font-family:inherit;font-size:.8rem;font-weight:600;" +
+            "line-height:1;flex-shrink:0;margin-right:.5rem;cursor:pointer;transition:background .18s ease;}" +
+            ".sw-dash-nav:hover{background:rgba(255,255,255,.95);}";
+          (document.head || document.documentElement).appendChild(s);
+        }
+        if (!dash) {
+          dash = document.createElement("a");
+          dash.id = "swDashboardNav";
+          dash.className = "sw-dash-nav";
+          dash.href = "/care-path.html?view=select";
+          dash.setAttribute("data-i18n", "home.nav.dashboard");
+          dash.textContent = (window.SwI18n && window.SwI18n.t)
+            ? window.SwI18n.t("home.nav.dashboard", "Dashboard") : "Dashboard";
+        }
+        dash.style.display = "inline-flex";
+        // Sit just before the language toggle: [Dashboard] [EN] [coins] [Hi, name].
+        const ref = actions.querySelector(".sw-lang-wrap")
+          || document.getElementById("swCreditBadge")
+          || document.getElementById("authMenuWrap")
+          || actions.firstChild;
+        if (ref) actions.insertBefore(dash, ref);
+        else if (!dash.parentNode) actions.appendChild(dash);
+      } catch (_e) {}
+    };
+
     const applyAuthActionsLayout = () => {
       const isAuthenticated = Boolean(activeUser);
+      ensureDashboardNav(isAuthenticated);
       const isCompact =
         isAuthenticated && window.innerWidth <= AUTH_COMPACT_BREAKPOINT;
 
