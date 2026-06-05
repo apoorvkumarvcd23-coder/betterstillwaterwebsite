@@ -431,6 +431,38 @@ async function initDb() {
       ON credit_events (auth_user_type, auth_user_id, created_at DESC)
   `);
 
+  // ── Yoga clicks (dedicated tracking, independent of credits) ───────
+  // One row per "Watch & Learn" click: which user practised which asana.
+  // Separate from credit_events on purpose so it keeps working regardless of
+  // the credit logic. yoga_clicks_by_user rolls it up to one row per user with
+  // the asanas in nested JSON.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS yoga_clicks (
+      id             BIGSERIAL PRIMARY KEY,
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      asana          TEXT NOT NULL,
+      asana_key      TEXT,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_yoga_clicks_user
+      ON yoga_clicks (auth_user_type, auth_user_id, created_at DESC)
+  `);
+  await pool.query(`
+    CREATE OR REPLACE VIEW yoga_clicks_by_user AS
+    SELECT name AS user_name, email,
+           COUNT(*)        AS total_clicks,
+           MAX(created_at) AS last_click,
+           jsonb_agg(jsonb_build_object('asana', asana, 'at', created_at)
+                     ORDER BY created_at) AS asanas
+    FROM yoga_clicks
+    GROUP BY name, email
+  `);
+
   // ── Aria journal entries (data ingestion, no AI) ───────────────────
   await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
   await pool.query(`
@@ -3868,6 +3900,38 @@ app.get("/api/admin/credits", requireRole("admin"), async (_req, res) => {
     return res.json({ ok: true, start: CREDITS_START, users: users.rows, byAction: byAction.rows });
   } catch (err) {
     console.error("[credits] admin", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// ── Yoga click tracking (which user practised which asana) ─────────────
+// POST /api/yoga-click { asana, key } → logs one row in yoga_clicks.
+// GET  /api/admin/yoga-clicks         → admin-only per-user report.
+app.post("/api/yoga-click", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const asana = (String(req.body?.asana || "").trim().slice(0, 80)) || "Unknown";
+    const key = (String(req.body?.key || "").trim().slice(0, 80)) || null;
+    await pool.query(
+      `INSERT INTO yoga_clicks (auth_user_type, auth_user_id, email, name, asana, asana_key)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [type, id, req.user.email || null, req.user.name || null, asana, key],
+    );
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[yoga-click]", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+app.get("/api/admin/yoga-clicks", requireRole("admin"), async (_req, res) => {
+  try {
+    const r = await pool.query(`SELECT * FROM yoga_clicks_by_user ORDER BY total_clicks DESC LIMIT 1000`);
+    return res.json({ ok: true, users: r.rows });
+  } catch (err) {
+    console.error("[yoga-click] admin", err.message);
     return res.status(500).json({ error: "failed" });
   }
 });
