@@ -395,6 +395,42 @@ async function initDb() {
     ON CONFLICT (key) DO NOTHING
   `);
 
+  // ── Credits (server-side balance + per-user spend ledger) ──────────
+  // user_credits: one row per authenticated user (current balance).
+  // credit_events: append-only ledger so we can see WHO spent HOW MUCH on
+  // WHAT (every spend writes a row). Both keyed by (auth_user_type,
+  // auth_user_id) — same identity used by chat_sessions / intake.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_credits (
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      balance        INTEGER NOT NULL DEFAULT 50,
+      total_spent    INTEGER NOT NULL DEFAULT 0,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (auth_user_type, auth_user_id)
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS credit_events (
+      id             BIGSERIAL PRIMARY KEY,
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      action         TEXT NOT NULL,
+      cost           INTEGER NOT NULL DEFAULT 1,
+      balance_after  INTEGER NOT NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_credit_events_user
+      ON credit_events (auth_user_type, auth_user_id, created_at DESC)
+  `);
+
   // ── Aria journal entries (data ingestion, no AI) ───────────────────
   await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
   await pool.query(`
@@ -563,6 +599,9 @@ const getAuthUserId = (user) => {
   }
   return String(user.id);
 };
+
+// Credits: free starting balance per user (override with CREDITS_START env).
+const CREDITS_START = parseInt(process.env.CREDITS_START || "50", 10) || 50;
 
 const AI_USAGE_END_REASONS = new Set([
   "left_meeting",
@@ -1390,6 +1429,10 @@ app.get("/admin.html", requireRole("admin"), (req, res) => {
 
 app.get("/traffic.html", requireRole("admin"), (req, res) => {
   res.sendFile(path.join(__dirname, "traffic.html"));
+});
+
+app.get("/credits-admin.html", requireRole("admin"), (req, res) => {
+  res.sendFile(path.join(__dirname, "credits-admin.html"));
 });
 
 app.get("/assistant.html", requireAuth, (req, res) => {
@@ -3722,6 +3765,110 @@ app.get("/api/admin/nutrition/status", requireRole("admin"), async (_req, res) =
     return res.json({ ok: true, totalChunks: cnt.rows[0]?.n || 0, documents: docs.rows });
   } catch (err) {
     return res.status(500).json({ ok: false, reason: err.message });
+  }
+});
+
+// ── Credits: per-user balance + spend ledger ───────────────────────────
+// GET  /api/credits         → { balance, totalSpent } for the logged-in user
+//                             (creates the row at CREDITS_START on first call)
+// POST /api/credits/spend   → body { action }; atomically deducts 1 (clamped
+//                             at 0), writes a ledger row, returns { balance }.
+// GET  /api/admin/credits   → admin-only per-user usage report.
+app.get("/api/credits", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const r = await pool.query(
+      `INSERT INTO user_credits (auth_user_type, auth_user_id, email, name, balance)
+       VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (auth_user_type, auth_user_id)
+       DO UPDATE SET email = COALESCE(EXCLUDED.email, user_credits.email),
+                     name  = COALESCE(EXCLUDED.name,  user_credits.name)
+       RETURNING balance, total_spent`,
+      [type, id, req.user.email || null, req.user.name || null, CREDITS_START],
+    );
+    return res.json({ ok: true, balance: r.rows[0].balance, totalSpent: r.rows[0].total_spent });
+  } catch (err) {
+    console.error("[credits] get", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+app.post("/api/credits/spend", requireAuthApi, async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) { client.release(); return res.status(401).json({ error: "Auth required" }); }
+    const action = (String(req.body?.action || "unknown").trim().slice(0, 60).toLowerCase()) || "unknown";
+    const cost = 1;
+    const email = req.user.email || null;
+    const name = req.user.name || null;
+
+    await client.query("BEGIN");
+    // Ensure the row exists, then lock it for an atomic read-modify-write.
+    await client.query(
+      `INSERT INTO user_credits (auth_user_type, auth_user_id, email, name, balance)
+       VALUES ($1,$2,$3,$4,$5)
+       ON CONFLICT (auth_user_type, auth_user_id) DO NOTHING`,
+      [type, id, email, name, CREDITS_START],
+    );
+    const sel = await client.query(
+      `SELECT balance FROM user_credits WHERE auth_user_type=$1 AND auth_user_id=$2 FOR UPDATE`,
+      [type, id],
+    );
+    const before = sel.rows[0] ? sel.rows[0].balance : CREDITS_START;
+    const deducted = before > 0 ? cost : 0;          // never go below zero
+    const after = Math.max(0, before - cost);
+    await client.query(
+      `UPDATE user_credits
+          SET balance = $3, total_spent = total_spent + $4,
+              email = COALESCE($5, email), name = COALESCE($6, name), updated_at = NOW()
+        WHERE auth_user_type=$1 AND auth_user_id=$2`,
+      [type, id, after, deducted, email, name],
+    );
+    await client.query(
+      `INSERT INTO credit_events (auth_user_type, auth_user_id, email, name, action, cost, balance_after)
+       VALUES ($1,$2,$3,$4,$5,$6,$7)`,
+      [type, id, email, name, action, deducted, after],
+    );
+    await client.query("COMMIT");
+    return res.json({ ok: true, balance: after, spent: deducted, action });
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch (_e) {}
+    console.error("[credits] spend", err.message);
+    return res.status(500).json({ error: "failed" });
+  } finally {
+    client.release();
+  }
+});
+
+app.get("/api/admin/credits", requireRole("admin"), async (_req, res) => {
+  try {
+    const users = await pool.query(
+      `SELECT uc.auth_user_type, uc.auth_user_id, uc.email, uc.name,
+              uc.balance, uc.total_spent, uc.updated_at,
+              COALESCE(ev.events, 0) AS events
+         FROM user_credits uc
+         LEFT JOIN (
+           SELECT auth_user_type, auth_user_id, COUNT(*)::int AS events
+             FROM credit_events GROUP BY auth_user_type, auth_user_id
+         ) ev ON ev.auth_user_type = uc.auth_user_type AND ev.auth_user_id = uc.auth_user_id
+        ORDER BY uc.total_spent DESC, uc.updated_at DESC
+        LIMIT 1000`,
+    );
+    const byAction = await pool.query(
+      `SELECT auth_user_type, auth_user_id, action,
+              COUNT(*)::int AS count, SUM(cost)::int AS spent
+         FROM credit_events
+        GROUP BY auth_user_type, auth_user_id, action
+        ORDER BY auth_user_type, auth_user_id, action`,
+    );
+    return res.json({ ok: true, start: CREDITS_START, users: users.rows, byAction: byAction.rows });
+  } catch (err) {
+    console.error("[credits] admin", err.message);
+    return res.status(500).json({ error: "failed" });
   }
 });
 

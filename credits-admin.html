@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Credits | Stilwater Admin</title>
+<style>
+  :root { --bg:#0a1a17; --panel:#11251f; --line:rgba(255,255,255,0.10); --ink:#eaf1ee; --muted:#9fb3ab; --gold:#e8b94a; --green:#3a4f46; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--bg); color:var(--ink); padding:0; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap;
+            padding:1rem 1.5rem; border-bottom:1px solid var(--line); background:var(--panel); }
+  .topbar h1 { font-size:1.15rem; font-weight:700; }
+  .topbar .actions a { color:var(--ink); text-decoration:none; font-size:0.85rem; padding:0.45rem 0.9rem;
+            border:1px solid var(--line); border-radius:999px; margin-left:0.5rem; }
+  .topbar .actions a:hover { background:rgba(255,255,255,0.06); }
+  .shell { padding:1.5rem; max-width:1200px; margin:0 auto; }
+  .cards { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem; }
+  .card { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:1rem 1.25rem; min-width:160px; }
+  .card .label { color:var(--muted); font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; }
+  .card .value { font-size:1.6rem; font-weight:700; margin-top:0.25rem; }
+  .card .value .coin { color:var(--gold); }
+  h2 { font-size:0.95rem; margin:1.5rem 0 0.6rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+  .panel { background:var(--panel); border:1px solid var(--line); border-radius:14px; overflow:hidden; }
+  table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+  thead th { text-align:left; padding:0.7rem 1rem; color:var(--muted); font-weight:600; border-bottom:1px solid var(--line);
+             position:sticky; top:0; background:var(--panel); }
+  tbody td { padding:0.65rem 1rem; border-bottom:1px solid rgba(255,255,255,0.05); }
+  tbody tr:hover { background:rgba(255,255,255,0.03); }
+  .num { text-align:right; font-variant-numeric:tabular-nums; }
+  .spent { color:var(--gold); font-weight:700; }
+  .muted { color:var(--muted); }
+  .pill { display:inline-block; font-size:0.72rem; padding:0.1rem 0.5rem; border-radius:999px;
+          border:1px solid var(--line); color:var(--muted); }
+  .empty { padding:2rem; text-align:center; color:var(--muted); }
+  .actions-cell { color:var(--muted); font-size:0.8rem; }
+  .err { color:#ff9a9a; padding:1rem 1.25rem; }
+</style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>💰 Credit Usage</h1>
+    <div class="actions">
+      <a href="#" id="refreshBtn">Refresh</a>
+      <a href="/admin.html">Admin</a>
+      <a href="/logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="shell">
+    <div class="cards" id="cards"></div>
+    <h2>Per-user usage <span class="muted">(highest spenders first)</span></h2>
+    <div class="panel">
+      <table>
+        <thead>
+          <tr>
+            <th>User</th><th>Email</th><th>Type</th>
+            <th class="num">Balance</th><th class="num">Spent</th>
+            <th class="num">Events</th><th>Breakdown (action × count)</th><th>Last activity</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </main>
+
+<script>
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(c){ return ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"})[c]; }); }
+  function when(ts){ if(!ts) return ""; try { return new Date(ts).toLocaleString(); } catch(_e){ return ts; } }
+
+  function render(data){
+    var users = data.users || [];
+    var byAction = data.byAction || [];
+    var start = data.start;
+
+    // Build a per-user action breakdown map: "type|id" -> [ "action ×n", ... ]
+    var bmap = {};
+    byAction.forEach(function(r){
+      var k = r.auth_user_type + "|" + r.auth_user_id;
+      (bmap[k] = bmap[k] || []).push(esc(r.action) + " ×" + r.count);
+    });
+
+    // Summary cards
+    var totalSpent = users.reduce(function(a,u){ return a + (u.total_spent||0); }, 0);
+    var totalUsers = users.length;
+    var actionTotals = {};
+    byAction.forEach(function(r){ actionTotals[r.action] = (actionTotals[r.action]||0) + r.spent; });
+    var cards = '' +
+      card("Users with credits", totalUsers) +
+      card("Total credits spent", '<span class="coin">' + totalSpent + '</span>') +
+      card("Starting balance", start);
+    Object.keys(actionTotals).sort().forEach(function(a){ cards += card(a.replace(/_/g," "), actionTotals[a]); });
+    document.getElementById("cards").innerHTML = cards;
+
+    if (!users.length){ document.getElementById("rows").innerHTML = '<tr><td colspan="8" class="empty">No credit activity yet.</td></tr>'; return; }
+
+    document.getElementById("rows").innerHTML = users.map(function(u){
+      var k = u.auth_user_type + "|" + u.auth_user_id;
+      var breakdown = (bmap[k]||[]).join(", ");
+      return '<tr>' +
+        '<td>' + esc(u.name || "—") + '</td>' +
+        '<td class="muted">' + esc(u.email || "—") + '</td>' +
+        '<td><span class="pill">' + esc(u.auth_user_type) + '</span></td>' +
+        '<td class="num">' + (u.balance) + '</td>' +
+        '<td class="num spent">' + (u.total_spent) + '</td>' +
+        '<td class="num">' + (u.events) + '</td>' +
+        '<td class="actions-cell">' + (breakdown || "—") + '</td>' +
+        '<td class="muted">' + esc(when(u.updated_at)) + '</td>' +
+      '</tr>';
+    }).join("");
+  }
+  function card(label, value){ return '<div class="card"><div class="label">' + esc(label) + '</div><div class="value">' + value + '</div></div>'; }
+
+  function load(){
+    document.getElementById("rows").innerHTML = '<tr><td colspan="8" class="empty">Loading…</td></tr>';
+    fetch("/api/admin/credits", { credentials:"include" })
+      .then(function(r){ if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+      .then(render)
+      .catch(function(e){ document.getElementById("rows").innerHTML = '<tr><td colspan="8" class="err">Failed to load: ' + esc(e.message) + '</td></tr>'; });
+  }
+  document.getElementById("refreshBtn").addEventListener("click", function(e){ e.preventDefault(); load(); });
+  load();
+</script>
+</body>
+</html>
