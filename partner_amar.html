@@ -4,6 +4,22 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Amar Eye Yoga &middot; Stilwater</title>
+<!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  (function(){
+    var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+    if (prodHosts.indexOf(location.hostname) === -1) return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
+    document.head.appendChild(s);
+    gtag('config', 'G-GNF77Q61ZQ');
+  })();
+</script>
+<script src="js/ga-events.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -316,7 +332,7 @@
         <div class="feat"><h4>Holistic approach</h4><p>Gentle eye, breath, and mind practices that work together, without harm.</p></div>
         </div>
         <div class="partner-cta">
-          <a class="btn btn-primary" href="#" target="_blank" rel="noopener">Explore Amar Eye Yoga <span class="arrow">&rarr;</span></a>
+          <a class="btn btn-primary" href="#" target="_blank" rel="noopener" data-ga-event="trusted_providers_amar_eye_book_now">Explore Amar Eye Yoga <span class="arrow">&rarr;</span></a>
           <a class="btn btn-ghost" href="https://claude.ai/public/artifacts/deb9bfc6-1a20-478e-84ee-81927c74a545" target="_blank" rel="noopener">&larr; Back to recommendations</a>
         </div>
         <div class="verified">

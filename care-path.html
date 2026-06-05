@@ -2219,10 +2219,9 @@
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
@@ -4051,9 +4050,9 @@
           // Mode key -> GA event name. Tabs are dynamically rendered so we
           // tag them with data-ga-event for js/ga-events.js to pick up.
           const GA_TAB_EVENT = {
-            mealplan: "menu_meal_plan",
-            recipes: "menu_recipes",
-            journaling: "menu_journaling",
+            mealplan: "recipe_library_button_meal_plan",
+            recipes: "recipe_library_button_recipes",
+            journaling: "recipe_library_button_journaling",
           };
           Object.entries(MODES).forEach(([key, m]) => {
             const on = state.mode === key;
@@ -4157,6 +4156,7 @@
           camBtn.type = "button";
           camBtn.className = "companion-icon-btn";
           camBtn.setAttribute("aria-label", "Add photo");
+          camBtn.setAttribute("data-ga-event", "recipe_library_journaling_file_upload");
           camBtn.innerHTML = ico("camera");
           camBtn.addEventListener("click", () => fileInput.click());
           inputRow.appendChild(camBtn);
@@ -4165,6 +4165,7 @@
           micBtn.type = "button";
           micBtn.className = "companion-icon-btn" + (state.listening ? " is-listening" : "");
           micBtn.setAttribute("aria-label", "Voice input");
+          micBtn.setAttribute("data-ga-event", "recipe_library_journaling_audio_input");
           micBtn.innerHTML = ico("mic");
           micBtn.addEventListener("click", () => toggleVoiceJournal(textarea));
           inputRow.appendChild(micBtn);
@@ -4194,6 +4195,7 @@
           sendBtn.type = "button";
           sendBtn.className = "companion-send";
           sendBtn.setAttribute("aria-label", "Send");
+          sendBtn.setAttribute("data-ga-event", "recipe_library_journaling_send_chat");
           sendBtn.innerHTML = ico("send");
           sendBtn.addEventListener("click", sendJournal);
           inputRow.appendChild(sendBtn);
@@ -4350,14 +4352,15 @@
           const tabs = document.createElement("div");
           tabs.className = "companion-subtabs";
           [
-            ["weekly", "aria.mp.weekly.tab", "Weekly"],
-            ["today",  "aria.mp.today.tab",  "Today"],
-          ].forEach(([key, labelKey, fallback]) => {
+            ["weekly", "aria.mp.weekly.tab", "Weekly", "recipe_library_button_weekly"],
+            ["today",  "aria.mp.today.tab",  "Today",  "recipe_library_button_today"],
+          ].forEach(([key, labelKey, fallback, gaEvent]) => {
             const b = document.createElement("button");
             b.type = "button";
             b.className = "companion-subtab" + (state.mpView === key ? " is-active" : "");
             b.setAttribute("role", "tab");
             b.setAttribute("aria-selected", state.mpView === key ? "true" : "false");
+            b.setAttribute("data-ga-event", gaEvent);
             b.textContent = T(labelKey, fallback);
             b.addEventListener("click", () => {
               if (state.mpView === key) return;
@@ -4782,7 +4785,7 @@
               () => generateWeekly(),
               state.generatingWeekly,
             );
-            weeklyBtn.setAttribute("data-ga-event", "btn_generate_weekly_plan");
+            weeklyBtn.setAttribute("data-ga-event", "recipe_library_button_generate_meal_plan");
             formCard.appendChild(weeklyBtn);
             if (state.weeklyError) {
               const err = document.createElement("div");
@@ -4850,11 +4853,13 @@
             const edit = document.createElement("button");
             edit.type = "button";
             edit.className = "companion-edit-btn";
+            edit.setAttribute("data-ga-event", "recipe_library_button_edit_prefs");
             edit.textContent = T("aria.mp.editPrefs", "Edit prefs");
             edit.addEventListener("click", () => { state.weeklyPlan = null; state.todayPlan = null; state.todayMeta = ""; renderMode(); });
             const dl = document.createElement("button");
             dl.type = "button";
             dl.className = "companion-edit-btn";
+            dl.setAttribute("data-ga-event", "recipe_library_button_download_weekly_pdf");
             dl.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
             dl.addEventListener("click", () => downloadWeeklyPdf());
             row.appendChild(dl);
@@ -4873,7 +4878,7 @@
                 mr.innerHTML =
                   '<span class="companion-meal-slot">' + escapeHtml(T("slot." + slot, slot)) + '</span>' +
                   '<span class="companion-meal-name">' + escapeHtml(mealText(mealVal)) + '</span>' +
-                  '<button type="button" class="companion-meal-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' + ico("youtube") + '</button>';
+                  '<button type="button" class="companion-meal-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' + ico("youtube") + '</button>';
                 meals.appendChild(mr);
                 // The button is inert until clicked — only then do we hit
                 // the recipes endpoint (count=3) and pop the modal.
@@ -4981,6 +4986,7 @@
             const dlToday = document.createElement("button");
             dlToday.type = "button";
             dlToday.className = "companion-edit-btn";
+            dlToday.setAttribute("data-ga-event", "recipe_library_button_download_today_pdf");
             dlToday.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
             dlToday.addEventListener("click", () => downloadTodayPdf());
             todayRow.appendChild(dlToday);
@@ -4994,7 +5000,7 @@
                   '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                   '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
                 '</div>' +
-                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                '<button type="button" class="companion-today-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
                   ico("youtube") +
                 '</button>';
               wrap.appendChild(card);
@@ -5308,7 +5314,7 @@
           const findBtn = document.createElement("button");
           findBtn.type = "button";
           findBtn.textContent = T("aria.recipes.find", "Find");
-          findBtn.setAttribute("data-ga-event", "btn_find_recipes");
+          findBtn.setAttribute("data-ga-event", "recipe_library_button_recipes_find");
           if (state.search.trim()) findBtn.classList.add("is-active");
           findBtn.addEventListener("click", runSearch);
           searchRow.appendChild(findBtn);
@@ -5333,7 +5339,7 @@
                   '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                   '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
                 '</div>' +
-                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                '<button type="button" class="companion-today-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
                   ico("youtube") +
                 '</button>';
               scroll.appendChild(card);
@@ -5605,6 +5611,8 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
             '<span>' + escapeHtml(T("launcher.back", "Back")) + '</span>';
           backBtn.addEventListener("click", () => { if (window.__swPlantRecipes) window.__swPlantRecipes.showLauncher(); });
+          // GA: the nutrition chat's Back is the tracked "AI Nutritionist Go Back".
+          if (chatMode === "nutrition") backBtn.setAttribute("data-ga-event", "ai_nutritionist_button_go_back");
           header.appendChild(backBtn);
 
           // Page title sits to the right of the Back button.
@@ -5624,6 +5632,7 @@
             const actBtn = document.createElement("button");
             actBtn.type = "button";
             actBtn.className = "plant-chat-action";
+            actBtn.setAttribute("data-ga-event", "ai_nutritionist_button_recipe_library");
             actBtn.textContent = "🍽 " + T("aria.recipes.libraryBtn", "Recipe Library");
             actBtn.addEventListener("click", () => {
               if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
@@ -5658,15 +5667,16 @@
             // Healy / Amar Eye) in the embedded view. Lives in the header so
             // it stays available across every partner page.
             const partnersList = [
-              { name: T("carepath.partners.sharan", "SHARAN"), page: "partner_sharan.html" },
-              { name: T("carepath.partners.healy", "HEALY"), page: "partner_healy.html" },
-              { name: T("carepath.partners.amar", "AMAR EYE YOGA"), page: "partner_amar.html" },
+              { name: T("carepath.partners.sharan", "SHARAN"), page: "partner_sharan.html", ga: "chronic_disease_management_trusted_providers_sharan" },
+              { name: T("carepath.partners.healy", "HEALY"), page: "partner_healy.html", ga: "chronic_disease_management_trusted_providers_healy" },
+              { name: T("carepath.partners.amar", "AMAR EYE YOGA"), page: "partner_amar.html", ga: "chronic_disease_management_trusted_providers_amar_eye" },
             ];
             const partnersWrap = document.createElement("div");
             partnersWrap.className = "sw-partners";
             const partnersBtn = document.createElement("button");
             partnersBtn.type = "button";
             partnersBtn.className = "sw-partners-btn";
+            partnersBtn.setAttribute("data-ga-event", "chronic_disease_management_trusted_providers");
             partnersBtn.setAttribute("aria-haspopup", "true");
             partnersBtn.setAttribute("aria-expanded", "false");
             partnersBtn.innerHTML =
@@ -5680,6 +5690,7 @@
               const item = document.createElement("button");
               item.type = "button";
               item.className = "sw-partners-item";
+              if (p.ga) item.setAttribute("data-ga-event", p.ga);
               item.textContent = p.name;
               item.addEventListener("click", () => {
                 partnersMenu.hidden = true;
@@ -5764,6 +5775,8 @@
             const card = document.createElement("button");
             card.type = "button";
             card.className = "pbn-suggestion";
+            // GA: the AI Nutritionist's 3 suggested starter questions.
+            if (!isChronic) card.setAttribute("data-ga-event", "ai_nutritionist_question" + (i + 1));
             card.innerHTML =
               '<span class="pbn-s-ico" aria-hidden="true">' + (sugIcons[i] || "🌿") + '</span>' +
               '<span class="pbn-s-text">' + escapeHtml(q) + '</span>' +
@@ -5805,6 +5818,7 @@
             const aBtn = document.createElement("a");
             aBtn.href = "intake.html";
             aBtn.className = "pbn-assess-cta";
+            aBtn.setAttribute("data-ga-event", "chronic_disease_management_take_wellness_assessment");
             aBtn.textContent = T("carepath.wellnessAssessment", "Take Wellness Assessment");
             assess.appendChild(aBtn);
             mainCol.appendChild(assess);
@@ -6128,6 +6142,7 @@
             const attachBtn = document.createElement("button");
             attachBtn.type = "button";
             attachBtn.className = "plant-icon-btn plant-attach-btn";
+            attachBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_file_upload");
             attachBtn.setAttribute("aria-label", T("aria.recipes.chat.attach", "Attach a file"));
             attachBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
             const fileInput = document.createElement("input");
@@ -6164,6 +6179,7 @@
             const micBtn = document.createElement("button");
             micBtn.type = "button";
             micBtn.className = "plant-icon-btn plant-mic-btn";
+            micBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_audio_input");
             micBtn.setAttribute("aria-label", T("aria.recipes.chat.voice", "Voice input"));
             micBtn.innerHTML = SpeechRec
               ? '<span class="plant-mic-wave" aria-hidden="true"></span>'
@@ -6217,6 +6233,7 @@
             const sendBtn = document.createElement("button");
             sendBtn.type = "button";
             sendBtn.className = "plant-send-btn";
+            sendBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_send_chat");
             sendBtn.setAttribute("aria-label", T("aria.recipes.chat.send", "Send"));
             sendBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
             sendBtn.addEventListener("click", submitAnswer);
@@ -6474,6 +6491,7 @@
               const item = document.createElement("button");
               item.type = "button";
               item.className = "care-chat-item" + (String(s.id) === String(currentSessionId) ? " is-active" : "");
+              item.setAttribute("data-ga-event", "ai_nutritionist_button_chat_history_items");
               let meta = "";
               try {
                 const w = s.updated_at ? new Date(s.updated_at) : null;

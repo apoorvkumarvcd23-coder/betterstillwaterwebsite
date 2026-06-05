@@ -4,6 +4,22 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>SHARAN &middot; Stilwater</title>
+<!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
+<script>
+  window.dataLayer = window.dataLayer || [];
+  window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
+  gtag('js', new Date());
+  (function(){
+    var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+    if (prodHosts.indexOf(location.hostname) === -1) return;
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
+    document.head.appendChild(s);
+    gtag('config', 'G-GNF77Q61ZQ');
+  })();
+</script>
+<script src="js/ga-events.js" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Nunito+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -318,21 +334,21 @@
         <div class="programs">
           <h3 class="programs-title">Programs you can book with SHARAN</h3>
           <div class="programs-list">
-          <a class="prog" href="https://sharan-india.org/product/new-nutrition-consultations/" target="_blank" rel="noopener">
+          <a class="prog" href="https://sharan-india.org/product/new-nutrition-consultations/" target="_blank" rel="noopener" data-ga-event="trusted_providers_sharan_book_now">
             <div class="prog-main">
               <h4>Consult a Nutritionist</h4>
               <p>For when you're not on medication and want guidance with disease reversal, weight loss, or everyday nutrition and supplementation.</p>
             </div>
             <span class="prog-go">Book <span class="arrow">&rarr;</span></span>
           </a>
-          <a class="prog" href="https://sharan-india.org/product/health-coaching-consultations/" target="_blank" rel="noopener">
+          <a class="prog" href="https://sharan-india.org/product/health-coaching-consultations/" target="_blank" rel="noopener" data-ga-event="trusted_providers_sharan_book_now">
             <div class="prog-main">
               <h4>Consult a Health Coach</h4>
               <p>Reclaim your health and vitality and move past chronic symptoms, with a sustainable path to wellness built on an integrative-medicine approach.</p>
             </div>
             <span class="prog-go">Book <span class="arrow">&rarr;</span></span>
           </a>
-          <a class="prog" href="https://sharan-india.org/product/comprehensive-diabetes-reversal/" target="_blank" rel="noopener">
+          <a class="prog" href="https://sharan-india.org/product/comprehensive-diabetes-reversal/" target="_blank" rel="noopener" data-ga-event="trusted_providers_sharan_book_now">
             <div class="prog-main">
               <h4>Comprehensive Diabetes Reversal</h4>
               <p>A doctor's consultation paired with a dedicated accountability coach, plus personalised exercise, stress-management, and cooking guidance.</p>
@@ -342,7 +358,7 @@
           </div>
         </div>
         <div class="partner-cta">
-          <a class="btn btn-clay" href="#" target="_blank" rel="noopener">Connect with Sharan <span class="arrow">&rarr;</span></a>
+          <a class="btn btn-clay" href="#" target="_blank" rel="noopener" data-ga-event="trusted_providers_sharan_book_now">Connect with Sharan <span class="arrow">&rarr;</span></a>
           <a class="btn btn-ghost" href="https://claude.ai/public/artifacts/c41e4e79-d52b-47a7-83fc-79dce270fbf6" target="_blank" rel="noopener">&larr; Back to recommendations</a>
         </div>
         <div class="verified">

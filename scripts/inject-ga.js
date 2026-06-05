@@ -8,8 +8,10 @@
 const fs = require("fs");
 const path = require("path");
 
-const MEASUREMENT_ID = "G-3YFE71RLJZ";
-const SECONDARY_ID = "G-GP7VFJF628";
+// Single GA4 property (2026-06-05): replaced the old G-3YFE71RLJZ +
+// G-GP7VFJF628 pair with one new property. The gtag script + config still
+// load on prod hosts ONLY (see the gate below), so test never transmits.
+const MEASUREMENT_ID = "G-GNF77Q61ZQ";
 
 const NEW_SNIPPET = `<!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
     <script>
@@ -24,7 +26,6 @@ const NEW_SNIPPET = `<!-- Google tag (gtag.js) — gtag stub everywhere; script 
         s.src = 'https://www.googletagmanager.com/gtag/js?id=${MEASUREMENT_ID}';
         document.head.appendChild(s);
         gtag('config', '${MEASUREMENT_ID}');
-        gtag('config', '${SECONDARY_ID}');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>`;
@@ -34,10 +35,6 @@ const NEW_SNIPPET = `<!-- Google tag (gtag.js) — gtag stub everywhere; script 
 // consume an optional trailing ga-events.js tag so a re-run doesn't leave a
 // stale duplicate behind.
 const OLD_SNIPPET_RE = /<!--\s*Google tag \(gtag\.js\)[^>]*-->\s*<script>[\s\S]*?<\/script>(?:\s*<script src="js\/ga-events\.js"[^>]*><\/script>)?/;
-
-// Marker to detect the new shape so we can short-circuit on re-runs once
-// the ga-events.js tag is present.
-const NEW_MARKER = 'src="js/ga-events.js"';
 
 const root = path.resolve(__dirname, "..");
 const files = fs.readdirSync(root).filter((f) => f.endsWith(".html"));
@@ -49,12 +46,9 @@ for (const f of files) {
   const p = path.join(root, f);
   const content = fs.readFileSync(p, "utf8");
 
-  if (content.includes(NEW_MARKER)) {
-    console.log(`SKIP  ${f}  (already upgraded)`);
-    skipped++;
-    continue;
-  }
-
+  // Re-process even already-injected files so a measurement-ID change here is
+  // pushed out to every page. Replacement is idempotent: NEW_SNIPPET still
+  // matches OLD_SNIPPET_RE, so a page already on the current ID is a no-op.
   if (!OLD_SNIPPET_RE.test(content)) {
     console.log(`MISS  ${f}  (no recognisable GA snippet)`);
     missing++;

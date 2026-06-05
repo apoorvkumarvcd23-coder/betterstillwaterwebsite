@@ -140,10 +140,9 @@
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
@@ -179,6 +178,7 @@
              class="btn btn-ghost"
              style="text-decoration: none; flex: none;"
              aria-label="Skip the wellness assessment and continue to care path"
+             data-ga-event="chronic_disease_management_skip_for_now_top"
              data-i18n="intake.skipForNow"
           >Skip for now &rarr;</a>
         </div>
@@ -574,6 +574,7 @@
             <button
               type="submit"
               class="btn btn-solid"
+              data-ga-event="chronic_disease_management_submit_wellness_assessment"
             >
               Submit Wellness Assessment
             </button>
@@ -581,6 +582,7 @@
                class="btn btn-ghost"
                style="text-decoration: none;"
                aria-label="Skip the wellness assessment and continue to care path"
+               data-ga-event="chronic_disease_management_skip_for_now_bottom"
                data-i18n="intake.skipForNow"
             >Skip for now &rarr;</a>
           </div>

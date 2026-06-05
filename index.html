@@ -26,10 +26,9 @@
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
@@ -554,7 +553,7 @@
 <!-- ============== NAVIGATION ============== -->
 <nav>
   <div class="container nav-inner">
-    <a href="/" class="logo header-logo" data-ga-event="nav_logo_home" aria-label="Stilwater home">
+    <a href="/" class="logo header-logo" data-ga-event="header_logo_home" aria-label="Stilwater home">
       <img src="images/stilwater-logov3.png" alt="Stilwater" style="height:42px;width:auto;display:block;" />
     </a>
     <div class="nav-links" id="authActions">
@@ -579,7 +578,7 @@
              style="position:absolute;top:2.4rem;right:0;min-width:160px;background:#ffffff;border:1px solid rgba(122,143,126,0.25);border-radius:12px;padding:0.4rem;display:none;box-shadow:0 12px 32px rgba(0,0,0,0.10);z-index:60;">
           <a id="btnLogout"
              href="/logout"
-             data-ga-event="nav_logout"
+             data-ga-event="header_nav_logout"
              style="display:block;padding:0.5rem 0.75rem;color:var(--ink);text-decoration:none;font-size:0.85rem;border-radius:8px;"
              data-i18n="auth.logout">Log out</a>
         </div>
@@ -587,7 +586,7 @@
       <a href="/auth.html?returnTo=https%3A%2F%2Fstillwater-test.onrender.com%2F"
          id="btnLogin"
          class="nav-cta"
-         data-ga-event="nav_login_signup"
+         data-ga-event="header_nav_login_signup"
          data-i18n="auth.login">Login / Sign up</a>
     </div>
   </div>
@@ -615,7 +614,7 @@
     <div class="hero-actions">
       <a href="care-path.html?view=select"
          class="btn-primary"
-         data-ga-event="start_wellness_journey"
+         data-ga-event="homepage_button_Start_wellness_journey"
          data-i18n="home.startJourney">Start wellness journey</a>
     </div>
   </div>
@@ -749,7 +748,7 @@
       </ul>
       <a href="/auth.html?returnTo=https%3A%2F%2Fstillwater-test.onrender.com%2F"
          class="btn-primary"
-         data-ga-event="nav_login_signup"
+         data-ga-event="homepage_button_Start_with_aria"
          data-i18n="home.pricing.cta">Start with Aria</a>
     </div>
   </div>
