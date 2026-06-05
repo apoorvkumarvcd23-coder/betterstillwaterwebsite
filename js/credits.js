@@ -155,14 +155,37 @@
     if (x) {
       x.addEventListener("click", function () {
         try { sessionStorage.setItem(DISMISS_KEY, "1"); } catch (_e) {}
+        window.removeEventListener("resize", positionNudge);
         box.classList.add("sw-credit-nudge-hide");
         setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 220);
       });
     }
+    positionNudge();
+    window.addEventListener("resize", positionNudge);
     requestAnimationFrame(function () { box.classList.add("sw-credit-nudge-in"); });
   }
 
+  // Pin the nudge just below the green "Login / Sign up" button. Falls back to
+  // the top-right corner if the button isn't visible (e.g. tucked into a mobile
+  // hamburger menu).
+  function positionNudge() {
+    var box = document.getElementById("swCreditNudge");
+    if (!box) return;
+    var btn = document.getElementById("btnLogin");
+    var r = btn && btn.getBoundingClientRect();
+    if (r && r.width > 0 && r.height > 0) {
+      box.style.top = (r.bottom + 10) + "px";
+      box.style.right = Math.max(8, window.innerWidth - r.right) + "px";
+    } else {
+      box.style.top = "70px";
+      box.style.right = "16px";
+    }
+    box.style.left = "auto";
+    box.style.bottom = "auto";
+  }
+
   function hideNudge() {
+    window.removeEventListener("resize", positionNudge);
     var box = document.getElementById("swCreditNudge");
     if (box && box.parentNode) box.parentNode.removeChild(box);
   }
@@ -179,13 +202,14 @@
       ".sw-credit-badge .sw-credit-count{font-variant-numeric:tabular-nums;}" +
       "@keyframes swCreditPulse{0%{transform:scale(1);}35%{transform:scale(1.18);}100%{transform:scale(1);}}" +
       ".sw-credit-badge.sw-credit-pulse{animation:swCreditPulse 0.4s ease;}" +
-      // nudge
-      ".sw-credit-nudge{position:fixed;left:50%;bottom:18px;transform:translate(-50%,140%);" +
+      // nudge — anchored just under the green Login button (top-right). The
+      // exact top/right are set inline by positionNudge() from the button rect.
+      ".sw-credit-nudge{position:fixed;top:70px;right:16px;transform:translateY(-8px);" +
       "display:flex;align-items:center;gap:0.6rem;z-index:2000;max-width:calc(100vw - 24px);" +
-      "padding:0.55rem 0.7rem 0.55rem 0.85rem;background:#264f45;color:#f4f1ea;border-radius:999px;" +
-      "font-size:0.85rem;box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transition:transform .24s ease,opacity .24s ease;}" +
-      ".sw-credit-nudge.sw-credit-nudge-in{transform:translate(-50%,0);opacity:1;}" +
-      ".sw-credit-nudge.sw-credit-nudge-hide{transform:translate(-50%,140%);opacity:0;}" +
+      "padding:0.55rem 0.7rem 0.55rem 0.85rem;background:#264f45;color:#f4f1ea;border-radius:14px;" +
+      "font-size:0.85rem;box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transition:transform .2s ease,opacity .2s ease;}" +
+      ".sw-credit-nudge.sw-credit-nudge-in{transform:translateY(0);opacity:1;}" +
+      ".sw-credit-nudge.sw-credit-nudge-hide{transform:translateY(-8px);opacity:0;}" +
       ".sw-credit-nudge-coin{display:inline-flex;}" +
       ".sw-credit-nudge-text{white-space:nowrap;}" +
       ".sw-credit-nudge-text strong{color:#f0d28a;}" +
