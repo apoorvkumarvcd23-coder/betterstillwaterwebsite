@@ -580,12 +580,32 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add a "Dashboard" link (→ the care-path dashboard) to the header on every
     // page, positioned just before the language toggle. Shown only when logged
     // in; the home page already ships its own #btnDashboard, so skip it there.
+    // Re-evaluate the Dashboard link whenever the care-path SPA switches views
+    // (the launcher is shown/hidden without a page reload).
+    let _swLauncherObserved = false;
+    const observeLauncherForDashNav = () => {
+      if (_swLauncherObserved) return;
+      const launcher = document.getElementById("swLauncher");
+      if (!launcher) return;
+      _swLauncherObserved = true;
+      try {
+        new MutationObserver(() => ensureDashboardNav(Boolean(activeUser)))
+          .observe(launcher, { attributes: true, attributeFilter: ["hidden"] });
+      } catch (_e) {}
+    };
+
     const ensureDashboardNav = (isAuthenticated) => {
       try {
         const actions = document.getElementById("authActions");
         if (!actions) return;
+        observeLauncherForDashNav();
         let dash = document.getElementById("swDashboardNav");
-        if (!isAuthenticated || document.getElementById("btnDashboard")) {
+        // The launcher (#swLauncher) IS the dashboard — and the yoga/meditation
+        // views sit on top of it (each with its own Back) — so don't show a
+        // Dashboard link while the launcher is visible.
+        const launcher = document.getElementById("swLauncher");
+        const onDashboard = !!(launcher && !launcher.hidden);
+        if (!isAuthenticated || document.getElementById("btnDashboard") || onDashboard) {
           if (dash) dash.style.display = "none";
           return;
         }
