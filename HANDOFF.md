@@ -13,11 +13,10 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **Live (head of test)**: `1aa5a68` — see §14 for the 2026-06-04 session
-  (Chronic routes from authoritative server flags, true full-page partner
-  scroll, assessment Skip button + group-label asterisks, header-chip removal,
-  duplicate-disclaimer removal). §12 is the 2026-06-01 baseline; §13 the
-  2026-06-03 session.
+- **Live (head of test)**: `db5733d` — see §16 for the 2026-06-05 session
+  (client-side credits: gold-coin badge + spend hooks + login nudge). §15 is
+  the 2026-06-04 session #2; §14 the 2026-06-04 session #1; §12 the 2026-06-01
+  baseline; §13 the 2026-06-03 session.
 - **Live (head of main)**: `e91be1b` — much older. Test is **far ahead of
   main** (all of the §12 work plus the earlier Stilwater AI Chat, homepage,
   auth-page, videos, mobile passes). Promote when ready.
@@ -824,6 +823,91 @@ available in the bundled bash, use Compress-Archive.
 
 ---
 
-_Updated 2026-06-04 (session #2) from test branch head `9f237ce`. Earlier:
-2026-06-04 `1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01 `694011a`, 2026-05-30
-`18dff27`._
+## 16. 2026-06-05 session — client-side credits (test head `db5733d`)
+
+All on `test`. A self-contained **"gold coins" credit prototype**. Deliberately
+**client-side only** — there is **no DB table, column, or API** for credits; the
+balance lives in the browser. The user explicitly chose to keep it client-side
+"for now". If/when it needs to be real (reset on user delete, per-account,
+cross-device, tamper-resistant), it must move server-side (a `credits` value per
+user in Postgres + read/spend endpoints). **The previous sessions' open items
+(OpenRouter credits, finish embedding the diabetes book, promote test → main,
+`NUTRITION_MODEL`, verify `partner_leads` insert) are all still open** — none
+were touched this session.
+
+### 16.1 The credit module (`js/credits.js`, NEW)
+Single drop-in file (injects its own CSS, no markup needed). Exposes
+`window.SwCredits = { get, set, spend }`.
+- **Balance**: `localStorage` key **`sw_credits_v1`**, starts at **50**, clamps
+  at 0 (`spend()` never goes negative). Per-browser, NOT per-account.
+- **Auth**: does its own `GET /api/auth/me` fetch to decide logged-in vs out
+  (decoupled from `shared.js`).
+- **Gold-coin badge**: rendered into `#authActions`, inserted just **left of
+  `#authMenuWrap`** (the "Hi, [name]" pill), shown only when authenticated;
+  pulses on each spend. Re-asserted at 600ms + 1500ms after load to survive
+  `shared.js`/`i18n.js` rebuilding the header.
+- Included via `<script src="js/credits.js">` on **`care-path.html`** (right
+  after `js/shared.js`) and **`index.html`** (after its `shared.js`). Not on
+  other pages.
+
+### 16.2 Spend hooks (−1 coin each, in `care-path.html`)
+- **Tadasana "Watch & Learn"** — the `yogaBetaOpen` click handler.
+- **Balasana "Watch & Learn"** — the `yogaBalasanaOpen` click handler.
+- **Every AI Nutritionist message** — hooked the single `sendMessage()` choke
+  point, so a starter card, a follow-up chip, AND a typed question each cost 1.
+All guarded with `if (window.SwCredits) …` so they're no-ops if the module
+failed to load. **Actions are never blocked at 0** — the balance just bottoms
+out (least-destructive choice; change here if you want hard gating).
+
+### 16.3 Logged-out "log in to get free credits" nudge
+A small dark-green pill popup for logged-out visitors.
+- **First-time-only** (`ddb…`→`9be6321`): shows only until the browser has
+  logged in **once** — on success, `localStorage` flag **`sw_has_logged_in`** is
+  set and the nudge never returns (not next visit, not after a later logout).
+  `showNudge()` early-returns if that flag is set. ⚠ This is **per-browser**, not
+  per-email — a logged-out visitor has no known email, so true per-email gating
+  would need server-side state. (User was told and accepted this.)
+- **Position** (`db5733d`): anchored just **below the green `#btnLogin`** button
+  (top-right) via `positionNudge()` reading the button's rect, re-pinned on
+  `resize`. Falls back to the top-right corner if the button is hidden (mobile
+  hamburger). Was originally bottom-center; moved per user request.
+- A session-level dismiss (`×` → `sessionStorage` `sw_credits_nudge_dismissed`)
+  also suppresses it for the current tab session.
+
+### 16.4 Testing / reset (important — it's all browser state)
+Deleting the DB user does **NOT** reset coins or the nudge flag (those are
+`localStorage`, not Postgres). To test fresh: use an **incognito window**, or in
+DevTools console:
+```js
+localStorage.clear(); sessionStorage.clear(); location.reload();
+// or selectively:
+localStorage.removeItem('sw_credits_v1');     // coins → 50
+localStorage.removeItem('sw_has_logged_in');  // nudge shows again
+```
+To reset a DB account for the Google login flow (separate concern — assessment
+re-shows because `intake_submissions` keys off the stable Google id, not the
+`users` row, so delete both):
+```sql
+DELETE FROM intake_submissions WHERE auth_user_id IN (SELECT id FROM users WHERE lower(email) IN ('addr@example.com'));
+DELETE FROM users WHERE lower(email) IN ('addr@example.com');
+```
+
+### 16.5 Commits
+```
+10ee155  credit system: gold-coin badge + spend hooks (Tadasana/Balasana/chat)
+9be6321  login nudge shows only until first login (sw_has_logged_in)
+db5733d  anchor login nudge under the green Login button + reposition on resize
+```
+
+### 16.6 Open items (carried + new)
+- Carried: all of §15.10 (OpenRouter credits, finish diabetes book embed,
+  promote test → main, `NUTRITION_MODEL`, verify `partner_leads`).
+- New: credits are a client-side prototype. If real credits are wanted, build the
+  server-side version (DB-backed balance + atomic spend endpoint) and have the
+  badge/spend hooks call it instead of `localStorage`.
+
+---
+
+_Updated 2026-06-05 from test branch head `db5733d`. Earlier: 2026-06-04
+(session #2) `9f237ce`, 2026-06-04 `1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01
+`694011a`, 2026-05-30 `18dff27`._
