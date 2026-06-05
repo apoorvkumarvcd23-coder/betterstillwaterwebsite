@@ -653,7 +653,11 @@ app.use(
         const { hostname } = new URL(origin);
         if (
           hostname === "stillwater.you" ||
-          hostname.endsWith(".stillwater.you")
+          hostname.endsWith(".stillwater.you") ||
+          // New primary domain (stilwater.health, single-L). Both are allowed
+          // during the transition; stillwater.you will be retired later.
+          hostname === "stilwater.health" ||
+          hostname.endsWith(".stilwater.health")
         ) {
           return callback(null, true);
         }

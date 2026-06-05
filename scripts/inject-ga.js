@@ -19,7 +19,7 @@ const NEW_SNIPPET = `<!-- Google tag (gtag.js) — gtag stub everywhere; script 
       window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
       gtag('js', new Date());
       (function(){
-        var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+        var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
