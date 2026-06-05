@@ -984,9 +984,11 @@ These are outside the repo and were flagged to the user:
   Render service (builds the OAuth callback). Wrong value → Google login breaks.
 - **Google OAuth redirect URI** `https://www.stilwater.health/auth/google/callback`
   added in the "stillwater rbac" Cloud Console project.
-- **SEO canonical NOT switched** (deferred): `sitemap.xml` (~30 URLs) and
-  `robots.txt` still say `www.stillwater.you`. Flip to `stilwater.health` +
-  add a 301 from `stillwater.you` only once it's the confirmed live primary.
+- **SEO canonical SWITCHED** (`3e65e6b`): `sitemap.xml` (all 30 `<loc>`) and
+  `robots.txt` Sitemap line now point to `https://www.stilwater.health`. Still
+  TODO (infra, not code): add a **301 redirect** `stillwater.you →
+  www.stilwater.health` and **resubmit the sitemap in Google Search Console**
+  for the new domain property (Search Console, NOT GA — GA takes no sitemap).
 - **Emails** (`*@stillwater.you` in `js/i18n.js`, `server.js` admin set) left
   untouched — confirm whether mailboxes also move to `@stilwater.health`.
 
@@ -994,6 +996,7 @@ These are outside the repo and were flagged to the user:
 ```
 1593b70  GA4: swap to single property G-GNF77Q61ZQ + wire Excel event taxonomy
 a2a6252  Domain: recognise stilwater.health as production (alongside stillwater.you)
+3e65e6b  SEO: switch sitemap + robots canonical to www.stilwater.health
 ```
 
 ### 17.6 Open items
