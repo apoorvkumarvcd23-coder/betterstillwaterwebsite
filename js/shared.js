@@ -589,8 +589,15 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!launcher) return;
       _swLauncherObserved = true;
       try {
-        new MutationObserver(() => ensureDashboardNav(Boolean(activeUser)))
-          .observe(launcher, { attributes: true, attributeFilter: ["hidden"] });
+        const cb = () => ensureDashboardNav(Boolean(activeUser));
+        const opts = { attributes: true, attributeFilter: ["hidden"] };
+        new MutationObserver(cb).observe(launcher, opts);
+        // The yoga-intro and meditation views sit ON TOP of the launcher, so
+        // watch them too — the Dashboard link should still show there.
+        ["yogaIntroModal", "meditationModal"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) new MutationObserver(cb).observe(el, opts);
+        });
       } catch (_e) {}
     };
 
@@ -600,11 +607,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!actions) return;
         observeLauncherForDashNav();
         let dash = document.getElementById("swDashboardNav");
-        // The launcher (#swLauncher) IS the dashboard — and the yoga/meditation
-        // views sit on top of it (each with its own Back) — so don't show a
-        // Dashboard link while the launcher is visible.
+        // Hide ONLY on the pure launcher (the 4-card dashboard). The yoga-intro
+        // and meditation views sit on top of the launcher, so keep the link
+        // there (they're not the dashboard).
         const launcher = document.getElementById("swLauncher");
-        const onDashboard = !!(launcher && !launcher.hidden);
+        const yogaModal = document.getElementById("yogaIntroModal");
+        const medModal = document.getElementById("meditationModal");
+        const overlayOpen = !!((yogaModal && !yogaModal.hidden) || (medModal && !medModal.hidden));
+        const onDashboard = !!(launcher && !launcher.hidden) && !overlayOpen;
         if (!isAuthenticated || document.getElementById("btnDashboard") || onDashboard) {
           if (dash) dash.style.display = "none";
           return;
