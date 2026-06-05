@@ -3548,6 +3548,19 @@
         modalSuccess.hidden = false;
       });
 
+      // Log a yoga "Watch & Learn" click to the dedicated yoga_clicks table
+      // (separate from credits). Fire-and-forget; never blocks the UI.
+      function trackYogaClick(asana, key) {
+        try {
+          fetch("/api/yoga-click", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ asana: asana, key: key }),
+          }).catch(function () {});
+        } catch (_e) {}
+      }
+
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
       (function () {
         // Tadasana practice surface. The "Watch & Learn" card uses the
@@ -3651,6 +3664,8 @@
         openBtn.addEventListener("click", () => {
           // Each Tadasana "Watch & Learn" costs 1 credit.
           if (window.SwCredits) window.SwCredits.spend("tadasana_watch_learn");
+          // Dedicated yoga-click tracking (separate from credits).
+          trackYogaClick("Tadasana", "tadasana_watch_learn");
           activePoseUrl = POSE_APP_URL_STATIC;
           openModal();
         });
@@ -3777,6 +3792,8 @@
         openBtn.addEventListener("click", () => {
           // Each Balasana "Watch & Learn" costs 1 credit.
           if (window.SwCredits) window.SwCredits.spend("balasana_watch_learn");
+          // Dedicated yoga-click tracking (separate from credits).
+          trackYogaClick("Balasana", "balasana_watch_learn");
           openModal();
         });
         closeBtn.addEventListener("click", closeModal);
