@@ -13,10 +13,15 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **Live (head of test)**: `db5733d` — see §16 for the 2026-06-05 session
-  (client-side credits: gold-coin badge + spend hooks + login nudge). §15 is
-  the 2026-06-04 session #2; §14 the 2026-06-04 session #1; §12 the 2026-06-01
-  baseline; §13 the 2026-06-03 session.
+- **Live (head of test)**: `a2a6252` — see §17 for the 2026-06-05 GA4 +
+  domain work (single GA4 property `G-GNF77Q61ZQ`, new event taxonomy,
+  `stilwater.health` added as a prod host). §16 is the same-day client-side
+  credits; §15 the 2026-06-04 session #2; §14 the 2026-06-04 session #1;
+  §13 the 2026-06-03 session; §12 the 2026-06-01 baseline.
+- **PLANNED: promote `test → main` on 2026-06-06** (next session). Test is
+  **101 commits ahead** of main — the whole §12–§17 body ships at once. Do the
+  external domain steps in §17.4 BEFORE/with the promotion or Google login +
+  analytics won't work on `stilwater.health`.
 - **Live (head of main)**: `e91be1b` — much older. Test is **far ahead of
   main** (all of the §12 work plus the earlier Stilwater AI Chat, homepage,
   auth-page, videos, mobile passes). Promote when ready.
@@ -908,6 +913,97 @@ db5733d  anchor login nudge under the green Login button + reposition on resize
 
 ---
 
-_Updated 2026-06-05 from test branch head `db5733d`. Earlier: 2026-06-04
-(session #2) `9f237ce`, 2026-06-04 `1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01
-`694011a`, 2026-05-30 `18dff27`._
+## 17. 2026-06-05 session #2 — GA4 reset + event taxonomy + stilwater.health (test head `a2a6252`)
+
+All on `test`. `main` is still `e91be1b` (untouched). Two pieces: a full GA4
+re-instrumentation from a supplied button/event list, and adding the new
+production domain to the host gates.
+
+### 17.1 GA4 property swap — single new property (`1593b70`)
+- **Removed** the old pair `G-3YFE71RLJZ` + `G-GP7VFJF628`; **added the single
+  new property `G-GNF77Q61ZQ`** (real ID, not a placeholder).
+- **The prod-host gate is preserved** — analytics still transmits ONLY on prod
+  hosts; test/localhost no-op. The user's pasted "standard" ungated snippet was
+  deliberately NOT used (it would fire on test). This was the user's stated
+  hard requirement: *data populates on main only, never test.*
+- `scripts/inject-ga.js` now uses the single ID AND **re-processes
+  already-injected pages** (removed the `NEW_MARKER` short-circuit) so an ID
+  change propagates. Re-ran → regenerated the snippet across **30 HTML files**.
+  Re-running is idempotent.
+
+### 17.2 Event tracking rewritten to the new taxonomy (`1593b70`)
+- **`js/ga-events.js` rewritten.** A reusable `track(name, el)` helper sends a
+  consistent param bundle on every event: `event_category`, `section_name`,
+  `button_name`, `event_label`, `page_path`, `tracking_purpose`, and `link_url`
+  (anchors). Category/section are derived from the event-name prefix
+  (`header_`/`footer_` → navigation, `ai_nutritionist_` → ai_nutritionist, …).
+- **Two wiring mechanisms** (data-ga-event wins, then selector rules):
+  1. `data-ga-event="<name>"` on dynamically-built elements (set at their
+     createElement site) — chat buttons, recipe-library tabs, provider items,
+     suggestion questions, chat-history rows, etc.
+  2. Static **selector rules** in `ga-events.js` for stable elements
+     (header/footer/mobile nav, login page, launcher cards, yoga buttons).
+- **~67 of 69 events implemented** across `index.html`, `care-path.html`,
+  `intake.html`, `auth.html`/`admin-served.html` (via rules), and the partner
+  pages. The old event names (`nav_logo_home`, `menu_meal_plan`,
+  `btn_find_recipes`, …) were replaced by the new taxonomy.
+- **Partner pages got GA for the first time**: `partner_amar.html`,
+  `partner_sharan.html`, `partner_healy.html` had **no GA snippet** (they're the
+  underscored chronic-embed pages, distinct from the hyphenated `partner-*.html`).
+  Added the gated snippet + `ga-events.js` to all three and wired Book Now.
+- **2 events skipped** (no matching clickable element — reported, not faked):
+  - `login_page_link_forgot_password` — it's a plain `<p>` in auth.html (no
+    href/onclick) and absent from admin-served.html.
+  - `recipe_library_button_generate_today_meal_plan_pdf` — the Today view has
+    only one PDF button (already wired as `…_download_today_pdf`).
+- **2 events mapped with a caveat**: `trusted_providers_amar_eye_book_now` →
+  the Amar page's "Explore Amar Eye Yoga →" CTA (no literal "Book Now");
+  `trusted_providers_sharan_book_now` → tagged on ALL 4 Sharan booking CTAs
+  (3 "Book →" program cards + "Connect with Sharan →").
+- One pre-existing off-list tracker, `nav_dashboard` (home Dashboard link), was
+  left as-is.
+
+### 17.3 New production domain `stilwater.health` (single-L) (`a2a6252`)
+The live domain is moving to **`stilwater.health`** (single L — matches the
+"Stilwater" brand; the old web domain was `stillwater.you`, double-L). Added
+**additively** (both work during the transition; `stillwater.you` retired later):
+- **GA + Clarity prod-host gates**: added `stilwater.health` +
+  `www.stilwater.health` to the array on all 33 pages + the inject-ga.js
+  template (the gate literal is identical for both GA and Clarity, so one
+  scripted replace covered both — 64 gates).
+- **`server.js` CORS**: now allows `stilwater.health` and `*.stilwater.health`.
+- Note: `index.html` footer already displayed `www.stilwater.health`.
+
+### 17.4 ⚠ External / cutover steps NOT done in code (REQUIRED before prod works)
+These are outside the repo and were flagged to the user:
+- **Render**: register `stilwater.health` + `www.stilwater.health` as real
+  custom domains on `stillwater-main` and point DNS at Render. Per §2.7,
+  `stilwater.health` was previously only a registrar frameset wrapping
+  `onrender.com`, NOT a real Render domain — confirm its current status.
+- **`BASE_URL=https://www.stilwater.health`** env var on the `stillwater-main`
+  Render service (builds the OAuth callback). Wrong value → Google login breaks.
+- **Google OAuth redirect URI** `https://www.stilwater.health/auth/google/callback`
+  added in the "stillwater rbac" Cloud Console project.
+- **SEO canonical NOT switched** (deferred): `sitemap.xml` (~30 URLs) and
+  `robots.txt` still say `www.stillwater.you`. Flip to `stilwater.health` +
+  add a 301 from `stillwater.you` only once it's the confirmed live primary.
+- **Emails** (`*@stillwater.you` in `js/i18n.js`, `server.js` admin set) left
+  untouched — confirm whether mailboxes also move to `@stilwater.health`.
+
+### 17.5 Commits
+```
+1593b70  GA4: swap to single property G-GNF77Q61ZQ + wire Excel event taxonomy
+a2a6252  Domain: recognise stilwater.health as production (alongside stillwater.you)
+```
+
+### 17.6 Open items
+- **Promote `test → main` planned 2026-06-06** — ships §12–§17 together (101
+  commits). Do the §17.4 external steps with it.
+- Carried: OpenRouter credits, finish diabetes-book embed, `NUTRITION_MODEL`,
+  verify `partner_leads`, server-side credits (if real credits wanted, §16.6).
+
+---
+
+_Updated 2026-06-05 (session #2) from test branch head `a2a6252`. Earlier:
+2026-06-05 credits `db5733d`, 2026-06-04 (session #2) `9f237ce`, 2026-06-04
+`1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01 `694011a`, 2026-05-30 `18dff27`._
