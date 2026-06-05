@@ -113,11 +113,12 @@
       .then(function () { btn.disabled = false; btn.textContent = "Submit"; });
   }
 
-  // Wire every Book / Consult / Connect CTA: the program cards (a.prog) and the
-  // primary clay buttons (.btn-clay). Clicking opens the form instead of
-  // navigating (including the external program links, per design).
+  // Wire every Book / Consult / Connect CTA: the program cards (a.prog), the
+  // primary clay buttons (.btn-clay), and any element explicitly opted in with
+  // .sw-lead-cta (e.g. the Amar "Explore" green CTA). Clicking opens the form
+  // instead of navigating (including the external program links, per design).
   function wire() {
-    var els = document.querySelectorAll("a.prog, a.btn-clay, button.btn-clay");
+    var els = document.querySelectorAll("a.prog, a.btn-clay, button.btn-clay, a.sw-lead-cta, button.sw-lead-cta");
     Array.prototype.forEach.call(els, function (el) {
       if (el.getAttribute("data-sw-lead")) return;
       el.setAttribute("data-sw-lead", "1");
