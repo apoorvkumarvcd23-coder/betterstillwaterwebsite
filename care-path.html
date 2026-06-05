@@ -6527,9 +6527,12 @@
           } catch (_) {}
         }
         function newChat() {
-          currentSessionId = null;
-          recipeChat = _normalizeChat(null);
-          showLauncher();
+          // Open a CLEAN chat in the CURRENT module (nutrition/chronic) and keep
+          // the left-side history — don't bounce back to the dashboard. The
+          // current chat already autosaved on its last reply, so it stays in the
+          // history list; switchChatMode() (inside the show* call) clears the
+          // conversation for a fresh start.
+          if (chatMode === "chronic") { showChronicChat(); } else { showNutritionChat(); }
           refreshHistory();
           if (window.matchMedia("(max-width: 768px)").matches) {
             const cb = document.getElementById("careSidebarClose"); if (cb) cb.click();
