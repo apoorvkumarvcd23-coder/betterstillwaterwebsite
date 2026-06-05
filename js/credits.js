@@ -17,6 +17,16 @@
   var KEY = "sw_credits_v1";      // localStorage balance
   var START = 50;                  // free starting balance
   var DISMISS_KEY = "sw_credits_nudge_dismissed"; // sessionStorage flag
+  var LOGIN_FLAG = "sw_has_logged_in"; // localStorage: set once the user has
+                                       // logged in at least once on this
+                                       // browser → the nudge never shows again
+
+  function hasEverLoggedIn() {
+    try { return localStorage.getItem(LOGIN_FLAG) === "1"; } catch (_e) { return false; }
+  }
+  function markLoggedIn() {
+    try { localStorage.setItem(LOGIN_FLAG, "1"); } catch (_e) {}
+  }
 
   var authed = false;             // resolved from /api/auth/me
 
@@ -117,6 +127,9 @@
 
   // ── logged-out nudge: "log in to get free credits" ────────────────────────
   function showNudge() {
+    // First-time-only: once this browser has logged in even once, never nudge
+    // again — not this session, not after a later logout.
+    if (hasEverLoggedIn()) return;
     try {
       if (sessionStorage.getItem(DISMISS_KEY) === "1") return;
     } catch (_e) {}
@@ -196,6 +209,7 @@
       .then(function (user) {
         authed = Boolean(user && user.authenticated !== false);
         if (authed) {
+          markLoggedIn();   // remember first login → nudge won't show again
           hideNudge();
           renderBadge();
         } else {
