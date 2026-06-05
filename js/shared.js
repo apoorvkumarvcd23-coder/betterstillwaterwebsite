@@ -10,6 +10,20 @@
   } catch (_e) {}
 })();
 
+// Register the PWA service worker (makes the site installable + offline-ready).
+// Registered on window load so it never competes with critical page resources.
+// The SW itself is network-first, so it can't serve stale content while online.
+(function registerServiceWorker() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("/sw.js", { scope: "/" })
+        .catch((err) => console.warn("[pwa] SW registration failed", err));
+    });
+  } catch (_e) {}
+})();
+
 document.addEventListener("DOMContentLoaded", () => {
   const THEME_STORAGE_KEY = "stillwater_theme";
 
@@ -499,6 +513,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnLogin = document.getElementById("btnLogin");
     const btnAdmin = document.getElementById("btnAdmin");
     const btnIntake = document.getElementById("btnIntake");
+    const btnDashboard = document.getElementById("btnDashboard");
     const AUTH_COMPACT_BREAKPOINT = 1039;
     const MAX_COMPACT_NAME_CHARS = 8;
     const MAX_FULL_NAME_CHARS = 22;
@@ -572,6 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isAuthenticated) {
         if (btnAdmin) btnAdmin.style.display = "none";
         if (btnIntake) btnIntake.style.display = "none";
+        if (btnDashboard) btnDashboard.hidden = true;
         if (btnLogin) btnLogin.style.display = "inline-flex";
         if (authMenuButton) {
           authMenuButton.style.display = "none";
@@ -581,6 +597,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (btnLogin) btnLogin.style.display = "none";
+      // Logged in → show the Dashboard nav link (home page only; the element
+      // simply doesn't exist on other pages).
+      if (btnDashboard) btnDashboard.hidden = false;
 
       const safeName =
         typeof activeUser.name === "string" && activeUser.name.trim()
@@ -636,6 +655,31 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         activeUser = user;
+
+        // Returning logged-in customers who come back to the site land on the
+        // care-path selection screen instead of the marketing home page. Only
+        // fires when *arriving* at home (direct visit / bookmark / external
+        // link — referrer is empty or off-site); internal navigation such as
+        // the care-path "Home" / logo link still shows the home page. Logged-out
+        // visitors are never redirected (this whole branch is auth-only).
+        const homePath = (window.location.pathname || "").toLowerCase();
+        const onHomePage =
+          homePath === "/" || homePath === "/index.html" || homePath.endsWith("/index.html");
+        if (onHomePage && !hasAdminRole(user)) {
+          let internalNav = false;
+          try {
+            internalNav =
+              Boolean(document.referrer) &&
+              new URL(document.referrer).origin === window.location.origin;
+          } catch (_e) {
+            internalNav = false;
+          }
+          if (!internalNav) {
+            window.location.replace("/care-path.html?view=select");
+            return;
+          }
+        }
+
         const latestSubmissionId =
           typeof user.latestSubmissionId === "string" && user.latestSubmissionId.trim()
             ? user.latestSubmissionId.trim()

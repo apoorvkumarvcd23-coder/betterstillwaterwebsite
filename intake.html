@@ -3,6 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- PWA: installable + offline-ready -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#264f45" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Stilwater" />
+    <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png" />
+    <script>
+      // intake.html doesn't load shared.js, so register the SW inline.
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js", { scope: "/" }).catch(function () {});
+        });
+      }
+    </script>
     <title>Stilwater Wellness Assessment</title>
     <link rel="stylesheet" href="css/index.css" />
     <style>
@@ -120,21 +136,20 @@
       window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
       gtag('js', new Date());
       (function(){
-        var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+        var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
 <!-- Microsoft Clarity (prod only) -->
 <script type="text/javascript">
   (function(){
-    var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+    var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
     if (prodHosts.indexOf(location.hostname) === -1) return;
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -157,7 +172,16 @@
 
     <main class="intake-shell">
       <section class="intake-card">
-        <h1 class="text-caption" style="font-size: 1.5rem; display: block">Wellness Assessment</h1>
+        <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap;">
+          <h1 class="text-caption" style="font-size: 1.5rem; display: block; margin: 0">Wellness Assessment</h1>
+          <a href="/care-path.html?view=chronic"
+             class="btn btn-ghost"
+             style="text-decoration: none; flex: none;"
+             aria-label="Skip the wellness assessment and continue to care path"
+             data-ga-event="chronic_disease_management_skip_for_now_top"
+             data-i18n="intake.skipForNow"
+          >Skip for now &rarr;</a>
+        </div>
         <p style="color: var(--color-text-secondary); margin-top: 0.75rem">
           Please fill this form for yourself or your family member.
         </p>
@@ -546,13 +570,22 @@
             ></textarea>
           </div>
 
-          <button
-            type="submit"
-            class="btn btn-solid"
-            style="margin-top: 1.5rem"
-          >
-            Submit Wellness Assessment
-          </button>
+          <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-top: 1.5rem;">
+            <button
+              type="submit"
+              class="btn btn-solid"
+              data-ga-event="chronic_disease_management_submit_wellness_assessment"
+            >
+              Submit Wellness Assessment
+            </button>
+            <a href="/care-path.html?view=chronic"
+               class="btn btn-ghost"
+               style="text-decoration: none;"
+               aria-label="Skip the wellness assessment and continue to care path"
+               data-ga-event="chronic_disease_management_skip_for_now_bottom"
+               data-i18n="intake.skipForNow"
+            >Skip for now &rarr;</a>
+          </div>
           <div id="formMessage" class="form-message"></div>
         </form>
       </section>
@@ -720,6 +753,46 @@
       refreshConditionalFields();
       updateConditionDetails();
 
+      // Mark every mandatory field's label with a red asterisk, kept in sync
+      // with each control's `required` state (which toggles per condition).
+      function setStar(label, req) {
+        let star = label.querySelector(".req-star");
+        if (req && !star) {
+          star = document.createElement("span");
+          star.className = "req-star";
+          star.setAttribute("aria-hidden", "true");
+          star.style.color = "#c0392b";
+          star.style.fontWeight = "700";
+          star.textContent = " *";
+          label.appendChild(star);
+        } else if (!req && star) {
+          star.remove();
+        }
+      }
+      function refreshRequiredStars() {
+        // 1) Labels linked to a single control via [for] (Name, Phone, Age,
+        //    HbA1c, medications, etc.).
+        document.querySelectorAll(".form-label[for]").forEach((label) => {
+          const ctrl = document.getElementById(label.getAttribute("for"));
+          setStar(label, !!(ctrl && ctrl.required));
+        });
+        // 2) Group labels (.form-label WITHOUT [for]) that head a cluster of
+        //    inputs/radios — e.g. "Are you on Insulin?" (radio group) or
+        //    "What is your blood pressure levels" (systolic + diastolic). Star
+        //    them whenever ANY control in their .form-group is required.
+        document.querySelectorAll(".form-label:not([for])").forEach((label) => {
+          const group = label.closest(".form-group");
+          if (!group) return;
+          const req = Array.prototype.some.call(
+            group.querySelectorAll("input, select, textarea"),
+            (c) => c.required,
+          );
+          setStar(label, req);
+        });
+      }
+      intakeForm.addEventListener("change", refreshRequiredStars);
+      refreshRequiredStars();
+
       function autosizeNotes() {
         additionalNotes.style.height = "auto";
         additionalNotes.style.height = additionalNotes.scrollHeight + "px";
@@ -799,6 +872,13 @@
           const hasEye = getRadioValue("eyesightIssues") === "true";
           if (hasOther) params.set("hasOther", "1");
           if (hasEye) params.set("hasEye", "1");
+          // Also pass the granular condition flags — care-path's partner
+          // routing needs these specific flags, not just the hasOther roll-up.
+          if (selectedConditions.includes("diabetes")) params.set("hasDiabetes", "1");
+          if (selectedConditions.includes("hypertension")) params.set("hasHypertension", "1");
+          if (selectedConditions.includes("depression")) params.set("hasDepression", "1");
+          if (selectedConditions.includes("anxiety")) params.set("hasAnxiety", "1");
+          if (selectedConditions.includes("sleep_issues")) params.set("hasSleep", "1");
 
           window.setTimeout(() => {
             const query = params.toString();

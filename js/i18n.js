@@ -75,19 +75,108 @@
     "auth.logout": { en: "Log out", hi: "लॉग आउट" },
     "auth.adminDashboard": { en: "Admin Dashboard", hi: "एडमिन डैशबोर्ड" },
     "auth.wellnessAssessment": { en: "Wellness Assessment", hi: "वेलनेस आकलन" },
+    "intake.skipForNow": { en: "Skip for now →", hi: "अभी छोड़ें →" },
     "auth.continueCarePath": { en: "Continue Your Personalized Care Path", hi: "अपना वैयक्तिकृत केयर पाथ जारी रखें" },
     "auth.home": { en: "Home", hi: "होम" },
     "auth.greetingPrefix": { en: "Hi", hi: "नमस्ते" },
 
-    // Home hero
-    "home.heroEyebrow": { en: "YOUR AI HEALTH COMPANION FOR HEALTHY LIVING", hi: "स्वस्थ जीवन के लिए आपका AI स्वास्थ्य साथी" },
-    "home.heroTitleA": { en: "Calm the mind.", hi: "मन को शांत करें।" },
-    "home.heroTitleB": { en: "Nourish the body.", hi: "शरीर को पोषित करें।" },
-    "home.heroTitleC": { en: "Manage health naturally.", hi: "स्वास्थ्य को सहज ढंग से संभालें।" },
-    "home.heroSub": {
-      en: "Stilwater helps you manage diabetes, hypertension, blood sugar levels, and blood pressure through personalized AI-powered wellness guidance, stress management, mindful eating, and sustainable plant-based lifestyle routines designed to support long-term healthy living.",
-      hi: "Stilwater आपको वैयक्तिकृत AI-आधारित वेलनेस मार्गदर्शन, तनाव प्रबंधन, सजग आहार और टिकाऊ पादप-आधारित जीवनशैली दिनचर्या के माध्यम से मधुमेह, उच्च रक्तचाप, रक्त शर्करा और रक्तचाप को संभालने में मदद करता है — जो दीर्घकालिक स्वस्थ जीवन का समर्थन करता है।",
+    // Home — document title + meta
+    "home.docTitle": { en: "Stilwater Health AI — Still the mind. Nourish the body.", hi: "Stilwater हेल्थ AI — मन को शांत करें। शरीर को पोषित करें।" },
+    "home.metaDescription": {
+      en: "Stilwater is an AI wellness companion built around yoga, meditation, and plant-based nutrition — to support healthy living, especially for people managing diabetes and hypertension.",
+      hi: "Stilwater एक AI वेलनेस साथी है जो योग, ध्यान और पादप-आधारित पोषण पर आधारित है — मधुमेह और उच्च रक्तचाप के साथ जी रहे लोगों के लिए स्वस्थ जीवन का समर्थन करता है।",
     },
+
+    // Home — nav
+    "home.nav.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
+    "home.nav.platform": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
+    "home.nav.product": { en: "Product", hi: "उत्पाद" },
+    "home.nav.dashboard": { en: "Dashboard", hi: "डैशबोर्ड" },
+    "home.nav.how": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "home.nav.pricing": { en: "Pricing", hi: "मूल्य निर्धारण" },
+
+    // Home hero
+    "home.heroEyebrow": { en: "Your AI companion for healthy living", hi: "स्वस्थ जीवन के लिए आपका AI साथी" },
+    "home.heroTitleA": { en: "Still the mind.", hi: "मन को शांत करें।" },
+    "home.heroTitleB": { en: "Nourish the body.", hi: "शरीर को पोषित करें।" },
+    "home.heroSub": {
+      en: "Stilwater is an AI wellness companion built around three pillars — yoga, meditation, and plant-based nutrition — to support healthy living, especially for people managing diabetes and hypertension.",
+      hi: "Stilwater एक AI वेलनेस साथी है जो तीन आधारों पर बना है — योग, ध्यान और पादप-आधारित पोषण — मधुमेह और उच्च रक्तचाप के साथ जी रहे लोगों के लिए स्वस्थ जीवन का समर्थन करता है।",
+    },
+    "home.heroPillars": { en: "Yoga · Meditation · Plant-based nutrition.", hi: "योग · ध्यान · पादप-आधारित पोषण।" },
+    "home.startJourney": { en: "Start wellness journey", hi: "वेलनेस यात्रा शुरू करें" },
+    "home.meetAria": { en: "Meet Aria", hi: "Aria से मिलें" },
+
+    // Home — Aria section
+    "home.aria.name": { en: "Aria", hi: "Aria" },
+    "home.aria.tagline": { en: "Your AI Companion", hi: "आपका AI साथी" },
+    "home.aria.eyebrow": { en: "Meet Aria", hi: "Aria से मिलें" },
+    "home.aria.titleA": { en: "A companion that", hi: "एक साथी जो" },
+    "home.aria.titleB": { en: "walks with you.", hi: "आपके साथ चलता है।" },
+    "home.aria.greeting": { en: "Hi, I'm Aria.", hi: "नमस्ते, मैं Aria हूँ।" },
+    "home.aria.p1": { en: "I'm Stilwater's AI companion — here to help you settle into a plant-based, whole-food lifestyle for healthier, calmer living.", hi: "मैं Stilwater का AI साथी हूँ — स्वस्थ और शांत जीवन के लिए पादप-आधारित, संपूर्ण-आहार जीवनशैली अपनाने में आपकी मदद करने के लिए यहाँ हूँ।" },
+    "home.aria.p2": { en: "I suggest delicious plant-based recipes you can ease into based on your taste and meal preferences — no overnight overhaul, just steady, enjoyable change.", hi: "मैं स्वादिष्ट पादप-आधारित रेसिपी सुझाता हूँ जिन्हें आप अपनी पसंद और भोजन वरीयताओं के अनुसार धीरे-धीरे अपना सकें — रातोंरात बदलाव नहीं, बस स्थिर, सुखद परिवर्तन।" },
+    "home.aria.p3": { en: "I help you keep a simple daily journal of what you eat, how you move, and how you meditate — so you can actually see the rhythm of your practice.", hi: "मैं आपकी रोज़ की सरल जर्नल रखने में मदद करता हूँ — आप क्या खाते हैं, कैसे चलते-फिरते हैं, और कैसे ध्यान करते हैं — ताकि आप अपनी साधना की लय देख सकें।" },
+    "home.aria.p4": { en: "And if you start drifting from your plan, I'll give you a gentle call to check in and help you find your way back. Not a notification. A real, kind nudge.", hi: "और अगर आप अपनी योजना से भटकने लगें, तो मैं हाल पूछने और आपको रास्ते पर लाने के लिए एक हल्की कॉल करूँगा। केवल सूचना नहीं — एक सच्ची, स्नेहपूर्ण याद।" },
+    "home.aria.p5": { en: "I also answer your questions about wellness and nutrition — and when something's beyond me, I connect you to verified providers and doctors, so you always know where to turn.", hi: "मैं वेलनेस और पोषण से जुड़े आपके सवालों के जवाब भी देता हूँ — और जब कुछ मेरी सीमा से परे हो, तो आपको सत्यापित प्रदाताओं और डॉक्टरों से जोड़ता हूँ, ताकि आपको हमेशा पता रहे कि कहाँ जाना है।" },
+
+    // Home — Platform / pillars
+    "home.platform.eyebrow": { en: "The Platform", hi: "प्लेटफ़ॉर्म" },
+    "home.platform.titleA": { en: "Three AI guides.", hi: "तीन AI गाइड।" },
+    "home.platform.titleB": { en: "One integrated practice.", hi: "एक एकीकृत साधना।" },
+    "home.platform.lede": { en: "Yoga, meditation, and plant-based nutrition aren't three separate apps. They're one practice that reinforces itself — a calmer mind makes the practice stick, the practice makes the eating mindful, and mindful eating steadies both body and mind.", hi: "योग, ध्यान और पादप-आधारित पोषण तीन अलग ऐप नहीं हैं। ये एक ऐसी साधना हैं जो खुद को मज़बूत करती है — शांत मन साधना को बनाए रखता है, साधना खाने को सजग बनाती है, और सजग खाना तन-मन दोनों को स्थिर करता है।" },
+
+    "home.pillar.yoga.title": { en: "AI Yoga", hi: "AI योग" },
+    "home.pillar.yoga.tag": { en: "Record. Score. Improve.", hi: "रिकॉर्ड करें। आँकें। बेहतर बनें।" },
+    "home.pillar.yoga.body": { en: "Record your asana practice and Aria gives you AI feedback on your form — the assessment loop most yoga apps don't offer. Pranayama breathwork built in.", hi: "अपनी आसन साधना रिकॉर्ड करें और Aria आपकी मुद्रा पर AI फ़ीडबैक देती है — वो आकलन चक्र जो ज़्यादातर योग ऐप नहीं देते। प्राणायाम साँस-क्रिया अंतर्निहित।" },
+    "home.pillar.nutrition.title": { en: "AI Plant-Based Nutrition", hi: "AI पादप-आधारित पोषण" },
+    "home.pillar.nutrition.tag": { en: "Eat the way the body loves.", hi: "वैसे खाएं जैसे शरीर पसंद करता है।" },
+    "home.pillar.nutrition.body": { en: "Personalized plant-based meal plans and delicious whole-food recipes that adapt to your taste — the gentle path away from stress-driven eating.", hi: "वैयक्तिकृत पादप-आधारित भोजन योजनाएँ और स्वादिष्ट संपूर्ण-आहार रेसिपी जो आपकी पसंद के अनुसार ढलती हैं — तनाव-प्रेरित खाने से दूर ले जाने वाला सौम्य रास्ता।" },
+    "home.pillar.meditation.title": { en: "AI Meditation", hi: "AI ध्यान" },
+    "home.pillar.meditation.tag": { en: "Still the mind.", hi: "मन को शांत करें।" },
+    "home.pillar.meditation.body": { en: "Guided meditation and breathwork to lower the stress that quietly undoes the rest — the foundation everything else grows from.", hi: "तनाव कम करने के लिए मार्गदर्शित ध्यान और साँस-क्रिया जो बाकी सब चुपचाप तोड़ देता है — वो आधार जिस पर सब कुछ टिका है।" },
+
+    // Home — How it works
+    "home.how.eyebrow": { en: "How it works", hi: "यह कैसे काम करता है" },
+    "home.how.titleA": { en: "A practice that", hi: "एक साधना जो" },
+    "home.how.titleB": { en: "fits your life.", hi: "आपके जीवन में बैठती है।" },
+    "home.how.lede": { en: "No overhaul, no impossible plan. Aria meets you where you are and helps you build a daily rhythm — gently, consistently.", hi: "कोई पूरा बदलाव नहीं, कोई असंभव योजना नहीं। Aria आपसे वहीं मिलती है जहाँ आप हैं और आपको रोज़ की लय बनाने में मदद करती है — सौम्यता से, निरंतरता से।" },
+    "home.step1.title": { en: "Tell Aria about you", hi: "Aria को अपने बारे में बताएं" },
+    "home.step1.body": { en: "Your preferences, your goals, the conditions you live with. Aria builds a plan you can follow easily — no overhaul, no overwhelm.", hi: "आपकी पसंद, आपके लक्ष्य, आपकी स्थितियाँ। Aria एक ऐसी योजना बनाती है जिसे आप आसानी से अपना सकें — कोई पूरा बदलाव नहीं, कोई बोझ नहीं।" },
+    "home.step2.title": { en: "Get your daily plan", hi: "अपनी रोज़ की योजना पाएं" },
+    "home.step2.body": { en: "Plant-based recipes you'll actually want to eat, a short yoga session, a few minutes of meditation.", hi: "पादप-आधारित रेसिपी जिन्हें आप वाकई खाना चाहेंगे, एक छोटा योग सत्र, कुछ मिनट का ध्यान।" },
+    "home.step3.title": { en: "Journal as you go", hi: "साथ-साथ जर्नल रखें" },
+    "home.step3.body": { en: "Quick entries for meals, movement, and meditation — so you can see your practice take shape.", hi: "भोजन, गति और ध्यान के लिए त्वरित प्रविष्टियाँ — ताकि आप अपनी साधना को आकार लेते देख सकें।" },
+    "home.step4.title": { en: "A kind voice when needed", hi: "ज़रूरत पड़ने पर एक स्नेहपूर्ण आवाज़" },
+    "home.step4.body": { en: "If you drift, Aria calls to check in. Not a buzz on your screen — a real, warm reminder.", hi: "अगर आप भटक जाएँ, Aria हाल पूछने के लिए कॉल करती है। स्क्रीन पर एक बज़ नहीं — एक सच्ची, गर्मजोश याद।" },
+
+    // Home — Pricing
+    "home.pricing.eyebrow": { en: "Subscription", hi: "सदस्यता" },
+    "home.pricing.titleA": { en: "Simple,", hi: "सरल," },
+    "home.pricing.titleB": { en: "honest pricing.", hi: "ईमानदार मूल्य।" },
+    "home.pricing.lede": { en: "One plan, everything included. Cancel anytime.", hi: "एक योजना, सब कुछ शामिल। कभी भी रद्द करें।" },
+    "home.pricing.badge": { en: "Aria Companion", hi: "Aria साथी" },
+    "home.pricing.planName": { en: "Full access", hi: "पूर्ण पहुँच" },
+    "home.pricing.planSub": { en: "Yoga · Meditation · Plant-based nutrition", hi: "योग · ध्यान · पादप-आधारित पोषण" },
+    "home.pricing.period": { en: " /month", hi: " /माह" },
+    "home.pricing.f1": { en: "Personalized plant-based meal plans & recipes", hi: "वैयक्तिकृत पादप-आधारित भोजन योजनाएँ और रेसिपी" },
+    "home.pricing.f2": { en: "AI yoga sessions with form feedback", hi: "मुद्रा फ़ीडबैक के साथ AI योग सत्र" },
+    "home.pricing.f3": { en: "Guided meditation & pranayama library", hi: "मार्गदर्शित ध्यान और प्राणायाम पुस्तकालय" },
+    "home.pricing.f4": { en: "Daily journal: food, movement & meditation", hi: "रोज़ की जर्नल: भोजन, गति और ध्यान" },
+    "home.pricing.f5": { en: "Gentle phone check-ins from Aria", hi: "Aria की तरफ़ से हल्के फ़ोन चेक-इन" },
+    "home.pricing.f6": { en: "Q&A on wellness & nutrition, with referrals to verified doctors", hi: "वेलनेस और पोषण पर सवाल-जवाब, सत्यापित डॉक्टरों के रेफ़रल के साथ" },
+    "home.pricing.f7": { en: "Cancel anytime, no hidden fees", hi: "कभी भी रद्द करें, कोई छिपा शुल्क नहीं" },
+    "home.pricing.cta": { en: "Start with Aria", hi: "Aria के साथ शुरुआत करें" },
+
+    // Home — Footer
+    "home.foot.tagline": { en: "Still the mind. Nourish the body.", hi: "मन को शांत करें। शरीर को पोषित करें।" },
+    "home.foot.blurb": { en: "Wellness for life with chronic conditions. Yoga, meditation & plant-based nutrition — guided by Aria.", hi: "दीर्घकालिक स्थितियों के साथ जीने के लिए वेलनेस। योग, ध्यान और पादप-आधारित पोषण — Aria द्वारा निर्देशित।" },
+    "home.foot.explore": { en: "Explore", hi: "खोजें" },
+    "home.foot.stilwater": { en: "Stilwater", hi: "Stilwater" },
+    "home.foot.disclaimerTitle": { en: "A note on wellness & medical care.", hi: "वेलनेस और चिकित्सकीय देखभाल पर एक नोट।" },
+    "home.foot.disclaimerBody": { en: " Stilwater is a wellness companion and supports your practice alongside your medical care — not in place of it. Please consult your physician for medical advice, diagnosis, or treatment decisions, especially if you live with diabetes, hypertension, or any chronic condition.", hi: " Stilwater एक वेलनेस साथी है और आपकी चिकित्सकीय देखभाल के साथ आपकी साधना का समर्थन करता है — उसके स्थान पर नहीं। चिकित्सकीय सलाह, निदान या उपचार निर्णयों के लिए, विशेष रूप से यदि आप मधुमेह, उच्च रक्तचाप या किसी दीर्घकालिक स्थिति के साथ जी रहे हैं, अपने चिकित्सक से परामर्श करें।" },
+    "home.foot.copyright": { en: "© 2026 Stilwater Health AI. All rights reserved.", hi: "© 2026 Stilwater हेल्थ AI। सर्वाधिकार सुरक्षित।" },
+
     "home.seeHowItWorks": { en: "See how AI wellness support works →", hi: "देखें AI वेलनेस सहायता कैसे काम करती है →" },
 
     // Home — How it works
@@ -148,10 +237,135 @@
     },
 
     // Care-path sidebar
-    "carepath.yourPath": { en: "Your Care Path", hi: "आपका केयर पाथ" },
+    "carepath.yourPath": { en: "Your Wellness Journey", hi: "आपकी वेलनेस यात्रा" },
+    "carepath.newChat": { en: "New chat", hi: "नई चैट" },
+    "carepath.chats": { en: "Chats", hi: "चैट्स" },
+    "carepath.noChats": { en: "No chats yet.", hi: "अभी तक कोई चैट नहीं।" },
     "carepath.providers": { en: "Verified Wellness Providers", hi: "सत्यापित वेलनेस प्रदाता" },
     "carepath.yoga": { en: "Practice Yoga with AI", hi: "AI के साथ योग का अभ्यास करें" },
     "carepath.wellnessAssessment": { en: "Take Wellness Assessment", hi: "स्वास्थ्य आकलन लें" },
+    "carepath.plantRecipes": { en: "Plant-Based Recipes", hi: "पादप-आधारित रेसिपी" },
+    "carepath.stilwaterAIChat": { en: "Stilwater AI Chat", hi: "Stilwater AI चैट" },
+    "carepath.partners.title": { en: "Other Trusted Providers", hi: "अन्य विश्वसनीय प्रदाता" },
+    "carepath.partners.sharan": { en: "SHARAN", hi: "SHARAN" },
+    "carepath.partners.healy": { en: "HEALY", hi: "HEALY" },
+    "carepath.partners.amar": { en: "AMAR EYE YOGA", hi: "AMAR EYE YOGA" },
+
+    // Post-login selection screen (3 options)
+    "launcher.title": { en: "Welcome to your wellness journey", hi: "आपकी वेलनेस यात्रा में आपका स्वागत है" },
+    "launcher.subtitle": { en: "Choose where you'd like to begin.", hi: "तय करें कि आप कहाँ से शुरू करना चाहेंगे।" },
+    "launcher.yoga.title": { en: "AI Yoga Tutor (Beta)", hi: "AI योग शिक्षक (बीटा)" },
+    "launcher.yoga.desc": { en: "Practice asanas with live AI form feedback.", hi: "लाइव AI फ़ॉर्म फ़ीडबैक के साथ आसनों का अभ्यास करें।" },
+    "launcher.nutrition.title": { en: "AI Nutritionist for Healthy Living", hi: "स्वस्थ जीवन के लिए AI पोषण विशेषज्ञ" },
+    "launcher.nutrition.desc": { en: "Ask Aria, your AI companion for healthy living, anything about plant-based nutrition and delicious plant-based recipes. Get personalized, adaptive meal plans and links to YouTube recipes, all in one place.", hi: "स्वस्थ जीवन के लिए आपकी AI साथी Aria से पादप-आधारित पोषण और स्वादिष्ट पादप-आधारित रेसिपी के बारे में कुछ भी पूछें। व्यक्तिगत, अनुकूल भोजन योजनाएँ और YouTube रेसिपी के लिंक — सब एक ही जगह पाएँ।" },
+    "launcher.recipes.title": { en: "Explore Plant-Based Recipes", hi: "पादप-आधारित रेसिपी देखें" },
+    "launcher.recipes.desc": { en: "Browse meal plans, recipe videos, and your journal.", hi: "भोजन योजनाएँ, रेसिपी वीडियो और अपनी जर्नल देखें।" },
+    "launcher.chronic.title": { en: "Chronic Disease Management", hi: "दीर्घकालिक रोग प्रबंधन" },
+    "launcher.chronic.desc": { en: "Get connected to verified and trusted holistic wellness providers to manage your chronic conditions effectively.", hi: "अपनी दीर्घकालिक स्थितियों को प्रभावी ढंग से प्रबंधित करने के लिए सत्यापित और विश्वसनीय समग्र स्वास्थ्य प्रदाताओं से जुड़ें।" },
+    "launcher.meditation.title": { en: "AI Guided Meditation (Coming Soon)", hi: "AI निर्देशित ध्यान (जल्द आ रहा है)" },
+    "launcher.meditation.desc": { en: "Follow a calming guided meditation video.", hi: "एक शांत निर्देशित ध्यान वीडियो का अनुसरण करें।" },
+    "launcher.back": { en: "Back", hi: "वापस" },
+    "launcher.options": { en: "Options", hi: "विकल्प" },
+
+    // Aria — Plant-Based Recipes chat (3-question ChatGPT-style flow)
+    "aria.recipes.chat.greetDiabetes": {
+      en: "Hi, I'm Aria. I see you're managing diabetes — let's find plant-based meals that keep your blood sugar steady and still taste great. Three quick questions and I'll pull cooking videos you can try tonight.",
+      hi: "नमस्ते, मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — आइए ऐसी पादप-आधारित भोजन खोजें जो आपकी रक्त शर्करा स्थिर रखें और स्वादिष्ट भी हों। तीन छोटे सवाल और मैं आज रात बनाने वाली रेसिपी वीडियो ले आती हूँ।",
+    },
+    "aria.recipes.chat.greetEye": {
+      en: "Hi, I'm Aria. Since eye health is on your radar, I'll lean toward plant-based meals rich in lutein, zeaxanthin, and omega-3s. Three quick questions and I'll pull cooking videos for you.",
+      hi: "नमस्ते, मैं Aria हूँ। चूँकि आँखों के स्वास्थ्य पर ध्यान है, मैं ल्यूटीन, ज़ीएक्सैंथिन और ओमेगा-3 से भरपूर पादप-आधारित भोजन सुझाऊँगी। तीन छोटे सवाल और मैं आपके लिए रेसिपी वीडियो ले आती हूँ।",
+    },
+    "aria.recipes.chat.greetHypertension": {
+      en: "Hi, I'm Aria. With blood pressure in mind, I'll suggest plant-based meals that are heart-friendly and low in sodium. Three quick questions and I'll find cooking videos for you.",
+      hi: "नमस्ते, मैं Aria हूँ। रक्तचाप को ध्यान में रखते हुए, मैं हृदय-अनुकूल और कम सोडियम वाली पादप-आधारित भोजन सुझाऊँगी। तीन छोटे सवाल और मैं आपके लिए रेसिपी वीडियो ढूँढती हूँ।",
+    },
+    "aria.recipes.chat.greetGeneric": {
+      en: "Hi, I'm Aria. Tell me a bit about your tastes and I'll find delicious plant-based recipes you'll actually want to cook. Three quick questions — that's it.",
+      hi: "नमस्ते, मैं Aria हूँ। अपनी पसंद के बारे में थोड़ा बताइए और मैं ऐसी स्वादिष्ट पादप-आधारित रेसिपी ढूँढूँगी जिन्हें आप वाकई बनाना चाहेंगे। बस तीन छोटे सवाल।",
+    },
+    "aria.recipes.chat.qLikes": {
+      en: "What kinds of dishes or flavours do you love eating? (e.g. South Indian, lentil curries, oats, salads)",
+      hi: "आप किस तरह के व्यंजन या स्वाद पसंद करते हैं? (जैसे दक्षिण भारतीय, दाल, ओट्स, सलाद)",
+    },
+    "aria.recipes.chat.phLikes": {
+      en: "e.g. dal, paneer-free curries, oats, fruits",
+      hi: "जैसे दाल, बिना पनीर की सब्ज़ी, ओट्स, फल",
+    },
+    "aria.recipes.chat.qAvoid": {
+      en: "Anything you'd rather avoid — allergies, dislikes, or foods that don't sit right with you?",
+      hi: "क्या कुछ है जिसे आप टालना चाहेंगे — एलर्जी, नापसंदगी, या ऐसा भोजन जो आपको रास नहीं आता?",
+    },
+    "aria.recipes.chat.phAvoid": {
+      en: "e.g. peanuts, mushrooms, bitter gourd — or 'nothing'",
+      hi: "जैसे मूँगफली, मशरूम, करेला — या 'कुछ नहीं'",
+    },
+    "aria.recipes.chat.qCondition": {
+      en: "Anything about your health I should keep in mind while picking recipes? (diabetes-friendly, low salt, gut-friendly, etc.)",
+      hi: "रेसिपी चुनते समय आपके स्वास्थ्य के बारे में मुझे क्या ध्यान रखना चाहिए? (मधुमेह-अनुकूल, कम नमक, पेट-अनुकूल आदि)",
+    },
+    "aria.recipes.chat.phCondition": {
+      en: "e.g. diabetes-friendly, low sodium — or 'whatever works'",
+      hi: "जैसे मधुमेह-अनुकूल, कम सोडियम — या 'जो भी ठीक हो'",
+    },
+    "aria.recipes.chat.thinking": {
+      en: "Got it. Pulling 3 plant-based recipe videos that match what you told me…",
+      hi: "ठीक है। आपकी बातों से मेल खाती 3 पादप-आधारित रेसिपी वीडियो ढूँढ रही हूँ…",
+    },
+    "aria.recipes.chat.loading": { en: "Finding 3 plant-based recipe videos…", hi: "3 पादप-आधारित रेसिपी वीडियो ढूँढी जा रही हैं…" },
+    "aria.recipes.chat.empty": {
+      en: "Couldn't find recipe videos for that combination. Try rephrasing or asking again.",
+      hi: "उस संयोजन के लिए रेसिपी वीडियो नहीं मिले। दोबारा शब्दों में बदलाव कर देखें या फिर पूछें।",
+    },
+    "aria.recipes.chat.send": { en: "Send", hi: "भेजें" },
+    "aria.recipes.chat.restart": { en: "Ask Aria again", hi: "Aria से फिर पूछें" },
+    "aria.recipes.chat.attach": { en: "Attach a file", hi: "फ़ाइल जोड़ें" },
+    "aria.recipes.chat.voice": { en: "Voice input", hi: "आवाज़ इनपुट" },
+    "aria.recipes.chat.voiceUnsupported": { en: "Voice input not supported in this browser", hi: "इस ब्राउज़र में आवाज़ इनपुट उपलब्ध नहीं है" },
+
+    // Stilwater AI Chat — LLM-backed free-form chat
+    "aria.chat.greetDiabetes": {
+      en: "I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.",
+      hi: "मैं Aria हूँ। आप मधुमेह का प्रबंधन कर रहे हैं — क्या पूछना चाहेंगे? मैं पादप-आधारित भोजन, सजग खानपान और रक्त शर्करा के लिए सहायक दिनचर्या साझा कर सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.greetEye": {
+      en: "I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.",
+      hi: "मैं Aria हूँ। आपकी आँखों के स्वास्थ्य पर ध्यान है — क्या पूछना चाहेंगे? मैं दृष्टि को सहारा देने वाले पादप-आधारित भोजन, आँखों के योग और स्क्रीन-समय की आदतें सुझा सकती हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.greetHypertension": {
+      en: "I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.",
+      hi: "मैं Aria हूँ। आपके ध्यान में रक्तचाप है — क्या पूछना चाहेंगे? मैं हृदय-अनुकूल पादप भोजन, शांत साँस-क्रिया और सहायक दिनचर्या साझा कर सकती हूँ।",
+    },
+    "aria.chat.greetGeneral": {
+      en: "I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.",
+      hi: "मैं Aria हूँ — आपकी Stilwater वेलनेस साथी। पादप-आधारित भोजन, सजग जीवन, योग या साँस-क्रिया के बारे में कुछ भी पूछें — मैं मदद के लिए हूँ। नीचे से कोई सुझाव चुनें या अपना सवाल लिखें।",
+    },
+    "aria.chat.startDiabetes.1": { en: "What plant-based foods help stabilize blood sugar?", hi: "रक्त शर्करा स्थिर रखने में कौन से पादप-आधारित भोजन मदद करते हैं?" },
+    "aria.chat.startDiabetes.2": { en: "How can I reduce sugar cravings naturally?", hi: "मैं मीठे की क्रेविंग को प्राकृतिक रूप से कैसे कम करूँ?" },
+    "aria.chat.startDiabetes.3": { en: "What's a simple morning routine for diabetes management?", hi: "मधुमेह प्रबंधन के लिए एक सरल सुबह की दिनचर्या क्या होगी?" },
+    "aria.chat.startEye.1": { en: "What plant-based foods support eye health?", hi: "आँखों के स्वास्थ्य के लिए कौन से पादप-आधारित भोजन सहायक हैं?" },
+    "aria.chat.startEye.2": { en: "Are there yoga or eye exercises for tired eyes?", hi: "थकी आँखों के लिए योग या आँख-व्यायाम कौन से हैं?" },
+    "aria.chat.startEye.3": { en: "How can I reduce eye strain from screens?", hi: "स्क्रीन से आँखों की थकान कैसे कम करूँ?" },
+    "aria.chat.startHypertension.1": { en: "What plant-based foods help lower blood pressure?", hi: "रक्तचाप कम करने में कौन से पादप-आधारित भोजन मदद करते हैं?" },
+    "aria.chat.startHypertension.2": { en: "Which breathing exercises calm the heart?", hi: "कौन सी साँस-क्रियाएँ हृदय को शांत करती हैं?" },
+    "aria.chat.startHypertension.3": { en: "How do I cut sodium without losing flavour?", hi: "स्वाद खोए बिना नमक कैसे कम करूँ?" },
+    "aria.chat.startGeneral.1": { en: "What's a simple plant-based meal I can try tonight?", hi: "आज रात बनाने के लिए एक सरल पादप-आधारित भोजन क्या है?" },
+    "aria.chat.startGeneral.2": { en: "How do I start a daily mindfulness practice?", hi: "मैं रोज़ की सजगता-साधना कैसे शुरू करूँ?" },
+    "aria.chat.startGeneral.3": { en: "What are some gentle yoga poses for stress?", hi: "तनाव के लिए कुछ सौम्य योगासन कौन से हैं?" },
+    "aria.chat.greetNutrition": {
+      en: "I'm Aria, your AI companion for healthy living. Feel free to ask me anything about healthy living and plant-based recipes.",
+      hi: "मैं Aria हूँ, स्वस्थ जीवन के लिए आपकी AI साथी। स्वस्थ जीवन और पादप-आधारित रेसिपी के बारे में मुझसे कुछ भी पूछें।",
+    },
+    "aria.chat.startNutrition.1": { en: "Can Type 2 Diabetes be reversed?", hi: "क्या टाइप 2 मधुमेह को ठीक किया जा सकता है?" },
+    "aria.chat.startNutrition.2": { en: "Is animal food good for health?", hi: "क्या पशु आहार स्वास्थ्य के लिए अच्छा है?" },
+    "aria.chat.startNutrition.3": { en: "Suggest some good recipes for breakfast.", hi: "नाश्ते के लिए कुछ अच्छी रेसिपी सुझाएँ।" },
+    "aria.chat.thinking": { en: "Aria is thinking…", hi: "Aria सोच रही है…" },
+    "aria.chat.viewPrompt": { en: "View system prompt being sent", hi: "भेजा जा रहा सिस्टम प्रॉम्प्ट देखें" },
+    "aria.chat.errorGeneric": { en: "I couldn't reach the AI just now. Please try again.", hi: "मैं अभी AI तक नहीं पहुँच पाई। कृपया फिर से प्रयास करें।" },
+    "aria.chat.errorNetwork": { en: "Network hiccup — please try once more.", hi: "नेटवर्क समस्या — कृपया फिर से प्रयास करें।" },
+    "aria.chat.composePh": { en: "Ask Aria anything…", hi: "Aria से कुछ भी पूछें…" },
+    "aria.chat.clear": { en: "Clear chat", hi: "चैट साफ़ करें" },
+    "aria.chat.clearConfirm": { en: "Clear this conversation? This can't be undone.", hi: "इस बातचीत को साफ़ करें? यह पूर्ववत नहीं की जा सकती।" },
     "carepath.meditation": { en: "AI Driven Meditation", hi: "AI द्वारा संचालित ध्यान" },
 
     // Aria companion shell
@@ -179,6 +393,7 @@
     "aria.mp.setupFirst": { en: "Set up a plan first", hi: "पहले एक योजना बनाएं" },
     "aria.mp.weekly.title": { en: "Stilwater weekly plan", hi: "Stilwater साप्ताहिक योजना" },
     "aria.mp.weekly.hint": { en: "Tell us what you like and what to skip. Tap the mic to speak, or just type.", hi: "हमें बताएं क्या पसंद है और क्या छोड़ना है। बोलने के लिए माइक दबाएं, या टाइप करें।" },
+    "aria.mp.safetyNote": { en: "Aria offers lifestyle guidance and does not replace your doctor’s advice.", hi: "Aria जीवनशैली मार्गदर्शन देती है और आपके डॉक्टर की सलाह का स्थान नहीं लेती।" },
     "aria.mp.cuisinesLabel": { en: "Cuisines you prefer", hi: "पसंदीदा व्यंजन" },
     "aria.mp.cuisinesPlaceholder": { en: "e.g. Mediterranean, South Indian, Japanese", hi: "उदा. भारतीय, भूमध्यसागरीय, जापानी" },
     "aria.mp.likeLabel": { en: "Food I like to eat", hi: "मैं जो खाना पसंद करता/करती हूँ" },
@@ -413,7 +628,10 @@
       // [name]" / "Continue Care Path". Fallback: float top-right.
       const auth = document.getElementById("authActions");
       if (auth) {
-        auth.insertBefore(wrap, auth.firstChild);
+        // Place the toggle just before the auth pill (#authMenuWrap) so the
+        // nav order reads: [page links] → language toggle → Hi, [name] / Login.
+        const anchor = auth.querySelector("#authMenuWrap") || auth.firstChild;
+        auth.insertBefore(wrap, anchor);
       } else {
         wrap.classList.add("sw-lang-wrap-floating");
         document.body.appendChild(wrap);

@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- PWA: installable + offline-ready -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#264f45" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Stilwater" />
+    <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png" />
     <title>Your Voyage | Stilwater Recovery</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -36,21 +44,20 @@
       window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
       gtag('js', new Date());
       (function(){
-        var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+        var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
 <!-- Microsoft Clarity (prod only) -->
 <script type="text/javascript">
   (function(){
-    var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+    var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
     if (prodHosts.indexOf(location.hostname) === -1) return;
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

@@ -5,4 +5,4 @@ Allow: /
 Disallow: /api/
 Disallow: /auth/google/
 
-Sitemap: https://www.stillwater.you/sitemap.xml
+Sitemap: https://www.stilwater.health/sitemap.xml

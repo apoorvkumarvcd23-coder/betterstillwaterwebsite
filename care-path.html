@@ -3,10 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- PWA: installable + offline-ready -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#264f45" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Stilwater" />
+    <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png" />
     <title>Choose Your Care Path | Stilwater</title>
     <link rel="stylesheet" href="css/index.css" />
-    <!-- LemonSlice widget (used by the Tadasana yoga modal's "Tap to talk" pill) -->
-    <script type="module" src="https://unpkg.com/@lemonsliceai/lemon-slice-widget"></script>
     <style>
       body {
         min-height: 100vh;
@@ -87,6 +93,59 @@
         fill: none;
         flex-shrink: 0;
       }
+      /* Clear-chat lives at the BOTTOM of the sidebar (pushed down by the
+         auto top-margin). */
+      .care-sidebar-clear {
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 11px 12px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: transparent;
+        color: rgba(232, 238, 233, 0.85);
+        font: inherit;
+        font-size: 0.9rem;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.18s ease, color 0.18s ease;
+      }
+      .care-sidebar-clear svg { width: 17px; height: 17px; flex-shrink: 0; }
+      .care-sidebar-clear:hover { background: rgba(255, 255, 255, 0.06); color: #fff; }
+
+      /* ChatGPT-style chat history sidebar */
+      .care-newchat {
+        display: flex; align-items: center; gap: 10px; width: 100%;
+        padding: 11px 12px; margin-bottom: 8px;
+        border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.18);
+        background: rgba(255, 255, 255, 0.05); color: #e8eee9;
+        font: inherit; font-size: 0.93rem; font-weight: 600; text-align: left; cursor: pointer;
+      }
+      .care-newchat svg { width: 18px; height: 18px; flex-shrink: 0; }
+      .care-newchat:hover { background: rgba(255, 255, 255, 0.1); }
+      .care-chat-history {
+        flex: 1; min-height: 0; overflow-y: auto;
+        display: flex; flex-direction: column; gap: 2px;
+        margin-bottom: 8px;
+      }
+      .care-chat-item {
+        display: block; width: 100%; text-align: left; cursor: pointer;
+        padding: 9px 12px; border-radius: 9px; border: none; background: transparent;
+        color: #e8eee9; font: inherit;
+      }
+      .care-chat-item:hover { background: rgba(255, 255, 255, 0.06); }
+      .care-chat-item.is-active { background: rgba(255, 255, 255, 0.1); }
+      .care-chat-item .cc-title { font-size: 0.88rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .care-chat-item .cc-meta { font-size: 0.7rem; color: rgba(232, 238, 233, 0.5); margin-top: 2px; }
+      .care-chat-empty { font-size: 0.82rem; color: rgba(232, 238, 233, 0.45); padding: 8px 12px; }
+
+      /* The chat-history panel is only shown for the Nutrition and Chronic
+         chats. Hidden everywhere else (launcher, Yoga, Meditation, recipes
+         companion) so the stage uses the full width. */
+      body.sw-no-sidebar #careSidebar,
+      body.sw-no-sidebar .care-sidebar-scrim { display: none !important; }
 
       /* The chat area fills the rest of the viewport */
       .care-stage {
@@ -96,10 +155,94 @@
         flex-direction: column;
       }
 
+      /* These views use display:flex, which would otherwise beat the [hidden]
+         attribute — force them hidden when toggled off. */
+      .sw-launcher[hidden],
+      .sw-embed-view[hidden],
+      #companionRoot[hidden] { display: none !important; }
+
+      /* ── Post-login selection screen ───────────────────────────────── */
+      .sw-launcher {
+        flex: 1;
+        overflow-y: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 56px);
+      }
+      .sw-launcher-inner { width: 100%; max-width: 1000px; }
+      .sw-launcher-title {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(1.55rem, 3.2vw, 2.4rem);
+        color: #243b30; margin: 0 0 1.6rem; letter-spacing: -0.01em;
+      }
+      .sw-launcher-sub { color: #5d6b5e; font-size: 1rem; margin: 0 0 1.8rem; line-height: 1.5; }
+      .sw-launch-grid { display: grid; gap: 18px; grid-template-columns: repeat(3, 1fr); }
+      .sw-launch-card {
+        display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+        text-align: left;
+        background: #ffffff;
+        border: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 20px;
+        padding: 26px 22px;
+        cursor: pointer; font: inherit;
+        box-shadow: 0 10px 30px -18px rgba(44, 72, 55, 0.25);
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+      }
+      .sw-launch-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 18px 42px -20px rgba(44, 72, 55, 0.35);
+        border-color: rgba(125, 148, 113, 0.6);
+      }
+      .sw-launch-ico {
+        width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center;
+        background: linear-gradient(140deg, #7d9471, #5f7656); color: #fff;
+      }
+      .sw-launch-ico svg { width: 26px; height: 26px; }
+      .sw-launch-name { font-family: "Fraunces", Georgia, serif; font-size: 1.2rem; font-weight: 600; color: #243b30; }
+      .sw-launch-desc { font-size: 0.92rem; color: #5d6b5e; line-height: 1.5; }
+
+      /* ── Embedded external app (Yoga Pose Analysis) ────────────────── */
+      .sw-embed-view { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+      .sw-embed-bar {
+        display: flex; align-items: center; gap: 12px;
+        padding: 12px 16px; border-bottom: 1px solid rgba(47, 72, 66, 0.12); background: #fbfaf6;
+      }
+      .sw-embed-back, .sw-embed-ext {
+        display: inline-flex; align-items: center; gap: 7px;
+        border: 1px solid rgba(47, 72, 66, 0.18); background: #fff; color: #2b4338;
+        border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 0.9rem;
+        font-weight: 600; cursor: pointer; text-decoration: none;
+      }
+      .sw-embed-back:hover, .sw-embed-ext:hover { background: rgba(47, 72, 66, 0.06); }
+      .sw-embed-back svg, .sw-embed-ext svg { width: 16px; height: 16px; }
+      .sw-embed-ext { padding: 7px 10px; }
+      .sw-embed-title {
+        font-family: "Fraunces", Georgia, serif; font-weight: 600; font-size: 1.05rem;
+        color: #243b30; margin-right: auto;
+      }
+      .sw-embed-frame-wrap { flex: 1; min-height: 70vh; position: relative; }
+      .sw-embed-frame-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+      @media (max-width: 860px) { .sw-launch-grid { grid-template-columns: 1fr; } }
+
       /* Mobile drawer toggle + scrim (hidden by default on desktop) */
       .care-menu-btn { display: none; }
       .care-sidebar-scrim { display: none; }
       .care-sidebar-close { display: none; }
+
+      /* Desktop: pin the sidebar to the viewport and let ONLY the chat /
+         message area scroll (app-style), instead of the whole page scrolling.
+         Mobile keeps normal page scroll + the slide-in drawer. */
+      @media (min-width: 769px) {
+        .care-shell { height: calc(100vh - 4.5rem); overflow: hidden; }
+        .care-sidebar { height: 100%; overflow-y: auto; }
+        .care-stage { min-height: 0; overflow: hidden; }
+        .companion-chat { min-height: 0; overflow: hidden; }
+        .plant-chat-overlay { flex: 1 1 auto; min-height: 0; }
+        .plant-chat-scroll { min-height: 0; }
+        .companion-shell { min-height: 0; }
+      }
 
       /* Care-path mobile: the shared mobile rule on #authActions uses
          max-width + overflow:hidden, which (a) can squeeze the language
@@ -518,7 +661,35 @@
         width: 14px;
         height: 14px;
       }
-      .yoga-intro-card { width: min(720px, 100%); }
+      /* Yoga intro renders as a full page (like the Chronic recommendation
+         view), not a dark-dimmed floating popup. Keeps the site header
+         visible and uses the page background. */
+      #yogaIntroModal {
+        top: 4.5rem;
+        background: #f4f1ea;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: clamp(20px, 5vw, 56px);
+        overflow-y: auto;
+        /* Sit BELOW the fixed site header (z-index 100) and its dropdowns
+           (EN / auth menus, z-index 55–60) so the header stays clickable and
+           its menus open above this view — but still above page content. */
+        z-index: 40;
+      }
+      #yogaIntroModal .yoga-intro-card {
+        width: 100%;
+        max-width: 920px;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        max-height: none;
+        overflow: visible;
+      }
+      /* On a full page the ✕ is redundant with the Back button. */
+      #yogaIntroModal .modal-close { display: none; }
       .yoga-pose-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -542,67 +713,6 @@
         letter-spacing: 0.01em;
       }
       .yoga-pose-card .yoga-beta-cta { align-self: flex-start; }
-
-      /* Tadasana avatar "Tap to talk" pill + LemonSlice widget container */
-      .static-avatar-btn {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 1000;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.45rem 0.75rem 0.45rem 0.45rem;
-        background: #ffffff;
-        border: 1px solid rgba(47, 72, 66, 0.18);
-        border-radius: 999px;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
-        cursor: pointer;
-        transition: transform 0.2s ease, opacity 0.35s ease, box-shadow 0.2s ease;
-      }
-      .static-avatar-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 16px 38px rgba(0, 0, 0, 0.22);
-      }
-      .static-avatar-img {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        object-fit: cover;
-        display: block;
-      }
-      .static-avatar-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        color: var(--color-text-primary);
-        padding-right: 0.25rem;
-      }
-      .static-avatar-pulse {
-        display: inline-block;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: #2ecc71;
-        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.55);
-        animation: avatarPulse 1.6s infinite;
-      }
-      @keyframes avatarPulse {
-        0%   { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0.55); }
-        70%  { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);   }
-        100% { box-shadow: 0 0 0 0   rgba(46, 204, 113, 0);   }
-      }
-      .static-avatar-hidden { opacity: 0; pointer-events: none; }
-      .lemon-hidden { display: none !important; }
-      .static-avatar-btn[hidden] { display: none !important; }
-      #lemonWidgetContainer {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 1000;
-      }
 
       .yoga-modal-overlay {
         padding: 1rem;
@@ -1059,6 +1169,57 @@
       }
       .companion-intro-body { font-size: 14px; color: var(--c-ink-soft); line-height: 1.5; margin: 0; }
 
+      /* Meal Plan form — decorative header with bowl illustration on the right */
+      .mp-form-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 4px 0 2px;
+      }
+      .mp-form-header-text { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+      .mp-form-header-art {
+        flex: 0 0 auto;
+        width: clamp(120px, 24vw, 200px);
+        max-height: 140px;
+        display: block;
+      }
+      .mp-form-header-art svg { width: 100%; height: 100%; display: block; }
+      @media (max-width: 540px) {
+        .mp-form-header-art { display: none; }
+      }
+
+      /* Footer safety note under the meal-plan form */
+      .mp-safety-note {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 10px 14px;
+        background: rgba(122, 143, 126, 0.08);
+        border: 1px solid rgba(122, 143, 126, 0.20);
+        border-radius: 12px;
+        font-size: 12.5px;
+        color: var(--c-ink-soft, rgba(28, 42, 42, 0.75));
+        line-height: 1.45;
+      }
+      .mp-safety-note svg {
+        width: 16px; height: 16px;
+        color: rgba(122, 143, 126, 0.9);
+        flex-shrink: 0;
+      }
+      @media (max-width: 540px) {
+        .mp-form-header { padding: 0; gap: 8px; }
+        .mp-form-header-text { gap: 4px; }
+        .mp-safety-note {
+          font-size: 11.5px;
+          padding: 8px 12px;
+          align-items: flex-start;
+          line-height: 1.4;
+        }
+        .mp-safety-note svg { margin-top: 2px; }
+      }
+
       .companion-choice {
         display: flex; align-items: flex-start; gap: 14px;
         padding: 16px; border-radius: 18px;
@@ -1398,6 +1559,540 @@
         cursor: pointer;
       }
 
+      /* Plant-Based Recipes — ChatGPT-style 3-question chat */
+      .companion-recipe-chat .companion-scroll { padding-bottom: 24px; }
+      .recipe-chat-bubble {
+        max-width: 88%;
+        padding: 10px 14px;
+        border-radius: 14px;
+        font-size: 14.5px;
+        line-height: 1.55;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .recipe-chat-assistant {
+        align-self: flex-start;
+        background: rgba(95, 179, 179, 0.10);
+        border: 1px solid rgba(95, 179, 179, 0.25);
+        color: var(--c-ink, #1c2a2a);
+      }
+      .recipe-chat-user {
+        align-self: flex-end;
+        background: linear-gradient(140deg, #2f4842, #5f7d72);
+        color: #f4f1ea;
+        border: 1px solid rgba(47, 72, 66, 0.28);
+      }
+
+      /* Perplexity-style "Answer" view: assistant replies render as clean
+         full-width prose directly on the page background — no bubble. The
+         first greeting message keeps its bubble (it is NOT given the
+         .recipe-chat-prose class). Compound selector keeps these overrides
+         winning over the base + mobile .recipe-chat-bubble rules. */
+      .recipe-chat-bubble.recipe-chat-prose {
+        align-self: stretch;
+        max-width: 100%;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        padding: 2px 6px 4px;
+        white-space: normal;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+      .recipe-chat-prose > :first-child { margin-top: 0; }
+      .recipe-chat-prose > :last-child { margin-bottom: 0; }
+      .recipe-chat-prose p { margin: 0 0 0.8em; }
+      .recipe-chat-prose ul,
+      .recipe-chat-prose ol { margin: 0 0 0.8em; padding-left: 1.4em; }
+      .recipe-chat-prose li { margin: 0.25em 0; }
+      .recipe-chat-prose h3,
+      .recipe-chat-prose h4,
+      .recipe-chat-prose h5,
+      .recipe-chat-prose h6 {
+        margin: 1.1em 0 0.45em;
+        line-height: 1.3;
+        color: var(--c-ink, #2f3a32);
+      }
+      .recipe-chat-prose h3 { font-size: 1.18em; }
+      .recipe-chat-prose h4 { font-size: 1.06em; }
+      .recipe-chat-prose h5,
+      .recipe-chat-prose h6 { font-size: 1em; }
+      .recipe-chat-prose a {
+        color: var(--c-sage-deep, #5f7656);
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        word-break: break-word;
+      }
+      .recipe-chat-prose code {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: 0.88em;
+        background: rgba(47, 72, 66, 0.07);
+        padding: 1px 5px;
+        border-radius: 5px;
+      }
+      /* Markdown tables: thin row dividers + a subtle header row. */
+      .recipe-chat-prose table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0.4em 0 0.9em;
+        font-size: 0.95em;
+      }
+      .recipe-chat-prose th,
+      .recipe-chat-prose td {
+        text-align: left;
+        padding: 8px 10px;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.12);
+        vertical-align: top;
+      }
+      .recipe-chat-prose thead th {
+        font-weight: 700;
+        color: var(--c-ink, #2f3a32);
+        background: rgba(47, 72, 66, 0.04);
+        border-bottom: 1px solid rgba(47, 72, 66, 0.20);
+      }
+      .recipe-chat-prose tbody tr:last-child td { border-bottom: none; }
+      .recipe-chat-compose {
+        display: flex; align-items: flex-end; gap: 8px;
+        margin-top: 4px;
+        background: var(--c-bg, #ffffff);
+        border: 1.5px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 14px;
+        padding: 8px;
+      }
+      .recipe-chat-input {
+        flex: 1;
+        border: none; outline: none; background: transparent;
+        resize: none;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--c-ink, #1c2a2a);
+        padding: 6px 8px;
+        max-height: 160px;
+      }
+      .recipe-chat-send {
+        border: none;
+        border-radius: 11px;
+        padding: 9px 16px;
+        background: linear-gradient(140deg, var(--c-sage, #8aa399), var(--c-sage-deep, #5f7d72));
+        color: #fff;
+        font: inherit;
+        font-weight: 700;
+        font-size: 13.5px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .recipe-chat-meta {
+        color: var(--c-ink-soft, rgba(28,42,42,0.7));
+        font-size: 13px;
+        font-style: italic;
+        margin-top: 6px;
+      }
+      .recipe-chat-videos {
+        display: flex; flex-direction: column; gap: 8px;
+        margin-top: 8px;
+      }
+      .recipe-chat-video {
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 12px;
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 12px;
+        text-decoration: none;
+        color: var(--c-ink, #1c2a2a);
+        background: var(--c-bg, #ffffff);
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+      .recipe-chat-video:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.18);
+      }
+      .recipe-chat-restart {
+        align-self: flex-start;
+        margin-top: 6px;
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        background: transparent;
+        color: var(--c-ink, #1c2a2a);
+        font: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+      }
+      .recipe-chat-restart:hover { background: rgba(47, 72, 66, 0.06); }
+
+      /* Stilwater AI Chat — opens INSIDE the companion section; while it's
+         open the 3-tab companion shell is fully hidden so only the chat is
+         visible. Closing the chat (tab click or sidebar toggle) restores
+         the shell with a ✕ in the corner to flip back to chat. */
+      body.plant-chat-open #companionRoot .companion-shell { display: none; }
+      body.plant-chat-open #companionBackToChat { display: none; }
+      .companion-back-to-chat {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--c-ink, #1c2a2a);
+        z-index: 3;
+        box-shadow: 0 4px 12px -6px rgba(0, 0, 0, 0.18);
+      }
+      .companion-back-to-chat svg { width: 18px; height: 18px; }
+      .companion-back-to-chat:hover { background: rgba(47, 72, 66, 0.06); }
+      .plant-chat-overlay {
+        position: relative;
+        background: var(--c-bg, #ffffff);
+        border-radius: 18px;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+        padding: 22px clamp(14px, 3vw, 32px) 18px;
+        min-height: clamp(420px, 70vh, 720px);
+        border: 1px solid var(--c-border, rgba(47, 72, 66, 0.12));
+      }
+      .plant-chat-overlay[hidden] { display: none; }
+      .plant-chat-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: #ffffff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--c-ink, #1c2a2a);
+        z-index: 1;
+      }
+      .plant-chat-close svg { width: 18px; height: 18px; }
+      .plant-chat-close:hover { background: rgba(47, 72, 66, 0.06); }
+      .plant-chat-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding-right: 48px;
+      }
+      .plant-chat-title {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: var(--c-ink, #1c2a2a);
+      }
+      /* Mobile hamburger inside the chat header. The AI Chat is the default
+         landing view and hides the companion-shell — which holds the only
+         other sidebar toggle — so without this button the off-canvas
+         drawer (and every feature in it) is unreachable on phones. */
+      .plant-chat-menu {
+        display: none;
+        width: 36px; height: 36px;
+        flex-shrink: 0;
+        align-items: center; justify-content: center;
+        padding: 0;
+        border-radius: 10px;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: transparent;
+        color: var(--c-ink, #1c2a2a);
+        cursor: pointer;
+      }
+      .plant-chat-menu svg { width: 20px; height: 20px; stroke: currentColor; stroke-width: 2; fill: none; }
+      .plant-chat-menu:hover { background: rgba(47, 72, 66, 0.06); }
+      /* Back-to-options pill (every chat view) */
+      .plant-chat-back {
+        display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+        padding: 7px 12px 7px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        background: transparent;
+        color: var(--c-ink-soft, #5d6b5e);
+        font: inherit; font-size: 13px; font-weight: 600;
+        cursor: pointer;
+      }
+      .plant-chat-back svg { width: 16px; height: 16px; }
+      .plant-chat-back:hover { background: rgba(47, 72, 66, 0.06); color: var(--c-ink, #1c2a2a); }
+      .plant-chat-header .plant-chat-title { margin-right: auto; }
+      /* "Explore Plant-Based Recipes" tab inside the Nutrition chat header. */
+      .plant-chat-explore {
+        display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+        padding: 7px 13px;
+        border-radius: 999px;
+        border: 1px solid rgba(125, 148, 113, 0.5);
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
+        font: inherit; font-size: 13px; font-weight: 600;
+        cursor: pointer;
+      }
+      .plant-chat-explore svg { width: 16px; height: 16px; }
+      .plant-chat-explore:hover { background: rgba(125, 148, 113, 0.2); }
+      @media (max-width: 768px) {
+        .plant-chat-explore span { display: none; }
+        .plant-chat-explore { padding: 7px; }
+      }
+      /* Back-to-options inside the yoga intro modal: flows top-left, above
+         the heading (the ✕ stays absolute top-right). */
+      .yoga-intro-back { margin: 0 0 12px; }
+      @media (max-width: 768px) {
+        .plant-chat-menu { display: inline-flex; }
+        .plant-chat-title { margin-right: auto; }
+        .plant-chat-back span { display: none; }
+        .plant-chat-back { padding: 7px; }
+      }
+      .plant-chat-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: transparent;
+        border: 1px solid rgba(47, 72, 66, 0.18);
+        color: var(--c-ink-soft, rgba(28, 42, 42, 0.7));
+        font: inherit;
+        font-size: 12.5px;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 999px;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .plant-chat-clear:hover {
+        background: rgba(47, 72, 66, 0.06);
+        color: var(--c-ink, #1c2a2a);
+        border-color: rgba(47, 72, 66, 0.32);
+      }
+      .plant-chat-clear svg { width: 14px; height: 14px; }
+      .plant-chat-scroll {
+        flex: 1 1 auto;
+        overflow-y: auto;
+        gap: 12px;
+        padding-bottom: 12px;
+      }
+
+      /* ChatGPT-style compose bar */
+      .plant-compose {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--c-bg, #ffffff);
+        border: 1.5px solid var(--c-border, rgba(47, 72, 66, 0.18));
+        border-radius: 999px;
+        padding: 6px 8px 6px 6px;
+        margin-top: auto;
+      }
+      .plant-compose:focus-within {
+        border-color: rgba(95, 179, 179, 0.55);
+        box-shadow: 0 0 0 4px rgba(95, 179, 179, 0.12);
+      }
+      .plant-compose .plant-icon-btn {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: var(--c-ink-soft, rgba(28,42,42,0.7));
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-compose .plant-icon-btn:hover { background: rgba(47, 72, 66, 0.06); color: var(--c-ink, #1c2a2a); }
+      .plant-compose .plant-icon-btn svg { width: 20px; height: 20px; }
+      .plant-compose .plant-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        background: transparent;
+        resize: none;
+        font: inherit;
+        font-size: 14.5px;
+        line-height: 1.5;
+        color: var(--c-ink, #1c2a2a);
+        padding: 8px 4px;
+        max-height: 140px;
+      }
+      .plant-compose .plant-send-btn {
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        border: none;
+        background: linear-gradient(140deg, #2f4842, #5f7d72);
+        color: #fff;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .plant-compose .plant-send-btn[disabled] {
+        background: var(--c-border, rgba(47, 72, 66, 0.18));
+        cursor: not-allowed;
+      }
+      .plant-compose .plant-send-btn svg { width: 18px; height: 18px; }
+      .plant-mic-btn.is-listening { color: #c0392b; background: rgba(192, 57, 43, 0.10); }
+      .plant-mic-btn.is-listening .plant-mic-wave {
+        animation: plantMicPulse 1.2s ease-out infinite;
+      }
+      @keyframes plantMicPulse {
+        0%   { box-shadow: 0 0 0 0   rgba(192, 57, 43, 0.55); }
+        70%  { box-shadow: 0 0 0 14px rgba(192, 57, 43, 0);   }
+        100% { box-shadow: 0 0 0 0   rgba(192, 57, 43, 0);   }
+      }
+      .plant-mic-wave {
+        display: inline-block;
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+      .plant-attach-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 10px;
+        background: rgba(95, 179, 179, 0.10);
+        border: 1px solid rgba(95, 179, 179, 0.30);
+        color: var(--c-ink, #1c2a2a);
+        font-size: 12.5px;
+        border-radius: 999px;
+        margin-top: 4px;
+      }
+      .plant-attach-chip svg { width: 13px; height: 13px; }
+
+      /* Stilwater AI Chat — starter chips + prompt debug panel */
+      /* Starter questions under the greeting — same Perplexity-style LIST as
+         the per-reply follow-ups, so the first 3 match the rest. */
+      .plant-chat-starters {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin: 8px 0 14px;
+        border-top: 1px solid rgba(47, 72, 66, 0.14);
+      }
+      .plant-chat-starter {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
+        font: inherit;
+        font-size: 14px;
+        line-height: 1.45;
+        text-align: left;
+        color: var(--c-ink, #2f3a32);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 0;
+        padding: 12px 8px;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-chat-starter::before {
+        content: "\21B3";
+        flex-shrink: 0;
+        color: var(--c-ink-soft, #5d6b5e);
+        font-size: 15px;
+        line-height: 1.4;
+        transition: color 0.15s ease;
+      }
+      .plant-chat-starter:hover {
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
+      }
+      .plant-chat-starter:hover::before { color: var(--c-sage-deep, #5f7656); }
+
+      /* Per-assistant-message follow-up questions — Perplexity-style LIST:
+         full-width rows separated by thin dividers, a muted ↳ prefix, and a
+         subtle row highlight on hover. These are list rows (not pill buttons)
+         but keep their click-to-send behavior. */
+      .plant-chat-msg-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        align-self: stretch;
+        max-width: 100%;
+      }
+      .plant-chat-msg-wrap > .recipe-chat-bubble { max-width: 100%; }
+      .plant-chat-followups {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 6px;
+        padding-left: 0;
+        border-top: 1px solid rgba(47, 72, 66, 0.14);
+      }
+      .plant-chat-followup {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        width: 100%;
+        font: inherit;
+        font-size: 14px;
+        line-height: 1.45;
+        text-align: left;
+        color: var(--c-ink, #2f3a32);
+        background: transparent;
+        border: none;
+        border-bottom: 1px solid rgba(47, 72, 66, 0.14);
+        border-radius: 0;
+        padding: 12px 8px;
+        cursor: pointer;
+        transition: background 0.15s ease, color 0.15s ease;
+      }
+      .plant-chat-followup::before {
+        content: "\21B3";
+        flex-shrink: 0;
+        color: var(--c-ink-soft, #5d6b5e);
+        font-size: 15px;
+        line-height: 1.4;
+        transition: color 0.15s ease;
+      }
+      .plant-chat-followup:hover {
+        background: rgba(125, 148, 113, 0.12);
+        color: var(--c-sage-deep, #5f7656);
+      }
+      .plant-chat-followup:hover::before { color: var(--c-sage-deep, #5f7656); }
+
+      /* ── Stilwater AI Chat — mobile (≤ 600px) ────────────────────────── */
+      @media (max-width: 600px) {
+        .plant-chat-overlay {
+          padding: 16px 12px 12px;
+          min-height: 60vh;
+          border-radius: 14px;
+        }
+        .plant-chat-header { padding-right: 0; flex-wrap: wrap; gap: 8px; }
+        .plant-chat-title { font-size: 1.05rem; }
+        .plant-chat-clear { font-size: 11.5px; padding: 5px 10px; }
+        .plant-chat-clear svg { width: 12px; height: 12px; }
+
+        .recipe-chat-bubble { max-width: 100%; font-size: 13.5px; padding: 9px 12px; }
+        .recipe-chat-bubble.recipe-chat-prose { padding: 2px 2px 4px; font-size: 14.5px; }
+        .plant-chat-msg-wrap { max-width: 100%; }
+
+        .plant-chat-starters { gap: 0; padding-left: 0; }
+        .plant-chat-starter { font-size: 13px; padding: 11px 6px; }
+        .plant-chat-followups { gap: 0; padding-left: 0; }
+        .plant-chat-followup { font-size: 13px; padding: 11px 6px; }
+
+        /* Compose bar: shrink icon buttons + paddings so all 4 elements
+           (+ textarea + mic + send) fit on a single phone-width line. */
+        .plant-compose { gap: 2px; padding: 5px 6px 5px 4px; }
+        .plant-compose .plant-icon-btn { width: 34px; height: 34px; }
+        .plant-compose .plant-icon-btn svg { width: 18px; height: 18px; }
+        .plant-compose .plant-input { font-size: 14px; padding: 6px 2px; }
+        .plant-compose .plant-send-btn { width: 36px; height: 36px; }
+        .plant-compose .plant-send-btn svg { width: 16px; height: 16px; }
+
+        .companion-back-to-chat {
+          top: 10px; right: 10px;
+          width: 32px; height: 32px;
+        }
+        .companion-back-to-chat svg { width: 16px; height: 16px; }
+      }
+
       .companion-recipe-card {
         border: 1.5px solid var(--c-border); border-radius: 16px;
         background: var(--c-mist); overflow: hidden;
@@ -1462,7 +2157,7 @@
         to { opacity: 1; transform: translateY(0); }
       }
 
-      /* AI Driven Meditation modal (iframes stillwater-frontend.onrender.com inside the app) */
+      /* AI Driven Meditation modal (plays local videos/MeditationForInnerPeace-YogaWithAdriene.mp4) */
       .meditation-modal-overlay {
         position: fixed;
         inset: 0;
@@ -1520,21 +2215,20 @@
       window.gtag = window.gtag || function(){ dataLayer.push(arguments); };
       gtag('js', new Date());
       (function(){
-        var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+        var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
         if (prodHosts.indexOf(location.hostname) === -1) return;
         var s = document.createElement('script');
         s.async = true;
-        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-3YFE71RLJZ';
+        s.src = 'https://www.googletagmanager.com/gtag/js?id=G-GNF77Q61ZQ';
         document.head.appendChild(s);
-        gtag('config', 'G-3YFE71RLJZ');
-        gtag('config', 'G-GP7VFJF628');
+        gtag('config', 'G-GNF77Q61ZQ');
       })();
     </script>
     <script src="js/ga-events.js" defer></script>
 <!-- Microsoft Clarity (prod only) -->
 <script type="text/javascript">
   (function(){
-    var prodHosts = ['stillwater.you','www.stillwater.you','stillwater-main.onrender.com'];
+    var prodHosts = ['stillwater.you','www.stillwater.you','stilwater.health','www.stilwater.health','stillwater-main.onrender.com'];
     if (prodHosts.indexOf(location.hostname) === -1) return;
     (function(c,l,a,r,i,t,y){
       c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
@@ -1543,9 +2237,548 @@
     })(window, document, "clarity", "script", "ww8pdzkpcp");
   })();
     </script>
+    <style>
+      /* ============================================================
+         Chat redesign (Plant-Based Nutrition / Chronic Disease Mgmt)
+         Source of visual design: Plant_Based_Nutrition.html.
+         Restyle only — behaviour, data, follow-ups, history dates,
+         and per-mode separation are unchanged.
+         ============================================================ */
+
+      /* --- Left sidebar (chat history) --- */
+      .care-sidebar {
+        background: radial-gradient(circle at top right, #2c5a4f 0%, #21483f 38%, #173a32 100%) !important;
+      }
+      .care-newchat {
+        justify-content: center;
+        border: none;
+        border-radius: 15px;
+        background: #264f45;
+        color: #ffffff;
+        font-size: 15px;
+        font-weight: 700;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14), 0 8px 18px rgba(23, 58, 50, 0.14);
+      }
+      .care-newchat:hover { background: #173a32; }
+      .care-sidebar-title {
+        font-size: 12px; font-weight: 700; letter-spacing: 0.04em;
+        text-transform: uppercase; color: #d7e7dd;
+      }
+      .care-chat-history { gap: 9px; }
+      .care-chat-item {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) 14px;
+        align-items: center;
+        gap: 9px;
+        padding: 11px 10px;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+      .care-chat-item:hover { background: rgba(255, 255, 255, 0.08); }
+      .care-chat-item.is-active {
+        background: rgba(38, 79, 69, 0.72);
+        border-color: rgba(255, 255, 255, 0.18);
+      }
+      .care-chat-item .cc-icon {
+        width: 30px; height: 30px; border-radius: 10px;
+        display: grid; place-items: center;
+        background: rgba(255, 255, 255, 0.10); color: #dff0dc; font-size: 14px;
+      }
+      .care-chat-item .cc-body { min-width: 0; }
+      .care-chat-item .cc-title { font-size: 13px; font-weight: 600; }
+      .care-chat-item .cc-meta { font-size: 11px; color: #c5d9cf; margin-top: 4px; }
+      .care-chat-item .cc-dots { color: #d0ddd6; font-size: 16px; text-align: center; }
+      .care-sidebar-clear {
+        border-radius: 15px;
+        border: 1px solid rgba(224, 239, 233, 0.16);
+        background: rgba(255, 255, 255, 0.03);
+        color: #eef6f1; font-weight: 700;
+      }
+
+      /* --- Chat overlay shell --- */
+      .plant-chat-overlay {
+        display: flex;
+        flex-direction: column;
+        background: #f7f3ec;
+        overflow: hidden;
+      }
+      .plant-chat-header {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 24px;
+        border-bottom: 1px solid #e8dfd2;
+        background: rgba(255, 251, 246, 0.96);
+      }
+      .plant-chat-header .plant-chat-title {
+        font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        font-size: clamp(20px, 2.2vw, 28px); font-weight: 600;
+        color: #153d31; letter-spacing: -0.4px;
+      }
+      /* Action button beside the title (Recipe Library / Wellness Assessment) */
+      .plant-chat-header .plant-chat-action {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border-radius: 999px; border: none;
+        background: #264f45; color: #fff; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16); cursor: pointer; white-space: nowrap;
+      }
+      .plant-chat-header .plant-chat-action:hover { background: #173a32; }
+      .plant-chat-header .plant-chat-action svg { width: 16px; height: 16px; }
+      /* Chronic recommendation chip (logo + provider name) beside the title */
+      .plant-chat-header .plant-chat-reco {
+        display: inline-flex; align-items: center; gap: 9px;
+        padding: 6px 14px 6px 8px; border-radius: 999px;
+        background: #fffdfa; border: 1px solid #e8dfd2; color: #173a32;
+        font: inherit; font-weight: 700; font-size: 14px; text-decoration: none;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); white-space: nowrap;
+      }
+      a.plant-chat-reco:hover { background: #f2eee5; }
+      div.plant-chat-reco { cursor: default; }
+      .plant-chat-header .plant-chat-reco .plant-chat-reco-pre {
+        font-weight: 600; font-size: 12.5px; color: #63736a;
+      }
+      .plant-chat-header .plant-chat-reco .plant-chat-reco-logo {
+        height: 26px; width: auto; max-width: 96px; object-fit: contain; display: block; border-radius: 6px;
+      }
+      /* Trusted Partners dropdown (chronic header) */
+      .plant-chat-header .sw-partners { position: relative; }
+      .plant-chat-header .sw-partners-btn {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 10px 16px; border-radius: 999px; border: 1px solid #e8dfd2;
+        background: #fffdfa; color: #173a32; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); cursor: pointer; white-space: nowrap;
+      }
+      .plant-chat-header .sw-partners-btn:hover { background: #f2eee5; }
+      .plant-chat-header .sw-partners-btn svg { width: 16px; height: 16px; }
+      .plant-chat-header .sw-partners-chev { transition: transform 0.15s ease; }
+      .plant-chat-header .sw-partners-btn[aria-expanded="true"] .sw-partners-chev { transform: rotate(180deg); }
+      .plant-chat-header .sw-partners-menu {
+        position: absolute; top: calc(100% + 8px); right: 0; z-index: 60;
+        min-width: 200px; padding: 6px; border-radius: 14px;
+        background: #fffdfa; border: 1px solid #e8dfd2;
+        box-shadow: 0 16px 40px rgba(24, 55, 39, 0.16);
+        display: flex; flex-direction: column; gap: 2px;
+      }
+      .plant-chat-header .sw-partners-menu[hidden] { display: none; }
+      .plant-chat-header .sw-partners-item {
+        display: flex; align-items: center; gap: 10px; text-align: left;
+        padding: 10px 12px; border-radius: 10px; border: none; background: none;
+        font: inherit; font-size: 14px; font-weight: 600; color: #173a32; cursor: pointer;
+      }
+      .plant-chat-header .sw-partners-item:hover { background: #f2eee5; }
+      @media (max-width: 760px) {
+        .plant-chat-header .plant-chat-title { font-size: 19px; }
+        .plant-chat-header .plant-chat-action { padding: 8px 12px; font-size: 13px; }
+      }
+
+      /* Embedded partner page (Chronic Disease Management → Sharan/Yoga/Amar) */
+      .pbn-partner-frame {
+        width: 100%; min-height: calc(100vh - 220px); border: 1px solid #e8dfd2;
+        border-radius: 22px; background: #fffdfa;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); display: block;
+      }
+      @media (max-width: 760px) { .pbn-partner-frame { min-height: calc(100vh - 180px); } }
+      /* Full-page partner view: no card chrome, sidebar hidden, disclaimer off,
+         and drop the now-pointless hamburger (no sidebar to open). */
+      body.sw-chronic-partner .pbn-partner-frame { border: none; border-radius: 0; box-shadow: none; }
+      body.sw-chronic-partner .pbn-disclaimer { display: none; }
+      body.sw-chronic-partner .plant-chat-menu { display: none; }
+
+      /* Skipped / no condition → full-page assessment prompt (no chat). */
+      .pbn-assess {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        text-align: center; gap: 16px; padding: 40px 24px; min-height: calc(100vh - 230px);
+      }
+      .pbn-assess img { height: 52px; width: auto; }
+      .pbn-assess h2 {
+        margin: 0; font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        color: #173a32; font-size: clamp(24px, 3vw, 34px); letter-spacing: -0.4px;
+      }
+      .pbn-assess p { margin: 0; color: #63736a; font-size: 15px; line-height: 1.6; max-width: 460px; }
+      .pbn-assess-cta {
+        margin-top: 6px; display: inline-flex; align-items: center; justify-content: center;
+        background: #264f45; color: #fff; text-decoration: none; font-weight: 800; font-size: 15px;
+        padding: 14px 24px; border-radius: 999px; box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16);
+      }
+      .pbn-assess-cta:hover { background: #173a32; }
+      @media (max-width: 768px) { .pbn-assess { min-height: calc(100vh - 170px); padding: 32px 18px; } }
+      /* Loading spinner shown while the assessment flags resolve (avoids
+         flashing the assessment prompt before the partner page is known). */
+      .pbn-loading .pbn-spinner {
+        width: 34px; height: 34px; border-radius: 50%;
+        border: 3px solid #e0d8c9; border-top-color: #264f45;
+        animation: pbnspin 0.8s linear infinite;
+      }
+      @keyframes pbnspin { to { transform: rotate(360deg); } }
+      /* Full-page scroll: the iframe is auto-sized to its full content height
+         (see sizeFrame() in renderPlantRecipesChat), so it never scrolls
+         internally, and we unwind the app-shell's fixed-height / overflow
+         pinning so the BODY grows with the iframe and the WHOLE PAGE scrolls
+         (not a trapped inner region). Same on desktop and mobile. */
+      body.sw-chronic-partner .pbn-layout { padding: 0; overflow: visible; }
+      body.sw-chronic-partner .pbn-main { min-height: 0; overflow: visible; }
+      body.sw-chronic-partner .pbn-partner-frame { height: auto; min-height: calc(100vh - 130px); }
+      body.sw-chronic-partner .plant-chat-overlay { overflow: visible; }
+      @media (min-width: 769px) {
+        body.sw-chronic-partner .care-shell { height: auto; overflow: visible; }
+        body.sw-chronic-partner .care-stage { overflow: visible; min-height: 0; }
+        body.sw-chronic-partner .companion-chat { overflow: visible; min-height: 0; }
+      }
+
+
+      /* --- Full-width chat layout (single column) --- */
+      .pbn-layout {
+        flex: 1 1 auto; min-height: 0; min-width: 0;
+        overflow-y: auto; overflow-x: hidden;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 22px;
+        align-items: start;
+        padding: 26px 28px 22px;
+      }
+      .pbn-main { min-width: 0; display: flex; flex-direction: column; }
+      .pbn-hero h1 {
+        margin: 0;
+        font-family: "Fraunces", Georgia, "Times New Roman", serif;
+        font-size: clamp(32px, 3.6vw, 52px);
+        line-height: 1.0; letter-spacing: -1px; color: #153d31;
+      }
+      .pbn-hero p { margin: 9px 0 0; font-size: 16px; line-height: 1.45; color: #68736b; }
+
+      .pbn-suggestions {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin: 20px 0 18px;
+        min-width: 0;
+      }
+      .pbn-suggestion {
+        min-width: 0;
+        display: flex; align-items: center; gap: 10px;
+        background: #fffdfa; border: 1px solid #e8dfd2;
+        border-radius: 18px; padding: 14px; min-height: 72px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08);
+        cursor: pointer; text-align: left; font: inherit; color: #2b4037;
+        transition: 0.2s ease;
+      }
+      .pbn-suggestion:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 24px rgba(24, 55, 39, 0.1);
+        border-color: rgba(38, 79, 69, 0.22);
+      }
+      .pbn-s-ico {
+        width: 34px; height: 34px; border-radius: 12px;
+        display: grid; place-items: center;
+        background: #e9f0ea; color: #264f45; font-size: 17px; flex: 0 0 auto;
+      }
+      .pbn-s-text { min-width: 0; font-size: 13px; line-height: 1.32; font-weight: 600; flex: 1; }
+      .pbn-chev { font-size: 20px; color: #7b817c; flex: 0 0 auto; }
+
+      .pbn-chat-card {
+        background: #fffdfa; border: 1px solid #e8dfd2; border-radius: 22px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08);
+        padding: 16px;
+        display: flex; flex-direction: column; gap: 14px;
+      }
+      .pbn-disclaimer { text-align: center; color: #70776f; font-size: 13px; margin-top: 12px; }
+
+      .pbn-side {
+        min-width: 0; position: sticky; top: 26px;
+        background: linear-gradient(180deg, #f6f2ea, #f4efdf);
+        border: 1px solid #e8dfd2; border-radius: 22px;
+        box-shadow: 0 8px 20px rgba(24, 55, 39, 0.08); padding: 22px;
+      }
+      .pbn-side h3 { margin: 0 0 10px; font-size: 18px; color: #234135; }
+      .pbn-side p { margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: #657168; }
+      .pbn-side .cta {
+        width: 100%; background: #264f45; color: #ffffff; border: none;
+        border-radius: 999px; padding: 14px 18px; font-size: 14px; font-weight: 700;
+        box-shadow: 0 8px 18px rgba(23, 58, 50, 0.16); cursor: pointer; transition: 0.2s ease;
+      }
+      .pbn-side .cta:hover { background: #173a32; transform: translateY(-1px); }
+
+      /* --- Messages: avatar + bubble + Aria name --- */
+      .pbn-chat-card .plant-chat-scroll {
+        /* No inner scroll — the whole .pbn-layout is the single scroller. */
+        overflow: visible;
+        display: flex; flex-direction: column; gap: 14px;
+        padding: 4px 2px;
+      }
+      .plant-chat-scroll .message { display: flex; gap: 12px; align-items: flex-start; min-width: 0; }
+      .plant-chat-scroll .message.user { flex-direction: row-reverse; }
+      .plant-chat-scroll .avatar-small {
+        width: 36px; height: 36px; border-radius: 50%; flex: 0 0 auto;
+        position: relative; overflow: hidden;
+        background: linear-gradient(180deg, #d8c6b0, #f7e8d8 65%, #b88b63);
+      }
+      .plant-chat-scroll .avatar-small::before {
+        content: ""; position: absolute; inset: auto 12% 0 12%; height: 58%;
+        border-radius: 50% 50% 38% 38%; background: #45291f; transform: translateY(8%); opacity: 0.95;
+      }
+      .plant-chat-scroll .avatar-small::after {
+        content: ""; position: absolute; left: 25%; right: 25%; top: 18%; bottom: 26%;
+        border-radius: 42% 42% 48% 48%;
+        background: radial-gradient(circle at 50% 35%, #f8e2cd 0, #f2d5bb 58%, #ddb28f 100%);
+      }
+      .plant-chat-scroll .message.user .avatar-small { background: linear-gradient(180deg, #2c5a4f, #173a32); }
+      .plant-chat-scroll .message.user .avatar-small::before,
+      .plant-chat-scroll .message.user .avatar-small::after { content: none; }
+      .plant-chat-scroll .message .bubble {
+        max-width: 600px; min-width: 0;
+        background: #eef0e9; border-radius: 17px; padding: 14px 16px;
+        color: #34473e; font-size: 15px; line-height: 1.5;
+      }
+      .plant-chat-scroll .message.user .bubble {
+        background: #264f45; color: #f3fbf5; border-bottom-right-radius: 6px;
+      }
+      .plant-chat-scroll .bubble-name { font-weight: 700; margin-bottom: 6px; color: #1d3f34; }
+      .plant-chat-scroll .bubble.recipe-chat-prose { background: #eef0e9; padding: 14px 16px; }
+
+      /* Follow-ups (Perplexity-style ↳ list) stay; align under the bubble */
+      .plant-chat-scroll .plant-chat-msg-wrap { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+      .plant-chat-scroll .plant-chat-msg-wrap .plant-chat-followups { margin-left: 48px; }
+
+      /* --- Composer pill inside the chat card --- */
+      .pbn-chat-card .plant-compose {
+        margin-top: auto;
+        border: 1px solid #e8dfd2; border-radius: 999px;
+        padding: 9px 10px; display: flex; align-items: center; gap: 10px;
+        background: #ffffff; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+      }
+      .pbn-chat-card .plant-compose:focus-within {
+        border-color: rgba(38, 79, 69, 0.42); box-shadow: 0 0 0 3px rgba(38, 79, 69, 0.08);
+      }
+      .pbn-chat-card .plant-send-btn { background: #264f45; color: #ffffff; border: none; }
+      .pbn-chat-card .plant-send-btn:hover { background: #173a32; }
+
+      @media (max-width: 1024px) {
+        .pbn-layout { grid-template-columns: 1fr; }
+        .pbn-side { position: static; order: -1; }
+      }
+      @media (max-width: 720px) {
+        .plant-chat-header { padding: 12px 14px; }
+        .pbn-layout { padding: 16px 14px; gap: 16px; }
+        .pbn-suggestions { grid-template-columns: 1fr; }
+        .pbn-hero h1 { font-size: 32px; }
+        .plant-chat-scroll .message .bubble { max-width: 100%; }
+        .plant-chat-scroll .plant-chat-msg-wrap .plant-chat-followups { margin-left: 0; }
+      }
+    </style>
+    <style>
+      /* ============================================================
+         Meal-generator (companion) redesign — VISUAL ONLY.
+         Source of design: meal_generator.html. No behaviour/logic change.
+         ============================================================ */
+      /* New page header with Back button */
+      .mg-topbar {
+        flex: 0 0 auto;
+        display: flex; align-items: center; gap: 14px;
+        padding: 14px 22px;
+        border-bottom: 1px solid #e3dacd;
+        background: rgba(255, 251, 246, 0.96);
+      }
+      .mg-back {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 9px 16px; border-radius: 999px;
+        border: 1px solid #e3dacd; background: #fffdfa;
+        color: #264f45; font: inherit; font-weight: 700; font-size: 14px;
+        box-shadow: 0 6px 16px rgba(24, 55, 39, 0.08); cursor: pointer;
+      }
+      .mg-back:hover { background: #f2eee5; }
+      .mg-back svg { width: 18px; height: 18px; }
+      .mg-title {
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 20px; font-weight: 600; color: #173a32;
+      }
+      .mg-eyebrow {
+        margin-left: auto; display: inline-flex; align-items: center; gap: 6px;
+        padding: 7px 12px; border-radius: 999px;
+        background: #e9f0ea; color: #264f45; font-size: 13px; font-weight: 800;
+      }
+      @media (max-width: 760px) { .mg-topbar { padding: 12px 14px; } .mg-title, .mg-eyebrow { display: none; } }
+
+      /* Shell background → new gradient */
+      .companion-shell {
+        background:
+          radial-gradient(circle at top right, rgba(38, 79, 69, 0.08), transparent 30%),
+          linear-gradient(180deg, #fbf8f1 0%, #f7f3ec 56%, #f2eee5 100%);
+      }
+
+      /* Tabs row (Meal Plan / Recipes / Journaling) */
+      .companion-shell .companion-head {
+        justify-content: center; gap: 18px;
+        background: rgba(255, 253, 250, 0.78);
+        border-bottom: 1px solid #e3dacd; padding: 12px 22px;
+      }
+      .companion-shell .companion-mode-tabs {
+        background: #f4f0e8; border: 1px solid #e3dacd; border-radius: 18px;
+        padding: 5px; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .companion-shell .companion-mode-tab {
+        border-radius: 14px; padding: 11px 16px; font-size: 15px; font-weight: 700; color: #5b6b62;
+      }
+      .companion-shell .companion-mode-tab.is-active {
+        background: #fffdfa; color: #273a32; box-shadow: 0 6px 14px rgba(24, 55, 39, 0.07);
+      }
+      .companion-shell .companion-mode-tab.is-active svg { stroke: #264f45; }
+      .companion-shell .companion-greeting { color: #56685f; font-weight: 700; font-size: 15px; }
+
+      /* Weekly / Today sub-tabs */
+      .companion-shell .companion-subtabs {
+        gap: 10px; background: rgba(255, 253, 250, 0.72);
+        border-bottom: 1px solid #e3dacd; padding: 12px 22px;
+      }
+      .companion-shell .companion-subtab {
+        padding: 11px 16px; border-radius: 13px; font-weight: 800; color: #5b6b62; border: 1px solid transparent;
+      }
+      .companion-shell .companion-subtab.is-active {
+        background: #f5f1e9; border-color: #e3dacd; color: #273a32; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+
+      /* Centered content shell */
+      .companion-shell .companion-scroll {
+        max-width: 1220px; width: 100%; margin: 0 auto; padding: 28px 22px 30px;
+      }
+
+      /* Serif headings */
+      .companion-shell .companion-intro-title {
+        font-family: Georgia, "Times New Roman", serif;
+        color: #173a32; font-size: clamp(28px, 3.4vw, 46px);
+        line-height: 1.05; letter-spacing: -0.6px; margin: 0 0 6px;
+      }
+      .companion-shell .companion-intro-body { color: #63736a; font-size: 16px; line-height: 1.6; }
+
+      /* Cards */
+      .companion-shell .companion-day-card,
+      .companion-shell .companion-today-card,
+      .companion-shell .companion-empty-card,
+      .companion-shell .companion-uploaded {
+        border: 1px solid #e3dacd; border-radius: 20px; background: #fbf8f1;
+        box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .companion-shell .companion-day-head {
+        background: #e9f0ea; color: #264f45; font-weight: 900;
+        text-transform: uppercase; letter-spacing: 0.03em; border-bottom: 1px solid #e3dacd;
+      }
+      .companion-shell .companion-meal-slot,
+      .companion-shell .companion-today-slot {
+        color: #c69255; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;
+      }
+      .companion-shell .companion-meal-name,
+      .companion-shell .companion-today-meal { color: #27392f; font-weight: 700; }
+
+      /* Green primary buttons */
+      .companion-shell .companion-primary,
+      .companion-shell .companion-send {
+        background: #264f45; color: #fff; border: none; border-radius: 16px;
+        box-shadow: 0 10px 24px rgba(23, 58, 50, 0.18); font-weight: 800;
+      }
+      .companion-shell .companion-primary:hover,
+      .companion-shell .companion-send:hover { background: #173a32; }
+
+      /* Inputs → soft input-wrap look */
+      .companion-shell .companion-voice-field .vf-input,
+      .companion-shell .companion-input-row {
+        border: 1px solid #e3dacd; border-radius: 17px; background: #fbf8f1;
+      }
+      .companion-shell .companion-voice-field .vf-input:focus-within,
+      .companion-shell .companion-input-row:focus-within {
+        border-color: rgba(38, 79, 69, 0.4); box-shadow: 0 0 0 4px rgba(38, 79, 69, 0.08); background: #fffdf9;
+      }
+      .companion-shell .vf-mic, .companion-shell .companion-icon-btn { color: #264f45; }
+
+      /* Footer note */
+      .companion-hint {
+        background: rgba(255, 253, 250, 0.96); border-top: 1px solid #e3dacd;
+        color: #65736b; text-align: center; font-size: 13px; padding: 13px 18px; margin: 0;
+      }
+
+      /* ---- Weekly build form: hero eyebrow + form-card + aside (matches mock) ---- */
+      .mgmp-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+        padding: 8px 12px; border-radius: 999px; background: #e9f0ea; color: #264f45;
+        font-size: 13px; font-weight: 800; margin-bottom: 4px;
+      }
+      .mgmp-grid {
+        display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 22px; align-items: start;
+      }
+      .mgmp-formcard, .mgmp-card {
+        background: #fffdfa; border: 1px solid #e3dacd; border-radius: 24px;
+        box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+      }
+      .mgmp-formcard { padding: 22px; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+      .mgmp-formhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+      .mgmp-formhead h3 { margin: 0; font-size: 20px; color: #243a31; }
+      .mgmp-formhead p { margin: 6px 0 0; color: #63736a; font-size: 14px; line-height: 1.5; }
+      .mgmp-badge {
+        display: inline-flex; align-items: center; gap: 7px; flex: 0 0 auto;
+        background: #f4efe7; border: 1px solid #e3dacd; color: #264f45;
+        border-radius: 999px; padding: 9px 12px; font-size: 13px; font-weight: 800; white-space: nowrap;
+      }
+      .mgmp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+      .mgmp-chip {
+        border: 1px solid #e3dacd; background: #fffdfa; color: #52655c;
+        border-radius: 999px; padding: 8px 11px; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer;
+      }
+      .mgmp-chip:hover { background: #f2eee5; }
+      .mgmp-aside { display: grid; gap: 16px; align-content: start; }
+      .mgmp-card { padding: 20px; }
+      .mgmp-card h4 { margin: 0 0 10px; color: #243a31; font-size: 18px; }
+      .mgmp-card > p { margin: 0; color: #63736a; font-size: 14px; line-height: 1.55; }
+      .mgmp-steps { display: grid; gap: 12px; margin-top: 14px; }
+      .mgmp-step { display: flex; gap: 10px; align-items: flex-start; color: #465a51; font-size: 14px; line-height: 1.45; }
+      .mgmp-num {
+        width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; flex: 0 0 auto;
+        background: #e9f0ea; color: #264f45; font-size: 12px; font-weight: 900;
+      }
+      .mgmp-prefs { display: grid; gap: 10px; }
+      .mgmp-prefrow {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        padding: 11px 0; border-bottom: 1px solid #e3dacd; color: #465a51; font-size: 14px;
+      }
+      .mgmp-prefrow:last-child { border-bottom: none; }
+      .mgmp-prefrow strong { color: #243a31; }
+      @media (max-width: 1040px) { .mgmp-grid { grid-template-columns: 1fr; } }
+
+      /* ---- Hero cards for each tab (Meal Plan / Recipes / Journaling) ---- */
+      .companion-shell .mg-hero-card {
+        display: grid; grid-template-columns: minmax(0, 1fr) 270px; gap: 26px; align-items: center;
+        background: rgba(255, 253, 250, 0.78); border: 1px solid #e3dacd; border-radius: 30px;
+        padding: 30px; box-shadow: 0 10px 28px rgba(24, 55, 39, 0.08);
+        margin-bottom: 22px; overflow: hidden; position: relative;
+      }
+      .companion-shell .mg-hero-eyebrow {
+        display: inline-flex; align-items: center; gap: 8px;
+        padding: 8px 12px; border-radius: 999px; background: #e9f0ea; color: #264f45;
+        font-size: 13px; font-weight: 800; margin-bottom: 14px;
+      }
+      .companion-shell .mg-hero-copy h1 {
+        margin: 0; font-family: Georgia, "Times New Roman", serif; color: #173a32;
+        font-size: clamp(32px, 4vw, 50px); line-height: 1; letter-spacing: -0.8px;
+      }
+      .companion-shell .mg-hero-copy p { margin: 12px 0 0; color: #63736a; font-size: 16px; line-height: 1.6; max-width: 720px; }
+      .companion-shell .mg-hero-art { min-height: 150px; display: grid; place-items: center; }
+      .companion-shell .mg-hero-art svg { width: 100%; height: auto; max-width: 250px; }
+      @media (max-width: 1040px) {
+        .companion-shell .mg-hero-card { grid-template-columns: 1fr; padding: 24px; }
+        .companion-shell .mg-hero-art { display: none; }
+      }
+
+      /* ---- Whole-page scroll for the meal generator: one scroller on the
+         companion view (#companionRoot), instead of a cramped inner box.
+         Scoped to body:not(.plant-chat-open) so the chat view is untouched. ---- */
+      @media (min-width: 769px) {
+        body:not(.plant-chat-open) #companionRoot { overflow-y: auto; overflow-x: hidden; }
+        body:not(.plant-chat-open) #companionRoot .companion-body,
+        body:not(.plant-chat-open) #companionRoot .companion-pane,
+        body:not(.plant-chat-open) #companionRoot .companion-scroll { overflow: visible; min-height: 0; }
+        body:not(.plant-chat-open) #companionRoot .companion-shell { flex: 0 0 auto; min-height: 100%; }
+      }
+    </style>
   </head>
-  <body>
+  <body class="sw-no-sidebar">
     <script src="js/shared.js"></script>
+    <script src="js/credits.js"></script>
     <header class="header">
       <button class="menu-btn">
         <svg
@@ -1673,41 +2906,59 @@
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
-        <div class="care-sidebar-title" data-i18n="carepath.yourPath">Your Care Path</div>
-        <a class="care-sidebar-item" href="partners.html" data-ga-event="cta_verified_providers">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <path d="M9 12l2 2 4-4"/>
-            <circle cx="12" cy="12" r="10"/>
-          </svg>
-          <span data-i18n="carepath.providers">Verified Wellness Providers</span>
-        </a>
-        <button type="button" class="care-sidebar-item" id="btnYogaSidebar">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <circle cx="12" cy="5" r="2"/>
-            <path d="M12 7v6"/>
-            <path d="M5 11l7-2 7 2"/>
-            <path d="M9 22l3-9 3 9"/>
-          </svg>
-          <span data-i18n="carepath.yoga">Practice Yoga with AI</span>
+        <button type="button" class="care-newchat" id="swNewChat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span data-i18n="carepath.newChat">New chat</span>
         </button>
-        <a class="care-sidebar-item" href="intake.html" data-ga-event="cta_take_assessment">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-            <rect x="9" y="3" width="6" height="4" rx="1"/>
-            <path d="M9 12l2 2 4-4"/>
-          </svg>
-          <span data-i18n="carepath.wellnessAssessment">Take Wellness Assessment</span>
-        </a>
-        <button type="button" class="care-sidebar-item" id="btnMeditation">
-          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
-            <circle cx="12" cy="12" r="3"/>
-            <circle cx="12" cy="12" r="6.5"/>
-            <circle cx="12" cy="12" r="10"/>
-          </svg>
-          <span data-i18n="carepath.meditation">AI Driven Meditation</span>
+        <div class="care-sidebar-title" data-i18n="carepath.chats">Chats</div>
+        <div class="care-chat-history" id="careChatHistory">
+          <div class="care-chat-empty" data-i18n="carepath.noChats">No chats yet.</div>
+        </div>
+        <button type="button" class="care-sidebar-clear" id="careSidebarClear" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          <span data-i18n="aria.chat.clear">Clear chat</span>
         </button>
       </aside>
       <div class="care-stage">
+      <!-- Post-login selection screen: 3 entry points, shown by default
+           (view=select). Yoga + Nutrition switch views in-shell; Chronic
+           goes to the Wellness Assessment. -->
+      <section class="sw-launcher" id="swLauncher" hidden>
+        <div class="sw-launcher-inner">
+          <h1 class="sw-launcher-title" data-i18n="launcher.title">Welcome to your wellness journey</h1>
+          <div class="sw-launch-grid">
+            <button type="button" class="sw-launch-card" id="swLaunchYoga">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v6"/><path d="M5 11l7-2 7 2"/><path d="M9 22l3-9 3 9"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.yoga.title">AI Yoga Tutor (Beta)</span>
+              <span class="sw-launch-desc" data-i18n="launcher.yoga.desc">Practice asanas with live AI form feedback.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchNutrition">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2c-2 3-2 6 0 8s2 5 0 8"/><path d="M5 12c3-2 6-2 8 0s5 2 8 0"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.nutrition.title">AI Nutritionist for Healthy Living</span>
+              <span class="sw-launch-desc" data-i18n="launcher.nutrition.desc">Ask Aria, your AI companion for healthy living, anything about plant-based nutrition and delicious plant-based recipes. Get personalized, adaptive meal plans and links to YouTube recipes, all in one place.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchChronic">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><path d="M3.5 12h4l2-4 4 8 2-4h4"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.chronic.title">Chronic Disease Management</span>
+              <span class="sw-launch-desc" data-i18n="launcher.chronic.desc">Get connected to verified and trusted holistic wellness providers to manage your chronic conditions effectively.</span>
+            </button>
+            <button type="button" class="sw-launch-card" id="swLaunchMeditation">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="6.5"/><circle cx="12" cy="12" r="10"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.meditation.title">AI Guided Meditation (Coming Soon)</span>
+              <span class="sw-launch-desc" data-i18n="launcher.meditation.desc">Follow a calming guided meditation video.</span>
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section class="care-head">
         <h1 style="margin: 0 0 0.6rem; font-size: 1.6rem; letter-spacing: 0.01em">
           Your Verified Healing Partners
@@ -1815,7 +3066,25 @@
 
       <!-- ── Stilwater Companion ──────────────────────────────────── -->
       <section class="companion-chat" id="companionRoot">
+        <!-- Stilwater AI Chat overlay — JS-mounted, opens by default on
+             care-path load. The 3-tab Stilwater Companion below appears
+             when the user clicks the sidebar toggle. -->
+        <div id="plantRecipesChat" class="plant-chat-overlay" hidden></div>
+        <!-- Close ✕ on the companion shell — only visible when the chat is
+             hidden. Clicking it switches back to the chat view. -->
+        <button type="button" id="companionBackToChat" class="companion-back-to-chat" aria-label="Back to Stilwater AI Chat">
+          <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
         <div class="companion-shell">
+          <!-- Meal-generator page header (back → Plant-Based Nutrition chat). -->
+          <header class="mg-topbar">
+            <button type="button" class="mg-back" id="mgBackBtn" aria-label="Back to Plant-Based Nutrition">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+              <span data-i18n="launcher.back">Back</span>
+            </button>
+            <span class="mg-title">Stilwater Meal Planner</span>
+            <span class="mg-eyebrow" aria-hidden="true">🌿 Aria</span>
+          </header>
           <header class="companion-head">
             <button type="button" class="care-menu-btn" id="careMenuBtn" aria-label="Open menu" aria-controls="careSidebar">
               <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" fill="none">
@@ -1824,9 +3093,6 @@
                 <line x1="3" y1="18" x2="21" y2="18"/>
               </svg>
             </button>
-            <div class="companion-mark" aria-hidden="true">
-              <svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 20A7 7 0 0 1 4 13H2a9 9 0 0 0 9 9v-2zM2 13h2C4 8.03 8.03 4 13 4V2C6.92 2 2 6.92 2 13z"/><path d="M19 6c-1.66 0-3 1.34-3 3 0 1.66 1.34 3 3 3s3-1.34 3-3c0-1.66-1.34-3-3-3z"/></svg>
-            </div>
             <nav class="companion-mode-tabs" id="companionModeTabs" role="tablist" aria-label="Aria mode"></nav>
             <span class="companion-greeting" id="companionGreeting" data-i18n="aria.greeting">Hi, Aria here</span>
           </header>
@@ -1841,6 +3107,10 @@
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
     <div class="modal-overlay" id="yogaIntroModal" hidden>
       <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
+        <button class="plant-chat-back yoga-intro-back" type="button" id="yogaIntroBack">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span data-i18n="launcher.back">Back</span>
+        </button>
         <button class="modal-close" type="button" id="yogaIntroClose" aria-label="Close">&times;</button>
         <section class="yoga-beta" style="margin-top: 0; border: none; padding: 0.25rem 0 0; background: none;">
           <div class="yoga-beta-head">
@@ -1853,22 +3123,22 @@
           <div class="yoga-pose-grid">
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Yoga Asanas with AI</strong>
+                <strong>Practice Tadasana</strong>
                 <span>(Tadasana &mdash; Mountain Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Try the AI Coach
+                Watch &amp; Learn
               </button>
             </div>
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Yoga Asanas with AI</strong>
+                <strong>Practice Balasana</strong>
                 <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                Try the AI Coach
+                Watch &amp; Learn
               </button>
             </div>
           </div>
@@ -1899,7 +3169,7 @@
             playsinline
             controls
             preload="metadata"
-            src="videos/Childs-Pose-Stretch2.mp4"
+            src="videos/Balasana.mp4"
           ></video>
           <div class="yoga-stage-caption">
             <strong>Balasana &mdash; Child&rsquo;s Pose</strong>
@@ -1936,28 +3206,6 @@
       </div>
     </div>
 
-    <!-- Tadasana avatar — static "Tap to talk" pill + LemonSlice widget (mounts when activated) -->
-    <button id="staticAvatarBtn" class="static-avatar-btn" type="button" hidden
-            aria-label="Tap to start a call with your AI yoga assistant">
-      <img src="images/yoga-avatar.jpg" alt="" class="static-avatar-img" />
-      <span class="static-avatar-label">
-        <span class="static-avatar-pulse"></span>
-        Tap to talk
-      </span>
-    </button>
-    <div id="lemonWidgetContainer" class="lemon-hidden">
-      <lemon-slice-widget
-        id="lemonSliceWidget"
-        agent-id="agent_77081533e48ba693"
-        custom-minimized-width="144"
-        custom-minimized-height="216"
-        custom-active-width="195"
-        custom-active-height="295"
-        show-minimize-button="true"
-        initial-state="active">
-      </lemon-slice-widget>
-    </div>
-
     <div class="modal-overlay yoga-modal-overlay" id="yogaModal" hidden>
       <div class="yoga-modal-card" id="yogaModalCard">
         <button type="button" class="yoga-back" id="yogaBack" aria-label="Back">
@@ -1980,7 +3228,7 @@
             playsinline
             controls
             preload="metadata"
-            src="videos/tadasana-guide.mp4"
+            src="videos/Tadasana.mp4"
           ></video>
           <div class="yoga-stage-caption">
             <strong>Tadasana &mdash; Mountain Pose</strong>
@@ -1995,11 +3243,7 @@
           <h3>What&rsquo;s next?</h3>
           <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
           <div class="yoga-choice-actions">
-            <button type="button" class="btn btn-solid yoga-choice-primary" id="yogaTalkAvatar">
-              Talk with the AI Agent
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.6 8.6 0 0 1-3.8-.9L3 21l1.9-5.2A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5z"/></svg>
-            </button>
-            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="yogaPracticeNow">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="yogaPracticeNow">
               Practice Now
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
@@ -2021,19 +3265,19 @@
       </div>
     </div>
 
-    <!-- AI Driven Meditation — opens stillwater-frontend.onrender.com inside an in-app modal -->
+    <!-- AI Driven Meditation — plays a local guided meditation video -->
     <div class="modal-overlay meditation-modal-overlay" id="meditationModal" hidden>
       <div class="meditation-modal-card" id="meditationModalCard" role="dialog" aria-modal="true" aria-label="AI Driven Meditation">
         <button type="button" class="modal-close" id="meditationModalClose" aria-label="Close">&times;</button>
-        <iframe
-          id="meditationFrame"
+        <video
+          id="meditationVideo"
           class="meditation-frame"
-          src="about:blank"
-          allow="autoplay; microphone; camera; clipboard-read; clipboard-write; fullscreen"
-          allowfullscreen
-          referrerpolicy="no-referrer-when-downgrade"
+          controls
+          playsinline
+          preload="metadata"
+          src="videos/MeditationForInnerPeace-YogaWithAdriene.mp4"
           title="AI Driven Meditation"
-        ></iframe>
+        ></video>
       </div>
     </div>
 
@@ -2063,10 +3307,34 @@
       const hasFlagInUrl =
         params.has("hasOther") || params.has("hasEye") || params.has("hasHolistic");
 
-      const applyFlags = ({ hasOther, hasEye, hasHolistic }) => {
+      // Cached on window so the companion chat (renderRecipes) can read
+      // the user's assessed conditions and tailor Aria's welcome greeting.
+      window.__swCareFlags = window.__swCareFlags || {};
+      // Whether the assessment flags have resolved. Default true (no submission
+      // → nothing to wait for). When a submission's flags are fetched async we
+      // flip this to false so the Chronic view waits (spinner) instead of
+      // flashing the assessment prompt before the partner page is known.
+      if (window.__swCareFlagsLoaded === undefined) window.__swCareFlagsLoaded = true;
+      const applyFlags = ({ hasOther, hasEye, hasHolistic, hasDiabetes, hasHypertension, hasDepression, hasAnxiety, hasSleep }) => {
         if (hasOther) document.getElementById("sharanReco").hidden = false;
         if (hasEye) document.getElementById("eyeReco").hidden = false;
         if (hasHolistic) document.getElementById("healyReco").hidden = false;
+        window.__swCareFlags = {
+          hasOther: !!hasOther,
+          hasEye: !!hasEye,
+          hasHolistic: !!hasHolistic,
+          hasDiabetes: !!hasDiabetes,
+          hasHypertension: !!hasHypertension,
+          hasDepression: !!hasDepression,
+          hasAnxiety: !!hasAnxiety,
+          hasSleep: !!hasSleep,
+        };
+        window.__swCareFlagsLoaded = true;
+        // The Stilwater AI Chat may have rendered its greeting BEFORE these
+        // flags arrived (default landing = chat open, flags fetched async).
+        // If the user hasn't sent anything yet, regenerate the greeting to
+        // match the condition + name we now know.
+        window.dispatchEvent(new CustomEvent("sw:flagsready"));
       };
 
       // Tag the Chat link (testimonials-*.html) so the testimonial AI page
@@ -2095,31 +3363,62 @@
           });
       }
 
+      // Read the granular condition flags carried in the URL (set by the
+      // intake redirect). Used as a fallback when the server fetch fails.
+      const flagsFromUrl = () => ({
+        hasOther: params.get("hasOther") === "1",
+        hasEye: params.get("hasEye") === "1",
+        hasHolistic: params.get("hasHolistic") === "1",
+        hasDiabetes: params.get("hasDiabetes") === "1",
+        hasHypertension: params.get("hasHypertension") === "1",
+        hasDepression: params.get("hasDepression") === "1",
+        hasAnxiety: params.get("hasAnxiety") === "1",
+        hasSleep: params.get("hasSleep") === "1",
+      });
+
       (async () => {
-        if (hasFlagInUrl) {
-          applyFlags({
-            hasOther: params.get("hasOther") === "1",
-            hasEye: params.get("hasEye") === "1",
-            hasHolistic: params.get("hasHolistic") === "1",
-          });
+        // When we have a submissionId, the server's saved flags are the
+        // authoritative, COMPLETE source. The intake redirect only carries a
+        // coarse `hasOther` roll-up in the URL, which is NOT enough for the
+        // partner routing (chronicPartnerPage needs the specific condition
+        // flags). So always fetch the server flags and show the spinner
+        // meanwhile; only fall back to URL flags if that fetch fails.
+        if (submissionId) {
+          window.__swCareFlagsLoaded = false;
+          try {
+            const res = await fetch(
+              `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
+              { credentials: "same-origin" },
+            );
+            if (res.ok) {
+              const data = await res.json();
+              applyFlags({
+                hasOther: Boolean(data.hasOther),
+                hasEye: Boolean(data.hasEye),
+                hasHolistic: Boolean(data.hasHolistic),
+                hasDiabetes: Boolean(data.hasDiabetes),
+                hasHypertension: Boolean(data.hasHypertension),
+                hasDepression: Boolean(data.hasDepression),
+                hasAnxiety: Boolean(data.hasAnxiety),
+                hasSleep: Boolean(data.hasSleep),
+              });
+              return;
+            }
+          } catch (_) {
+            // network error — fall through to the fallback below
+          }
+          // Fetch failed or non-OK → use the URL flags if present, else stop
+          // waiting and let the view fall back to the assessment prompt.
+          if (hasFlagInUrl) {
+            applyFlags(flagsFromUrl());
+            return;
+          }
+          window.__swCareFlagsLoaded = true;
+          window.dispatchEvent(new CustomEvent("sw:flagsready"));
           return;
         }
-        if (!submissionId) return;
-        try {
-          const res = await fetch(
-            `/api/intake-submissions/${encodeURIComponent(submissionId)}/flags`,
-            { credentials: "same-origin" },
-          );
-          if (!res.ok) return;
-          const data = await res.json();
-          applyFlags({
-            hasOther: Boolean(data.hasOther),
-            hasEye: Boolean(data.hasEye),
-            hasHolistic: Boolean(data.hasHolistic),
-          });
-        } catch (_) {
-          // network error — leave cards hidden; UI degrades gracefully
-        }
+        // No submission (legacy deep links) — URL flags are all we have.
+        if (hasFlagInUrl) applyFlags(flagsFromUrl());
       })();
 
       const SHARE_CONFIG = {
@@ -2251,8 +3550,11 @@
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
       (function () {
-        const POSE_APP_URL =
-          "https://static-tadasha-pose-detection-c3tk.onrender.com/";
+        // Tadasana practice surface. The "Watch & Learn" card uses the
+        // static detector (intro video → choice → practice + "Tap to talk"
+        // avatar).
+        const POSE_APP_URL_STATIC = "https://static-tadasha-pose-detection-c3tk.onrender.com/";
+        let activePoseUrl = POSE_APP_URL_STATIC;
 
         const openBtn = document.getElementById("yogaBetaOpen");
         const overlay = document.getElementById("yogaModal");
@@ -2269,77 +3571,13 @@
         const frame = document.getElementById("yogaFrame");
         const practiceBtn = document.getElementById("yogaPracticeNow");
         const restartBtn = document.getElementById("yogaRestart");
-        const talkAvatarBtn = document.getElementById("yogaTalkAvatar");
-
-        // LemonSlice avatar pieces
-        const avatarPill = document.getElementById("staticAvatarBtn");
-        const lemonContainer = document.getElementById("lemonWidgetContainer");
-        const lemonWidget = document.getElementById("lemonSliceWidget");
 
         if (!openBtn || !overlay) return;
 
         let currentStage = "video";
-        let agentActivated = false;
-
-        const showAvatarPill = (visible) => {
-          if (!avatarPill) return;
-          if (visible) {
-            avatarPill.hidden = false;
-            avatarPill.classList.remove("static-avatar-hidden");
-          } else {
-            avatarPill.hidden = true;
-          }
-        };
-
-        // Activate the LemonSlice agent — hides the pill, shows the widget,
-        // and tries to auto-start mic + unmute so the user goes straight into
-        // a call. Mirrors the reference repo's activateAgent().
-        const activateAgent = async () => {
-          if (agentActivated) return;
-          agentActivated = true;
-          if (avatarPill) {
-            avatarPill.classList.add("static-avatar-hidden");
-            setTimeout(() => { avatarPill.hidden = true; }, 350);
-          }
-          if (lemonContainer) lemonContainer.classList.remove("lemon-hidden");
-          if (!lemonWidget) return;
-          try {
-            let tries = 0;
-            while (typeof lemonWidget.micOn !== "function" && tries < 40) {
-              await new Promise((r) => setTimeout(r, 100));
-              tries++;
-            }
-            if (typeof lemonWidget.micOn === "function") {
-              await lemonWidget.micOn();
-            }
-            if (typeof lemonWidget.unmute === "function") {
-              await lemonWidget.unmute();
-            }
-          } catch (err) {
-            console.warn("Auto-start agent failed:", err);
-          }
-        };
-
-        // Tear the agent down when the modal closes so the widget doesn't
-        // keep rendering (or recording) on top of care-path. Tries every
-        // teardown method the widget might expose, then hides the container
-        // and resets the activation flag so the next open starts clean.
-        const teardownAgent = () => {
-          if (lemonWidget) {
-            ["endCall", "disconnect", "hangup", "stop", "micOff", "mute"].forEach((m) => {
-              try {
-                if (typeof lemonWidget[m] === "function") lemonWidget[m]();
-              } catch (_e) {}
-            });
-          }
-          if (lemonContainer) lemonContainer.classList.add("lemon-hidden");
-          agentActivated = false;
-        };
 
         // Video end / Skip both land on the choice stage where the user
-        // picks one of the three options (Talk with agent / Practice Now /
-        // Repeat Video). The avatar pill stays visible in the corner so
-        // they can also start the call from there at any time.
+        // picks Practice Now or Repeat Video.
         const handleVideoFinished = () => {
           showStage("choice");
         };
@@ -2363,14 +3601,6 @@
 
           // Skip only makes sense while the guide video is playing.
           skipBtn.hidden = which !== "video";
-
-          // Avatar pill shows on video + choice stages; hidden once the user
-          // is in the pose-detection iframe (avoids occluding the practice
-          // surface). If the agent was already activated, the widget is
-          // visible instead — leave it alone.
-          if (!agentActivated) {
-            showAvatarPill(which === "video" || which === "choice");
-          }
         };
 
         const openModal = () => {
@@ -2389,8 +3619,6 @@
           document.body.style.overflow = "";
           try { video.pause(); } catch (_e) {}
           frame.removeAttribute("src");
-          showAvatarPill(false);
-          teardownAgent();
         };
 
         const restartVideo = () => {
@@ -2403,7 +3631,7 @@
         };
 
         const launchPractice = () => {
-          frame.src = POSE_APP_URL;
+          frame.src = activePoseUrl;
           showStage("frame");
         };
 
@@ -2420,7 +3648,12 @@
           }
         };
 
-        openBtn.addEventListener("click", openModal);
+        openBtn.addEventListener("click", () => {
+          // Each Tadasana "Watch & Learn" costs 1 credit.
+          if (window.SwCredits) window.SwCredits.spend(1);
+          activePoseUrl = POSE_APP_URL_STATIC;
+          openModal();
+        });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -2431,8 +3664,6 @@
         video.addEventListener("ended", handleVideoFinished);
         restartBtn.addEventListener("click", restartVideo);
         practiceBtn.addEventListener("click", launchPractice);
-        if (talkAvatarBtn) talkAvatarBtn.addEventListener("click", activateAgent);
-        if (avatarPill) avatarPill.addEventListener("click", activateAgent);
 
         overlay.addEventListener("click", (event) => {
           if (event.target === overlay) closeModal();
@@ -2443,6 +3674,7 @@
       (function () {
         const modal = document.getElementById("yogaIntroModal");
         const close = document.getElementById("yogaIntroClose");
+        const backOptions = document.getElementById("yogaIntroBack");
         if (!modal) return;
         const open = () => { modal.hidden = false; };
         const hide = () => { modal.hidden = true; };
@@ -2451,7 +3683,13 @@
           document.getElementById("btnYogaSidebar"),
         ].forEach((btn) => btn && btn.addEventListener("click", open));
         if (close) close.addEventListener("click", hide);
-        modal.addEventListener("click", (e) => { if (e.target === modal) hide(); });
+        // Back to the 3-option selection screen.
+        if (backOptions) backOptions.addEventListener("click", () => {
+          hide();
+          if (window.__swPlantRecipes && window.__swPlantRecipes.showLauncher) window.__swPlantRecipes.showLauncher();
+        });
+        // Full-page view (not a popup): no backdrop-click-to-close — the user
+        // exits via the Back button.
       })();
 
       // ── Balasana — mirrors the Tadasana three-stage flow ─────────────
@@ -2536,7 +3774,11 @@
           }
         };
 
-        openBtn.addEventListener("click", openModal);
+        openBtn.addEventListener("click", () => {
+          // Each Balasana "Watch & Learn" costs 1 credit.
+          if (window.SwCredits) window.SwCredits.spend(1);
+          openModal();
+        });
         closeBtn.addEventListener("click", closeModal);
         backBtn.addEventListener("click", handleBack);
         backCarepathBtn.addEventListener("click", closeModal);
@@ -2553,31 +3795,37 @@
         });
       })();
 
-      // ── AI Driven Meditation -> in-app iframe modal ──────────────────
+      // ── AI Driven Meditation -> local video modal ────────────────────
       (function () {
-        const MEDITATION_URL = "https://stillwater-frontend.onrender.com/";
         const openBtn = document.getElementById("btnMeditation");
         const overlay = document.getElementById("meditationModal");
         const closeBtn = document.getElementById("meditationModalClose");
-        const frame = document.getElementById("meditationFrame");
-        if (!openBtn || !overlay || !frame) return;
+        const video = document.getElementById("meditationVideo");
+        if (!overlay || !video) return;
 
         let previousBodyOverflow = "";
         const open = () => {
-          // Load the URL on first open; reuse the loaded frame afterwards so
-          // the meditation session keeps its state if the user re-opens it.
-          if (frame.src !== MEDITATION_URL) frame.src = MEDITATION_URL;
           overlay.hidden = false;
           previousBodyOverflow = document.body.style.overflow;
           document.body.style.overflow = "hidden";
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_) {}
         };
         const close = () => {
           overlay.hidden = true;
           document.body.style.overflow = previousBodyOverflow;
+          try { video.pause(); } catch (_) {}
         };
 
-        openBtn.addEventListener("click", open);
-        closeBtn.addEventListener("click", close);
+        // The sidebar button was replaced by the launcher's "Practice
+        // Meditation" card, so expose open() for it (and keep the legacy
+        // button wired if present).
+        window.__swMeditation = { open: open, close: close };
+        if (openBtn) openBtn.addEventListener("click", open);
+        if (closeBtn) closeBtn.addEventListener("click", close);
         overlay.addEventListener("click", (e) => { if (e.target === overlay) close(); });
         document.addEventListener("keydown", (e) => {
           if (e.key === "Escape" && !overlay.hidden) close();
@@ -2722,6 +3970,10 @@
         }
         function savePersistedState() {
           try {
+            // Slim each per-mode chat to just the persistable fields — drop
+            // transients like the SpeechRecognition handle and the loading
+            // flag. The Aria chat itself is now persisted server-side
+            // (aria.chat_sessions), so it is intentionally NOT stored here.
             const slim = {
               mode: state.mode,
               messages: Array.isArray(state.messages) ? state.messages.slice(-50) : [],
@@ -2798,9 +4050,9 @@
           // Mode key -> GA event name. Tabs are dynamically rendered so we
           // tag them with data-ga-event for js/ga-events.js to pick up.
           const GA_TAB_EVENT = {
-            mealplan: "menu_meal_plan",
-            recipes: "menu_recipes",
-            journaling: "menu_journaling",
+            mealplan: "recipe_library_button_meal_plan",
+            recipes: "recipe_library_button_recipes",
+            journaling: "recipe_library_button_journaling",
           };
           Object.entries(MODES).forEach(([key, m]) => {
             const on = state.mode === key;
@@ -2812,6 +4064,11 @@
             if (GA_TAB_EVENT[key]) btn.setAttribute("data-ga-event", GA_TAB_EVENT[key]);
             btn.innerHTML = ico(m.icon) + '<span>' + escapeHtml(T(m.labelKey, key)) + '</span>';
             btn.addEventListener("click", () => {
+              // Clicking any tab closes the Plant-Based Recipes chat overlay
+              // and restores the 3-tab companion view.
+              if (window.__swPlantRecipes && typeof window.__swPlantRecipes.hide === "function") {
+                window.__swPlantRecipes.hide();
+              }
               if (state.mode === key) return;
               state.mode = key;
               renderMode();
@@ -2847,6 +4104,12 @@
 
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll";
+          scroll.appendChild(heroCard(
+            "📔",
+            T("aria.journal.eyebrow", "Daily journal"),
+            T("aria.journal.title2", "Journal your day"),
+            T("aria.journal.heroSub", "Log what you ate, how you moved, how you slept, and how you feel. Type or use the mic, set the time, and keep a simple running record.")
+          ));
           state.messages.forEach((msg) => scroll.appendChild(bubbleEl(msg)));
           pane.appendChild(scroll);
 
@@ -2893,6 +4156,7 @@
           camBtn.type = "button";
           camBtn.className = "companion-icon-btn";
           camBtn.setAttribute("aria-label", "Add photo");
+          camBtn.setAttribute("data-ga-event", "recipe_library_journaling_file_upload");
           camBtn.innerHTML = ico("camera");
           camBtn.addEventListener("click", () => fileInput.click());
           inputRow.appendChild(camBtn);
@@ -2901,6 +4165,7 @@
           micBtn.type = "button";
           micBtn.className = "companion-icon-btn" + (state.listening ? " is-listening" : "");
           micBtn.setAttribute("aria-label", "Voice input");
+          micBtn.setAttribute("data-ga-event", "recipe_library_journaling_audio_input");
           micBtn.innerHTML = ico("mic");
           micBtn.addEventListener("click", () => toggleVoiceJournal(textarea));
           inputRow.appendChild(micBtn);
@@ -2930,6 +4195,7 @@
           sendBtn.type = "button";
           sendBtn.className = "companion-send";
           sendBtn.setAttribute("aria-label", "Send");
+          sendBtn.setAttribute("data-ga-event", "recipe_library_journaling_send_chat");
           sendBtn.innerHTML = ico("send");
           sendBtn.addEventListener("click", sendJournal);
           inputRow.appendChild(sendBtn);
@@ -3086,14 +4352,15 @@
           const tabs = document.createElement("div");
           tabs.className = "companion-subtabs";
           [
-            ["weekly", "aria.mp.weekly.tab", "Weekly"],
-            ["today",  "aria.mp.today.tab",  "Today"],
-          ].forEach(([key, labelKey, fallback]) => {
+            ["weekly", "aria.mp.weekly.tab", "Weekly", "recipe_library_button_weekly"],
+            ["today",  "aria.mp.today.tab",  "Today",  "recipe_library_button_today"],
+          ].forEach(([key, labelKey, fallback, gaEvent]) => {
             const b = document.createElement("button");
             b.type = "button";
             b.className = "companion-subtab" + (state.mpView === key ? " is-active" : "");
             b.setAttribute("role", "tab");
             b.setAttribute("aria-selected", state.mpView === key ? "true" : "false");
+            b.setAttribute("data-ga-event", gaEvent);
             b.textContent = T(labelKey, fallback);
             b.addEventListener("click", () => {
               if (state.mpView === key) return;
@@ -3119,6 +4386,136 @@
             '<h2 class="companion-intro-title">' + escapeHtml(title) + '</h2>' +
             '<p class="companion-intro-body">' + escapeHtml(bodyText) + '</p>';
           return wrap;
+        }
+
+        // Reusable hero-card (eyebrow + serif title + subtitle + bowl art),
+        // matching meal_generator.html. Used at the top of each tab/section.
+        const MG_BOWL_SVG =
+          '<svg viewBox="0 0 200 140" xmlns="http://www.w3.org/2000/svg">' +
+            '<ellipse cx="120" cy="80" rx="78" ry="50" fill="#eaf0e3"/>' +
+            '<path d="M55 78 Q120 122 185 78 L172 100 Q120 130 68 100 Z" fill="#f1ead8" stroke="#cdc4ad" stroke-width="1.5"/>' +
+            '<ellipse cx="120" cy="78" rx="65" ry="10" fill="#e7decc" stroke="#cdc4ad" stroke-width="1.5"/>' +
+            '<path d="M85 70 q-8 -20 8 -34 q12 10 6 28 q-6 8 -14 6z" fill="#7ea27a"/>' +
+            '<path d="M105 64 q-10 -22 10 -36 q14 12 6 30 q-8 8 -16 6z" fill="#5f8a5f"/>' +
+            '<path d="M130 66 q-6 -18 14 -30 q10 12 2 26 q-8 6 -16 4z" fill="#88ad84"/>' +
+            '<circle cx="148" cy="78" r="10" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+            '<circle cx="148" cy="78" r="6" fill="#fff4c2"/>' +
+            '<circle cx="166" cy="86" r="7" fill="#f4d97c" stroke="#d6b85a" stroke-width="1.2"/>' +
+            '<circle cx="166" cy="86" r="4" fill="#fff4c2"/>' +
+          '</svg>';
+        function heroCard(eyebrowIcon, eyebrowText, title, subtitle) {
+          const card = document.createElement("div");
+          card.className = "mg-hero-card";
+          const copy = document.createElement("div");
+          copy.className = "mg-hero-copy";
+          copy.innerHTML =
+            '<div class="mg-hero-eyebrow">' + eyebrowIcon + ' ' + escapeHtml(eyebrowText) + '</div>' +
+            '<h1>' + escapeHtml(title) + '</h1>' +
+            (subtitle ? '<p>' + escapeHtml(subtitle) + '</p>' : '');
+          const art = document.createElement("div");
+          art.className = "mg-hero-art";
+          art.setAttribute("aria-hidden", "true");
+          art.innerHTML = MG_BOWL_SVG;
+          card.appendChild(copy);
+          card.appendChild(art);
+          return card;
+        }
+
+        // ── PDF export ──────────────────────────────────────────────────
+        // Lazy-load jsPDF (UMD) from CDN on first use; resolves the ctor.
+        let _jsPdfPromise = null;
+        function ensureJsPdf() {
+          if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+          if (_jsPdfPromise) return _jsPdfPromise;
+          _jsPdfPromise = new Promise((resolve, reject) => {
+            const s = document.createElement("script");
+            s.src = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+            s.onload = () => (window.jspdf && window.jspdf.jsPDF) ? resolve(window.jspdf.jsPDF) : reject(new Error("jsPDF missing"));
+            s.onerror = () => reject(new Error("jsPDF load failed"));
+            document.head.appendChild(s);
+          });
+          return _jsPdfPromise;
+        }
+        function ytSearchUrl(dish) {
+          return "https://www.youtube.com/results?search_query=" + encodeURIComponent(dish + " vegan recipe");
+        }
+        // jsPDF core fonts are Latin-1 only; drop anything outside that range
+        // so non-English meal/video names don't render as garbage.
+        function pdfSafe(s) { return String(s == null ? "" : s).replace(/[^\x20-\x7E]/g, "").trim(); }
+        const PDF_DISCLAIMER = "Aria offers lifestyle guidance and does not replace your doctor's advice.";
+
+        async function buildPlanPdf(opts) {
+          // opts: { title, meta, days: [{ name, meals: [{slot, dish}] }] }
+          const JsPDF = await ensureJsPdf();
+          const doc = new JsPDF({ unit: "pt", format: "a4" });
+          const pageH = doc.internal.pageSize.getHeight();
+          const left = 40, right = doc.internal.pageSize.getWidth() - 40;
+          let y = 54;
+          const pageBreak = (need) => { if (y + (need || 0) > pageH - 56) { doc.addPage(); y = 54; } };
+          doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.setTextColor(23, 58, 50);
+          doc.text(pdfSafe(opts.title), left, y); y += 22;
+          if (opts.meta) { doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.setTextColor(110); doc.text(pdfSafe(opts.meta), left, y); y += 18; }
+          (opts.days || []).forEach((day) => {
+            pageBreak(40);
+            doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(38, 79, 69);
+            doc.text(pdfSafe(day.name), left, y); y += 16;
+            (day.meals || []).forEach((m) => {
+              pageBreak(16);
+              doc.setFont("helvetica", "normal"); doc.setFontSize(10.5); doc.setTextColor(40);
+              doc.text(pdfSafe(m.slot.toUpperCase() + ":  " + m.dish), left + 8, y);
+              doc.setTextColor(38, 79, 69);
+              doc.textWithLink("Watch videos", right - 78, y, { url: ytSearchUrl(m.dish) });
+              y += 15;
+            });
+            y += 8;
+          });
+          doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(120);
+          doc.text(PDF_DISCLAIMER, left, pageH - 30);
+          return doc;
+        }
+
+        async function downloadWeeklyPdf() {
+          if (!state.weeklyPlan) return;
+          const days = WEEK_DAYS.map((d) => ({
+            name: d,
+            // weeklyPlan[day][slot] IS the meal value (string or {en,hi}) —
+            // unlike todayPlan[slot].meal. Match the on-screen render.
+            meals: MEAL_SLOTS
+              .map((slot) => ({ slot, dish: mealEnglish(state.weeklyPlan[d] && state.weeklyPlan[d][slot]) || "" }))
+              .filter((m) => m.dish),
+          }));
+          try { (await buildPlanPdf({ title: "Stilwater Weekly Plan", meta: state.weeklyMeta || "", days })).save("stilwater-weekly-plan.pdf"); }
+          catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
+        }
+
+        async function downloadTodayPdf() {
+          if (!state.todayPlan) return;
+          const meals = MEAL_SLOTS
+            .map((slot) => ({ slot, dish: mealEnglish(state.todayPlan[slot] && state.todayPlan[slot].meal) || "" }))
+            .filter((m) => m.dish);
+          try { (await buildPlanPdf({ title: "Stilwater Today's Plan", meta: state.todayMeta || "", days: [{ name: "Today", meals }] })).save("stilwater-today-plan.pdf"); }
+          catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
+        }
+
+        async function downloadRecipePdf(dish, videos) {
+          try {
+            const JsPDF = await ensureJsPdf();
+            const doc = new JsPDF({ unit: "pt", format: "a4" });
+            const left = 40, right = doc.internal.pageSize.getWidth() - 40;
+            let y = 54;
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.setTextColor(23, 58, 50);
+            doc.text(pdfSafe("Recipe videos — " + dish), left, y); y += 26;
+            doc.setFont("helvetica", "normal"); doc.setFontSize(11);
+            (videos || []).forEach((v, i) => {
+              doc.setTextColor(40);
+              doc.text(pdfSafe((i + 1) + ". " + (v.title || dish)).slice(0, 90), left, y);
+              doc.setTextColor(38, 79, 69);
+              doc.textWithLink("Open", right - 36, y, { url: v.url });
+              y += 20;
+            });
+            const slug = String(dish || "recipe").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "recipe";
+            doc.save("stilwater-recipe-" + slug + ".pdf");
+          } catch (_e) { alert(T("aria.mp.pdfError", "Couldn't generate the PDF — please check your connection and try again.")); }
         }
 
         function choiceCard(opts) {
@@ -3317,43 +4714,138 @@
           wrap.style.gap = "16px";
 
           if (!state.weeklyPlan) {
-            wrap.appendChild(backRow(T("aria.mp.weekly.title", "Stilwater weekly plan")));
-            const note = document.createElement("p");
-            note.className = "companion-intro-body";
-            note.style.marginTop = "-6px";
-            note.textContent = T("aria.mp.weekly.hint", "Tell us what you like and what to skip. Tap the mic to speak, or just type.");
-            wrap.appendChild(note);
-            wrap.appendChild(voiceField({
+            // Header block: title + subtitle on the left, decorative bowl
+            // illustration on the right (purely cosmetic — matches the new
+            // mock; no behavior change).
+            // Hero card (eyebrow + serif title + subtitle + bowl art).
+            wrap.appendChild(heroCard(
+              "🌿",
+              T("aria.mp.eyebrow", "Personalized nutrition planner"),
+              T("aria.mp.weekly.title", "Stilwater weekly plan"),
+              T("aria.mp.weekly.hint", "Tell Aria your preferred cuisines, foods you love, and foods you want to avoid. Your weekly meal plan will be shaped around your taste, lifestyle, and wellness goals.")
+            ));
+
+            // Two columns: build form-card (left) + info aside (right).
+            const grid = document.createElement("div");
+            grid.className = "mgmp-grid";
+
+            const formCard = document.createElement("div");
+            formCard.className = "mgmp-formcard";
+            const fhead = document.createElement("div");
+            fhead.className = "mgmp-formhead";
+            fhead.innerHTML =
+              '<div><h3>' + escapeHtml(T("aria.mp.buildTitle", "Build your weekly meal plan")) + '</h3>' +
+              '<p>' + escapeHtml(T("aria.mp.buildHint", "Use short phrases or tap the mic for voice input. Clean, simple, and no spreadsheet trauma.")) + '</p></div>' +
+              '<span class="mgmp-badge">⚡ ' + escapeHtml(T("aria.mp.weeklyMode", "Weekly mode")) + '</span>';
+            formCard.appendChild(fhead);
+
+            // A voice field plus quick-chips that append to that same field.
+            const fieldWithChips = (opts, chips) => {
+              const holder = document.createElement("div");
+              holder.appendChild(voiceField(opts));
+              if (chips && chips.length) {
+                const cw = document.createElement("div");
+                cw.className = "mgmp-chips";
+                chips.forEach((c) => {
+                  const b = document.createElement("button");
+                  b.type = "button";
+                  b.className = "mgmp-chip";
+                  b.textContent = c;
+                  b.addEventListener("click", () => {
+                    const cur = state[opts.field] || "";
+                    state[opts.field] = cur ? (cur.replace(/\s*$/, "") + ", " + c) : c;
+                    renderMode();
+                  });
+                  cw.appendChild(b);
+                });
+                holder.appendChild(cw);
+              }
+              return holder;
+            };
+
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.cuisinesLabel", "Cuisines you prefer"), value: state.cuisine, field: "cuisine",
               placeholder: T("aria.mp.cuisinesPlaceholder", "e.g. Mediterranean, South Indian, Japanese"),
               onChange: (v) => { state.cuisine = v; },
-            }));
-            wrap.appendChild(voiceField({
+            }, [T("aria.mp.chipSouthIndian", "South Indian"), T("aria.mp.chipMediterranean", "Mediterranean"), T("aria.mp.chipHighProtein", "High protein")]));
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.likeLabel", "Food I like to eat"), value: state.like || "", field: "like",
               placeholder: T("aria.mp.likePlaceholder", "e.g. dal, paneer-free curries, oats, fruits"),
               onChange: (v) => { state.like = v; },
-            }));
-            wrap.appendChild(voiceField({
+            }, [T("aria.mp.chipDal", "Dal"), T("aria.mp.chipOats", "Oats"), T("aria.mp.chipSeasonalFruits", "Seasonal fruits")]));
+            formCard.appendChild(fieldWithChips({
               label: T("aria.mp.avoidLabel", "Food I don't like to eat"), value: state.avoid, field: "avoid",
               placeholder: T("aria.mp.avoidPlaceholder", "e.g. peanuts, mushrooms, bitter gourd"),
               onChange: (v) => { state.avoid = v; },
-            }));
+            }, [T("aria.mp.chipPeanuts", "Peanuts"), T("aria.mp.chipMushrooms", "Mushrooms"), T("aria.mp.chipTooSpicy", "Too spicy")]));
+
             const weeklyBtn = primaryBtn(
               state.generatingWeekly ? T("aria.mp.generating", "Generating…") : T("aria.mp.generateBtn", "Generate weekly plan"),
               state.generatingWeekly ? null : "sparkles",
               () => generateWeekly(),
               state.generatingWeekly,
             );
-            weeklyBtn.setAttribute("data-ga-event", "btn_generate_weekly_plan");
-            wrap.appendChild(weeklyBtn);
+            weeklyBtn.setAttribute("data-ga-event", "recipe_library_button_generate_meal_plan");
+            formCard.appendChild(weeklyBtn);
             if (state.weeklyError) {
               const err = document.createElement("div");
               err.className = "companion-upload-error";
               err.textContent = state.weeklyError;
-              wrap.appendChild(err);
+              formCard.appendChild(err);
             }
+            grid.appendChild(formCard);
+
+            // Info aside: "How Aria uses this" + "Current settings".
+            const aside = document.createElement("aside");
+            aside.className = "mgmp-aside";
+            const howCard = document.createElement("div");
+            howCard.className = "mgmp-card";
+            const steps = [
+              T("aria.mp.step1", "Pick your preferred cuisines."),
+              T("aria.mp.step2", "Add foods you enjoy regularly."),
+              T("aria.mp.step3", "List foods to skip or avoid."),
+              T("aria.mp.step4", "Generate a weekly plan you can review."),
+            ];
+            howCard.innerHTML =
+              '<h4>' + escapeHtml(T("aria.mp.howTitle", "How Aria uses this")) + '</h4>' +
+              '<p>' + escapeHtml(T("aria.mp.howBody", "Your preferences help Aria suggest meals that feel practical, familiar, and easier to follow.")) + '</p>' +
+              '<div class="mgmp-steps">' +
+                steps.map((s, i) => '<div class="mgmp-step"><span class="mgmp-num">' + (i + 1) + '</span><span>' + escapeHtml(s) + '</span></div>').join("") +
+              '</div>';
+            aside.appendChild(howCard);
+
+            const setCard = document.createElement("div");
+            setCard.className = "mgmp-card";
+            const prefs = [
+              [T("aria.mp.prefPlan", "Plan type"), T("aria.mp.weekly.tab", "Weekly")],
+              [T("aria.mp.prefAssistant", "Assistant"), "Aria"],
+              [T("aria.mp.prefInput", "Input mode"), T("aria.mp.prefVoiceText", "Voice + Text")],
+              [T("aria.mp.prefFocus", "Focus"), T("aria.mp.prefLifestyle", "Lifestyle")],
+            ];
+            setCard.innerHTML =
+              '<h4>' + escapeHtml(T("aria.mp.settingsTitle", "Current settings")) + '</h4>' +
+              '<div class="mgmp-prefs">' +
+                prefs.map((p) => '<div class="mgmp-prefrow"><span>' + escapeHtml(p[0]) + '</span><strong>' + escapeHtml(p[1]) + '</strong></div>').join("") +
+              '</div>';
+            aside.appendChild(setCard);
+            grid.appendChild(aside);
+
+            wrap.appendChild(grid);
+
+            // Safety note (matches Plant-Based Recipes chat footer)
+            const safety = document.createElement("div");
+            safety.className = "mp-safety-note";
+            safety.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+              '<span>' + escapeHtml(T("aria.mp.safetyNote", "Aria offers lifestyle guidance and does not replace your doctor’s advice.")) + '</span>';
+            wrap.appendChild(safety);
           } else {
-            wrap.appendChild(backRow(T("aria.mp.yourWeekly", "Your weekly plan")));
+            wrap.appendChild(heroCard(
+              "🌿",
+              T("aria.mp.eyebrow", "Personalized nutrition planner"),
+              T("aria.mp.yourWeekly", "Your weekly plan"),
+              T("aria.mp.weeklyResultSub", "Your personalized week of plant-based meals. Tap a meal for cooking videos, or edit your preferences.")
+            ));
             const row = document.createElement("div");
             row.className = "companion-row";
             row.style.marginTop = "-6px";
@@ -3361,8 +4853,16 @@
             const edit = document.createElement("button");
             edit.type = "button";
             edit.className = "companion-edit-btn";
+            edit.setAttribute("data-ga-event", "recipe_library_button_edit_prefs");
             edit.textContent = T("aria.mp.editPrefs", "Edit prefs");
             edit.addEventListener("click", () => { state.weeklyPlan = null; state.todayPlan = null; state.todayMeta = ""; renderMode(); });
+            const dl = document.createElement("button");
+            dl.type = "button";
+            dl.className = "companion-edit-btn";
+            dl.setAttribute("data-ga-event", "recipe_library_button_download_weekly_pdf");
+            dl.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+            dl.addEventListener("click", () => downloadWeeklyPdf());
+            row.appendChild(dl);
             row.appendChild(edit);
             wrap.appendChild(row);
             WEEK_DAYS.forEach((day) => {
@@ -3378,7 +4878,7 @@
                 mr.innerHTML =
                   '<span class="companion-meal-slot">' + escapeHtml(T("slot." + slot, slot)) + '</span>' +
                   '<span class="companion-meal-name">' + escapeHtml(mealText(mealVal)) + '</span>' +
-                  '<button type="button" class="companion-meal-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' + ico("youtube") + '</button>';
+                  '<button type="button" class="companion-meal-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' + ico("youtube") + '</button>';
                 meals.appendChild(mr);
                 // The button is inert until clicked — only then do we hit
                 // the recipes endpoint (count=3) and pop the modal.
@@ -3434,7 +4934,12 @@
           wrap.style.gap = "16px";
 
           if (!hasPlan()) {
-            wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
+            wrap.appendChild(heroCard(
+            "🌿",
+            T("aria.mp.eyebrow", "Personalized nutrition planner"),
+            T("aria.mp.today.title", "Today's plan"),
+            T("aria.mp.today.heroSub", "Today's meals, shaped from your weekly plan and yesterday's journal.")
+          ));
             const empty = document.createElement("div");
             empty.className = "companion-empty-card";
             empty.innerHTML =
@@ -3467,13 +4972,25 @@
             state.todayMeta = "Today's plan · " + day + ", from your Stilwater weekly plan";
           }
 
-          wrap.appendChild(backRow(T("aria.mp.today.title", "Today's plan")));
+          wrap.appendChild(heroCard(
+            "🌿",
+            T("aria.mp.eyebrow", "Personalized nutrition planner"),
+            T("aria.mp.today.title", "Today's plan"),
+            T("aria.mp.today.heroSub", "Today's meals, shaped from your weekly plan and yesterday's journal.")
+          ));
           if (state.todayPlan) {
-            const meta = document.createElement("div");
-            meta.className = "companion-meta";
-            meta.style.marginTop = "-6px";
-            meta.textContent = state.todayMeta;
-            wrap.appendChild(meta);
+            const todayRow = document.createElement("div");
+            todayRow.className = "companion-row";
+            todayRow.style.marginTop = "-6px";
+            todayRow.innerHTML = '<div class="companion-meta">' + escapeHtml(state.todayMeta) + '</div>';
+            const dlToday = document.createElement("button");
+            dlToday.type = "button";
+            dlToday.className = "companion-edit-btn";
+            dlToday.setAttribute("data-ga-event", "recipe_library_button_download_today_pdf");
+            dlToday.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+            dlToday.addEventListener("click", () => downloadTodayPdf());
+            todayRow.appendChild(dlToday);
+            wrap.appendChild(todayRow);
             MEAL_SLOTS.forEach((slot) => {
               const card = document.createElement("div");
               card.className = "companion-today-card";
@@ -3483,7 +5000,7 @@
                   '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                   '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
                 '</div>' +
-                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                '<button type="button" class="companion-today-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
                   ico("youtube") +
                 '</button>';
               wrap.appendChild(card);
@@ -3654,6 +5171,16 @@
           const title = document.createElement("h3");
           title.textContent = T("aria.recipes.popupTitle", "Recipe videos for") + " " + (displayName || "");
           header.appendChild(title);
+          let lastRecipeVideos = [];
+          const dlRecipe = document.createElement("button");
+          dlRecipe.type = "button";
+          dlRecipe.className = "companion-edit-btn";
+          dlRecipe.style.marginLeft = "auto";
+          dlRecipe.textContent = "⬇ " + T("aria.mp.downloadPdf", "Download PDF");
+          dlRecipe.addEventListener("click", () => {
+            if (lastRecipeVideos.length) downloadRecipePdf(displayName || dishEn || "Recipe", lastRecipeVideos);
+          });
+          header.appendChild(dlRecipe);
           const closeBtn = document.createElement("button");
           closeBtn.type = "button";
           closeBtn.className = "companion-recipe-modal-close";
@@ -3686,6 +5213,7 @@
             body.appendChild(s);
           };
           const renderVideos = (videos) => {
+            lastRecipeVideos = Array.isArray(videos) ? videos : [];
             body.innerHTML = "";
             videos.forEach((v, i) => {
               const a = document.createElement("a");
@@ -3726,7 +5254,7 @@
             .catch(() => setState(T("aria.recipes.cantReach", "Couldn't reach Aria right now.")));
         }
 
-        // ---- RECIPES ----
+        // ---- RECIPES (original Recipes tab — search + meal cards) ----
         function renderRecipes() {
           // Auto-derive today's plan from the matching weekday if a weekly
           // plan exists but no today plan has been built yet — so Recipes
@@ -3750,16 +5278,21 @@
           const scroll = document.createElement("div");
           scroll.className = "companion-scroll flow";
 
-          const head = document.createElement("div");
-          head.innerHTML =
-            '<h2 class="companion-intro-title">' + escapeHtml(T("aria.recipes.title", "Recipes")) + '</h2>' +
-            '<p class="companion-intro-body">' +
-              escapeHtml(state.todayPlan
-                ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
-                : T("aria.recipes.searchIntro", "Search any dish — Aria finds 3 plant-based cooking videos.")) +
-            '</p>' +
-            (state.todayPlan && state.todayMeta ? '<div class="companion-meta" style="margin-top:6px">' + escapeHtml(state.todayMeta) + '</div>' : '');
-          scroll.appendChild(head);
+          scroll.appendChild(heroCard(
+            "🍲",
+            T("aria.recipes.eyebrow", "Plant-based recipes"),
+            T("aria.recipes.title2", "Find a recipe"),
+            state.todayPlan
+              ? T("aria.recipes.intro.withPlan", "Tap a meal below for 3 cooking videos, or search any dish.")
+              : T("aria.recipes.heroSub", "Type any dish — or tap one from your generated weekly plan — and Aria gives you a simple whole-food, plant-based recipe, with a video to cook along to.")
+          ));
+          if (state.todayPlan && state.todayMeta) {
+            const recMeta = document.createElement("div");
+            recMeta.className = "companion-meta";
+            recMeta.style.marginTop = "-8px";
+            recMeta.textContent = state.todayMeta;
+            scroll.appendChild(recMeta);
+          }
 
           // Search row — typing a dish + Find opens the 3-video popup
           // (same agent used by the weekly-plan and today-plan buttons).
@@ -3781,7 +5314,7 @@
           const findBtn = document.createElement("button");
           findBtn.type = "button";
           findBtn.textContent = T("aria.recipes.find", "Find");
-          findBtn.setAttribute("data-ga-event", "btn_find_recipes");
+          findBtn.setAttribute("data-ga-event", "recipe_library_button_recipes_find");
           if (state.search.trim()) findBtn.classList.add("is-active");
           findBtn.addEventListener("click", runSearch);
           searchRow.appendChild(findBtn);
@@ -3806,7 +5339,7 @@
                   '<div class="companion-today-slot">' + escapeHtml(T("slot." + slot, slot)) + '</div>' +
                   '<div class="companion-today-meal">' + escapeHtml(mealText(entry.meal)) + '</div>' +
                 '</div>' +
-                '<button type="button" class="companion-today-yt" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
+                '<button type="button" class="companion-today-yt" data-ga-event="recipe_library_button_recipes_youtube_link" aria-label="Show 3 recipe videos" title="Show 3 recipe videos">' +
                   ico("youtube") +
                 '</button>';
               scroll.appendChild(card);
@@ -3825,6 +5358,1215 @@
           pane.appendChild(scroll);
           return pane;
         }
+
+        // ---- STILWATER AI CHAT (overlay opened from sidebar) ----
+        // Real LLM chat backed by /api/stilwater/chat (OpenRouter,
+        // model openai/gpt-oss-120b by default). Greeting + 3 starter
+        // suggestion chips are tuned to the user's wellness-assessment
+        // condition (diabetes / eye / hypertension / general).
+        // Hydrates the recipeChat from persisted state (if any) and tops up
+        // every field so a partially-restored object can't blow up the
+        // render. Always resets transient flags (loading, pending attachment).
+        // Separate saved chat history PER mode so Nutrition, the
+        // condition-tuned Chronic chat, and the general Aria chat never mix.
+        // Each is persisted under state.chatHistories[mode]; `recipeChat`
+        // points at the active mode's object (reassigned on mode switch).
+        function _normalizeChat(base) {
+          base = base || {};
+          if (!Array.isArray(base.messages)) base.messages = [];
+          if (typeof base.greetingApplied !== "boolean") base.greetingApplied = false;
+          if (typeof base.draft !== "string") base.draft = "";
+          if (typeof base.lastPrompt !== "string") base.lastPrompt = "";
+          if (typeof base.lastModel !== "string") base.lastModel = "";
+          base.loading = false;
+          base.pendingAttachment = null;
+          return base;
+        }
+        // Chat history is now SERVER-side (aria.chat_sessions). The active chat
+        // is a single in-memory object; each login/visit starts a new chat and
+        // past chats live in the left sidebar. `currentSessionId` is the server
+        // row backing the active chat (null until the first message is saved).
+        let recipeChat = _normalizeChat(null);
+        let currentSessionId = null;
+        // The chat mode the recipes companion ("Explore Plant-Based Recipes")
+        // was opened from, so its back button returns there (not wherever
+        // chatMode happens to be).
+        let companionReturnMode = null;
+
+        // Chat mode: "general" = the condition-tuned Aria chat
+        // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
+        // (/api/nutrition/chat). Set by the launcher's Nutrition card.
+        let chatMode = "general";
+
+        function activeCondition() {
+          const f = window.__swCareFlags || {};
+          if (f.hasDiabetes) return "diabetes";
+          if (f.hasEye) return "eye";
+          if (f.hasHypertension) return "hypertension";
+          return "general";
+        }
+
+        // Chronic Disease Management routes to a partner page based on the
+        // assessment conditions. Priority: Sharan → Sleep → Yoga → Eyesight.
+        // Returns null when no condition matches (→ keep the chat).
+        function chronicPartnerPage() {
+          const f = window.__swCareFlags || {};
+          const active = [f.hasDiabetes, f.hasHypertension, f.hasDepression, f.hasAnxiety, f.hasSleep, f.hasEye]
+            .filter(Boolean).length;
+          // ── Combinations (2+ conditions) ──
+          // Eyesight + anything else → combined Amar + Sharan page.
+          if (f.hasEye && active >= 2) return "recommend_amar_sharan.html";
+          // Any other multi-condition combination (e.g. diabetes + anxiety) → SHARAN.
+          if (active >= 2) return "partner_sharan.html";
+          // ── Single condition ──
+          if (f.hasDiabetes || f.hasHypertension) return "partner_sharan.html";
+          if (f.hasSleep) return "recommend_stilwater_yoga_sharan.html";
+          if (f.hasDepression || f.hasAnxiety) return "stilwater_yoga.html";
+          if (f.hasEye) return "partner_amar.html";
+          return null;
+        }
+
+        // Pulls the logged-in user's first name out of the header's
+        // "Hi, [name]" pill that shared.js populates from /api/auth/me.
+        // Returns "" if not yet ready or not logged in.
+        function getUserFirstName() {
+          const label = document.querySelector("#authMenuButton .auth-btn-label");
+          const raw = (label && label.textContent || "").trim();
+          if (!raw) return "";
+          // raw is "Hi, Bikramjit Das" → drop the prefix and take first word.
+          const after = raw.replace(/^.*?,\s*/, "").trim();
+          const first = after.split(/\s+/)[0];
+          return first || "";
+        }
+
+        // Build the welcome message conditioned on the user's assessment.
+        // The greeting also personalises with the user's first name when
+        // available ("Hi Bikramjit, I'm Aria — ...").
+        function recipeChatGreeting() {
+          const c = activeCondition();
+          const name = getUserFirstName();
+          const hi = name ? "Hi " + name + ", " : "Hi, ";
+          if (chatMode === "nutrition") {
+            return hi + T("aria.chat.greetNutrition",
+              "I'm Aria, your AI companion for healthy living. Feel free to ask me anything about healthy living and plant-based recipes.");
+          }
+          if (c === "diabetes") {
+            return hi + T("aria.chat.greetDiabetes",
+              "I'm Aria. I know you're managing diabetes — what would you like to ask? I can share plant-based foods, mindful-eating tips, and gentle daily practices that help with blood sugar. Pick one of the starters below or type your own.");
+          }
+          if (c === "eye") {
+            return hi + T("aria.chat.greetEye",
+              "I'm Aria. I know eye health is on your mind — what would you like to ask? I can suggest plant-based foods, eye yoga, and screen-time habits that support your vision. Pick a starter or type your own question.");
+          }
+          if (c === "hypertension") {
+            return hi + T("aria.chat.greetHypertension",
+              "I'm Aria. I see blood pressure is on your radar — what would you like to ask? I can share heart-friendly plant foods, calming breathwork, and daily rhythms that help. Pick a starter or type your own.");
+          }
+          return hi + T("aria.chat.greetGeneral",
+            "I'm Aria — your Stilwater wellness companion. Ask me anything about plant-based eating, mindful living, yoga, or breathing — I'm here to help. Pick a starter below or type your own.");
+        }
+
+        // 3 starter-question chips per condition. Clicking one is equivalent
+        // to typing it and hitting Send.
+        function recipeChatStarters() {
+          const c = activeCondition();
+          if (chatMode === "nutrition") {
+            return [
+              T("aria.chat.startNutrition.1", "Can Type 2 Diabetes be reversed?"),
+              T("aria.chat.startNutrition.2", "Is animal food good for health?"),
+              T("aria.chat.startNutrition.3", "Suggest some good recipes for breakfast."),
+            ];
+          }
+          if (chatMode === "chronic") {
+            // Match the "Sample Questions" shown on the corresponding
+            // testimonials page (js/testimonials.js → SAMPLE_QUESTIONS_BY_DATASET):
+            //   diabetes → diabetes dataset, eye → amar_eye_yoga,
+            //   else (hypertension/general/skip) → holistic_wellness.
+            const hi = (typeof LANG === "function") && LANG() === "hi";
+            if (c === "diabetes") {
+              return hi ? [
+                "पौधा-आधारित आहार अपनाने के बाद जिन लोगों ने मधुमेह की दवाएं कम कीं, ऐसे प्रशंसापत्र दिखाएं",
+                "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+                "क्या टाइप 2 मधुमेह रिवर्स हो सकता है?",
+              ] : [
+                "Find testimonials where people reduced diabetes medicine after switching to plant-based diet",
+                "Give me testimonial of patient who reduced type 2 diabetes",
+                "Can type 2 diabetes be reversed?",
+              ];
+            }
+            if (c === "eye") {
+              return hi ? [
+                "अमर आई योग आने से पहले लोगों को किस तरह की आंखों की समस्याएं थीं?",
+                "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+                "ट्रेनिंग, वातावरण और सपोर्ट का उनके रिकवरी सफर पर क्या असर पड़ा?",
+              ] : [
+                "What kind of eye problems are people facing before coming to Amar Eye Yoga?",
+                "What improvements do people notice after following the eye exercises and treatment?",
+                "How does the overall experience (training, environment, support) impact their recovery journey?",
+              ];
+            }
+            return hi ? [
+              "टाइप 2 मधुमेह कम करने वाले मरीज का प्रशंसापत्र दिखाएं",
+              "आंखों के अभ्यास और उपचार के बाद लोगों ने क्या सुधार महसूस किया?",
+              "ऐसा एक प्रशंसापत्र दिखाएं जिसमें प्राकृतिक उपायों के बाद मापने योग्य सुधार हुआ हो।",
+            ] : [
+              "Give me testimonial of patient who reduced type 2 diabetes",
+              "What improvements do people notice after following the eye exercises and treatment?",
+              "Find one testimonial showing measurable improvements after natural healing steps.",
+            ];
+          }
+          if (c === "diabetes") {
+            return [
+              T("aria.chat.startDiabetes.1", "What plant-based foods help stabilize blood sugar?"),
+              T("aria.chat.startDiabetes.2", "How can I reduce sugar cravings naturally?"),
+              T("aria.chat.startDiabetes.3", "What's a simple morning routine for diabetes management?"),
+            ];
+          }
+          if (c === "eye") {
+            return [
+              T("aria.chat.startEye.1", "What plant-based foods support eye health?"),
+              T("aria.chat.startEye.2", "Are there yoga or eye exercises for tired eyes?"),
+              T("aria.chat.startEye.3", "How can I reduce eye strain from screens?"),
+            ];
+          }
+          if (c === "hypertension") {
+            return [
+              T("aria.chat.startHypertension.1", "What plant-based foods help lower blood pressure?"),
+              T("aria.chat.startHypertension.2", "Which breathing exercises calm the heart?"),
+              T("aria.chat.startHypertension.3", "How do I cut sodium without losing flavour?"),
+            ];
+          }
+          return [
+            T("aria.chat.startGeneral.1", "What's a simple plant-based meal I can try tonight?"),
+            T("aria.chat.startGeneral.2", "How do I start a daily mindfulness practice?"),
+            T("aria.chat.startGeneral.3", "What are some gentle yoga poses for stress?"),
+          ];
+        }
+
+        function renderPlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          host.innerHTML = "";
+
+          // ── Trusted-Partners embed state (chronic) ─────────────────────
+          // The chronic view embeds a partner page in an iframe. The header's
+          // "Trusted Partners" menu can swap it to any partner; each swap
+          // appends ?swback=<previous> so the partner page's in-page Back
+          // returns to wherever it was opened from.
+          let partnerFrame = null;
+          let partnerCurrentUrl = null;
+          function mountPartnerFrame(src) {
+            const frame = document.createElement("iframe");
+            frame.className = "pbn-partner-frame";
+            frame.src = src;
+            frame.title = T("carepath.chronic.partner", "Recommended for you");
+            frame.setAttribute("loading", "lazy");
+            const sizeFrame = () => {
+              try {
+                const d = frame.contentDocument || (frame.contentWindow && frame.contentWindow.document);
+                if (!d || !d.documentElement) return;
+                const h = Math.max(d.documentElement.scrollHeight, d.body ? d.body.scrollHeight : 0);
+                if (h > 0) frame.style.height = h + "px";
+              } catch (_) { /* cross-origin guard — keep CSS min-height */ }
+            };
+            frame.addEventListener("load", () => {
+              // Keep partnerCurrentUrl in sync with whatever the frame shows
+              // (covers in-page Back navigations too) so the next swback is right.
+              try {
+                const w = frame.contentWindow;
+                if (w && w.location) partnerCurrentUrl = (w.location.href.split("/").pop()) || partnerCurrentUrl;
+              } catch (_) {}
+              sizeFrame();
+              setTimeout(sizeFrame, 300);
+              setTimeout(sizeFrame, 1200);
+              try { if (frame.contentWindow) frame.contentWindow.addEventListener("resize", sizeFrame); } catch (_) {}
+            });
+            window.addEventListener("resize", sizeFrame);
+            partnerFrame = frame;
+            return frame;
+          }
+          // Open a partner page in the embedded view, recording the current
+          // page as its back-target (?swback) so the partner's Back returns here.
+          function openPartner(page) {
+            const base = partnerCurrentUrl || "";
+            const url = base ? page + "?swback=" + encodeURIComponent(base) : page;
+            if (partnerFrame) {
+              partnerFrame.src = url;
+            } else {
+              const main = document.querySelector(".pbn-main");
+              if (main) { main.innerHTML = ""; main.appendChild(mountPartnerFrame(url)); }
+            }
+            partnerCurrentUrl = url;
+          }
+
+          const header = document.createElement("div");
+          header.className = "plant-chat-header";
+
+          // Back to the 3-option selection screen (present on every chat view).
+          const backBtn = document.createElement("button");
+          backBtn.type = "button";
+          backBtn.className = "plant-chat-back";
+          backBtn.setAttribute("aria-label", T("launcher.back", "Back"));
+          backBtn.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>' +
+            '<span>' + escapeHtml(T("launcher.back", "Back")) + '</span>';
+          backBtn.addEventListener("click", () => { if (window.__swPlantRecipes) window.__swPlantRecipes.showLauncher(); });
+          // GA: the nutrition chat's Back is the tracked "AI Nutritionist Go Back".
+          if (chatMode === "nutrition") backBtn.setAttribute("data-ga-event", "ai_nutritionist_button_go_back");
+          header.appendChild(backBtn);
+
+          // Page title sits to the right of the Back button.
+          const headTitle = document.createElement("div");
+          headTitle.className = "plant-chat-title";
+          headTitle.textContent = chatMode === "nutrition"
+            ? T("launcher.nutrition.title", "AI Nutritionist for Healthy Living")
+            : (chatMode === "chronic"
+              ? T("launcher.chronic.title", "Chronic Disease Management")
+              : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
+          header.appendChild(headTitle);
+
+          // Action button beside the title (same functionality as before):
+          // Nutrition → Recipe Library (opens the companion); Chronic →
+          // Wellness Assessment.
+          if (chatMode === "nutrition") {
+            const actBtn = document.createElement("button");
+            actBtn.type = "button";
+            actBtn.className = "plant-chat-action";
+            actBtn.setAttribute("data-ga-event", "ai_nutritionist_button_recipe_library");
+            actBtn.textContent = "🍽 " + T("aria.recipes.libraryBtn", "Recipe Library");
+            actBtn.addEventListener("click", () => {
+              if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
+            });
+            header.appendChild(actBtn);
+          } else if (chatMode === "chronic") {
+            // Condition-aware recommendation chip (logo + name) beside the
+            // title. Condition comes from the assessment (activeCondition()).
+            // The chat backend already routes by condition server-side:
+            //   diabetes -> SHARAN (diabetes RAG), eye -> Amar Eye
+            //   (amar_eye_yoga RAG), else -> Holistic (holistic_wellness RAG).
+            const cond = activeCondition();
+            if (cond === "diabetes" || cond === "eye") {
+              // Recommendation badge only — NOT a link. The chronic chat
+              // already runs the matching testimonial-RAG pipeline server-side
+              // (diabetes → SHARAN dataset, eye → amar_eye_yoga dataset), so
+              // there's nothing to navigate to.
+              const isEye = cond === "eye";
+              const recoChip = document.createElement("div");
+              recoChip.className = "plant-chat-reco";
+              recoChip.innerHTML =
+                '<span class="plant-chat-reco-pre">' + escapeHtml(T("carepath.reco.recommending", "Recommending")) + '</span>' +
+                '<img src="' + (isEye ? "images/new_amar_eye_logo.png" : "images/new_Sharan_logo.png") + '" alt="" class="plant-chat-reco-logo" />' +
+                '<span>' + escapeHtml(isEye ? T("carepath.reco.amarEye", "Amar Eye Yoga") : T("carepath.reco.sharan", "SHARAN")) + '</span>';
+              header.appendChild(recoChip);
+            }
+            // (Removed the "Take Wellness Assessment" header chip for the
+            // skip / non-diabetes-eye case — the assessment-prompt page
+            // already has its own CTA, so no extra chip is needed here.)
+
+            // Trusted Partners dropdown — open any partner page (SHARAN /
+            // Healy / Amar Eye) in the embedded view. Lives in the header so
+            // it stays available across every partner page.
+            const partnersList = [
+              { name: T("carepath.partners.sharan", "SHARAN"), page: "partner_sharan.html", ga: "chronic_disease_management_trusted_providers_sharan" },
+              { name: T("carepath.partners.healy", "HEALY"), page: "partner_healy.html", ga: "chronic_disease_management_trusted_providers_healy" },
+              { name: T("carepath.partners.amar", "AMAR EYE YOGA"), page: "partner_amar.html", ga: "chronic_disease_management_trusted_providers_amar_eye" },
+            ];
+            const partnersWrap = document.createElement("div");
+            partnersWrap.className = "sw-partners";
+            const partnersBtn = document.createElement("button");
+            partnersBtn.type = "button";
+            partnersBtn.className = "sw-partners-btn";
+            partnersBtn.setAttribute("data-ga-event", "chronic_disease_management_trusted_providers");
+            partnersBtn.setAttribute("aria-haspopup", "true");
+            partnersBtn.setAttribute("aria-expanded", "false");
+            partnersBtn.innerHTML =
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>' +
+              '<span>' + escapeHtml(T("carepath.partners.title", "Other Trusted Providers")) + '</span>' +
+              '<svg class="sw-partners-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>';
+            const partnersMenu = document.createElement("div");
+            partnersMenu.className = "sw-partners-menu";
+            partnersMenu.hidden = true;
+            partnersList.forEach((p) => {
+              const item = document.createElement("button");
+              item.type = "button";
+              item.className = "sw-partners-item";
+              if (p.ga) item.setAttribute("data-ga-event", p.ga);
+              item.textContent = p.name;
+              item.addEventListener("click", () => {
+                partnersMenu.hidden = true;
+                partnersBtn.setAttribute("aria-expanded", "false");
+                openPartner(p.page);
+              });
+              partnersMenu.appendChild(item);
+            });
+            partnersBtn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const show = partnersMenu.hidden;
+              partnersMenu.hidden = !show;
+              partnersBtn.setAttribute("aria-expanded", String(show));
+            });
+            document.addEventListener("click", () => {
+              if (!partnersMenu.hidden) {
+                partnersMenu.hidden = true;
+                partnersBtn.setAttribute("aria-expanded", "false");
+              }
+            });
+            partnersWrap.appendChild(partnersBtn);
+            partnersWrap.appendChild(partnersMenu);
+            header.appendChild(partnersWrap);
+          }
+
+          // Mobile-only hamburger: the chat view hides the companion-shell
+          // that holds the sidebar toggle, so surface our own here. It opens
+          // the same off-canvas drawer through the existing #careMenuBtn
+          // wiring (clicking it works even while that button is hidden).
+          const menuBtn = document.createElement("button");
+          menuBtn.type = "button";
+          menuBtn.className = "plant-chat-menu";
+          menuBtn.setAttribute("aria-label", "Open menu");
+          menuBtn.setAttribute("aria-controls", "careSidebar");
+          menuBtn.innerHTML =
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+          menuBtn.addEventListener("click", () => {
+            const m = document.getElementById("careMenuBtn");
+            if (m) m.click();
+          });
+          header.appendChild(menuBtn);
+
+          // (Title + the Explore / Wellness-Assessment action now live in the
+          // hero + side panel below. The header stays a slim bar: Back + the
+          // mobile menu button only. Clear chat lives at the bottom of the
+          // left sidebar — see clearRecipeChat() + #careSidebarClear wiring.)
+          host.appendChild(header);
+
+          // ---- New layout: main chat column + per-mode side panel ----
+          const isNutrition = chatMode === "nutrition";
+          const isChronic = chatMode === "chronic";
+
+          const layout = document.createElement("div");
+          layout.className = "pbn-layout";
+          const mainCol = document.createElement("div");
+          mainCol.className = "pbn-main";
+          layout.appendChild(mainCol);
+
+          // (Title now lives in the header beside Back; the hero block and its
+          // subtitle were removed.)
+
+          // Chronic Disease Management routes to a recommended partner page
+          // based on the assessment conditions. When one applies, embed it as
+          // an iframe and DON'T mount the chat (it's still built below so the
+          // downstream code doesn't break — just hidden, not removed).
+          const partnerPage = isChronic ? chronicPartnerPage() : null;
+
+          // Chronic is always full-page now (no chat): a partner page when a
+          // condition matched, else an assessment prompt for skipped users.
+          // Hide the left chat-history sidebar in both cases. (The chat is
+          // still built below but never mounted for chronic — hidden, not
+          // removed; Nutrition keeps its chat + sidebar.)
+          if (isChronic) setSidebarVisible(false);
+          document.body.classList.toggle("sw-chronic-partner", isChronic);
+
+          // Suggestion cards = the per-condition starters (replaces the old
+          // in-chat starter chips). Clicking one sends it, exactly as before.
+          const sugWrap = document.createElement("div");
+          sugWrap.className = "pbn-suggestions";
+          const sugIcons = isChronic ? ["🌿", "🧘", "💧"] : ["🥣", "☀️", "💚"];
+          recipeChatStarters().forEach((q, i) => {
+            const card = document.createElement("button");
+            card.type = "button";
+            card.className = "pbn-suggestion";
+            // GA: the AI Nutritionist's 3 suggested starter questions.
+            if (!isChronic) card.setAttribute("data-ga-event", "ai_nutritionist_question" + (i + 1));
+            card.innerHTML =
+              '<span class="pbn-s-ico" aria-hidden="true">' + (sugIcons[i] || "🌿") + '</span>' +
+              '<span class="pbn-s-text">' + escapeHtml(q) + '</span>' +
+              '<span class="pbn-chev" aria-hidden="true">›</span>';
+            card.addEventListener("click", () => sendMessage(q));
+            sugWrap.appendChild(card);
+          });
+
+          // Bordered chat card holds the message stream + composer.
+          const chatCard = document.createElement("div");
+          chatCard.className = "pbn-chat-card card";
+
+          if (partnerPage) {
+            // Auto-size the iframe to its full content height so it never
+            // scrolls internally — the outer page scrolls as one. The partner
+            // pages are same-origin (see mountPartnerFrame above). The Trusted
+            // Partners menu can later swap this frame to another partner.
+            mainCol.appendChild(mountPartnerFrame(partnerPage));
+            partnerCurrentUrl = partnerPage;
+          } else if (isChronic && window.__swCareFlagsLoaded === false) {
+            // Assessment flags still loading — show a brief spinner instead of
+            // flashing the "Take the Assessment" prompt before the real partner
+            // page resolves. refreshGreetingIfStale re-renders on sw:flagsready.
+            const loading = document.createElement("div");
+            loading.className = "pbn-assess pbn-loading";
+            loading.innerHTML =
+              '<div class="pbn-spinner" aria-hidden="true"></div>' +
+              '<p>' + escapeHtml(T("carepath.loadingReco", "Finding the right guidance for your condition…")) + '</p>';
+            mainCol.appendChild(loading);
+          } else if (isChronic) {
+            // Skipped / no condition → ask the user to complete the assessment
+            // (full-page message + button). The chat is NOT shown.
+            const assess = document.createElement("div");
+            assess.className = "pbn-assess";
+            assess.innerHTML =
+              '<img src="images/stilwater-logov3.png" alt="Stilwater" />' +
+              '<h2>' + escapeHtml(T("carepath.assess.title", "Take the Wellness Assessment")) + '</h2>' +
+              '<p>' + escapeHtml(T("carepath.assess.body", "Fill out a short assessment and Aria will tailor your guidance and recommend the right partner for your condition.")) + '</p>';
+            const aBtn = document.createElement("a");
+            aBtn.href = "intake.html";
+            aBtn.className = "pbn-assess-cta";
+            aBtn.setAttribute("data-ga-event", "chronic_disease_management_take_wellness_assessment");
+            aBtn.textContent = T("carepath.wellnessAssessment", "Take Wellness Assessment");
+            assess.appendChild(aBtn);
+            mainCol.appendChild(assess);
+          } else {
+            mainCol.appendChild(sugWrap);
+            mainCol.appendChild(chatCard);
+          }
+
+          // (The per-chat disclaimer was removed — it duplicated the page-level
+          // ".companion-hint" that already sits at the bottom of every view, so
+          // it just wasted vertical space and squeezed the chat.)
+
+          // (The old right-side panel was removed — its action now lives as a
+          // button in the header beside the title. The chat is full-width.)
+
+          host.appendChild(layout);
+
+          const scroll = document.createElement("div");
+          scroll.className = "companion-scroll flow plant-chat-scroll";
+
+          // Inject greeting once per session.
+          if (!recipeChat.greetingApplied) {
+            recipeChat.greetingApplied = true;
+            recipeChat.messages.push({ role: "assistant", text: recipeChatGreeting() });
+          }
+
+          // Render the greeting (first assistant message), then pin the 3
+          // starter chips directly under it so they're always at the top.
+          // The rest of the conversation streams below.
+          // Returns ONE node. If the assistant reply has followups attached,
+          // wraps the bubble + chip row in a column so the chips render
+          // directly beneath that specific reply.
+          // Minimal, SAFE Markdown → HTML for Aria's answers (Perplexity-style
+          // prose). The text is HTML-escaped FIRST, then markdown is applied to
+          // the escaped string, so nothing the model emits can inject raw HTML.
+          // Any failure falls back to plain escaped text — the chat never breaks.
+          const mdToHtml = (src) => {
+            try {
+              const inline = (s) => s
+                .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+                  (m, t, u) => '<a href="' + u + '" target="_blank" rel="noopener">' + t + '</a>')
+                .replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/g,
+                  (m, pre, u) => pre + '<a href="' + u + '" target="_blank" rel="noopener">' + u + '</a>')
+                .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+                .replace(/`([^`]+)`/g, '<code>$1</code>');
+              const isSep = (l) => /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?\s*$/.test(l);
+              const cells = (l) => l.replace(/^\s*\|/, "").replace(/\|\s*$/, "").split("|").map((c) => inline(c.trim()));
+              const lines = escapeHtml(String(src || "")).split(/\r?\n/);
+              const out = [];
+              let i = 0;
+              while (i < lines.length) {
+                const line = lines[i];
+                if (/^\s*$/.test(line)) { i++; continue; }
+                // Table (header row + separator row)
+                if (line.indexOf("|") !== -1 && i + 1 < lines.length && isSep(lines[i + 1])) {
+                  const head = cells(line); i += 2; const rows = [];
+                  while (i < lines.length && lines[i].indexOf("|") !== -1 && !/^\s*$/.test(lines[i])) { rows.push(cells(lines[i])); i++; }
+                  out.push("<table><thead><tr>" + head.map((h) => "<th>" + h + "</th>").join("") + "</tr></thead><tbody>"
+                    + rows.map((r) => "<tr>" + r.map((c) => "<td>" + c + "</td>").join("") + "</tr>").join("") + "</tbody></table>");
+                  continue;
+                }
+                // Heading (#..###### → h3..h6)
+                const h = line.match(/^\s*(#{1,6})\s+(.*)$/);
+                if (h) { const lvl = Math.min(6, h[1].length + 2); out.push("<h" + lvl + ">" + inline(h[2].trim()) + "</h" + lvl + ">"); i++; continue; }
+                // Unordered list
+                if (/^\s*[-*+]\s+/.test(line)) {
+                  const items = [];
+                  while (i < lines.length && /^\s*[-*+]\s+/.test(lines[i])) { items.push("<li>" + inline(lines[i].replace(/^\s*[-*+]\s+/, "")) + "</li>"); i++; }
+                  out.push("<ul>" + items.join("") + "</ul>"); continue;
+                }
+                // Ordered list
+                if (/^\s*\d+[.)]\s+/.test(line)) {
+                  const items = [];
+                  while (i < lines.length && /^\s*\d+[.)]\s+/.test(lines[i])) { items.push("<li>" + inline(lines[i].replace(/^\s*\d+[.)]\s+/, "")) + "</li>"); i++; }
+                  out.push("<ol>" + items.join("") + "</ol>"); continue;
+                }
+                // Paragraph (gather consecutive non-block lines)
+                const para = [];
+                while (i < lines.length && !/^\s*$/.test(lines[i])
+                  && !/^\s*#{1,6}\s+/.test(lines[i])
+                  && !/^\s*[-*+]\s+/.test(lines[i])
+                  && !/^\s*\d+[.)]\s+/.test(lines[i])
+                  && !(lines[i].indexOf("|") !== -1 && i + 1 < lines.length && isSep(lines[i + 1]))) {
+                  para.push(lines[i]); i++;
+                }
+                out.push("<p>" + inline(para.join("<br>")) + "</p>");
+              }
+              return out.join("");
+            } catch (_) {
+              return escapeHtml(String(src || ""));
+            }
+          };
+
+          const renderBubble = (msg, opts) => {
+            opts = opts || {};
+            const isProse = msg.role === "assistant" && !opts.isGreeting;
+            const bubble = document.createElement("div");
+            bubble.className = "bubble" + (isProse ? " recipe-chat-prose" : "");
+            let html = (msg.role === "assistant")
+              ? '<div class="bubble-name">' + escapeHtml(T("aria.name", "Aria")) + '</div>'
+              : '';
+            html += isProse ? mdToHtml(msg.text || "") : escapeHtml(msg.text || "");
+            if (msg.attachment && msg.attachment.name) {
+              html += (msg.text ? '<br/>' : '') +
+                '<span class="plant-attach-chip" style="margin-top:6px;">' +
+                  '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                  '<span>' + escapeHtml(msg.attachment.name) + '</span>' +
+                '</span>';
+            }
+            bubble.innerHTML = html;
+
+            // New-design row: avatar + bubble (user rows reverse via CSS).
+            const row = document.createElement("div");
+            row.className = "message" + (msg.role === "user" ? " user" : "");
+            const avatar = document.createElement("div");
+            avatar.className = "avatar-small";
+            avatar.setAttribute("aria-hidden", "true");
+            row.appendChild(avatar);
+            row.appendChild(bubble);
+
+            const followups = Array.isArray(msg.followups) ? msg.followups : [];
+            if (msg.role !== "assistant" || followups.length === 0) return row;
+
+            const wrap = document.createElement("div");
+            wrap.className = "plant-chat-msg-wrap";
+            wrap.appendChild(row);
+            const fu = document.createElement("div");
+            fu.className = "plant-chat-followups";
+            followups.forEach((q) => {
+              const chip = document.createElement("button");
+              chip.type = "button";
+              chip.className = "plant-chat-followup";
+              chip.textContent = q;
+              chip.addEventListener("click", () => sendMessage(q));
+              fu.appendChild(chip);
+            });
+            wrap.appendChild(fu);
+            return wrap;
+          };
+
+          if (recipeChat.messages.length > 0) {
+            // The first message is Aria's intro/greeting — rendered as a
+            // normal assistant bubble (avatar + "Aria" name).
+            scroll.appendChild(renderBubble(recipeChat.messages[0], { isGreeting: true }));
+          }
+
+          // Starter prompts now render as suggestion cards ABOVE the chat card
+          // (see .pbn-suggestions in the layout scaffolding) instead of inside
+          // the message stream.
+
+          // Rest of the conversation (everything after the greeting).
+          for (let i = 1; i < recipeChat.messages.length; i++) {
+            scroll.appendChild(renderBubble(recipeChat.messages[i]));
+          }
+
+          // Loading indicator while waiting on the LLM
+          if (recipeChat.loading) {
+            const wait = document.createElement("div");
+            wait.className = "recipe-chat-meta";
+            wait.textContent = T("aria.chat.thinking", "Aria is thinking…");
+            scroll.appendChild(wait);
+          }
+
+          // Sends one message to /api/stilwater/chat and re-renders.
+          function sendMessage(text, attachment) {
+            const v = String(text || "").trim();
+            if (!v && !attachment) return;
+            // Every AI Nutritionist question — a starter card, a follow-up chip,
+            // or a typed question — costs 1 credit. This is the single choke
+            // point all three paths funnel through.
+            if (window.SwCredits) window.SwCredits.spend(1);
+            recipeChat.messages.push({
+              role: "user",
+              text: v,
+              attachment: attachment ? { name: attachment.name } : null,
+            });
+            recipeChat.pendingAttachment = null;
+            recipeChat.draft = "";
+            recipeChat.loading = true;
+            try { savePersistedState(); } catch (_) {}
+            renderPlantRecipesChat();
+
+            const apiMessages = recipeChat.messages.map((m) => ({
+              role: m.role,
+              content: m.text + (m.attachment ? "\n[attached: " + m.attachment.name + "]" : ""),
+            }));
+
+            // Stream the reply token-by-token (SSE) into a live bubble so the
+            // answer starts appearing almost immediately instead of after the
+            // whole reply + 3 follow-ups finish generating. The DOM is touched
+            // cheaply (one text node) during the stream, with a single full
+            // re-render at the end to lay out the follow-up chips. Falls back
+            // to a plain JSON read if the server didn't stream.
+            const liveScroll = document.querySelector("#plantRecipesChat .plant-chat-scroll");
+            let liveBubble = null;
+            const ensureBubble = () => {
+              if (liveBubble || !liveScroll) return;
+              const thinking = liveScroll.querySelector(".recipe-chat-meta");
+              if (thinking) thinking.remove();
+              // New-design row: avatar + bubble. liveBubble is the bubble that
+              // receives streamed text (plain text via textContent → force
+              // pre-wrap to preserve line breaks; the final re-render swaps in
+              // markdown and the "Aria" name label).
+              const row = document.createElement("div");
+              row.className = "message";
+              const avatar = document.createElement("div");
+              avatar.className = "avatar-small";
+              avatar.setAttribute("aria-hidden", "true");
+              liveBubble = document.createElement("div");
+              liveBubble.className = "bubble recipe-chat-prose";
+              liveBubble.style.whiteSpace = "pre-wrap";
+              row.appendChild(avatar);
+              row.appendChild(liveBubble);
+              liveScroll.appendChild(row);
+            };
+            const showVisible = (txt) => {
+              ensureBubble();
+              if (!liveBubble) return;
+              liveBubble.textContent = txt;
+              requestAnimationFrame(() => { const lay = liveScroll && liveScroll.closest(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; });
+            };
+            const finish = (reply, followups, info) => {
+              recipeChat.loading = false;
+              if (info && info.prompt) {
+                recipeChat.lastPrompt = info.prompt;
+                recipeChat.lastModel = info.model || "";
+                console.log("[Stilwater AI Chat] System prompt sent:\n" + info.prompt);
+                if (info.model) console.log("[Stilwater AI Chat] Model:", info.model);
+              }
+              const text = String(reply || "").trim()
+                || T("aria.chat.errorGeneric", "I couldn't reach the AI just now. Please try again.");
+              recipeChat.messages.push({
+                role: "assistant",
+                text,
+                followups: Array.isArray(followups) ? followups : [],
+              });
+              try { savePersistedState(); } catch (_) {}
+              renderPlantRecipesChat();
+              // Persist this chat to the server history (creates the session
+              // on first save, then keeps it updated).
+              try { saveCurrentSession(); } catch (_) {}
+            };
+
+            (async () => {
+              try {
+                const endpoint = chatMode === "nutrition"
+                  ? "/api/nutrition/chat"
+                  : (chatMode === "chronic"
+                    ? "/api/chronic/chat"
+                    : "/api/stilwater/chat");
+                const resp = await fetch(endpoint, {
+                  method: "POST",
+                  credentials: "same-origin",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    condition: activeCondition(),
+                    language: LANG(),
+                    messages: apiMessages,
+                  }),
+                });
+
+                const ctype = resp.headers.get("content-type") || "";
+                // Fallback: error JSON, or a server build without streaming.
+                if (!resp.ok || !resp.body || ctype.indexOf("text/event-stream") === -1) {
+                  const data = await resp.json().catch(() => ({}));
+                  finish(data.reply, data.followups, data);
+                  return;
+                }
+
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buf = "";
+                let visible = "";
+                let done = null;
+                while (true) {
+                  const chunk = await reader.read();
+                  if (chunk.done) break;
+                  buf += decoder.decode(chunk.value, { stream: true });
+                  let i;
+                  while ((i = buf.indexOf("\n\n")) !== -1) {
+                    const evt = buf.slice(0, i);
+                    buf = buf.slice(i + 2);
+                    const dataLine = evt.split("\n").find((l) => l.startsWith("data:"));
+                    if (!dataLine) continue;
+                    const json = dataLine.slice(5).trim();
+                    if (!json) continue;
+                    let obj;
+                    try { obj = JSON.parse(json); } catch (_) { continue; }
+                    if (typeof obj.delta === "string") { visible += obj.delta; showVisible(visible); }
+                    if (obj.done) done = obj;
+                  }
+                }
+                finish(done && done.reply ? done.reply : visible, done && done.followups, done || {});
+              } catch (_) {
+                recipeChat.loading = false;
+                recipeChat.messages.push({
+                  role: "assistant",
+                  text: T("aria.chat.errorNetwork", "Network hiccup — please try once more."),
+                });
+                try { savePersistedState(); } catch (_) {}
+                renderPlantRecipesChat();
+              }
+            })();
+          }
+          // Expose for the chip handlers above (avoids hoisting issues).
+          recipeChat._send = sendMessage;
+
+          // Mount the scrollable message list inside the chat card; the
+          // compose bar is appended to the same card AFTER it (below) so the
+          // input stays pinned at the bottom while only the messages scroll.
+          chatCard.appendChild(scroll);
+
+          // ChatGPT-style compose bar: + attach, textarea, mic, send.
+          // Always shown — the chat is free-form, not a 3-step script.
+          if (true) {
+            const composeWrap = document.createElement("div");
+            composeWrap.className = "plant-compose";
+
+            // + attach button (hidden file picker)
+            const attachBtn = document.createElement("button");
+            attachBtn.type = "button";
+            attachBtn.className = "plant-icon-btn plant-attach-btn";
+            attachBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_file_upload");
+            attachBtn.setAttribute("aria-label", T("aria.recipes.chat.attach", "Attach a file"));
+            attachBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+            const fileInput = document.createElement("input");
+            fileInput.type = "file";
+            fileInput.accept = "image/*,application/pdf,.doc,.docx,video/*";
+            fileInput.style.display = "none";
+            fileInput.addEventListener("change", () => {
+              const f = fileInput.files && fileInput.files[0];
+              if (!f) return;
+              recipeChat.pendingAttachment = { name: f.name, size: f.size, type: f.type || "" };
+              renderPlantRecipesChat();
+            });
+            attachBtn.addEventListener("click", () => fileInput.click());
+            composeWrap.appendChild(attachBtn);
+            composeWrap.appendChild(fileInput);
+
+            // Textarea
+            const ta = document.createElement("textarea");
+            ta.className = "plant-input";
+            ta.rows = 1;
+            ta.placeholder = T("aria.chat.composePh", "Ask Aria anything…");
+            ta.value = recipeChat.draft || "";
+            ta.addEventListener("input", () => { recipeChat.draft = ta.value; });
+            ta.addEventListener("keydown", (e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submitAnswer();
+              }
+            });
+            composeWrap.appendChild(ta);
+
+            // Mic — Web Speech API (with waveform pulse when listening)
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            const micBtn = document.createElement("button");
+            micBtn.type = "button";
+            micBtn.className = "plant-icon-btn plant-mic-btn";
+            micBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_audio_input");
+            micBtn.setAttribute("aria-label", T("aria.recipes.chat.voice", "Voice input"));
+            micBtn.innerHTML = SpeechRec
+              ? '<span class="plant-mic-wave" aria-hidden="true"></span>'
+              : '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+            if (!SpeechRec) {
+              micBtn.disabled = true;
+              micBtn.title = T("aria.recipes.chat.voiceUnsupported",
+                "Voice input not supported in this browser");
+            } else {
+              micBtn.innerHTML =
+                '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+              micBtn.addEventListener("click", () => {
+                if (recipeChat._rec && recipeChat._listening) {
+                  try { recipeChat._rec.stop(); } catch (_) {}
+                  return;
+                }
+                const rec = new SpeechRec();
+                rec.lang = (LANG && LANG()) === "hi" ? "hi-IN" : "en-US";
+                rec.interimResults = true;
+                rec.continuous = false;
+                rec.onstart = () => {
+                  recipeChat._listening = true;
+                  micBtn.classList.add("is-listening");
+                  micBtn.innerHTML = '<span class="plant-mic-wave" aria-hidden="true"></span>';
+                };
+                rec.onresult = (e) => {
+                  let txt = "";
+                  for (let i = 0; i < e.results.length; i++) {
+                    txt += e.results[i][0].transcript;
+                  }
+                  ta.value = (recipeChat.draft || "") + txt;
+                };
+                rec.onerror = () => {
+                  recipeChat._listening = false;
+                  micBtn.classList.remove("is-listening");
+                };
+                rec.onend = () => {
+                  recipeChat._listening = false;
+                  recipeChat.draft = ta.value;
+                  micBtn.classList.remove("is-listening");
+                  micBtn.innerHTML =
+                    '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><line x1="12" y1="18" x2="12" y2="22"/></svg>';
+                };
+                recipeChat._rec = rec;
+                try { rec.start(); } catch (_) {}
+              });
+            }
+            composeWrap.appendChild(micBtn);
+
+            // Send (icon-only paper-plane)
+            const sendBtn = document.createElement("button");
+            sendBtn.type = "button";
+            sendBtn.className = "plant-send-btn";
+            sendBtn.setAttribute("data-ga-event", "ai_nutritionist_button_chatbox_send_chat");
+            sendBtn.setAttribute("aria-label", T("aria.recipes.chat.send", "Send"));
+            sendBtn.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>';
+            sendBtn.addEventListener("click", submitAnswer);
+            composeWrap.appendChild(sendBtn);
+
+            // Append to the chat card (sibling AFTER the scroll list) so the
+            // compose bar is pinned to the bottom, not scrolled with messages.
+            chatCard.appendChild(composeWrap);
+
+            // Pending attachment chip preview
+            if (recipeChat.pendingAttachment) {
+              const chip = document.createElement("div");
+              chip.className = "plant-attach-chip";
+              chip.innerHTML =
+                '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+                '<span>' + escapeHtml(recipeChat.pendingAttachment.name) + '</span>';
+              const remove = document.createElement("button");
+              remove.type = "button";
+              remove.style.cssText = "border:none;background:transparent;cursor:pointer;color:inherit;padding:0 4px;";
+              remove.textContent = "×";
+              remove.setAttribute("aria-label", T("common.close", "Close"));
+              remove.addEventListener("click", () => {
+                recipeChat.pendingAttachment = null;
+                renderPlantRecipesChat();
+              });
+              chip.appendChild(remove);
+              scroll.appendChild(chip);
+            }
+
+            function submitAnswer() {
+              const v = (ta.value || "").trim();
+              const attach = recipeChat.pendingAttachment;
+              if (!v && !attach) return;
+              sendMessage(v, attach);
+            }
+
+            // Focus the input automatically so the user can just start typing.
+            // preventScroll: focusing the input must NOT scroll the layout
+            // down past the hero + suggestion cards.
+            requestAnimationFrame(() => { try { ta.focus({ preventScroll: true }); } catch (_) { try { ta.focus(); } catch (_e) {} } });
+          }
+
+          // (Re)rendering rebuilds the message list from scratch, which resets
+          // the scroll to the top. Snap to the bottom so the newest question /
+          // answer is always in view — no manual scrolling after each turn.
+          requestAnimationFrame(() => { try { const lay = host.querySelector(".pbn-layout"); if (lay) lay.scrollTop = lay.scrollHeight; } catch (_) {} });
+        }
+
+        function updateSidebarToggleLabel() {
+          // Sidebar button label reflects WHERE the click will take you —
+          // chat open → "Plant-Based Recipes" (click → companion);
+          // companion open → "Stilwater AI Chat" (click → chat).
+          const span = document.querySelector("#btnPlantRecipes span");
+          if (!span) return;
+          const isChatOpen = document.body.classList.contains("plant-chat-open");
+          if (isChatOpen) {
+            span.textContent = T("carepath.plantRecipes", "Plant-Based Recipes");
+            span.setAttribute("data-i18n", "carepath.plantRecipes");
+          } else {
+            span.textContent = T("carepath.stilwaterAIChat", "Stilwater AI Chat");
+            span.setAttribute("data-i18n", "carepath.stilwaterAIChat");
+          }
+        }
+        // Regenerate the first greeting bubble when (a) the assessment
+        // flags resolve or (b) the auth-header pill populates with the
+        // user's name — but only if the user hasn't typed anything yet.
+        function refreshGreetingIfStale() {
+          if (!recipeChat.greetingApplied) return;
+          const userMsgs = recipeChat.messages.filter((m) => m.role === "user").length;
+          if (userMsgs > 0) return;
+          // Replace the first assistant message with the new greeting.
+          const fresh = recipeChatGreeting();
+          const firstAssistantIdx = recipeChat.messages.findIndex((m) => m.role === "assistant");
+          if (firstAssistantIdx >= 0) {
+            recipeChat.messages[firstAssistantIdx] = { role: "assistant", text: fresh };
+          } else {
+            recipeChat.messages.unshift({ role: "assistant", text: fresh });
+          }
+          const host = document.getElementById("plantRecipesChat");
+          if (host && !host.hidden) renderPlantRecipesChat();
+        }
+        window.addEventListener("sw:flagsready", refreshGreetingIfStale);
+        // The auth pill text is set asynchronously by shared.js after
+        // /api/auth/me resolves. Poll briefly (a handful of frames) to pick
+        // up the name once it's populated. Cheap and bounded.
+        (function watchAuthName() {
+          let tries = 0;
+          const tick = () => {
+            const name = getUserFirstName();
+            if (name) { refreshGreetingIfStale(); return; }
+            if (++tries < 40) setTimeout(tick, 250);
+          };
+          tick();
+        })();
+
+        const companionEl = () => document.getElementById("companionRoot");
+        const swLauncherEl = () => document.getElementById("swLauncher");
+        const swYogaEl = () => document.getElementById("swYogaView");
+        // Clear chat only makes sense while an Aria chat is open (Nutrition /
+        // Chronic / general) — hide it on the launcher and other views.
+        const setClearChatVisible = (v) => {
+          const b = document.getElementById("careSidebarClear");
+          if (b) b.style.display = v ? "" : "none";
+        };
+        // The left chat-history panel is only for Nutrition & Chronic.
+        const setSidebarVisible = (v) => {
+          document.body.classList.toggle("sw-no-sidebar", !v);
+        };
+
+        function showPlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const c = companionEl(); if (c) c.hidden = false;
+          host.hidden = false;
+          document.body.classList.add("plant-chat-open");
+          setClearChatVisible(true);
+          // Sidebar (chat history) only for the two modules that have one.
+          const hasHistory = chatMode === "nutrition" || chatMode === "chronic";
+          setSidebarVisible(hasHistory);
+          if (hasHistory) refreshHistory();
+          renderPlantRecipesChat();
+          updateSidebarToggleLabel();
+        }
+        function hidePlantRecipesChat() {
+          const host = document.getElementById("plantRecipesChat");
+          if (!host) return;
+          host.hidden = true;
+          document.body.classList.remove("plant-chat-open");
+          document.body.classList.remove("sw-chronic-partner");
+          setClearChatVisible(false);
+          updateSidebarToggleLabel();
+        }
+
+        // When entering a mode with no conversation yet, start fresh so the
+        // right greeting + starters show.
+        // Entering a flow starts a FRESH chat (ChatGPT-style); past chats are
+        // in the sidebar history. The server session is created on first save.
+        function switchChatMode(mode) {
+          chatMode = mode;
+          recipeChat = _normalizeChat(null);
+          currentSessionId = null;
+        }
+        function showNutritionChat() { switchChatMode("nutrition"); showPlantRecipesChat(); }
+        function showGeneralChat() { switchChatMode("general"); showPlantRecipesChat(); }
+        function showChronicChat() { switchChatMode("chronic"); showPlantRecipesChat(); }
+
+        // ── Launcher (3-option selection screen) + embedded Yoga app ────
+        function showLauncher() {
+          hidePlantRecipesChat();
+          const c = companionEl(); if (c) c.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const l = swLauncherEl(); if (l) l.hidden = false;
+          setSidebarVisible(false);
+        }
+        // Yoga = the "Practice Yoga Asanas with AI" full-page view (Tadasana /
+        // Balasana). Keep the launcher as the base view so closing it returns
+        // to the dashboard options.
+        function showYoga() {
+          showLauncher();
+          const m = document.getElementById("yogaIntroModal");
+          if (m) m.hidden = false;
+        }
+        // Explore Plant-Based Recipes = the 3-tab companion shell (Meal Plan /
+        // Recipes / Journaling) — same surface the sidebar "Plant-Based
+        // Recipes" item shows. Reveal #companionRoot with the chat overlay
+        // hidden so the shell is visible.
+        function showCompanion() {
+          companionReturnMode = chatMode; // remember where we came from
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const c = companionEl(); if (c) c.hidden = false;
+          hidePlantRecipesChat();
+          setSidebarVisible(false);
+        }
+        // Back out of the recipes companion → the chat we opened it from.
+        function backFromCompanion() {
+          if (companionReturnMode) chatMode = companionReturnMode;
+          showPlantRecipesChat();
+        }
+        // Practice Meditation = the existing AI Driven Meditation video modal,
+        // opened over the launcher (its ✕ returns to the options).
+        function showMeditation() {
+          showLauncher();
+          if (window.__swMeditation && window.__swMeditation.open) window.__swMeditation.open();
+        }
+
+        // ── Server-side chat history ───────────────────────────────────
+        function chatTitleFrom(messages) {
+          const u = (messages || []).find((m) => m.role === "user");
+          const t = (u && u.text ? u.text : "").trim().replace(/\s+/g, " ");
+          return t ? t.slice(0, 60) : "New chat";
+        }
+        // Persist the active chat to the server (creates the session on first save).
+        async function saveCurrentSession() {
+          try {
+            const msgs = (recipeChat.messages || []).filter((m) => m && (m.role === "user" || m.role === "assistant"));
+            if (!msgs.some((m) => m.role === "user")) return;
+            const payloadMsgs = msgs.map((m) => ({
+              role: m.role, text: m.text || "",
+              followups: Array.isArray(m.followups) ? m.followups : undefined,
+            }));
+            const title = chatTitleFrom(msgs);
+            if (!currentSessionId) {
+              const r = await fetch("/api/chat/sessions", {
+                method: "POST", credentials: "same-origin",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mode: chatMode, title }),
+              });
+              const d = await r.json().catch(() => ({}));
+              if (d && d.session && d.session.id) currentSessionId = d.session.id;
+            }
+            if (!currentSessionId) return;
+            await fetch("/api/chat/sessions/" + encodeURIComponent(currentSessionId), {
+              method: "PUT", credentials: "same-origin",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ messages: payloadMsgs, mode: chatMode, title }),
+            });
+            refreshHistory();
+          } catch (_) {}
+        }
+        // Load a saved chat and continue it.
+        async function loadSession(id) {
+          try {
+            const r = await fetch("/api/chat/sessions/" + encodeURIComponent(id), { credentials: "same-origin" });
+            if (!r.ok) return;
+            const s = (await r.json()).session;
+            if (!s) return;
+            chatMode = s.mode || "general";
+            recipeChat = _normalizeChat({ messages: Array.isArray(s.messages) ? s.messages : [], greetingApplied: true, draft: "" });
+            currentSessionId = s.id;
+            showPlantRecipesChat();
+            refreshHistory();
+            if (window.matchMedia("(max-width: 768px)").matches) {
+              const cb = document.getElementById("careSidebarClose"); if (cb) cb.click();
+            }
+          } catch (_) {}
+        }
+        // Render the sidebar history list.
+        async function refreshHistory() {
+          const box = document.getElementById("careChatHistory");
+          if (!box) return;
+          try {
+            // Per-module history: only show chats for the active module.
+            const r = await fetch("/api/chat/sessions?mode=" + encodeURIComponent(chatMode), { credentials: "same-origin" });
+            if (!r.ok) return;
+            const sessions = (await r.json()).sessions || [];
+            box.innerHTML = "";
+            if (!sessions.length) {
+              box.innerHTML = '<div class="care-chat-empty">' + escapeHtml(T("carepath.noChats", "No chats yet.")) + '</div>';
+              return;
+            }
+            sessions.forEach((s) => {
+              const item = document.createElement("button");
+              item.type = "button";
+              item.className = "care-chat-item" + (String(s.id) === String(currentSessionId) ? " is-active" : "");
+              item.setAttribute("data-ga-event", "ai_nutritionist_button_chat_history_items");
+              let meta = "";
+              try {
+                const w = s.updated_at ? new Date(s.updated_at) : null;
+                if (w) meta = w.toLocaleDateString() + " · " + w.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+              } catch (_) {}
+              item.innerHTML =
+                '<span class="cc-icon" aria-hidden="true">🌿</span>' +
+                '<div class="cc-body">' +
+                  '<div class="cc-title">' + escapeHtml(s.title || "Chat") + '</div>' +
+                  '<div class="cc-meta">' + escapeHtml(meta) + '</div>' +
+                '</div>' +
+                '<span class="cc-dots" aria-hidden="true">⋮</span>';
+              item.addEventListener("click", () => loadSession(s.id));
+              box.appendChild(item);
+            });
+          } catch (_) {}
+        }
+        function newChat() {
+          currentSessionId = null;
+          recipeChat = _normalizeChat(null);
+          showLauncher();
+          refreshHistory();
+          if (window.matchMedia("(max-width: 768px)").matches) {
+            const cb = document.getElementById("careSidebarClose"); if (cb) cb.click();
+          }
+        }
+
+        // Expose so the sidebar / launcher handlers can drive the views.
+        window.__swPlantRecipes = {
+          show: showPlantRecipesChat,
+          hide: hidePlantRecipesChat,
+          showNutrition: showNutritionChat,
+          showGeneral: showGeneralChat,
+          showChronic: showChronicChat,
+          showLauncher: showLauncher,
+          showYoga: showYoga,
+          showCompanion: showCompanion,
+          backFromCompanion: backFromCompanion,
+          showMeditation: showMeditation,
+          newChat: newChat,
+          loadSession: loadSession,
+          refreshHistory: refreshHistory,
+          saveSession: saveCurrentSession,
+        };
+        // Wire the "New chat" button + populate history on load.
+        (function () {
+          const nb = document.getElementById("swNewChat");
+          if (nb) nb.addEventListener("click", newChat);
+        })();
+
+        // Clear chat — moved to the bottom of the left sidebar. Wipes the
+        // conversation (greeting re-appears on the next render).
+        function clearRecipeChat() {
+          if (!confirm(T("aria.chat.clearConfirm", "Clear this conversation? This can't be undone."))) return;
+          recipeChat.messages = [];
+          recipeChat.greetingApplied = false;
+          recipeChat.draft = "";
+          recipeChat.pendingAttachment = null;
+          recipeChat.lastPrompt = "";
+          recipeChat.lastModel = "";
+          recipeChat.loading = false;
+          // Clearing detaches from the saved session (it stays in history);
+          // the next message starts a fresh one.
+          currentSessionId = null;
+          savePersistedState();
+          const host = document.getElementById("plantRecipesChat");
+          if (host && !host.hidden) renderPlantRecipesChat();
+          // On mobile, close the slide-in drawer so the fresh chat is visible.
+          if (window.matchMedia("(max-width: 768px)").matches) {
+            const closeBtn = document.getElementById("careSidebarClose");
+            if (closeBtn) closeBtn.click();
+          }
+        }
+        const sidebarClearBtn = document.getElementById("careSidebarClear");
+        if (sidebarClearBtn) sidebarClearBtn.addEventListener("click", clearRecipeChat);
 
         // Cache of per-dish video fetches so re-renders don't re-hit the API.
         const recipeCache = state.recipeCache || (state.recipeCache = {});
@@ -3908,7 +6650,91 @@
           return card;
         }
 
+        // Sidebar item TOGGLES between the chat and the companion. Its
+        // label updates to match the destination (handled in
+        // updateSidebarToggleLabel inside the IIFE below):
+        //  - chat open      → label "Plant-Based Recipes" → click flips to companion
+        //  - companion open → label "Stilwater AI Chat"   → click flips to chat
+        const plantBtn = document.getElementById("btnPlantRecipes");
+        if (plantBtn) {
+          plantBtn.addEventListener("click", () => {
+            const isOpen = document.body.classList.contains("plant-chat-open");
+            if (!window.__swPlantRecipes) return;
+            if (isOpen) {
+              window.__swPlantRecipes.hide();
+            } else {
+              window.__swPlantRecipes.showGeneral();
+            }
+            try {
+              root.scrollIntoView({ behavior: "smooth", block: "start" });
+            } catch (_) {
+              root.scrollIntoView();
+            }
+          });
+        }
+
+        // ✕ button overlaid on the companion shell → return to the chat the
+        // companion was opened from (Plant-Based Nutrition), not wherever
+        // chatMode last was.
+        const backToChatBtn = document.getElementById("companionBackToChat");
+        if (backToChatBtn) {
+          backToChatBtn.addEventListener("click", () => {
+            const api = window.__swPlantRecipes;
+            if (!api) return;
+            if (typeof api.backFromCompanion === "function") api.backFromCompanion();
+            else if (typeof api.show === "function") api.show();
+          });
+        }
+
+        // New meal-generator header Back button → Plant-Based Nutrition chat
+        // (care-path.html?submissionId=1). Uses the same in-app return as the
+        // ✕, with a hard-nav fallback to the requested URL.
+        const mgBackBtn = document.getElementById("mgBackBtn");
+        if (mgBackBtn) {
+          mgBackBtn.addEventListener("click", () => {
+            const api = window.__swPlantRecipes;
+            if (api && typeof api.backFromCompanion === "function") api.backFromCompanion();
+            else if (api && typeof api.showNutrition === "function") api.showNutrition();
+            else window.location.href = "care-path.html?submissionId=1";
+          });
+        }
+
         renderMode();
+
+        // ── Launcher card wiring ────────────────────────────────────────
+        const cardYoga = document.getElementById("swLaunchYoga");
+        if (cardYoga) cardYoga.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showYoga());
+        const cardNutrition = document.getElementById("swLaunchNutrition");
+        if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
+        const cardChronic = document.getElementById("swLaunchChronic");
+        if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
+        const cardMeditation = document.getElementById("swLaunchMeditation");
+        if (cardMeditation) cardMeditation.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showMeditation());
+        // ── Initial view routing ────────────────────────────────────────
+        //  ?view=select   → 3-option selection screen (post-login default)
+        //  ?view=nutrition → Aria chat in recipe-RAG mode
+        //  ?view=yoga      → Practice-Yoga modal over the launcher
+        //  ?submissionId=  → Chronic chat (condition-tuned, own history) after
+        //                    completing the Wellness Assessment
+        //  otherwise       → the general Aria chat
+        const swParams = new URLSearchParams(window.location.search);
+        const swView = (swParams.get("view") || "").toLowerCase();
+        const hasSubmission = !!swParams.get("submissionId");
+        if (window.__swPlantRecipes) {
+          if (swView === "select") {
+            window.__swPlantRecipes.showLauncher();
+          } else if (swView === "nutrition") {
+            window.__swPlantRecipes.showNutrition();
+          } else if (swView === "yoga") {
+            window.__swPlantRecipes.showYoga();
+          } else if (swView === "chronic" || hasSubmission) {
+            // Chronic chat. With no assessment (skip / ?view=chronic) the
+            // condition resolves to "general" → Holistic Wellness AI.
+            window.__swPlantRecipes.showChronic();
+          } else {
+            window.__swPlantRecipes.showGeneral();
+          }
+        }
       })();
     </script>
   </body>

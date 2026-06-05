@@ -1,72 +1,141 @@
-// Site-wide GA event tracking. Loaded on every HTML page right after the
-// GA snippet (see scripts/inject-ga.js). The gtag() function is stubbed on
-// every host, so these calls are safe on test and localhost — they just
-// no-op there. Only prod actually transmits to Google Analytics.
+// Site-wide GA4 event tracking. Loaded on every page right after the GA
+// snippet (see scripts/inject-ga.js). gtag() is stubbed on every host, so these
+// calls are safe on test/localhost (no-op) — only prod actually transmits.
 //
-// Rules are checked top-down on every click; first match wins, then we
-// stop. Each rule pairs a GA event name with a predicate that returns the
-// matched element (truthy) or null. Predicates use closest() so a click on
-// an inner element (icon, span, svg) still matches its container button.
+// Two ways an element gets tracked, checked in this order on every click:
+//   1. data-ga-event="<event_name>"  — for dynamically-rendered elements that
+//      set the attribute when they're built (chat buttons, recipe-library tabs,
+//      provider dropdown items, etc.). Optional companions: data-ga-label,
+//      data-ga-purpose.
+//   2. A static SELECTOR RULE below — for stable elements that exist in the
+//      HTML (header/footer nav, mobile menu, login page, launcher cards, yoga
+//      buttons). First matching rule wins; closest() so an inner icon/span
+//      click still matches its container.
+//
+// Every event ships a consistent parameter set (event_category, event_label,
+// button_name, page_path, tracking_purpose, section_name, and link_url for
+// anchors). Categories/sections are derived from the event-name prefix so each
+// call site only has to supply the name.
 (function wireGaEvents() {
   if (window.__swGaEventsWired) return;
   window.__swGaEventsWired = true;
 
-  function textMatch(el, target) {
-    return (el.textContent || "").trim().toLowerCase() === target.toLowerCase();
+  // event-name prefix → human category / section
+  function categoryFor(name) {
+    if (/^header_/.test(name) || /^footer_/.test(name) || /^mobile_menu/.test(name)) return "navigation";
+    if (/^homepage_/.test(name)) return "homepage";
+    if (/^login_page_/.test(name)) return "login";
+    if (/^user_homepage_/.test(name)) return "dashboard";
+    if (/^ai_yoga_tutor_/.test(name)) return "ai_yoga_tutor";
+    if (/^ai_nutritionist_/.test(name)) return "ai_nutritionist";
+    if (/^recipe_library_/.test(name)) return "recipe_library";
+    if (/^chronic_disease_management_/.test(name)) return "chronic_disease_management";
+    if (/^trusted_providers_/.test(name)) return "trusted_providers";
+    return "engagement";
   }
 
-  function menuLink(el, label) {
-    var a = el.closest(".menu-list a");
-    return a && textMatch(a, label) ? a : null;
+  function labelFor(el) {
+    if (!el || !el.getAttribute) return "";
+    var explicit = el.getAttribute("data-ga-label") || el.getAttribute("aria-label");
+    if (explicit && explicit.trim()) return explicit.trim();
+    var text = (el.textContent || "").replace(/\s+/g, " ").trim();
+    return text.slice(0, 100);
   }
 
+  // Build the standard parameter bundle and send the event.
+  function track(name, el) {
+    if (!name || typeof window.gtag !== "function") return;
+    var category = categoryFor(name);
+    var label = labelFor(el) || name;
+    var params = {
+      event_category: category,
+      section_name: category,
+      button_name: name,
+      event_label: label,
+      page_path: (location.pathname || "") + (location.search || ""),
+      tracking_purpose:
+        (el && el.getAttribute && el.getAttribute("data-ga-purpose")) || label,
+    };
+    var href = el && el.getAttribute && el.getAttribute("href");
+    if (href) params.link_url = href;
+    try { window.gtag("event", name, params); } catch (_err) {}
+  }
+
+  // Static-element rules: [event_name, css_selector]. Header vs footer share
+  // some hrefs (#how, #pricing, #pillars), so those are scoped by ancestor
+  // (.nav-links / #authActions for header, footer for footer).
   var rules = [
-    // Generic escape hatch — any element (including dynamically rendered
-    // ones) can opt in by setting data-ga-event="<event_name>". First rule
-    // so it always wins over the static selectors below.
-    ["__data-ga-event__", function (el) {
-      var tagged = el.closest("[data-ga-event]");
-      return tagged || null;
-    }],
-    ["nav_logout", function (el) { return el.closest("#btnLogout"); }],
-    ["nav_login_signup", function (el) { return el.closest("#btnLogin, #mmLogin"); }],
-    ["nav_admin_dashboard", function (el) { return el.closest("#btnAdmin"); }],
-    ["nav_wellness_providers", function (el) { return el.closest("#btnProviders"); }],
-    ["nav_wellness_assessment", function (el) { return el.closest("#btnIntake"); }],
-    ["nav_logo_home", function (el) { return el.closest(".header-logo, .top-brand, .home-link"); }],
-    ["btn_menu_open", function (el) { return el.closest(".menu-btn"); }],
-    ["btn_menu_close", function (el) { return el.closest(".menu-drawer-close, .mobile-menu-close"); }],
-    ["btn_practice_yoga_ai", function (el) { return el.closest("#btnYoga, #btnYogaSidebar"); }],
-    ["btn_try_ai_coach", function (el) { return el.closest("#yogaBetaOpen"); }],
-    ["btn_practice_now", function (el) { return el.closest("#yogaPracticeNow"); }],
-    ["btn_restart_video", function (el) { return el.closest("#yogaRestart"); }],
-    ["menu_vision", function (el) { return menuLink(el, "Vision"); }],
-    ["menu_testimonials", function (el) { return menuLink(el, "Testimonials"); }],
-    ["menu_blog", function (el) { return menuLink(el, "Blog"); }],
-    ["menu_waitlist", function (el) { return menuLink(el, "Waitlist"); }],
-    ["btn_cancel", function (el) { return el.closest(".modal-close"); }],
-    ["btn_submit", function (el) {
-      var b = el.closest('button[type="submit"], input[type="submit"]');
-      return b && b.closest("form") ? b : null;
-    }],
+    // ── header / nav (all pages) ──────────────────────────────────────────
+    ["header_logo_home", ".header-logo, a.logo.header-logo, .top-brand, .home-link"],
+    ["header_nav_products", ".nav-links a[href='#pillars'][data-i18n='home.nav.product'], #authActions a[href='#pillars'][data-i18n='home.nav.product']"],
+    ["header_nav_how_it_works", ".nav-links a[href='#how'], #authActions a[href='#how']"],
+    ["header_nav_pricing", ".nav-links a[href='#pricing'], #authActions a[href='#pricing']"],
+    ["header_nav_logout", "#btnLogout, #authMenuLogout"],
+    ["header_nav_login_signup", "#btnLogin, #mmLogin"],
+    ["header_nav_admin_dashboard", "#btnAdmin, #authMenuAdmin"],
+
+    // ── footer (all pages; href-scoped under <footer>) ────────────────────
+    ["footer_nav_terms_of_use", "footer a[href*='terms-of-use']"],
+    ["footer_nav_privacy_policy", "footer a[href*='privacy-policy']"],
+    ["footer_nav_testimonials", "footer a[href*='testimonials']"],
+    ["footer_nav_blog", "footer a[href*='blog']"],
+    ["footer_nav_meet_aria", "footer a[href='#aria']"],
+    ["footer_nav_the_platform", "footer a[href='#pillars']"],
+    ["footer_nav_how_it_works", "footer a[href='#how']"],
+    ["footer_nav_pricing", "footer a[href='#pricing']"],
+
+    // ── mobile menu ───────────────────────────────────────────────────────
+    ["mobile_menu_open", ".menu-btn"],
+    ["mobile_menu_close", ".menu-drawer-close, .mobile-menu-close"],
+
+    // ── login page (auth.html / admin-served.html) ────────────────────────
+    ["login_page_button_google_auth", "#googleAuthLink, .auth-cta-google"],
+    ["login_page_button_continue_with_mobile", ".auth-cta-phone"],
+    ["login_page_link_back_to_site", ".back-link"],
+
+    // ── user homepage / dashboard launcher cards (care-path.html) ──────────
+    ["user_homepage_ai_yoga_tutor", "#swLaunchYoga"],
+    ["user_homepage_ai_nutritionist", "#swLaunchNutrition"],
+    ["user_homepage_chronic_disease_management", "#swLaunchChronic"],
+    ["user_homepage_ai_guided_meditation", "#swLaunchMeditation"],
+
+    // ── AI Yoga Tutor flow (care-path.html) ───────────────────────────────
+    ["ai_yoga_tutor_button_practice_tadasana", "#yogaBetaOpen"],
+    ["ai_yoga_tutor_button_practice_balasana", "#yogaBalasanaOpen"],
+    ["ai_yoga_tutor_button_go_back_menu", "#yogaIntroBack"],
+    ["ai_yoga_tutor_button_go_skip_guide", "#yogaSkip, #balasanaSkip"],
+    ["ai_yoga_tutor_button_back_to_care_path", "#yogaBackCarepath, #balasanaBackCarepath"],
+
+    // ── AI Nutritionist / Recipe Library static bits (care-path.html) ─────
+    ["ai_nutritionist_button_new_chat", "#swNewChat"],
+    ["ai_nutritionist_button_clear_chat", "#careSidebarClear"],
+    ["recipe_library_button_go_back", "#mgBackBtn"],
   ];
 
-  document.addEventListener("click", function (e) {
-    if (typeof window.gtag !== "function") return;
-    var target = e.target;
-    if (!target || typeof target.closest !== "function") return;
+  function findRuleMatch(el) {
     for (var i = 0; i < rules.length; i++) {
-      var matched = rules[i][1](target);
-      if (matched) {
-        // For the generic data-ga-event rule, read the event name from the
-        // attribute; for all other rules, use the declared event name.
-        var name = rules[i][0] === "__data-ga-event__"
-          ? matched.getAttribute("data-ga-event")
-          : rules[i][0];
-        if (!name) return;
-        try { window.gtag("event", name); } catch (_err) {}
+      var matched = el.closest(rules[i][1]);
+      if (matched) return { name: rules[i][0], el: matched };
+    }
+    return null;
+  }
+
+  document.addEventListener(
+    "click",
+    function (e) {
+      var target = e.target;
+      if (!target || typeof target.closest !== "function") return;
+
+      // 1) data-ga-event attribute wins (dynamic elements).
+      var tagged = target.closest("[data-ga-event]");
+      if (tagged) {
+        track(tagged.getAttribute("data-ga-event"), tagged);
         return;
       }
-    }
-  }, true);
+      // 2) static selector rules.
+      var r = findRuleMatch(target);
+      if (r) track(r.name, r.el);
+    },
+    true
+  );
 })();

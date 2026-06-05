@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline · Stilwater</title>
+  <meta name="theme-color" content="#264f45" />
+  <style>
+    :root { --green:#264f45; --cream:#f4f1ea; --muted:#5d6b5e; }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      min-height: 100%;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 18px; padding: 32px 24px; text-align: center;
+      font-family: "Mulish", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+      color: var(--green);
+      background:
+        radial-gradient(circle at 15% 12%, rgba(138,163,153,.20), transparent 42%),
+        radial-gradient(circle at 85% 88%, rgba(192,132,87,.12), transparent 44%),
+        var(--cream);
+    }
+    img { width: 96px; height: 96px; }
+    h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 600; font-size: clamp(22px, 5vw, 30px); margin: 6px 0 0; }
+    p { color: var(--muted); font-size: clamp(14px, 3.4vw, 16px); line-height: 1.55; max-width: 420px; margin: 0; }
+    button {
+      margin-top: 8px; padding: 12px 24px; border: none; border-radius: 999px;
+      background: var(--green); color: #fff; font: inherit; font-weight: 700; font-size: 15px;
+      cursor: pointer; box-shadow: 0 8px 18px rgba(23,58,50,.16);
+    }
+    button:hover { background: #173a32; }
+  </style>
+</head>
+<body>
+  <img src="/images/icons/icon-192.png" alt="Stilwater" />
+  <h1>You're offline</h1>
+  <p>It looks like you've lost your connection. Stilwater needs the internet for live guidance and recipes — please reconnect and try again.</p>
+  <button type="button" onclick="location.reload()">Retry</button>
+</body>
+</html>
