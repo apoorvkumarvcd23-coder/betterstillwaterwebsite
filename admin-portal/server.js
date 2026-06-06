@@ -26,7 +26,7 @@ const ADMIN_EMAILS = String(process.env.ADMIN_PORTAL_EMAILS || "")
 const ADMIN_PASSWORD = process.env.ADMIN_PORTAL_PASSWORD || "";
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || "";
 const OPENROUTER_BASE_URL = String(process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
-const MODEL = process.env.ADMIN_PORTAL_MODEL || "openai/gpt-4o-mini";
+const MODEL = process.env.ADMIN_PORTAL_MODEL || "anthropic/claude-sonnet-4.5";
 
 if (!DATABASE_URL) { console.error("DATABASE_URL is required."); process.exit(1); }
 if (!ADMIN_EMAILS.length || !ADMIN_PASSWORD) {
