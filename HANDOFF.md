@@ -1133,7 +1133,45 @@ cb65e0c  dedicated yoga click tracking (yoga_clicks)
 
 ---
 
-_Updated 2026-06-06 — `main` `1079e54` ≈ `test` `ecdf081` (prod now current).
+## 19. 2026-06-06 — Management analytics portal (separate app + branch + Render service)
+
+A standalone **analytics dashboard for management** so they can self-serve the
+metrics (user counts, new/returning, active users, feature usage, nutrition
+questions, etc.) instead of asking the dev to run SQL. **It is intentionally
+isolated from the main website.**
+
+- **Branch:** **`stilwateradminportal`** (based off `main`). Code lives in the
+  **`admin-portal/`** folder. NOT merged into `main`/`test` — it deploys as its
+  own service.
+- **What it is:** a small Express app (`admin-portal/server.js`) +
+  `public/login.html` + `public/dashboard.html`. Login-gated (email+password
+  from env). **Read-only** against the prod DB.
+- **Two halves:**
+  1. **KPI cards + a 14-day new/active-users chart** — `GET /api/kpis`,
+     `GET /api/kpis/daily` (all IST-aware).
+  2. **"Ask the data" chatbot** — `POST /api/ask {question}`: the question →
+     LLM → a **read-only SQL** query → run → table + a 1-line summary. The model
+     gets the schema in `SCHEMA_DOC` (server.js); uses `OPENROUTER_API_KEY`,
+     model from `ADMIN_PORTAL_MODEL` (default `openai/gpt-4o-mini`).
+- **Safety (LLM SQL on a live DB):** (1) only a single `SELECT`/`WITH` is
+  allowed (write keywords blocked), (2) every query runs in a `READ ONLY`
+  transaction with an 8s `statement_timeout`, (3) README documents creating a
+  **read-only Postgres role** (`analytics_ro`) for the service's `DATABASE_URL`.
+- **Deploy:** new Render **Web Service** → repo, **branch
+  `stilwateradminportal`**, **root dir `admin-portal`**, Docker runtime
+  (`admin-portal/Dockerfile`). Env to set (see `admin-portal/README.md`):
+  `DATABASE_URL` (prod Postgres internal URL / read-only role), `SESSION_SECRET`,
+  `ADMIN_PORTAL_EMAILS` (`bikramjit@stillwater.you,amar.dani@stillwater.you`),
+  `ADMIN_PORTAL_PASSWORD`, `OPENROUTER_API_KEY`, `ADMIN_PORTAL_MODEL`,
+  `NODE_ENV=production`. `PORT` is auto.
+- **To extend:** add new tables/columns to `SCHEMA_DOC` in `server.js` and new
+  KPI queries in the `/api/kpis*` handlers. Sessions are in-memory (a redeploy
+  re-prompts login).
+
+---
+
+_Updated 2026-06-06 — `main` `1079e54` ≈ `test` `ecdf081` (prod current); admin
+portal on branch `stilwateradminportal`.
 Earlier: 2026-06-05 GA4/domain `a2a6252`, credits `db5733d`; 2026-06-04 (s2)
 `9f237ce`, 2026-06-04 `1aa5a68`; 2026-06-03 `169c40f`; 2026-06-01 `694011a`;
 2026-05-30 `18dff27`._
