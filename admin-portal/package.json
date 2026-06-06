@@ -1,0 +1,18 @@
+{
+  "name": "stilwater-admin-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Stilwater management analytics portal — KPIs + natural-language (text-to-SQL) chatbot over the production database (read-only).",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "express-session": "^1.18.0",
+    "pg": "^8.11.5"
+  }
+}

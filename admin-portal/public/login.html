@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stilwater Analytics — Sign in</title>
+<style>
+  :root{ --forest:#2b4338; --forest-d:#20332a; --cream:#f3efe6; --paper:#faf8f2; --ink:#3f4a44; --line:rgba(43,67,56,.18); --gold:#e8b94a; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 50px rgba(24,55,39,.12);width:100%;max-width:380px;padding:32px;}
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .brand .dot{width:30px;height:30px;border-radius:50%;background:var(--forest);display:inline-flex;align-items:center;justify-content:center;color:#fff;font-weight:800;}
+  .brand h1{font-size:1.05rem;color:var(--forest);}
+  p.sub{color:#6a7770;font-size:.85rem;margin:4px 0 22px;}
+  label{display:block;font-size:.8rem;font-weight:700;margin:14px 0 6px;color:var(--forest);}
+  input{width:100%;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.95rem;background:#fff;color:var(--ink);}
+  input:focus{outline:none;border-color:rgba(43,67,56,.45);box-shadow:0 0 0 3px rgba(43,67,56,.1);}
+  button{width:100%;margin-top:22px;background:var(--forest);color:#fff;border:none;border-radius:999px;padding:13px;font-size:.95rem;font-weight:700;cursor:pointer;}
+  button:hover{background:var(--forest-d);}
+  .err{color:#b3402f;font-size:.83rem;margin-top:12px;min-height:1em;}
+</style>
+</head>
+<body>
+  <form class="card" id="loginForm">
+    <div class="brand"><span class="dot">S</span><h1>Stilwater Analytics</h1></div>
+    <p class="sub">Management dashboard — sign in to continue.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="username" required />
+    <label for="password">Password</label>
+    <input id="password" type="password" autocomplete="current-password" required />
+    <button type="submit">Sign in</button>
+    <div class="err" id="err"></div>
+  </form>
+<script>
+  document.getElementById('loginForm').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var err = document.getElementById('err'); err.textContent = '';
+    try {
+      var r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('password').value }) });
+      if (r.ok) { location.href = '/dashboard'; return; }
+      var d = await r.json().catch(function(){return {};});
+      err.textContent = d.error || 'Sign in failed.';
+    } catch(_e){ err.textContent = 'Network error.'; }
+  });
+</script>
+</body>
+</html>

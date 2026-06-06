@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stilwater Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root{ --forest:#2b4338; --forest-d:#20332a; --cream:#f3efe6; --paper:#fff; --ink:#2f3a35; --muted:#6a7770; --line:rgba(43,67,56,.14); --gold:#c9952a; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:var(--cream);color:var(--ink);}
+  header{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:14px 22px;background:var(--forest);color:#fff;}
+  header h1{font-size:1.05rem;font-weight:700;}
+  header .who{font-size:.82rem;color:#cfe0d6;}
+  header button{background:rgba(255,255,255,.14);color:#fff;border:none;border-radius:999px;padding:7px 14px;font-size:.8rem;cursor:pointer;}
+  header button:hover{background:rgba(255,255,255,.26);}
+  .shell{max-width:1180px;margin:0 auto;padding:22px;}
+  h2{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:24px 0 10px;}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+  .kpi{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px 18px;}
+  .kpi .label{color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;}
+  .kpi .val{font-size:1.8rem;font-weight:800;margin-top:6px;color:var(--forest);}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;}
+  .grid2{display:grid;grid-template-columns:1fr;gap:18px;}
+  @media(min-width:900px){.grid2{grid-template-columns:1.1fr 1fr;}}
+  /* chat */
+  .chat-log{display:flex;flex-direction:column;gap:14px;max-height:540px;overflow:auto;padding-right:4px;}
+  .msg{padding:11px 14px;border-radius:14px;font-size:.9rem;line-height:1.5;}
+  .msg.user{align-self:flex-end;background:var(--forest);color:#fff;max-width:85%;}
+  .msg.bot{align-self:flex-start;background:#f4f1ea;border:1px solid var(--line);max-width:100%;width:100%;}
+  .msg.bot .summary{font-weight:600;margin-bottom:8px;}
+  .msg.err{background:#fbe9e6;border:1px solid #e7c3bc;color:#8d3322;}
+  details{margin-top:8px;}
+  summary{cursor:pointer;color:var(--muted);font-size:.78rem;}
+  pre{background:#0d1f1a;color:#cfe6db;padding:10px;border-radius:8px;overflow:auto;font-size:.74rem;margin-top:6px;}
+  table{border-collapse:collapse;width:100%;font-size:.82rem;margin-top:8px;display:block;overflow:auto;max-height:320px;}
+  th,td{border:1px solid var(--line);padding:6px 9px;text-align:left;white-space:nowrap;}
+  th{background:#eef1ea;position:sticky;top:0;}
+  .composer{display:flex;gap:8px;margin-top:14px;}
+  .composer input{flex:1;border:1px solid var(--line);border-radius:999px;padding:12px 16px;font-size:.92rem;}
+  .composer button{background:var(--forest);color:#fff;border:none;border-radius:999px;padding:0 20px;font-weight:700;cursor:pointer;}
+  .composer button:disabled{opacity:.5;cursor:default;}
+  .examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .ex{background:#eef1ea;border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:.78rem;cursor:pointer;color:var(--forest);}
+  .ex:hover{background:#e3e8df;}
+  .muted{color:var(--muted);font-size:.8rem;}
+</style>
+</head>
+<body>
+  <header>
+    <h1>📊 Stilwater Analytics</h1>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="who" id="who"></span>
+      <button id="refresh">Refresh</button>
+      <button id="logout">Log out</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <h2>Key metrics <span class="muted" id="asof"></span></h2>
+    <div class="kpis" id="kpis"><div class="muted">Loading…</div></div>
+
+    <div class="grid2" style="margin-top:22px;">
+      <div class="panel">
+        <h2 style="margin-top:0;">New &amp; active users (last 14 days, IST)</h2>
+        <canvas id="dailyChart" height="150"></canvas>
+      </div>
+      <div class="panel">
+        <h2 style="margin-top:0;">Ask the data 🤖</h2>
+        <p class="muted">Type a question in plain English — it queries the live database (read-only).</p>
+        <div class="examples" id="examples"></div>
+        <div class="chat-log" id="chatLog" style="margin-top:14px;"></div>
+        <div class="composer">
+          <input id="q" placeholder="e.g. How many new users signed up today?" />
+          <button id="send">Ask</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  fetch('/api/me').then(r=>r.json()).then(d=>{ if(!d.user){location.href='/';return;} $('who').textContent=d.user; });
+  $('logout').onclick = async ()=>{ await fetch('/api/logout',{method:'POST'}); location.href='/'; };
+  $('refresh').onclick = ()=>{ loadKpis(); loadDaily(); };
+
+  const KPI_LABELS = {
+    total_users:'Total users', logins_today:'Logins today', users_logged_in_today:'Signed in today',
+    new_users_today:'New users today', active_users_today:'Active users today',
+    nutrition_chats_today:'Nutrition chats today', yoga_clicks_today:'Yoga clicks today',
+    assessments_total:'Assessments (all-time)', partner_leads_total:'Partner leads (all-time)',
+    credits_spent_total:'Credits spent (all-time)'
+  };
+  async function loadKpis(){
+    try{
+      const d = await (await fetch('/api/kpis')).json();
+      if(!d.ok) throw new Error(d.error||'failed');
+      $('asof').textContent = '· as of now (IST)';
+      $('kpis').innerHTML = Object.keys(KPI_LABELS).map(k=>{
+        const v = d.kpis[k]; if(v===undefined) return '';
+        return `<div class="kpi"><div class="label">${KPI_LABELS[k]}</div><div class="val">${Number(v).toLocaleString()}</div></div>`;
+      }).join('');
+    }catch(e){ $('kpis').innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; }
+  }
+
+  let chart;
+  async function loadDaily(){
+    try{
+      const d = await (await fetch('/api/kpis/daily?days=14')).json();
+      if(!d.ok) throw new Error(d.error||'failed');
+      const labels = d.days.map(x=>x.day.slice(5));
+      const mk = (k)=> d.days.map(x=>Number(x[k]));
+      const ctx = $('dailyChart');
+      if(chart) chart.destroy();
+      chart = new Chart(ctx, { type:'bar',
+        data:{ labels, datasets:[
+          {label:'Active users', data:mk('active_users'), backgroundColor:'#2b4338'},
+          {label:'New users', data:mk('new_users'), backgroundColor:'#c9952a'},
+        ]},
+        options:{ responsive:true, plugins:{legend:{labels:{boxWidth:12}}}, scales:{y:{beginAtZero:true,ticks:{precision:0}}} }
+      });
+    }catch(e){ /* chart optional */ }
+  }
+
+  // ── chatbot ──
+  const EXAMPLES = [
+    'How many new users signed up today?',
+    'List users who used nutrition chat today with their email',
+    'Which asana is clicked the most?',
+    'Total logins per day this week',
+    'Top 5 users by credits spent'
+  ];
+  $('examples').innerHTML = EXAMPLES.map(q=>`<span class="ex">${esc(q)}</span>`).join('');
+  document.querySelectorAll('.ex').forEach(el=> el.onclick=()=>{ $('q').value=el.textContent; ask(); });
+
+  function addMsg(html, cls){ const div=document.createElement('div'); div.className='msg '+cls; div.innerHTML=html; $('chatLog').appendChild(div); $('chatLog').scrollTop=$('chatLog').scrollHeight; return div; }
+  function tableHtml(cols, rows){
+    if(!rows.length) return '<div class="muted">No rows.</div>';
+    return '<table><thead><tr>'+cols.map(c=>`<th>${esc(c)}</th>`).join('')+'</tr></thead><tbody>'+
+      rows.slice(0,200).map(r=>'<tr>'+cols.map(c=>`<td>${esc(r[c])}</td>`).join('')+'</tr>').join('')+'</tbody></table>'+
+      (rows.length>200?`<div class="muted">Showing 200 of ${rows.length} rows.</div>`:'');
+  }
+
+  async function ask(){
+    const q = $('q').value.trim(); if(!q) return;
+    $('q').value=''; $('send').disabled=true;
+    addMsg(esc(q),'user');
+    const thinking = addMsg('<span class="muted">Thinking…</span>','bot');
+    try{
+      const r = await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:q})});
+      const d = await r.json();
+      if(!r.ok || d.error){
+        thinking.className='msg err';
+        thinking.innerHTML = esc(d.error||'Something went wrong.') + (d.sql?`<details><summary>generated SQL</summary><pre>${esc(d.sql)}</pre></details>`:'');
+      } else {
+        thinking.innerHTML = (d.summary?`<div class="summary">${esc(d.summary)}</div>`:'') +
+          tableHtml(d.columns, d.rows) +
+          `<details><summary>SQL · ${d.rowCount} rows</summary><pre>${esc(d.sql)}</pre></details>`;
+      }
+    }catch(e){ thinking.className='msg err'; thinking.textContent='Network error.'; }
+    finally{ $('send').disabled=false; $('chatLog').scrollTop=$('chatLog').scrollHeight; }
+  }
+  $('send').onclick = ask;
+  $('q').addEventListener('keydown', e=>{ if(e.key==='Enter') ask(); });
+
+  loadKpis(); loadDaily();
+</script>
+</body>
+</html>
