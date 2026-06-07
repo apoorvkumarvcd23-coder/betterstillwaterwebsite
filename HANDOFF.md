@@ -13,15 +13,15 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **`main` and `test` are now IN SYNC** (2026-06-06). The whole §12–§18 body
-  was promoted to prod across several merges. **Live: `main` `1079e54` ≈ `test`
-  `ecdf081`** (same tree). The old "test is 100 commits ahead" situation is
-  resolved — promote incrementally from here.
-- **Newest work is §18** (2026-06-05/06): server-side credits + per-user ledger,
-  dedicated yoga-click tracking, the Dashboard header link, OG share image,
-  cookie-banner fix, Amar Explore → lead form, and a batch of chronic/nutrition
-  bug fixes. §17 = GA4 reset + `stilwater.health`; §16 = client-side credits
-  (since replaced by §18's server-side version); §12–§15 = earlier sessions.
+- **`main` and `test` are IN SYNC** (2026-06-07). **Live: `main` `22d02db` ≈
+  `test` `f517942`** (same tree). Promote incrementally from here.
+- **Newest work is §21** (2026-06-07): **"SONI123" promo code** on the auth
+  page that swaps the in-app yoga intro to a Soni-recorded variant (Tadasana +
+  Cobra only, Soni videos). §20 (2026-06-06/07): new PWA app icons from the
+  logo, **admin portal DEPLOYED to Render**, and a 3rd "Cobra Pose" yoga card. §19 =
+  the admin portal app (branch `stilwateradminportal`); §18 = server-side
+  credits + tracking + polish; §17 = GA4 reset + `stilwater.health`;
+  §16 = client-side credits (replaced by §18); §12–§15 = earlier sessions.
 - **`stilwater.health` is LIVE** as the real production domain (serves the app
   directly, GA `G-GNF77Q61ZQ` confirmed firing, login works). `stillwater.you`
   still works too. See §17.3/§18.6.
@@ -1170,8 +1170,128 @@ isolated from the main website.**
 
 ---
 
-_Updated 2026-06-06 — `main` `1079e54` ≈ `test` `ecdf081` (prod current); admin
-portal on branch `stilwateradminportal`.
-Earlier: 2026-06-05 GA4/domain `a2a6252`, credits `db5733d`; 2026-06-04 (s2)
-`9f237ce`, 2026-06-04 `1aa5a68`; 2026-06-03 `169c40f`; 2026-06-01 `694011a`;
-2026-05-30 `18dff27`._
+## 20. 2026-06-06/07 — PWA icons, admin portal DEPLOYED, Cobra Pose card
+
+### 20.1 PWA app icons regenerated from the new logo (`3de40a1`, live)
+The installed home-screen / PWA icon was still the old dark-lotus logo. Replaced
+**`images/icons/`** `icon-192/512`, `icon-maskable-192/512`, and
+`apple-touch-icon.png` with the current **`stilwater-logov3`** logo centered on
+white (generated via PowerShell System.Drawing; maskable variants use extra
+safe-zone padding). `manifest.webmanifest` paths unchanged — only the files were
+swapped. ⚠ An **already-installed PWA caches its icon** — to see the new one you
+must **uninstall + reinstall** the app; *content/feature* changes still update
+automatically (network-first `sw.js`).
+
+### 20.2 Admin analytics portal DEPLOYED to Render (§19 → live)
+The §19 portal (`admin-portal/` on branch **`stilwateradminportal`**) is now a
+**live Render web service**:
+- **Service:** `stilwater-admin-portal` (`srv-d8ht1eflk1mc73fgv6h0`), Node
+  runtime, region oregon, **starter** plan, auto-deploys from branch
+  `stilwateradminportal`. **URL: `https://stilwater-admin-portal.onrender.com`**.
+  Build `cd admin-portal && npm install`; start `cd admin-portal && node server.js`.
+- **Env vars set by us:** `SESSION_SECRET`, `ADMIN_PORTAL_EMAILS`
+  (`bikramjit@stillwater.you,amar.dani@stillwater.you`), `ADMIN_PORTAL_PASSWORD`
+  (`admin@1234#`), `ADMIN_PORTAL_MODEL` = **`anthropic/claude-sonnet-4.5`**,
+  `NODE_ENV`. **User must paste two secrets** in the Render dashboard or it won't
+  run: **`DATABASE_URL`** (prod Postgres Internal URL — ideally a read-only role,
+  see `admin-portal/README.md`) and **`OPENROUTER_API_KEY`** (copy from
+  `stillwater-main`). The server `process.exit`s without `DATABASE_URL`, so the
+  first deploy crash-loops until both are added.
+- Login → KPI cards + 14-day chart + the read-only NL-to-SQL chatbot.
+
+### 20.3 New "Cobra Pose" yoga card (`831e078`, video `f517942` — live)
+Third card in the AI Yoga intro grid (`care-path.html`): **Practice Cobra Pose**
+(Bhujangasana) → `#yogaCobraOpen` → `#cobraModal`, a copy of the Balasana
+3-stage flow (video → choice → practice). Guide video is
+**`videos/CobraPoseCommon.mp4`** (swapped from the initial `SoniCobraPose.mp4`,
+which is now unused). Same instrumentation: credit spend `cobra_watch_learn` +
+`trackYogaClick("Cobra")`.
+⚠ **"Practice Now" has NO detection URL yet** — in the Cobra IIFE in
+`care-path.html`, `const POSE_APP_URL = "";`. While empty, Practice Now shows a
+"coming soon" note; **set that constant to the real app URL** and it loads like
+Tadasana/Balasana. (Tadasana = `static-tadasha-pose-detection-c3tk.onrender.com`,
+Balasana = `static-chisld-pose-detection.onrender.com` for reference.)
+
+### 20.4 Commits (newest first)
+```
+22d02db  Deploy: Cobra guide video -> CobraPoseCommon.mp4
+c24cb9d  Deploy: add Cobra Pose card + flow
+d24044c  Deploy: new PWA app icons + handoff §18/§19
+(branch stilwateradminportal: admin portal app + claude-sonnet-4.5 default)
+```
+
+### 20.5 Open items (carried + new)
+- **Cobra "Practice Now" URL** — set `POSE_APP_URL` in the Cobra IIFE when ready.
+- **Admin portal:** add `DATABASE_URL` + `OPENROUTER_API_KEY` env on the Render
+  service; consider the read-only `analytics_ro` DB role.
+- Carried: OpenRouter credits / finish diabetes-book embed; domain cutover
+  externals (`BASE_URL`/OAuth for stilwater.health, 301, retire stillwater.you).
+
+---
+
+## 21. 2026-06-07 — "SONI123" promo code → Soni yoga variant
+
+A promo-code gate on the login page that, when used, shows a different
+in-app yoga intro. **Client-side only** (a `localStorage` flag), no DB / API /
+server change. Default (no code) behaviour is **completely unchanged**.
+
+### 21.1 Auth page input (`auth.html` + twin `admin-served.html`)
+- New **"Promo code (optional)"** text input added **below the "Continue with
+  Google" CTA** (inside `#authChoices`, before the `OR` divider). Styled with
+  the existing `.field-label` + `.form-input`; new `.auth-promo` wrapper (the
+  input force-uppercases typed text, placeholder stays normal-case).
+- On **clicking "Continue with Google"**, the input is read: if it equals
+  **`SONI123`** (trimmed, case-insensitive) → `localStorage.setItem(
+  "sw_promo_soni","1")`; **any other / empty value clears the flag**
+  (`removeItem`). The flag is set synchronously in the click handler **before**
+  the OAuth redirect, and `localStorage` on our origin **survives the Google
+  OAuth roundtrip**, so it's still there when the user lands back in the app.
+- ⚠ The promo is wired to the **Google CTA only** (per the request — "with
+  continue with google"). The Mobile-Number flow does NOT set the flag.
+- Both `auth.html` (the file served at `/auth.html`) and its twin
+  `admin-served.html` got the identical input + CSS + JS.
+
+### 21.2 Yoga intro variant (`care-path.html`)
+A small IIFE `applySoniPromo()` (right before the Tadasana yoga IIFE) reads
+`localStorage.sw_promo_soni`. **Only when `=== "1"`** it, on DOM ready:
+- **Hides the Balasana card** in the AI Yoga intro grid (the card got
+  `id="yogaBalasanaCard"`) → only **Practice Tadasana** + **Practice Cobra
+  Pose** remain.
+- Swaps the **Tadasana** guide video `#yogaVideo` src
+  `videos/Tadasana.mp4` → **`videos/sonitadashana.mp4`** and calls `.load()`.
+- Swaps the **Cobra** guide video `#cobraVideo` src
+  `videos/CobraPoseCommon.mp4` → **`videos/SiniCobra.mp4`** and `.load()`.
+- **Everything else is untouched** — same modals, "Watch & Learn", choice flow,
+  Practice Now / Repeat, credit spend + `trackYogaClick` instrumentation.
+- No flag (regular login, or wrong/blank code) → the present 3-card intro with
+  the default videos. The swap is idempotent (guards on the filename).
+
+The two video files (`videos/sonitadashana.mp4`, `videos/SiniCobra.mp4`) already
+exist in the repo. (Note: the older `videos/SoniCobraPose.mp4` from §20 is the
+deleted/unused one — the promo uses **`SiniCobra.mp4`**.)
+
+### 21.3 Testing / reset
+It's all browser state — to toggle by hand in DevTools console:
+```js
+localStorage.setItem("sw_promo_soni","1"); location.reload();  // force variant
+localStorage.removeItem("sw_promo_soni");  location.reload();  // back to default
+```
+Or just log in via Google with / without `SONI123` in the promo field.
+
+### 21.4 Open items (carried)
+- Same as §20.5 (Cobra "Practice Now" `POSE_APP_URL` still empty; admin-portal
+  `DATABASE_URL`/`OPENROUTER_API_KEY` env; OpenRouter credits / diabetes-book
+  embed; domain cutover externals). All untouched this session.
+- Promote `test → main` when ready — this is on `test` only.
+- If the promo should ever be per-account (cross-device, reset on user delete),
+  it must move server-side (a flag on the user + read at the yoga page) — same
+  caveat as the §16 client-side credits prototype.
+
+---
+
+_Updated 2026-06-07 — added §21 ("SONI123" promo → Soni yoga variant, test only).
+`main` `22d02db` ≈ `test` `f517942` (prod current); admin
+portal LIVE at stilwater-admin-portal.onrender.com (branch
+`stilwateradminportal`). Earlier: 2026-06-06 `1079e54`; 2026-06-05 GA4/domain
+`a2a6252`, credits `db5733d`; 2026-06-04 (s2) `9f237ce`, 2026-06-04 `1aa5a68`;
+2026-06-03 `169c40f`; 2026-06-01 `694011a`; 2026-05-30 `18dff27`._

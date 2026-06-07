@@ -333,6 +333,9 @@
         content: ""; flex: 1; height: 1px;
         background: rgba(255, 255, 255, 0.12);
       }
+      .auth-promo { display: flex; flex-direction: column; gap: 6px; }
+      .auth-promo .form-input { text-transform: uppercase; }
+      .auth-promo .form-input::placeholder { text-transform: none; }
       .auth-safety {
         display: flex; align-items: center; justify-content: center; gap: 8px;
         color: var(--off);
@@ -580,6 +583,19 @@
                 <span>Continue with Google</span>
               </a>
 
+              <div class="auth-promo">
+                <label class="field-label" for="promoCode">Promo code (optional)</label>
+                <input
+                  type="text"
+                  id="promoCode"
+                  class="form-input"
+                  placeholder="Enter promo code"
+                  autocomplete="off"
+                  autocapitalize="characters"
+                  spellcheck="false"
+                />
+              </div>
+
               <div class="auth-or"><span>OR</span></div>
 
               <button type="button" class="auth-cta auth-cta-phone" onclick="switchToPhone()">
@@ -740,6 +756,25 @@
           "href",
           `/auth/google?returnTo=${encodeURIComponent(returnTo)}`,
         );
+
+        // Promo code: if the user enters "SONI123" and continues with
+        // Google, remember it (localStorage survives the OAuth roundtrip)
+        // so the in-app yoga page can show the Soni variant. Any other /
+        // empty value clears the flag → present behaviour.
+        const promoInput = document.getElementById("promoCode");
+        const SONI_PROMO_CODE = "SONI123";
+        googleAuthLink.addEventListener("click", function () {
+          const val = ((promoInput && promoInput.value) || "")
+            .trim()
+            .toUpperCase();
+          try {
+            if (val === SONI_PROMO_CODE) {
+              localStorage.setItem("sw_promo_soni", "1");
+            } else {
+              localStorage.removeItem("sw_promo_soni");
+            }
+          } catch (_e) {}
+        });
       }
 
       // Check if already authenticated
