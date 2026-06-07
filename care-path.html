@@ -3131,7 +3131,7 @@
                 Watch &amp; Learn
               </button>
             </div>
-            <div class="yoga-pose-card">
+            <div class="yoga-pose-card" id="yogaBalasanaCard">
               <div class="yoga-pose-title">
                 <strong>Practice Balasana</strong>
                 <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
@@ -3639,6 +3639,37 @@
           }).catch(function () {});
         } catch (_e) {}
       }
+
+      // ── "SONI123" promo variant of the yoga intro ────────────────────
+      // Set by the auth page when the user enters the promo code with
+      // "Continue with Google" (localStorage flag survives the OAuth
+      // roundtrip). When active: hide the Balasana card and swap the
+      // Tadasana + Cobra guide videos for the Soni-recorded versions.
+      // No flag → present behaviour (3 cards, default videos).
+      (function applySoniPromo() {
+        let on = false;
+        try { on = localStorage.getItem("sw_promo_soni") === "1"; } catch (_e) {}
+        if (!on) return;
+        function apply() {
+          const bal = document.getElementById("yogaBalasanaCard");
+          if (bal) bal.style.display = "none";
+          const tad = document.getElementById("yogaVideo");
+          if (tad && !/sonitadashana/i.test(tad.getAttribute("src") || "")) {
+            tad.setAttribute("src", "videos/sonitadashana.mp4");
+            try { tad.load(); } catch (_e) {}
+          }
+          const cobra = document.getElementById("cobraVideo");
+          if (cobra && !/SiniCobra/i.test(cobra.getAttribute("src") || "")) {
+            cobra.setAttribute("src", "videos/SiniCobra.mp4");
+            try { cobra.load(); } catch (_e) {}
+          }
+        }
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", apply);
+        } else {
+          apply();
+        }
+      })();
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
       (function () {

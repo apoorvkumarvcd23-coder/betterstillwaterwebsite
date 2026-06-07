@@ -15,8 +15,10 @@ Single-source-of-truth for someone picking up this repo. Skim the
   `test → main` with `git merge --no-ff` and push.
 - **`main` and `test` are IN SYNC** (2026-06-07). **Live: `main` `22d02db` ≈
   `test` `f517942`** (same tree). Promote incrementally from here.
-- **Newest work is §20** (2026-06-06/07): new PWA app icons from the logo,
-  **admin portal DEPLOYED to Render**, and a 3rd "Cobra Pose" yoga card. §19 =
+- **Newest work is §21** (2026-06-07): **"SONI123" promo code** on the auth
+  page that swaps the in-app yoga intro to a Soni-recorded variant (Tadasana +
+  Cobra only, Soni videos). §20 (2026-06-06/07): new PWA app icons from the
+  logo, **admin portal DEPLOYED to Render**, and a 3rd "Cobra Pose" yoga card. §19 =
   the admin portal app (branch `stilwateradminportal`); §18 = server-side
   credits + tracking + polish; §17 = GA4 reset + `stilwater.health`;
   §16 = client-side credits (replaced by §18); §12–§15 = earlier sessions.
@@ -1227,7 +1229,68 @@ d24044c  Deploy: new PWA app icons + handoff §18/§19
 
 ---
 
-_Updated 2026-06-07 — `main` `22d02db` ≈ `test` `f517942` (prod current); admin
+## 21. 2026-06-07 — "SONI123" promo code → Soni yoga variant
+
+A promo-code gate on the login page that, when used, shows a different
+in-app yoga intro. **Client-side only** (a `localStorage` flag), no DB / API /
+server change. Default (no code) behaviour is **completely unchanged**.
+
+### 21.1 Auth page input (`auth.html` + twin `admin-served.html`)
+- New **"Promo code (optional)"** text input added **below the "Continue with
+  Google" CTA** (inside `#authChoices`, before the `OR` divider). Styled with
+  the existing `.field-label` + `.form-input`; new `.auth-promo` wrapper (the
+  input force-uppercases typed text, placeholder stays normal-case).
+- On **clicking "Continue with Google"**, the input is read: if it equals
+  **`SONI123`** (trimmed, case-insensitive) → `localStorage.setItem(
+  "sw_promo_soni","1")`; **any other / empty value clears the flag**
+  (`removeItem`). The flag is set synchronously in the click handler **before**
+  the OAuth redirect, and `localStorage` on our origin **survives the Google
+  OAuth roundtrip**, so it's still there when the user lands back in the app.
+- ⚠ The promo is wired to the **Google CTA only** (per the request — "with
+  continue with google"). The Mobile-Number flow does NOT set the flag.
+- Both `auth.html` (the file served at `/auth.html`) and its twin
+  `admin-served.html` got the identical input + CSS + JS.
+
+### 21.2 Yoga intro variant (`care-path.html`)
+A small IIFE `applySoniPromo()` (right before the Tadasana yoga IIFE) reads
+`localStorage.sw_promo_soni`. **Only when `=== "1"`** it, on DOM ready:
+- **Hides the Balasana card** in the AI Yoga intro grid (the card got
+  `id="yogaBalasanaCard"`) → only **Practice Tadasana** + **Practice Cobra
+  Pose** remain.
+- Swaps the **Tadasana** guide video `#yogaVideo` src
+  `videos/Tadasana.mp4` → **`videos/sonitadashana.mp4`** and calls `.load()`.
+- Swaps the **Cobra** guide video `#cobraVideo` src
+  `videos/CobraPoseCommon.mp4` → **`videos/SiniCobra.mp4`** and `.load()`.
+- **Everything else is untouched** — same modals, "Watch & Learn", choice flow,
+  Practice Now / Repeat, credit spend + `trackYogaClick` instrumentation.
+- No flag (regular login, or wrong/blank code) → the present 3-card intro with
+  the default videos. The swap is idempotent (guards on the filename).
+
+The two video files (`videos/sonitadashana.mp4`, `videos/SiniCobra.mp4`) already
+exist in the repo. (Note: the older `videos/SoniCobraPose.mp4` from §20 is the
+deleted/unused one — the promo uses **`SiniCobra.mp4`**.)
+
+### 21.3 Testing / reset
+It's all browser state — to toggle by hand in DevTools console:
+```js
+localStorage.setItem("sw_promo_soni","1"); location.reload();  // force variant
+localStorage.removeItem("sw_promo_soni");  location.reload();  // back to default
+```
+Or just log in via Google with / without `SONI123` in the promo field.
+
+### 21.4 Open items (carried)
+- Same as §20.5 (Cobra "Practice Now" `POSE_APP_URL` still empty; admin-portal
+  `DATABASE_URL`/`OPENROUTER_API_KEY` env; OpenRouter credits / diabetes-book
+  embed; domain cutover externals). All untouched this session.
+- Promote `test → main` when ready — this is on `test` only.
+- If the promo should ever be per-account (cross-device, reset on user delete),
+  it must move server-side (a flag on the user + read at the yoga page) — same
+  caveat as the §16 client-side credits prototype.
+
+---
+
+_Updated 2026-06-07 — added §21 ("SONI123" promo → Soni yoga variant, test only).
+`main` `22d02db` ≈ `test` `f517942` (prod current); admin
 portal LIVE at stilwater-admin-portal.onrender.com (branch
 `stilwateradminportal`). Earlier: 2026-06-06 `1079e54`; 2026-06-05 GA4/domain
 `a2a6252`, credits `db5733d`; 2026-06-04 (s2) `9f237ce`, 2026-06-04 `1aa5a68`;
