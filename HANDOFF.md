@@ -13,18 +13,18 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **Live (head of test)**: `a2a6252` — see §17 for the 2026-06-05 GA4 +
-  domain work (single GA4 property `G-GNF77Q61ZQ`, new event taxonomy,
-  `stilwater.health` added as a prod host). §16 is the same-day client-side
-  credits; §15 the 2026-06-04 session #2; §14 the 2026-06-04 session #1;
-  §13 the 2026-06-03 session; §12 the 2026-06-01 baseline.
-- **PLANNED: promote `test → main` on 2026-06-06** (next session). Test is
-  **101 commits ahead** of main — the whole §12–§17 body ships at once. Do the
-  external domain steps in §17.4 BEFORE/with the promotion or Google login +
-  analytics won't work on `stilwater.health`.
-- **Live (head of main)**: `e91be1b` — much older. Test is **far ahead of
-  main** (all of the §12 work plus the earlier Stilwater AI Chat, homepage,
-  auth-page, videos, mobile passes). Promote when ready.
+- **`main` and `test` are now IN SYNC** (2026-06-06). The whole §12–§18 body
+  was promoted to prod across several merges. **Live: `main` `1079e54` ≈ `test`
+  `ecdf081`** (same tree). The old "test is 100 commits ahead" situation is
+  resolved — promote incrementally from here.
+- **Newest work is §18** (2026-06-05/06): server-side credits + per-user ledger,
+  dedicated yoga-click tracking, the Dashboard header link, OG share image,
+  cookie-banner fix, Amar Explore → lead form, and a batch of chronic/nutrition
+  bug fixes. §17 = GA4 reset + `stilwater.health`; §16 = client-side credits
+  (since replaced by §18's server-side version); §12–§15 = earlier sessions.
+- **`stilwater.health` is LIVE** as the real production domain (serves the app
+  directly, GA `G-GNF77Q61ZQ` confirmed firing, login works). `stillwater.you`
+  still works too. See §17.3/§18.6.
 - **Local checkout**: always returns to `test` after a promotion
   (saved user preference).
 - **Standing user rule**: never push to main without explicit
@@ -1007,6 +1007,171 @@ a2a6252  Domain: recognise stilwater.health as production (alongside stillwater.
 
 ---
 
-_Updated 2026-06-05 (session #2) from test branch head `a2a6252`. Earlier:
-2026-06-05 credits `db5733d`, 2026-06-04 (session #2) `9f237ce`, 2026-06-04
-`1aa5a68`, 2026-06-03 `169c40f`, 2026-06-01 `694011a`, 2026-05-30 `18dff27`._
+## 18. 2026-06-05/06 session — credits go server-side, tracking, polish, GO-LIVE
+
+Big session. The §12–§17 backlog was **promoted to production** in several
+verified merges (each: backup `origin/main` → `git merge --no-ff` → confirm the
+merged tree == `origin/test` → push → `git checkout test`). `main` is now
+current. Below is what was built/changed, newest concerns first.
+
+### 18.1 Server-side credits (replaces the §16 client-side prototype)
+Credits are now **real and per-user** (DB-backed), so you can report who spent
+how much. **DB (auto-created in `initDb`, schema `public`):**
+- **`user_credits`** — current balance per user: `auth_user_type, auth_user_id,
+  email, name, balance, total_spent, created_at, updated_at` (PK on type+id).
+- **`credit_events`** — append-only **ledger**, one row per spend: `…, action,
+  cost, balance_after, created_at`.
+
+**API** (`server.js`): `GET /api/credits` (balance; creates the row at
+`CREDITS_START`=50, override via env), `POST /api/credits/spend {action}`
+(atomic decrement, clamps at 0, writes a ledger row), `GET /api/admin/credits`
+(admin report). **`js/credits.js` rewritten** to read/spend via the server (was
+`localStorage`); the coin badge + logged-out nudge are unchanged. Spend hooks in
+`care-path.html` pass action labels: **`tadasana_watch_learn` /
+`balasana_watch_learn` / `nutrition_chat`** (the single `sendMessage()` choke
+point covers starter card / follow-up chip / typed question).
+**Admin UI:** new **`/credits-admin.html`** (protected route + "Credits" link in
+`admin.html`) showing per-user balance, total spent, action breakdown.
+
+### 18.2 Dedicated yoga-click tracking (separate from credits)
+- **`yoga_clicks`** table (one row per "Watch & Learn" click: user, `asana`,
+  `asana_key`, time) + **`yoga_clicks_by_user`** VIEW (one row per user, asanas
+  in nested JSON). Auto-created in `initDb`.
+- **API:** `POST /api/yoga-click {asana,key}`, `GET /api/admin/yoga-clicks`.
+  Client: `trackYogaClick()` fires on each Tadasana/Balasana Watch & Learn
+  (alongside the credit spend, but decoupled). Admin page has a "Yoga clicks"
+  panel. **New asanas** just call `trackYogaClick("<Name>","<key>")` — they
+  appear in the view automatically.
+
+### 18.3 Useful DB queries (read on the prod DB `stillwater-postgres`)
+```sql
+-- credits per user
+SELECT name,email,balance,total_spent FROM public.user_credits ORDER BY total_spent DESC;
+-- spend by action
+SELECT action,COUNT(*),SUM(cost) FROM public.credit_events GROUP BY action;
+-- yoga: who clicked which asana (nested JSON)
+SELECT * FROM public.yoga_clicks_by_user ORDER BY total_clicks DESC;
+-- nutrition QUESTIONS per user (user messages only) — from chat history
+SELECT COALESCE(u.name,up.name) AS user_name, u.email,
+       jsonb_agg(m.value->>'text' ORDER BY cs.updated_at) AS questions
+FROM aria.chat_sessions cs
+LEFT JOIN public.users u        ON cs.auth_user_type='oauth' AND u.id=cs.auth_user_id
+LEFT JOIN public.users_phone up ON cs.auth_user_type='phone' AND up.id::text=cs.auth_user_id
+CROSS JOIN LATERAL jsonb_array_elements(cs.messages) AS m(value)
+WHERE cs.mode='nutrition' AND m.value->>'role'='user'
+GROUP BY COALESCE(u.name,up.name), u.email;
+-- Google logins today (IST): join login_events → users for the name
+SELECT le.created_at,u.name,le.identifier AS email FROM public.login_events le
+LEFT JOIN public.users u ON u.id=le.user_id
+WHERE le.method='google'
+  AND (le.created_at AT TIME ZONE 'Asia/Kolkata')::date=(now() AT TIME ZONE 'Asia/Kolkata')::date;
+```
+⚠ Chat messages are `{role,text}` with **no per-message timestamp** — date
+filtering on questions is at the session level (`cs.updated_at`). `nutrition`
+questions can be made a permanent VIEW (`CREATE OR REPLACE VIEW
+nutrition_questions_by_user AS …`) if wanted.
+
+### 18.4 Dashboard header link (`js/shared.js`)
+A **"Dashboard"** link is injected into `#authActions` on every page, **before
+the EN/HI toggle** (`[Dashboard] [EN] [coins] [Hi,name]`), shown only when
+logged in → `/care-path.html?view=select`. **Hidden on the launcher view
+itself** (the page IS the dashboard) but shown on yoga-intro / meditation /
+chat — driven by `#swLauncher` visibility + a `MutationObserver` (the care-path
+SPA switches views without a reload). Skipped on the home page (it already has
+its own `#btnDashboard`).
+
+### 18.5 Chronic / nutrition bug fixes (`care-path.html` + partner/recommend pages)
+- **AI Nutritionist "New chat"** now reopens a CLEAN chat in the current module
+  (keeps the left history) instead of bouncing to the dashboard.
+- **"Try the AI Coach"** pointed at the homepage; repointed to the in-app yoga
+  tutor (`care-path.html?view=select`) in `stilwater_yoga.html` +
+  `recommend_stilwater_yoga_{amar,sharan}.html`.
+- **"Back to recommendations"** (linked to a claude.ai artifact) **removed** from
+  `partner_amar.html` + `partner_sharan.html`.
+- **Amar "Explore Amar Eye Yoga"** now opens the **lead-capture form** (was
+  navigating away): added a generic **`.sw-lead-cta`** opt-in to
+  `js/partner-lead.js`'s selector and tagged the button. (`partner-lead.js` wires
+  `a.prog, a.btn-clay, .sw-lead-cta` → the Book-a-consultation modal →
+  `partner_leads`.)
+
+### 18.6 Domain, share image, cookie banner
+- **`stilwater.health` is the live prod domain** (real Render custom domain,
+  serves the app directly — NOT the old frameset; GA fires with correct
+  attribution). `sitemap.xml` + `robots.txt` canonical point to
+  `www.stilwater.health`. `stillwater.you` still works. **Still external/TODO if
+  fully cutting over:** confirm Render `BASE_URL`/OAuth redirect URI for the
+  health domain, 301 `stillwater.you → stilwater.health`, retire the old domain.
+- **Social share image:** `index.html` now has Open Graph/Twitter tags →
+  **`images/og-share.png`** (1200×1200, Stilwater logo centered on white, built
+  via PowerShell System.Drawing from `stilwater-logov3.png`). Only on the
+  homepage so far — add to other pages if you want every shared link branded.
+  Chat apps cache previews; re-scrape with `?v=N` or a debugger.
+- **Cookie-consent fix:** the banner's styles live only in `css/index.css`,
+  which `index.html` doesn't load, so the **Accept button was invisible** on the
+  homepage (default grey on cream). `js/shared.js` now **injects self-contained
+  banner styles** (forest-green `#btnAcceptCookies`, id selector wins
+  everywhere) when the banner shows.
+
+### 18.7 Key commits (prod heads, newest first)
+```
+1079e54  Amar Explore CTA -> lead form
+3c1fb43  cookie-consent Accept button visible on homepage
+c52a2a2  square share image (og-share.png)
+7f7be38  nav/link fixes + Dashboard header link + share image
+cb65e0c  dedicated yoga click tracking (yoga_clicks)
+6e47b6a  server-side credits (user_credits + credit_events)
+4ce3524  §12–§17 promotion (AI chat/RAG, chronic, PWA, credits, GA4, domain)
+```
+
+### 18.8 Open items (carried)
+- OpenRouter credits (chat free-tier cap + finish embedding the diabetes book
+  469→623 via `POST /api/admin/nutrition/ingest?force=1`).
+- `NUTRITION_MODEL` env override; verify `partner_leads` inserts on prod.
+- Domain cutover externals (§18.6): `BASE_URL`/OAuth for stilwater.health, 301,
+  retire `stillwater.you` when ready.
+- OG tags on the non-home pages if you want every shared link branded.
+
+---
+
+## 19. 2026-06-06 — Management analytics portal (separate app + branch + Render service)
+
+A standalone **analytics dashboard for management** so they can self-serve the
+metrics (user counts, new/returning, active users, feature usage, nutrition
+questions, etc.) instead of asking the dev to run SQL. **It is intentionally
+isolated from the main website.**
+
+- **Branch:** **`stilwateradminportal`** (based off `main`). Code lives in the
+  **`admin-portal/`** folder. NOT merged into `main`/`test` — it deploys as its
+  own service.
+- **What it is:** a small Express app (`admin-portal/server.js`) +
+  `public/login.html` + `public/dashboard.html`. Login-gated (email+password
+  from env). **Read-only** against the prod DB.
+- **Two halves:**
+  1. **KPI cards + a 14-day new/active-users chart** — `GET /api/kpis`,
+     `GET /api/kpis/daily` (all IST-aware).
+  2. **"Ask the data" chatbot** — `POST /api/ask {question}`: the question →
+     LLM → a **read-only SQL** query → run → table + a 1-line summary. The model
+     gets the schema in `SCHEMA_DOC` (server.js); uses `OPENROUTER_API_KEY`,
+     model from `ADMIN_PORTAL_MODEL` (default `openai/gpt-4o-mini`).
+- **Safety (LLM SQL on a live DB):** (1) only a single `SELECT`/`WITH` is
+  allowed (write keywords blocked), (2) every query runs in a `READ ONLY`
+  transaction with an 8s `statement_timeout`, (3) README documents creating a
+  **read-only Postgres role** (`analytics_ro`) for the service's `DATABASE_URL`.
+- **Deploy:** new Render **Web Service** → repo, **branch
+  `stilwateradminportal`**, **root dir `admin-portal`**, Docker runtime
+  (`admin-portal/Dockerfile`). Env to set (see `admin-portal/README.md`):
+  `DATABASE_URL` (prod Postgres internal URL / read-only role), `SESSION_SECRET`,
+  `ADMIN_PORTAL_EMAILS` (`bikramjit@stillwater.you,amar.dani@stillwater.you`),
+  `ADMIN_PORTAL_PASSWORD`, `OPENROUTER_API_KEY`, `ADMIN_PORTAL_MODEL`,
+  `NODE_ENV=production`. `PORT` is auto.
+- **To extend:** add new tables/columns to `SCHEMA_DOC` in `server.js` and new
+  KPI queries in the `/api/kpis*` handlers. Sessions are in-memory (a redeploy
+  re-prompts login).
+
+---
+
+_Updated 2026-06-06 — `main` `1079e54` ≈ `test` `ecdf081` (prod current); admin
+portal on branch `stilwateradminportal`.
+Earlier: 2026-06-05 GA4/domain `a2a6252`, credits `db5733d`; 2026-06-04 (s2)
+`9f237ce`, 2026-06-04 `1aa5a68`; 2026-06-03 `169c40f`; 2026-06-01 `694011a`;
+2026-05-30 `18dff27`._
