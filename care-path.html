@@ -3141,6 +3141,16 @@
                 Watch &amp; Learn
               </button>
             </div>
+            <div class="yoga-pose-card">
+              <div class="yoga-pose-title">
+                <strong>Practice Cobra Pose</strong>
+                <span>(Bhujangasana &mdash; Cobra Pose)</span>
+              </div>
+              <button type="button" class="yoga-beta-cta" id="yogaCobraOpen">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                Watch &amp; Learn
+              </button>
+            </div>
           </div>
         </section>
       </div>
@@ -3202,6 +3212,75 @@
             allow="camera; microphone; fullscreen"
             referrerpolicy="no-referrer-when-downgrade"
           ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cobra Pose — same three-stage flow as Tadasana/Balasana. The Practice
+         Now URL isn't wired yet (POSE_APP_URL is empty); until it's set, Practice
+         Now shows a "coming soon" note instead of loading the iframe. -->
+    <div class="modal-overlay yoga-modal-overlay" id="cobraModal" hidden>
+      <div class="yoga-modal-card" id="cobraModalCard">
+        <button type="button" class="yoga-back" id="cobraBack" aria-label="Back">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+          <span id="cobraBackLabel">Back</span>
+        </button>
+        <button type="button" class="yoga-back-carepath" id="cobraBackCarepath" hidden>
+          Back to Care Path
+        </button>
+        <button type="button" class="modal-close" id="cobraModalClose" aria-label="Close">&times;</button>
+
+        <div class="yoga-stage" id="cobraStageVideo">
+          <button type="button" class="yoga-skip" id="cobraSkip" aria-label="Skip Guide">
+            Skip Guide
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 4 15 12 5 20 5 4"/><line x1="19" y1="5" x2="19" y2="19"/></svg>
+          </button>
+          <video
+            id="cobraVideo"
+            class="yoga-video"
+            playsinline
+            controls
+            preload="metadata"
+            src="videos/SoniCobraPose.mp4"
+          ></video>
+          <div class="yoga-stage-caption">
+            <strong>Bhujangasana &mdash; Cobra Pose</strong>
+            <span>Watch the short guide, then choose how you&rsquo;d like to continue.</span>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-choice" id="cobraStageChoice" hidden>
+          <div class="yoga-choice-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>
+          </div>
+          <h3>What&rsquo;s next?</h3>
+          <p>You&rsquo;ve seen the guide. Choose how you&rsquo;d like to continue.</p>
+          <div class="yoga-choice-actions">
+            <button type="button" class="btn btn-solid yoga-choice-primary" id="cobraPracticeNow">
+              Practice Now
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+            <button type="button" class="btn btn-ghost yoga-choice-secondary" id="cobraRestart">
+              Restart Video
+            </button>
+          </div>
+        </div>
+
+        <div class="yoga-stage yoga-frame-stage" id="cobraStageFrame" hidden>
+          <iframe
+            id="cobraFrame"
+            class="yoga-frame"
+            title="Practice Cobra Pose with AI pose detection"
+            allow="camera; microphone; fullscreen"
+            referrerpolicy="no-referrer-when-downgrade"
+          ></iframe>
+          <div class="yoga-choice" id="cobraComingSoon" hidden>
+            <div class="yoga-choice-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            </div>
+            <h3>Practice mode coming soon</h3>
+            <p>AI pose detection for Cobra Pose will be available shortly.</p>
+          </div>
         </div>
       </div>
     </div>
@@ -3794,6 +3873,122 @@
           if (window.SwCredits) window.SwCredits.spend("balasana_watch_learn");
           // Dedicated yoga-click tracking (separate from credits).
           trackYogaClick("Balasana", "balasana_watch_learn");
+          openModal();
+        });
+        closeBtn.addEventListener("click", closeModal);
+        backBtn.addEventListener("click", handleBack);
+        backCarepathBtn.addEventListener("click", closeModal);
+        skipBtn.addEventListener("click", () => {
+          try { video.pause(); } catch (_e) {}
+          showStage("choice");
+        });
+        video.addEventListener("ended", () => showStage("choice"));
+        restartBtn.addEventListener("click", restartVideo);
+        practiceBtn.addEventListener("click", launchPractice);
+
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay) closeModal();
+        });
+      })();
+
+      // ── Cobra Pose — mirrors the Balasana three-stage flow ───────────
+      (function () {
+        // No practice-detection app URL yet — set this once available and
+        // "Practice Now" will load it; until then it shows a coming-soon note.
+        const POSE_APP_URL = "";
+
+        const openBtn = document.getElementById("yogaCobraOpen");
+        const overlay = document.getElementById("cobraModal");
+        const card = document.getElementById("cobraModalCard");
+        const closeBtn = document.getElementById("cobraModalClose");
+        const backBtn = document.getElementById("cobraBack");
+        const backLabel = document.getElementById("cobraBackLabel");
+        const backCarepathBtn = document.getElementById("cobraBackCarepath");
+        const skipBtn = document.getElementById("cobraSkip");
+        const stageVideo = document.getElementById("cobraStageVideo");
+        const stageChoice = document.getElementById("cobraStageChoice");
+        const stageFrame = document.getElementById("cobraStageFrame");
+        const video = document.getElementById("cobraVideo");
+        const frame = document.getElementById("cobraFrame");
+        const comingSoon = document.getElementById("cobraComingSoon");
+        const practiceBtn = document.getElementById("cobraPracticeNow");
+        const restartBtn = document.getElementById("cobraRestart");
+
+        if (!openBtn || !overlay) return;
+
+        let currentStage = "video";
+
+        const showStage = (which) => {
+          currentStage = which;
+          stageVideo.hidden = which !== "video";
+          stageChoice.hidden = which !== "choice";
+          stageFrame.hidden = which !== "frame";
+          card.classList.toggle("yoga-modal-fullbleed", which === "frame");
+
+          if (which === "video") backLabel.textContent = "Back to Care Path";
+          else if (which === "choice") backLabel.textContent = "Back";
+          else if (which === "frame") backLabel.textContent = "Back";
+
+          backCarepathBtn.hidden = which !== "frame";
+          skipBtn.hidden = which !== "video";
+        };
+
+        const openModal = () => {
+          overlay.hidden = false;
+          showStage("video");
+          document.body.style.overflow = "hidden";
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const closeModal = () => {
+          overlay.hidden = true;
+          document.body.style.overflow = "";
+          try { video.pause(); } catch (_e) {}
+          frame.removeAttribute("src");
+        };
+
+        const restartVideo = () => {
+          showStage("video");
+          try {
+            video.currentTime = 0;
+            const p = video.play();
+            if (p && typeof p.catch === "function") p.catch(() => {});
+          } catch (_e) {}
+        };
+
+        const launchPractice = () => {
+          showStage("frame");
+          if (POSE_APP_URL) {
+            if (comingSoon) comingSoon.hidden = true;
+            frame.style.display = "";
+            frame.src = POSE_APP_URL;
+          } else {
+            // No practice URL wired yet — show the coming-soon note.
+            if (comingSoon) comingSoon.hidden = false;
+            frame.style.display = "none";
+          }
+        };
+
+        const handleBack = () => {
+          if (currentStage === "video") {
+            closeModal();
+          } else if (currentStage === "choice") {
+            restartVideo();
+          } else if (currentStage === "frame") {
+            frame.removeAttribute("src");
+            showStage("choice");
+          }
+        };
+
+        openBtn.addEventListener("click", () => {
+          // Each Cobra "Watch & Learn" costs 1 credit.
+          if (window.SwCredits) window.SwCredits.spend("cobra_watch_learn");
+          // Dedicated yoga-click tracking (separate from credits).
+          trackYogaClick("Cobra", "cobra_watch_learn");
           openModal();
         });
         closeBtn.addEventListener("click", closeModal);
