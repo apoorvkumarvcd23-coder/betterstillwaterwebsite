@@ -504,6 +504,37 @@
       .back-link:hover {
         color: var(--white);
       }
+
+      /* Returning-Google-user auto-login: show a branded loader instead of
+         flashing the login form before the redirect fires (toggled by the
+         no-flash head script + the /api/auth/me handler). */
+      .sw-autologin-loader { display: none; }
+      html.sw-autologin .sw-autologin-loader {
+        display: flex;
+        position: fixed;
+        inset: 0;
+        z-index: 99999;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1.1rem;
+        background: var(--dark2, #0d1e1e);
+        color: var(--white, #f5f2ee);
+      }
+      .sw-autologin-spinner {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: 3px solid rgba(245, 242, 238, 0.18);
+        border-top-color: var(--gold, #c9a978);
+        animation: swAutologinSpin 0.8s linear infinite;
+      }
+      @keyframes swAutologinSpin { to { transform: rotate(360deg); } }
+      .sw-autologin-text {
+        font-size: 0.8rem;
+        letter-spacing: 0.12em;
+        color: rgba(245, 242, 238, 0.7);
+      }
     </style>
     <!-- Google tag (gtag.js) — gtag stub everywhere; script + config load on prod only -->
     <script>
@@ -533,8 +564,30 @@
     })(window, document, "clarity", "script", "ww8pdzkpcp");
   })();
     </script>
+    <!-- No-flash auto-login: a returning visitor who last logged in via Google
+         is auto-redirected (see the /api/auth/me handler). Set this class
+         BEFORE first paint so we show a "Signing you in…" loader instead of
+         briefly flashing the login buttons. -->
+    <script>
+      (function () {
+        try {
+          var p = new URLSearchParams(location.search);
+          if (
+            p.get("showAuth") !== "1" &&
+            localStorage.getItem("sw_has_logged_in") === "1" &&
+            localStorage.getItem("sw_login_method") === "google"
+          ) {
+            document.documentElement.classList.add("sw-autologin");
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
+    <div class="sw-autologin-loader" aria-hidden="true">
+      <div class="sw-autologin-spinner"></div>
+      <div class="sw-autologin-text">Signing you in…</div>
+    </div>
     <div class="auth-layout">
       <main class="auth-main">
         <div class="left">
@@ -778,11 +831,17 @@
         });
       }
 
+      // Drops the "Signing you in…" loader (set by the no-flash head script)
+      // to reveal the normal login form — used whenever we're NOT redirecting.
+      function revealAuthForm() {
+        try { document.documentElement.classList.remove("sw-autologin"); } catch (_e) {}
+      }
+
       // Check if already authenticated
       fetch("/api/auth/me", { credentials: "include" })
         .then((res) => (res.ok ? res.json() : null))
         .then((user) => {
-          if (!user) return;
+          if (!user) { revealAuthForm(); return; }
           if (user.authenticated === false) {
             // Zero-click return login: a browser that previously logged in via
             // Google goes straight back to Google instead of showing the
@@ -796,8 +855,10 @@
                 localStorage.getItem("sw_login_method") === "google"
               ) {
                 window.location.replace(googleAuthHref);
+                return;
               }
             } catch (_e) {}
+            revealAuthForm();
             return;
           }
 
@@ -818,7 +879,7 @@
           }
           window.location.replace(returnTo || "/intake.html");
         })
-        .catch(() => {});
+        .catch(() => { revealAuthForm(); });
 
       function switchToPhone() {
         const choices = document.getElementById("authChoices");
