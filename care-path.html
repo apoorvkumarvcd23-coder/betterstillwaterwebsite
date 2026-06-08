@@ -3216,9 +3216,9 @@
       </div>
     </div>
 
-    <!-- Cobra Pose — same three-stage flow as Tadasana/Balasana. The Practice
-         Now URL isn't wired yet (POSE_APP_URL is empty); until it's set, Practice
-         Now shows a "coming soon" note instead of loading the iframe. -->
+    <!-- Cobra Pose — same three-stage flow as Tadasana/Balasana. Practice Now
+         loads the detection app at POSE_APP_URL
+         (static-cobra-pose-detection.onrender.com). -->
     <div class="modal-overlay yoga-modal-overlay" id="cobraModal" hidden>
       <div class="yoga-modal-card" id="cobraModalCard">
         <button type="button" class="yoga-back" id="cobraBack" aria-label="Back">
@@ -3924,9 +3924,8 @@
 
       // ── Cobra Pose — mirrors the Balasana three-stage flow ───────────
       (function () {
-        // No practice-detection app URL yet — set this once available and
-        // "Practice Now" will load it; until then it shows a coming-soon note.
-        const POSE_APP_URL = "";
+        // Cobra practice-detection app. "Practice Now" loads this in the iframe.
+        const POSE_APP_URL = "https://static-cobra-pose-detection.onrender.com/";
 
         const openBtn = document.getElementById("yogaCobraOpen");
         const overlay = document.getElementById("cobraModal");
