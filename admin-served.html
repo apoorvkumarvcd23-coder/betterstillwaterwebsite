@@ -750,20 +750,21 @@
       const authChoices = document.getElementById("authChoices");
       const phoneSection = document.getElementById("phoneSection");
 
+      const googleAuthHref = `/auth/google?returnTo=${encodeURIComponent(returnTo)}`;
       const googleAuthLink = document.getElementById("googleAuthLink");
       if (googleAuthLink) {
-        googleAuthLink.setAttribute(
-          "href",
-          `/auth/google?returnTo=${encodeURIComponent(returnTo)}`,
-        );
+        googleAuthLink.setAttribute("href", googleAuthHref);
 
         // Promo code: if the user enters "SONI123" and continues with
         // Google, remember it (localStorage survives the OAuth roundtrip)
         // so the in-app yoga page can show the Soni variant. Any other /
-        // empty value clears the flag → present behaviour.
+        // empty value clears the flag → present behaviour. We also record the
+        // chosen method ("google") so a returning visitor can skip straight
+        // back to Google (see the /api/auth/me handler below).
         const promoInput = document.getElementById("promoCode");
         const SONI_PROMO_CODE = "SONI123";
         googleAuthLink.addEventListener("click", function () {
+          try { localStorage.setItem("sw_login_method", "google"); } catch (_e) {}
           const val = ((promoInput && promoInput.value) || "")
             .trim()
             .toUpperCase();
@@ -782,7 +783,23 @@
         .then((res) => (res.ok ? res.json() : null))
         .then((user) => {
           if (!user) return;
-          if (user.authenticated === false) return;
+          if (user.authenticated === false) {
+            // Zero-click return login: a browser that previously logged in via
+            // Google goes straight back to Google instead of showing the
+            // button again. Gated on the method so phone users aren't bounced
+            // to Google. Suppressed by ?showAuth=1 so you can still reach the
+            // form (switch account, use phone, enter a new promo).
+            try {
+              if (
+                !forceAuthView &&
+                localStorage.getItem("sw_has_logged_in") === "1" &&
+                localStorage.getItem("sw_login_method") === "google"
+              ) {
+                window.location.replace(googleAuthHref);
+              }
+            } catch (_e) {}
+            return;
+          }
 
           if (forceAuthView) {
             if (signedInMessage) {
@@ -858,6 +875,7 @@
             return;
           }
 
+          try { localStorage.setItem("sw_login_method", "phone"); } catch (_e) {}
           window.location.replace(
             data.redirectUrl || returnTo || "/intake.html",
           );
@@ -894,6 +912,7 @@
             return;
           }
 
+          try { localStorage.setItem("sw_login_method", "phone"); } catch (_e) {}
           window.location.replace(
             data.redirectUrl || returnTo || "/intake.html",
           );
