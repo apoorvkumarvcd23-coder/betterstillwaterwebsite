@@ -463,6 +463,25 @@ async function initDb() {
     GROUP BY name, email
   `);
 
+  // ── Promo codes (per-account, e.g. SONI123 → Soni yoga variant) ────
+  // One row per user once they've redeemed a promo. Keyed by the same
+  // (auth_user_type, auth_user_id) identity as credits. Stores the resolved
+  // variant key (e.g. "soni"), not the raw code. Set-once: a code-less login
+  // never clears it, so the variant follows the user across logout/login and
+  // devices. Read via GET /api/promo; redeemed via POST /api/promo.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS user_promos (
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      promo_code     TEXT NOT NULL,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (auth_user_type, auth_user_id)
+    )
+  `);
+
   // ── Aria journal entries (data ingestion, no AI) ───────────────────
   await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
   await pool.query(`
@@ -3932,6 +3951,66 @@ app.get("/api/admin/yoga-clicks", requireRole("admin"), async (_req, res) => {
     return res.json({ ok: true, users: r.rows });
   } catch (err) {
     console.error("[yoga-click] admin", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// ── Promo codes (per-account variant flag) ──────────────────────────────
+// Known codes → the variant key persisted on the user's account. The auth
+// page captures the typed code into localStorage (so it survives the Google
+// OAuth roundtrip); the in-app yoga page then POSTs it here once to attach it
+// to the logged-in account, and reads it back via GET so the variant follows
+// the user across logout/login and devices.
+const PROMO_VARIANTS = { SONI123: "soni" };
+
+// GET  /api/promo  → { promo: "<variant>" | null } for the logged-in user.
+app.get("/api/promo", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const r = await pool.query(
+      `SELECT promo_code FROM user_promos WHERE auth_user_type=$1 AND auth_user_id=$2`,
+      [type, id],
+    );
+    return res.json({ ok: true, promo: r.rows[0] ? r.rows[0].promo_code : null });
+  } catch (err) {
+    console.error("[promo] get", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// POST /api/promo { code } → if it's a known code, attach its variant to the
+// account (set-once: an unknown/blank code never clears an existing variant).
+// Returns the account's current variant either way.
+app.post("/api/promo", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const code = String(req.body?.code || "").trim().toUpperCase();
+    const variant = PROMO_VARIANTS[code] || null;
+    if (variant) {
+      await pool.query(
+        `INSERT INTO user_promos (auth_user_type, auth_user_id, email, name, promo_code)
+         VALUES ($1,$2,$3,$4,$5)
+         ON CONFLICT (auth_user_type, auth_user_id)
+         DO UPDATE SET promo_code = EXCLUDED.promo_code,
+                       email = COALESCE(EXCLUDED.email, user_promos.email),
+                       name  = COALESCE(EXCLUDED.name,  user_promos.name),
+                       updated_at = NOW()`,
+        [type, id, req.user.email || null, req.user.name || null, variant],
+      );
+      return res.json({ ok: true, promo: variant });
+    }
+    // Unknown/blank code: don't change anything, just report current state.
+    const r = await pool.query(
+      `SELECT promo_code FROM user_promos WHERE auth_user_type=$1 AND auth_user_id=$2`,
+      [type, id],
+    );
+    return res.json({ ok: true, promo: r.rows[0] ? r.rows[0].promo_code : null });
+  } catch (err) {
+    console.error("[promo] post", err.message);
     return res.status(500).json({ error: "failed" });
   }
 });

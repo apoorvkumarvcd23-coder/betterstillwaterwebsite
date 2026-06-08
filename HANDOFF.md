@@ -15,9 +15,15 @@ Single-source-of-truth for someone picking up this repo. Skim the
   `test → main` with `git merge --no-ff` and push.
 - **`main` and `test` are IN SYNC** (2026-06-07). **Live: `main` `22d02db` ≈
   `test` `f517942`** (same tree). Promote incrementally from here.
-- **Newest work is §21** (2026-06-07): **"SONI123" promo code** on the auth
-  page that swaps the in-app yoga intro to a Soni-recorded variant (Tadasana +
-  Cobra only, Soni videos). §20 (2026-06-06/07): new PWA app icons from the
+- **Newest work is §22** (2026-06-08): (a) the **"SONI123" promo went
+  server-side** (per-account `user_promos` table + `GET/POST /api/promo`) so
+  the Soni yoga variant follows the user across logout/login and devices, and
+  (b) **zero-click return login** — a logged-out browser that last logged in
+  via Google is auto-redirected to Google (escape hatch `?showAuth=1`).
+  §21 (2026-06-07): the original **"SONI123" promo code** on the auth page
+  (client-side localStorage) that swaps the in-app yoga intro to a
+  Soni-recorded variant (Tadasana + Cobra only, Soni videos). Also wired the
+  Cobra "Practice Now" URL. §20 (2026-06-06/07): new PWA app icons from the
   logo, **admin portal DEPLOYED to Render**, and a 3rd "Cobra Pose" yoga card. §19 =
   the admin portal app (branch `stilwateradminportal`); §18 = server-side
   credits + tracking + polish; §17 = GA4 reset + `stilwater.health`;
@@ -1289,7 +1295,89 @@ Or just log in via Google with / without `SONI123` in the promo field.
 
 ---
 
-_Updated 2026-06-07 — added §21 ("SONI123" promo → Soni yoga variant, test only).
+## 22. 2026-06-08 — promo goes per-account; auto-login explained
+
+Two things this session: the §21 promo moved **server-side** (per user), and a
+note on returning-user login (no code change — it already works).
+
+### 22.1 SONI123 promo is now per-account (`server.js`, `care-path.html`)
+The §21 promo was **per-browser localStorage** — it was lost when a user logged
+in again without re-typing the code, or on a new device. Now it's a **per-user
+flag in Postgres**, mirroring the §16→§18 credits journey.
+- **Table `user_promos`** (auto-created in `initDb`, schema `public`): keyed by
+  `(auth_user_type, auth_user_id)` — the same identity as `user_credits` /
+  `yoga_clicks`. Stores the resolved **variant key** (`"soni"`), not the raw
+  code. **Set-once**: a code-less login never clears it.
+- **API** (`server.js`, both `requireAuthApi`): `GET /api/promo` → `{ promo:
+  "soni" | null }`; `POST /api/promo {code}` → if `code` matches the
+  `PROMO_VARIANTS` map (`{ SONI123: "soni" }`) it upserts the variant onto the
+  account, else it's a no-op that just reports current state. To add another
+  promo, add a `CODE: "variant"` entry to `PROMO_VARIANTS`.
+- **Client** (`care-path.html` `applySoniPromo`): (a) **fast path** — if this
+  browser's `localStorage.sw_promo_soni` is set (captured by the auth page,
+  survives the OAuth roundtrip), apply the variant instantly; (b) **persist** —
+  POST `SONI123` to attach it to the now-logged-in account once; (c) **read
+  back** `GET /api/promo` and apply if the server says `"soni"` (this is what
+  makes it follow the user cross-device / after a code-less re-login). The
+  variant itself is unchanged from §21 (hide Balasana card via
+  `#yogaBalasanaCard`; swap `#yogaVideo` → `videos/sonitadashana.mp4`,
+  `#cobraVideo` → `videos/SiniCobra.mp4`).
+- **The auth page (`auth.html` + `admin-served.html`) is UNCHANGED** — it still
+  captures the typed code into `localStorage` and clears it on a code-less
+  Google login. Keeping that clear is deliberate: on a shared browser it stops
+  the next (different) user from seeing the variant via the stale fast path —
+  the server (`GET /api/promo`) remains authoritative either way.
+- **Reset/admin:** the variant now lives in `public.user_promos`. To revoke:
+  `DELETE FROM user_promos WHERE email='addr@example.com';`. Deleting the DB
+  user also drops their promo (unlike the old localStorage flag). No admin UI
+  for promos yet — add one alongside `/credits-admin.html` if needed.
+
+### 22.2 Zero-click return login after logout (`auth.html` + `admin-served.html`)
+**Background:** a user who **did not log out** was already taken straight into
+the app on a return visit — the session cookie lasts **30 days** (`server.js`
+session `cookie.maxAge`), and the auth page calls `/api/auth/me` on load and
+**auto-redirects** an authenticated user (admin → `/admin.html`, else
+`returnTo`/`redirectUrl`). The gap was the **explicitly-logged-out** case
+(`GET /logout` → `req.logout()` destroys the session): they had to click
+"Continue with Google" again.
+
+**Now implemented:** when `/api/auth/me` reports `authenticated:false`, the auth
+page **auto-redirects straight to `/auth/google`** (the user's Google session
+usually makes this a silent bounce — no password, no click). Gated on two
+`localStorage` signals so it only fires when it should:
+- **`sw_has_logged_in === "1"`** — this browser has logged in before (set by
+  `js/credits.js` on a successful `/api/credits` 200; see §16.3). A brand-new
+  visitor still sees the full form.
+- **`sw_login_method === "google"`** — the last method used was Google (set in
+  the Google CTA click handler; the phone login/register success paths set
+  `"phone"`). This stops **phone users** from being wrongly bounced to Google.
+
+**Escape hatch:** `…/auth.html?showAuth=1` (the existing `forceAuthView`)
+suppresses the auto-redirect and shows the form — use it to **switch Google
+accounts, log in by phone, or enter a new promo** as a returning user.
+
+**Tradeoffs / notes:**
+- After Sign Out you land on `/` (home), not the auth page, so you stay logged
+  out until you actually go to log in — then it's one silent bounce. To pick a
+  *different* Google account, use `?showAuth=1` (an alive Google session would
+  otherwise re-pick the same account).
+- The auto-redirect only fires on a positive `authenticated:false`; a failed /
+  errored `/api/auth/me` (`!user`) just shows the form (no redirect-on-error).
+- A returning user wanting to enter a **new** promo is auto-redirected before
+  they can type — they'd use `?showAuth=1`. (Existing promos already live on
+  the account server-side per §22.1, so re-entry isn't needed.)
+
+### 22.3 Open items (carried)
+- Same as §20.5 (Cobra "Practice Now" is now wired; admin-portal env;
+  OpenRouter credits / diabetes-book embed; domain cutover externals).
+- `videos/sonitadashana.mp4` is 52 MB — over GitHub's 50 MB soft limit (push
+  warns but succeeds). Consider Git LFS or a smaller re-encode.
+- Promote `test → main` when ready.
+
+---
+
+_Updated 2026-06-08 — added §22 (SONI123 promo per-account + auto-login note).
+Earlier: 2026-06-07 §21 ("SONI123" promo → Soni yoga variant) + Cobra URL.
 `main` `22d02db` ≈ `test` `f517942` (prod current); admin
 portal LIVE at stilwater-admin-portal.onrender.com (branch
 `stilwateradminportal`). Earlier: 2026-06-06 `1079e54`; 2026-06-05 GA4/domain

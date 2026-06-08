@@ -3641,16 +3641,22 @@
       }
 
       // ── "SONI123" promo variant of the yoga intro ────────────────────
-      // Set by the auth page when the user enters the promo code with
-      // "Continue with Google" (localStorage flag survives the OAuth
-      // roundtrip). When active: hide the Balasana card and swap the
-      // Tadasana + Cobra guide videos for the Soni-recorded versions.
-      // No flag → present behaviour (3 cards, default videos).
+      // The Soni variant is a PER-ACCOUNT flag (server-side), so it follows
+      // the user across logout/login and devices without re-entering the code.
+      //   • The auth page captures the typed code into localStorage so it
+      //     survives the Google OAuth roundtrip.
+      //   • Here we (a) show the variant instantly if this browser just used
+      //     the code (fast path), (b) persist it to the logged-in account
+      //     once, and (c) read the authoritative per-user value from the
+      //     server and apply that.
+      // When active: hide the Balasana card and swap the Tadasana + Cobra
+      // guide videos for the Soni-recorded versions. No promo → present
+      // behaviour (3 cards, default videos).
       (function applySoniPromo() {
-        let on = false;
-        try { on = localStorage.getItem("sw_promo_soni") === "1"; } catch (_e) {}
-        if (!on) return;
-        function apply() {
+        let applied = false;
+        function applyVariant() {
+          if (applied) return;
+          applied = true;
           const bal = document.getElementById("yogaBalasanaCard");
           if (bal) bal.style.display = "none";
           const tad = document.getElementById("yogaVideo");
@@ -3664,11 +3670,39 @@
             try { cobra.load(); } catch (_e) {}
           }
         }
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", apply);
-        } else {
-          apply();
+        function whenReady(fn) {
+          if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", fn);
+          } else { fn(); }
         }
+
+        let pending = false;
+        try { pending = localStorage.getItem("sw_promo_soni") === "1"; } catch (_e) {}
+
+        // (a) Fast path: this browser just logged in with the code.
+        if (pending) whenReady(applyVariant);
+
+        // (b) Persist the captured code to the account (once), then
+        // (c) read the authoritative per-user promo and apply if "soni".
+        const persist = pending
+          ? fetch("/api/promo", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+              body: JSON.stringify({ code: "SONI123" }),
+            }).catch(function () {})
+          : Promise.resolve();
+
+        persist
+          .then(function () { return fetch("/api/promo", { credentials: "include" }); })
+          .then(function (r) { return r && r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (data && data.promo === "soni") {
+              try { localStorage.setItem("sw_promo_soni", "1"); } catch (_e) {}
+              whenReady(applyVariant);
+            }
+          })
+          .catch(function () {});
       })();
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
