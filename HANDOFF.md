@@ -1356,6 +1356,16 @@ usually makes this a silent bounce — no password, no click). Gated on two
 suppresses the auto-redirect and shows the form — use it to **switch Google
 accounts, log in by phone, or enter a new promo** as a returning user.
 
+**No flash (added 2026-06-08):** the redirect is async (it waits on
+`/api/auth/me`), so the login buttons used to **flash** for a moment before the
+bounce. Fixed with a **no-flash head script** that, BEFORE first paint, adds
+`html.sw-autologin` when the same two flags are present (and not `?showAuth=1`),
+and CSS that shows a full-screen **"Signing you in…" loader** (gold spinner on
+the dark pane) instead of the form. `revealAuthForm()` removes the class on
+every non-redirect path (logged-in-but-staying, unknown flags, or fetch error)
+so the form is never stuck behind the loader. Purely cosmetic — it does not
+change *who* gets redirected. Both `auth.html` and `admin-served.html`.
+
 **Tradeoffs / notes:**
 - After Sign Out you land on `/` (home), not the auth page, so you stay logged
   out until you actually go to log in — then it's one silent bounce. To pick a
