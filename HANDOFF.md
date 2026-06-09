@@ -15,8 +15,14 @@ Single-source-of-truth for someone picking up this repo. Skim the
   `test → main` with `git merge --no-ff` and push.
 - **`main` and `test` are IN SYNC** (2026-06-07). **Live: `main` `22d02db` ≈
   `test` `f517942`** (same tree). Promote incrementally from here.
-- **Newest work is §22** (2026-06-08): (a) the **"SONI123" promo went
-  server-side** (per-account `user_promos` table + `GET/POST /api/promo`) so
+- **Newest work is §23–§24** (2026-06-09): **§23** = account migration prep —
+  GitHub repo fully copied to **`stilwateramar/stilwaterwebsitelive`** (remote
+  `live`); Render migration **PAUSED on billing** (inventory in `MIGRATION.md`);
+  dev now dual-pushes `test` to both remotes, never `main`. **§24** = admin
+  portal **"Detailed Views"** analytics (branch `stilwateradminportal`):
+  date-range filter, group-by explorer, login-method chart, 12 detail tables,
+  all read-only against the prod DB. §22 (2026-06-08): (a) the **"SONI123" promo
+  went server-side** (per-account `user_promos` table + `GET/POST /api/promo`) so
   the Soni yoga variant follows the user across logout/login and devices, and
   (b) **zero-click return login** — a logged-out browser that last logged in
   via Google is auto-redirected to Google (escape hatch `?showAuth=1`).
@@ -1386,8 +1392,141 @@ change *who* gets redirected. Both `auth.html` and `admin-served.html`.
 
 ---
 
-_Updated 2026-06-08 — added §22 (SONI123 promo per-account + auto-login note).
-Earlier: 2026-06-07 §21 ("SONI123" promo → Soni yoga variant) + Cobra URL.
+## 23. 2026-06-09 — Account migration to new GitHub + Render (PAUSED on billing)
+
+Goal: move the **whole stack** (code + Render services + databases) off Apoorv's
+accounts onto new accounts owned by **`stilwateramar` / amar**. Strategy chosen:
+copy all data, run the new stack on `*.onrender.com` first, **keep the old
+accounts live and untouched until the new one is verified**, then delete.
+
+- **GitHub — DONE.** All 3 branches (`main`, `test`, `stilwateradminportal`)
+  with **full history** copied to **`stilwateramar/stilwaterwebsitelive`**
+  (private). Added as git remote **`live`** (SSH). A **repo deploy key** lives at
+  `~/.ssh/stilwater_migrate`; `git config core.sshCommand` is set locally so
+  `git push live …` just works. The old `origin`
+  (`apoorvkumarvcd23-coder/betterstillwaterwebsite`) is **untouched**.
+- **Current dev workflow (while paused):** push dev work to **`test` on BOTH
+  remotes** (`origin` + `live`); **never `main`**. Render deploys still come from
+  the **Apoorv (old)** workspace — pushing `origin/test` auto-deploys
+  `stillwater-test`.
+- **Render — PAUSED**, blocked on adding a **card** to the new "amar's workspace"
+  (every create returns HTTP 402). A full read-only inventory of the OLD account
+  is saved in **`MIGRATION.md`** (repo root, untracked): **14 services** (3
+  website-core + 11 satellites whose repos live under *other* GitHub accounts) +
+  **2 databases** — prod `stillwater-postgres` (v18) and test `stillwater-test-db`
+  (v16, **free, expires 2026-06-21**). Resume plan: create 2 DBs + 3 core
+  services on the new account → `pg_dump` copy data → set env (secrets pasted
+  from the old dashboard; MCP can't read them) → add the new Google OAuth
+  redirect URI → verify → then satellites (Wave 2).
+- **Render MCP** is an HTTP server in **`~/.claude.json`**
+  (`mcpServers.render.headers.Authorization: Bearer <key>`). To switch accounts:
+  edit the key and **`/mcp` → render → Reconnect**. Currently pointed at
+  **Apoorv** (so DB reads/deploys target prod).
+- ⚠ **Rotate after migration:** the new Render API key (it passed through chat),
+  the deploy key, and the **hard-coded DB password in `render.yaml`** (it was in
+  a public repo).
+
+## 24. 2026-06-09 — Admin portal "Detailed Views" analytics (branch `stilwateradminportal`)
+
+A big READ-ONLY analytics section **below** the existing Stilwater Analytics
+dashboard (the original KPI cards + "Ask the data" box are **byte-for-byte
+untouched**). It reuses the portal's **single `DATABASE_URL` pool** (prod DB) —
+**no new connection, no schema changes, no DB objects created.** Lives on the
+**`stilwateradminportal`** branch (its own Render service; no test/prod split).
+
+- **Backend (`admin-portal/server.js`):** `runReadOnlyParams()` (parameterized,
+  read-only txn); `GET /api/detail/groupby?dim=&from=&to=` (dims: `user`, `date`,
+  `nutrition_usage`, `nutrition_questions`, `yoga_usage`, `yoga_clicks`);
+  `GET /api/detail/tables?from=&to=` (all fixed tables in one call, each
+  independently try/caught; also returns a `now_ist` snapshot). Every query
+  filters on an IST range: `(col AT TIME ZONE 'Asia/Kolkata')` in
+  `[$1::date, $2::date]`.
+- **Frontend (`admin-portal/public/dashboard.html`):** date-range filter (From/To
+  + Today/7d/30d/All-time, default = IST today resolved server-side); group-by
+  explorer; **login-method doughnut + per-user table** (Google/oauth vs phone);
+  detail cards — new users, **returning users**, new-user usage, nutrition
+  questions, yoga detail + most-clicked asanas, assessments, credits, partner
+  leads, feature adoption, dormant users, top spenders. **Meditation skipped**
+  (no events tracked in the DB).
+- **Consistency (important):** Refresh / Apply / presets reload the **KPI cards
+  AND the detail together** (one snapshot, shown as `snapshot HH:MM:SS IST`), so
+  the top cards never disagree with the detail because a login landed between two
+  separate loads. The original `Repeat users` (active >1 distinct day — always 0
+  on a single-day range, which confused) was replaced by **`Returning users`**
+  (logged in within range but **joined earlier**) so **New + Returning = everyone
+  who signed in**.
+- **Metric definitions (so counts reconcile):** *Logins / Signed in* =
+  `login_events`; *Active* = distinct users with feature usage (`credit_events`)
+  — can be **higher** than signed-in because a saved 30-day session lets a user
+  use the app without re-logging in (verified example: `sandeepiit03` active
+  today, last login 06-06). *New* = first-ever login in range; *Returning* =
+  logged in during range, joined earlier.
+- Every query was **validated against the live prod DB** before shipping.
+  Commits (branch `stilwateradminportal`, pushed to origin + live):
+  `480061c` Detailed Views · `63a4744` login-method chart · `85ca8a0`
+  snapshot-sync + Returning users. Auto-deploys `stilwater-admin-portal`.
+
+---
+
+## 25. 2026-06-09 — Recipe Library → its own dashboard card + usage tracking
+
+The recipe surface (the 3-tab companion: Meal Plan / Recipes / Journaling) was
+reached only via the **"🍽 Recipe Library" button** inside the AI Nutritionist
+chat header. It's now a **first-class dashboard card**, and recipe usage is
+tracked + surfaced in the admin portal. **Two branches, both pushed to origin +
+live, never main** (per §23 workflow).
+
+### 25.1 Website (`care-path.html`, `js/i18n.js`, `server.js`) — branch `test` (`82cde8d`)
+- **Removed** the `🍽 Recipe Library` button from the nutrition chat header
+  (the old `chatMode==='nutrition'` action-button block in
+  `renderPlantRecipesChat`). Chronic header (reco chip + Trusted Providers) is
+  unchanged.
+- **New launcher card** `#swLaunchRecipe` ("Recipe Library") on the dashboard
+  (`#swLauncher`), beside AI Nutritionist. Opens the **same** companion shell —
+  identical functionality. Also deep-linkable via **`?view=recipe`**.
+- New `showCompanionFromLauncher()` (next to `showCompanion()`): opens the
+  companion with `companionFromLauncher=true` so **Back returns to the launcher**
+  (not a chat). `backFromCompanion()` branches on that flag. `showCompanion()`
+  stays exposed for back-compat but is no longer called.
+- **Tracking** (mirrors `yoga_clicks`): new **`recipe_clicks`** table + index +
+  **`recipe_clicks_by_user`** view (auto-created in `initDb`). `POST
+  /api/recipe-click {action,dish}` (`action` = `open_library` | `generate`) and
+  admin `GET /api/admin/recipe-clicks`. Client `trackRecipeClick()` fires on
+  (a) opening the Recipe card (`open_library`) and (b) **every recipe generated**
+  — hooked the single `openRecipePopup()` choke point (`generate`, `dish` = dish
+  name), so the search box, weekly/today meal links, and Recipes-tab cards all
+  log. Fire-and-forget; never blocks UI.
+- i18n: `launcher.recipe.title` / `launcher.recipe.desc` (EN+HI). GA event on the
+  card: `dashboard_card_recipe_library`.
+
+### 25.2 Admin portal (`admin-portal/server.js` + `public/dashboard.html`) — branch `stilwateradminportal` (`dba7e23`)
+- `SCHEMA_DOC` documents `recipe_clicks` (for the NL-to-SQL chatbot).
+- Group-by dims **`recipe_usage`**, **`recipe_dishes`**; detail cards
+  **`recipe_usage`** (per-user opens + generated + last activity),
+  **`recipe_dishes`** (most-generated dishes), **`recipe_detail`** (recent who/
+  what). Auto-renders from `DV_TABLES`.
+- New **`tableExists('public.recipe_clicks')`** guard: until `main` is promoted,
+  the prod DB has no `recipe_clicks`, so the recipe panels return **empty**
+  ("No rows in this range.") instead of a relation-missing error. The existing
+  `adoption` UNION was deliberately **left untouched** (adding `recipe_clicks`
+  there would have broken that panel on prod pre-promotion).
+
+### 25.3 Notes / open items
+- **Data only flows once `recipe_clicks` exists where users actually run.** Test
+  writes to `stillwater-test-db`; the admin portal reads **prod**
+  (`stillwater-postgres`). So recipe panels stay empty in the portal until the
+  website is **promoted `test → main`** (then prod boot creates the table) and
+  real users use it. The code is ready; this is the "only push to test" tradeoff.
+- Carried opens: promote `test → main` when ready; §22.3/§24 items.
+
+---
+
+_Updated 2026-06-09 — added §25 (Recipe Library → dashboard card + recipe_clicks
+tracking, website `82cde8d` + admin portal `dba7e23`). Earlier same day: §23
+(account migration prep, paused on billing) +
+§24 (admin portal Detailed Views, branch `stilwateradminportal`).
+Earlier: 2026-06-08 §22 (SONI123 promo per-account + auto-login note).
+2026-06-07 §21 ("SONI123" promo → Soni yoga variant) + Cobra URL.
 `main` `22d02db` ≈ `test` `f517942` (prod current); admin
 portal LIVE at stilwater-admin-portal.onrender.com (branch
 `stilwateradminportal`). Earlier: 2026-06-06 `1079e54`; 2026-06-05 GA4/domain

@@ -2932,7 +2932,7 @@
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v6"/><path d="M5 11l7-2 7 2"/><path d="M9 22l3-9 3 9"/></svg>
               </span>
               <span class="sw-launch-name" data-i18n="launcher.yoga.title">AI Yoga Tutor (Beta)</span>
-              <span class="sw-launch-desc" data-i18n="launcher.yoga.desc">Practice asanas with live AI form feedback.</span>
+              <span class="sw-launch-desc" data-i18n="launcher.yoga.desc">Learn and practice yoga and evaluate with AI assistance.</span>
             </button>
             <button type="button" class="sw-launch-card" id="swLaunchNutrition">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -2941,12 +2941,19 @@
               <span class="sw-launch-name" data-i18n="launcher.nutrition.title">AI Nutritionist for Healthy Living</span>
               <span class="sw-launch-desc" data-i18n="launcher.nutrition.desc">Ask Aria, your AI companion for healthy living, anything about plant-based nutrition and delicious plant-based recipes. Get personalized, adaptive meal plans and links to YouTube recipes, all in one place.</span>
             </button>
+            <button type="button" class="sw-launch-card" id="swLaunchRecipe">
+              <span class="sw-launch-ico" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2v7a3 3 0 0 0 6 0V2"/><path d="M9 2v20"/><path d="M16 2a3 3 0 0 0-3 3v7h3"/><path d="M16 12v10"/></svg>
+              </span>
+              <span class="sw-launch-name" data-i18n="launcher.recipe.title">Recipe Library</span>
+              <span class="sw-launch-desc" data-i18n="launcher.recipe.desc">Browse meal plans, find whole-food plant-based recipes with cook-along videos, and keep a food journal — all in one place.</span>
+            </button>
             <button type="button" class="sw-launch-card" id="swLaunchChronic">
               <span class="sw-launch-ico" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/><path d="M3.5 12h4l2-4 4 8 2-4h4"/></svg>
               </span>
-              <span class="sw-launch-name" data-i18n="launcher.chronic.title">Chronic Disease Management</span>
-              <span class="sw-launch-desc" data-i18n="launcher.chronic.desc">Get connected to verified and trusted holistic wellness providers to manage your chronic conditions effectively.</span>
+              <span class="sw-launch-name" data-i18n="launcher.chronic.title">Consult with Health Professional</span>
+              <span class="sw-launch-desc" data-i18n="launcher.chronic.desc">Consult our health professional to manage Diabetes, Eye Condition &amp; Hypertension.</span>
             </button>
             <button type="button" class="sw-launch-card" id="swLaunchMeditation">
               <span class="sw-launch-ico" aria-hidden="true">
@@ -3123,7 +3130,7 @@
           <div class="yoga-pose-grid">
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Tadasana</strong>
+                <strong>Tadasana</strong>
                 <span>(Tadasana &mdash; Mountain Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBetaOpen">
@@ -3133,7 +3140,7 @@
             </div>
             <div class="yoga-pose-card" id="yogaBalasanaCard">
               <div class="yoga-pose-title">
-                <strong>Practice Balasana</strong>
+                <strong>Balasana</strong>
                 <span>(Balasana &mdash; Child&rsquo;s Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaBalasanaOpen">
@@ -3143,7 +3150,7 @@
             </div>
             <div class="yoga-pose-card">
               <div class="yoga-pose-title">
-                <strong>Practice Cobra Pose</strong>
+                <strong>Cobra</strong>
                 <span>(Bhujangasana &mdash; Cobra Pose)</span>
               </div>
               <button type="button" class="yoga-beta-cta" id="yogaCobraOpen">
@@ -3639,6 +3646,22 @@
           }).catch(function () {});
         } catch (_e) {}
       }
+
+      // Log a Recipe-Library interaction to the dedicated recipe_clicks table
+      // (separate from credits). action 'open_library' when the Recipe card /
+      // library is opened, 'generate' when a recipe is generated (dish = the
+      // dish name). Fire-and-forget; never blocks the UI.
+      function trackRecipeClick(action, dish) {
+        try {
+          fetch("/api/recipe-click", {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action: action, dish: dish || null }),
+          }).catch(function () {});
+        } catch (_e) {}
+      }
+      window.trackRecipeClick = trackRecipeClick;
 
       // ── "SONI123" promo variant of the yoga intro ────────────────────
       // The Soni variant is a PER-ACCOUNT flag (server-side), so it follows
@@ -5189,6 +5212,8 @@
               return;
             }
             state.weeklyPlan = data.plan;
+            // Track the weekly meal-plan generation (dish = cuisine descriptor).
+            if (window.trackRecipeClick) window.trackRecipeClick("meal_plan_weekly", (state.cuisine || "").trim() || "balanced plant-based");
             // Discard any previously built today plan so the Today view
             // re-builds from this fresh weekly plan on next open.
             state.todayPlan = null;
@@ -5388,6 +5413,8 @@
               });
               state.todayPlan = built;
               state.todayMeta = "Today's plan · " + day + ", freshly generated by Aria";
+              // Track the today meal-plan generation.
+              if (window.trackRecipeClick) window.trackRecipeClick("meal_plan_today", (state.cuisine || "").trim() || "balanced plant-based");
               // Close the preference prompt and clear it on a successful gen.
               state.askingTodayPref = false;
               state.todayPreference = "";
@@ -5433,6 +5460,9 @@
         // Inert until clicked. Caches per dish across opens.
         const _recipe3Cache = {};
         function openRecipePopup(displayName, dishEn) {
+          // Track WHAT recipe the user generated (single choke point for the
+          // search box, weekly/today meal links, and the Recipes-tab cards).
+          if (window.trackRecipeClick) window.trackRecipeClick("generate", dishEn || displayName);
           // Remove any previously-open popup (only one at a time).
           document.querySelectorAll(".companion-recipe-modal-scrim").forEach((el) => el.remove());
 
@@ -5668,6 +5698,7 @@
         // was opened from, so its back button returns there (not wherever
         // chatMode happens to be).
         let companionReturnMode = null;
+        let companionFromLauncher = false;
 
         // Chat mode: "general" = the condition-tuned Aria chat
         // (/api/stilwater/chat); "nutrition" = recipe RAG over the cookbook
@@ -5897,24 +5928,15 @@
           headTitle.textContent = chatMode === "nutrition"
             ? T("launcher.nutrition.title", "AI Nutritionist for Healthy Living")
             : (chatMode === "chronic"
-              ? T("launcher.chronic.title", "Chronic Disease Management")
+              ? T("launcher.chronic.title", "Consult with Health Professional")
               : T("carepath.stilwaterAIChat", "Stilwater AI Chat"));
           header.appendChild(headTitle);
 
-          // Action button beside the title (same functionality as before):
-          // Nutrition → Recipe Library (opens the companion); Chronic →
-          // Wellness Assessment.
-          if (chatMode === "nutrition") {
-            const actBtn = document.createElement("button");
-            actBtn.type = "button";
-            actBtn.className = "plant-chat-action";
-            actBtn.setAttribute("data-ga-event", "ai_nutritionist_button_recipe_library");
-            actBtn.textContent = "🍽 " + T("aria.recipes.libraryBtn", "Recipe Library");
-            actBtn.addEventListener("click", () => {
-              if (window.__swPlantRecipes) window.__swPlantRecipes.showCompanion();
-            });
-            header.appendChild(actBtn);
-          } else if (chatMode === "chronic") {
+          // Action button beside the title (Chronic → recommendation chip).
+          // NOTE: the Nutrition "🍽 Recipe Library" header button was removed —
+          // the Recipe Library now lives as its own card on the dashboard
+          // launcher (#swLaunchRecipe → showCompanionFromLauncher()).
+          if (chatMode === "chronic") {
             // Condition-aware recommendation chip (logo + name) beside the
             // title. Condition comes from the assessment (activeCondition()).
             // The chat backend already routes by condition server-side:
@@ -6680,14 +6702,28 @@
         // hidden so the shell is visible.
         function showCompanion() {
           companionReturnMode = chatMode; // remember where we came from
+          companionFromLauncher = false;
           const l = swLauncherEl(); if (l) l.hidden = true;
           const y = swYogaEl(); if (y) y.hidden = true;
           const c = companionEl(); if (c) c.hidden = false;
           hidePlantRecipesChat();
           setSidebarVisible(false);
         }
-        // Back out of the recipes companion → the chat we opened it from.
+        // Recipe Library opened from its own dashboard card — same 3-tab shell,
+        // but "Back" returns to the launcher (not a chat). Logs the open.
+        function showCompanionFromLauncher() {
+          if (window.trackRecipeClick) window.trackRecipeClick("open_library", null);
+          const l = swLauncherEl(); if (l) l.hidden = true;
+          const y = swYogaEl(); if (y) y.hidden = true;
+          const c = companionEl(); if (c) c.hidden = false;
+          hidePlantRecipesChat();
+          setSidebarVisible(false);
+          companionFromLauncher = true;
+        }
+        // Back out of the recipes companion → the launcher if opened from the
+        // Recipe card, else the chat we opened it from.
         function backFromCompanion() {
+          if (companionFromLauncher) { companionFromLauncher = false; showLauncher(); return; }
           if (companionReturnMode) chatMode = companionReturnMode;
           showPlantRecipesChat();
         }
@@ -6808,6 +6844,7 @@
           showLauncher: showLauncher,
           showYoga: showYoga,
           showCompanion: showCompanion,
+          showCompanionFromLauncher: showCompanionFromLauncher,
           backFromCompanion: backFromCompanion,
           showMeditation: showMeditation,
           newChat: newChat,
@@ -6985,6 +7022,11 @@
         if (cardYoga) cardYoga.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showYoga());
         const cardNutrition = document.getElementById("swLaunchNutrition");
         if (cardNutrition) cardNutrition.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showNutrition());
+        const cardRecipe = document.getElementById("swLaunchRecipe");
+        if (cardRecipe) {
+          cardRecipe.setAttribute("data-ga-event", "dashboard_card_recipe_library");
+          cardRecipe.addEventListener("click", () => window.__swPlantRecipes && window.__swPlantRecipes.showCompanionFromLauncher());
+        }
         const cardChronic = document.getElementById("swLaunchChronic");
         if (cardChronic) cardChronic.addEventListener("click", () => { window.location.href = "intake.html"; });
         const cardMeditation = document.getElementById("swLaunchMeditation");
@@ -7006,6 +7048,8 @@
             window.__swPlantRecipes.showNutrition();
           } else if (swView === "yoga") {
             window.__swPlantRecipes.showYoga();
+          } else if (swView === "recipe" || swView === "recipes") {
+            window.__swPlantRecipes.showCompanionFromLauncher();
           } else if (swView === "chronic" || hasSubmission) {
             // Chronic chat. With no assessment (skip / ?view=chronic) the
             // condition resolves to "general" → Holistic Wellness AI.
