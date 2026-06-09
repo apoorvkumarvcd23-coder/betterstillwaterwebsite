@@ -13,9 +13,15 @@ Single-source-of-truth for someone picking up this repo. Skim the
   - `test`  → staging (`stillwater-test`  Render service → `stillwater-test.onrender.com`)
 - **Workflow**: edits land on `test` first. After verifying, promote
   `test → main` with `git merge --no-ff` and push.
-- **`main` and `test` are IN SYNC** (2026-06-07). **Live: `main` `22d02db` ≈
-  `test` `f517942`** (same tree). Promote incrementally from here.
-- **Newest work is §23–§24** (2026-06-09): **§23** = account migration prep —
+- **`main` and `test` are IN SYNC** (2026-06-09). **Live: `main` `cfe2164` ≈
+  `test` `c1ca791`** (same tree) after promoting §25. Promote incrementally
+  from here. Admin portal `stilwateradminportal` head `e5aaa3e` (own service).
+- **Newest work is §25** (2026-06-09, **now on main**): Recipe Library moved from
+  the AI Nutritionist chat header to its **own dashboard card**; new
+  `recipe_clicks` tracking (library opens + recipe-video generations + Weekly/
+  Today meal-plan generations) surfaced in the admin portal; launcher copy edits
+  (Chronic → "Consult with Health Professional"; Yoga desc; asana cards renamed
+  Tadasana / Balasana / Cobra). Earlier same day: **§23** = account migration prep —
   GitHub repo fully copied to **`stilwateramar/stilwaterwebsitelive`** (remote
   `live`); Render migration **PAUSED on billing** (inventory in `MIGRATION.md`);
   dev now dual-pushes `test` to both remotes, never `main`. **§24** = admin
@@ -1468,15 +1474,16 @@ untouched**). It reuses the portal's **single `DATABASE_URL` pool** (prod DB) �
 
 ---
 
-## 25. 2026-06-09 — Recipe Library → its own dashboard card + usage tracking
+## 25. 2026-06-09 — Recipe Library → dashboard card + tracking + launcher copy (PROMOTED TO MAIN)
 
 The recipe surface (the 3-tab companion: Meal Plan / Recipes / Journaling) was
 reached only via the **"🍽 Recipe Library" button** inside the AI Nutritionist
-chat header. It's now a **first-class dashboard card**, and recipe usage is
-tracked + surfaced in the admin portal. **Two branches, both pushed to origin +
-live, never main** (per §23 workflow).
+chat header. It's now a **first-class dashboard card**, recipe usage is tracked
++ surfaced in the admin portal, and launcher copy was reworded. **Promoted to
+`main` `cfe2164`** (prod deploy) on 2026-06-09; website also on `test`; admin
+portal on branch `stilwateradminportal` (own service). All pushed origin + live.
 
-### 25.1 Website (`care-path.html`, `js/i18n.js`, `server.js`) — branch `test` (`82cde8d`)
+### 25.1 Website (`care-path.html`, `js/i18n.js`, `server.js`) — `82cde8d`, `db3e446`, `c1ca791`
 - **Removed** the `🍽 Recipe Library` button from the nutrition chat header
   (the old `chatMode==='nutrition'` action-button block in
   `renderPlantRecipesChat`). Chronic header (reco chip + Trusted Providers) is
@@ -1490,45 +1497,75 @@ live, never main** (per §23 workflow).
   stays exposed for back-compat but is no longer called.
 - **Tracking** (mirrors `yoga_clicks`): new **`recipe_clicks`** table + index +
   **`recipe_clicks_by_user`** view (auto-created in `initDb`). `POST
-  /api/recipe-click {action,dish}` (`action` = `open_library` | `generate`) and
-  admin `GET /api/admin/recipe-clicks`. Client `trackRecipeClick()` fires on
-  (a) opening the Recipe card (`open_library`) and (b) **every recipe generated**
-  — hooked the single `openRecipePopup()` choke point (`generate`, `dish` = dish
-  name), so the search box, weekly/today meal links, and Recipes-tab cards all
-  log. Fire-and-forget; never blocks UI.
+  /api/recipe-click {action,dish}` and admin `GET /api/admin/recipe-clicks`.
+  Client `trackRecipeClick()` fires on these **actions**:
+  - **`open_library`** — opening the Recipe card / library.
+  - **`generate`** — every recipe-video generation; hooked the single
+    `openRecipePopup()` choke point (`dish` = dish name), so the search box,
+    weekly/today meal links, and Recipes-tab cards all log.
+  - **`meal_plan_weekly` / `meal_plan_today`** (`db3e446`) — a Weekly or
+    model-backed Today **meal-plan** generation (`dish` = cuisine descriptor).
+    The client-side auto-derive of Today from the weekly plan is NOT a
+    generation, so it's left untracked.
+  Fire-and-forget; never blocks UI.
 - i18n: `launcher.recipe.title` / `launcher.recipe.desc` (EN+HI). GA event on the
   card: `dashboard_card_recipe_library`.
 
-### 25.2 Admin portal (`admin-portal/server.js` + `public/dashboard.html`) — branch `stilwateradminportal` (`dba7e23`)
-- `SCHEMA_DOC` documents `recipe_clicks` (for the NL-to-SQL chatbot).
-- Group-by dims **`recipe_usage`**, **`recipe_dishes`**; detail cards
-  **`recipe_usage`** (per-user opens + generated + last activity),
-  **`recipe_dishes`** (most-generated dishes), **`recipe_detail`** (recent who/
-  what). Auto-renders from `DV_TABLES`.
-- New **`tableExists('public.recipe_clicks')`** guard: until `main` is promoted,
-  the prod DB has no `recipe_clicks`, so the recipe panels return **empty**
-  ("No rows in this range.") instead of a relation-missing error. The existing
-  `adoption` UNION was deliberately **left untouched** (adding `recipe_clicks`
-  there would have broken that panel on prod pre-promotion).
+### 25.1b Launcher copy (`care-path.html`, `js/i18n.js`) — `c1ca791`
+- **Chronic card**: title `Chronic Disease Management` → **"Consult with Health
+  Professional"**; desc → **"Consult our health professional to manage Diabetes,
+  Eye Condition & Hypertension."** (`launcher.chronic.title` also drives the
+  chronic chat-page header). EN+HI.
+- **Yoga card** desc → **"Learn and practice yoga and evaluate with AI
+  assistance."** EN+HI.
+- **Yoga-tutor asana cards** (hardcoded HTML in `#yogaIntroModal`): bold titles
+  `Practice Tadasana` / `Practice Balasana` / `Practice Cobra Pose` →
+  **`Tadasana` / `Balasana` / `Cobra`** (the "(Mountain Pose)" etc. subtitle
+  line kept; the pose-detection `title=` tooltips left as-is).
 
-### 25.3 Notes / open items
-- **Data only flows once `recipe_clicks` exists where users actually run.** Test
-  writes to `stillwater-test-db`; the admin portal reads **prod**
-  (`stillwater-postgres`). So recipe panels stay empty in the portal until the
-  website is **promoted `test → main`** (then prod boot creates the table) and
-  real users use it. The code is ready; this is the "only push to test" tradeoff.
-- Carried opens: promote `test → main` when ready; §22.3/§24 items.
+### 25.2 Admin portal (`admin-portal/server.js` + `public/dashboard.html`) — branch `stilwateradminportal` (`dba7e23`, `e5aaa3e`)
+- `SCHEMA_DOC` documents `recipe_clicks` + its actions (open_library / generate /
+  meal_plan_weekly / meal_plan_today) for the NL-to-SQL chatbot.
+- Group-by dims **`recipe_usage`**, **`recipe_dishes`**; detail cards
+  **`recipe_usage`** (per-user: library opens + recipes generated + **meal plans**
+  + last activity), **`recipe_dishes`** (most-generated dishes, `action='generate'`
+  only), **`recipe_detail`** (recent who/what, every action). Auto-renders from
+  `DV_TABLES`. The `meal_plans` count (`action LIKE 'meal_plan%'`) was added in
+  `e5aaa3e`.
+- New **`tableExists('public.recipe_clicks')`** guard kept: if the prod DB ever
+  lacks `recipe_clicks` (e.g. before a deploy), the recipe panels return **empty**
+  ("No rows in this range.") instead of a relation-missing error. The existing
+  `adoption` UNION was deliberately **left untouched**.
+
+### 25.3 Data-flow gotcha (resolved by the main promotion)
+- Test writes to `stillwater-test-db`; the admin portal reads **prod**
+  (`stillwater-postgres`) — separate DBs. So test-site activity never showed in
+  the portal. **Now that §25 is on `main`**, the prod boot auto-created
+  `recipe_clicks`, and **live-site** recipe/meal-plan usage flows to prod → the
+  portal's recipe panels populate on Refresh. (Portal stays on **prod data
+  only**, per user.) Reminder for the next person: the portal is *always* prod —
+  a feature must be on `main` (not just `test`) before its data appears there.
+- **Metric note for the portal** (came up this session): *Active users* and the
+  *Group-by explorer* count **feature usage**, not logins — a bare sign-in does
+  NOT increment Active or list a user in group-by. The *Login-method chart* /
+  *Signed in* count `login_events`. This is by design (§24), not a bug.
+
+### 25.4 Open items (carried)
+- §22.3/§24 items: Cobra "Practice Now" wired; admin-portal env; OpenRouter
+  credits / diabetes-book embed; domain cutover externals; `videos/
+  sonitadashana.mp4` 52 MB.
 
 ---
 
-_Updated 2026-06-09 — added §25 (Recipe Library → dashboard card + recipe_clicks
-tracking, website `82cde8d` + admin portal `dba7e23`). Earlier same day: §23
-(account migration prep, paused on billing) +
-§24 (admin portal Detailed Views, branch `stilwateradminportal`).
+_Updated 2026-06-09 — §25 **PROMOTED TO MAIN** (`cfe2164`): Recipe Library →
+dashboard card + `recipe_clicks` tracking (incl. Weekly/Today meal-plan
+generation) + launcher copy (Chronic/Yoga/asana names). Website `82cde8d` →
+`db3e446` → `c1ca791`; admin portal `dba7e23` → `e5aaa3e` (branch
+`stilwateradminportal`, own service). Earlier same day: §23 (account migration
+prep, paused on billing) + §24 (admin portal Detailed Views).
 Earlier: 2026-06-08 §22 (SONI123 promo per-account + auto-login note).
 2026-06-07 §21 ("SONI123" promo → Soni yoga variant) + Cobra URL.
-`main` `22d02db` ≈ `test` `f517942` (prod current); admin
-portal LIVE at stilwater-admin-portal.onrender.com (branch
-`stilwateradminportal`). Earlier: 2026-06-06 `1079e54`; 2026-06-05 GA4/domain
-`a2a6252`, credits `db5733d`; 2026-06-04 (s2) `9f237ce`, 2026-06-04 `1aa5a68`;
-2026-06-03 `169c40f`; 2026-06-01 `694011a`; 2026-05-30 `18dff27`._
+**Live: `main` `cfe2164` ≈ `test` `c1ca791`** (in sync); admin portal LIVE at
+stilwater-admin-portal.onrender.com. Earlier: 2026-06-06 `1079e54`; 2026-06-05
+GA4/domain `a2a6252`, credits `db5733d`; 2026-06-04 (s2) `9f237ce`, 2026-06-04
+`1aa5a68`; 2026-06-03 `169c40f`; 2026-06-01 `694011a`; 2026-05-30 `18dff27`._
