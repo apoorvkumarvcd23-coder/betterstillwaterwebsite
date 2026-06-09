@@ -463,6 +463,41 @@ async function initDb() {
     GROUP BY name, email
   `);
 
+  // ── Recipe clicks (dedicated tracking, independent of credits) ─────
+  // One row per Recipe-Library interaction: action 'open_library' when a
+  // user opens the Recipe card/library, action 'generate' when a recipe is
+  // generated (dish = the searched/selected dish). Mirrors yoga_clicks so we
+  // can see WHO opened recipes and WHAT they generated. recipe_clicks_by_user
+  // rolls it up to one row per user with the items in nested JSON.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS recipe_clicks (
+      id             BIGSERIAL PRIMARY KEY,
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      action         TEXT NOT NULL,
+      dish           TEXT,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_recipe_clicks_user
+      ON recipe_clicks (auth_user_type, auth_user_id, created_at DESC)
+  `);
+  await pool.query(`
+    CREATE OR REPLACE VIEW recipe_clicks_by_user AS
+    SELECT name AS user_name, email,
+           COUNT(*)                                         AS total_clicks,
+           COUNT(*) FILTER (WHERE action = 'open_library')  AS opens,
+           COUNT(*) FILTER (WHERE action = 'generate')      AS recipes_generated,
+           MAX(created_at)                                  AS last_activity,
+           jsonb_agg(jsonb_build_object('action', action, 'dish', dish, 'at', created_at)
+                     ORDER BY created_at) AS items
+    FROM recipe_clicks
+    GROUP BY name, email
+  `);
+
   // ── Promo codes (per-account, e.g. SONI123 → Soni yoga variant) ────
   // One row per user once they've redeemed a promo. Keyed by the same
   // (auth_user_type, auth_user_id) identity as credits. Stores the resolved
@@ -3951,6 +3986,40 @@ app.get("/api/admin/yoga-clicks", requireRole("admin"), async (_req, res) => {
     return res.json({ ok: true, users: r.rows });
   } catch (err) {
     console.error("[yoga-click] admin", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// ── Recipe click tracking (who opened recipes / what they generated) ───
+// POST /api/recipe-click { action, dish } → logs one row in recipe_clicks.
+//   action 'open_library' (Recipe dashboard card / library opened) or
+//   'generate' (a recipe was generated; dish = the dish name).
+// GET  /api/admin/recipe-clicks → admin-only per-user report.
+app.post("/api/recipe-click", requireAuthApi, async (req, res) => {
+  try {
+    const type = getAuthUserType(req.user);
+    const id = getAuthUserId(req.user);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    const action = (String(req.body?.action || "").trim().slice(0, 40)) || "open_library";
+    const dish = (String(req.body?.dish || "").trim().slice(0, 160)) || null;
+    await pool.query(
+      `INSERT INTO recipe_clicks (auth_user_type, auth_user_id, email, name, action, dish)
+       VALUES ($1,$2,$3,$4,$5,$6)`,
+      [type, id, req.user.email || null, req.user.name || null, action, dish],
+    );
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error("[recipe-click]", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+app.get("/api/admin/recipe-clicks", requireRole("admin"), async (_req, res) => {
+  try {
+    const r = await pool.query(`SELECT * FROM recipe_clicks_by_user ORDER BY total_clicks DESC LIMIT 1000`);
+    return res.json({ ok: true, users: r.rows });
+  } catch (err) {
+    console.error("[recipe-click] admin", err.message);
     return res.status(500).json({ error: "failed" });
   }
 });

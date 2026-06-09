@@ -260,6 +260,8 @@
     "launcher.nutrition.desc": { en: "Ask Aria, your AI companion for healthy living, anything about plant-based nutrition and delicious plant-based recipes. Get personalized, adaptive meal plans and links to YouTube recipes, all in one place.", hi: "स्वस्थ जीवन के लिए आपकी AI साथी Aria से पादप-आधारित पोषण और स्वादिष्ट पादप-आधारित रेसिपी के बारे में कुछ भी पूछें। व्यक्तिगत, अनुकूल भोजन योजनाएँ और YouTube रेसिपी के लिंक — सब एक ही जगह पाएँ।" },
     "launcher.recipes.title": { en: "Explore Plant-Based Recipes", hi: "पादप-आधारित रेसिपी देखें" },
     "launcher.recipes.desc": { en: "Browse meal plans, recipe videos, and your journal.", hi: "भोजन योजनाएँ, रेसिपी वीडियो और अपनी जर्नल देखें।" },
+    "launcher.recipe.title": { en: "Recipe Library", hi: "रेसिपी लाइब्रेरी" },
+    "launcher.recipe.desc": { en: "Browse meal plans, find whole-food plant-based recipes with cook-along videos, and keep a food journal — all in one place.", hi: "भोजन योजनाएँ देखें, कुक-अलॉन्ग वीडियो के साथ संपूर्ण-आहार पादप-आधारित रेसिपी खोजें, और एक फूड जर्नल रखें — सब एक ही जगह।" },
     "launcher.chronic.title": { en: "Chronic Disease Management", hi: "दीर्घकालिक रोग प्रबंधन" },
     "launcher.chronic.desc": { en: "Get connected to verified and trusted holistic wellness providers to manage your chronic conditions effectively.", hi: "अपनी दीर्घकालिक स्थितियों को प्रभावी ढंग से प्रबंधित करने के लिए सत्यापित और विश्वसनीय समग्र स्वास्थ्य प्रदाताओं से जुड़ें।" },
     "launcher.meditation.title": { en: "AI Guided Meditation (Coming Soon)", hi: "AI निर्देशित ध्यान (जल्द आ रहा है)" },
