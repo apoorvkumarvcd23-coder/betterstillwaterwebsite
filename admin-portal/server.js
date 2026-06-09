@@ -139,7 +139,7 @@ Tables (schema public unless noted):
 - user_credits(auth_user_type, auth_user_id, email, name, balance int, total_spent int, updated_at)  -- current balance per user
 - yoga_clicks(id, auth_user_type, auth_user_id, email, name, asana, asana_key, created_at)            -- one row per yoga Watch&Learn click
 - recipe_clicks(id, auth_user_type, auth_user_id, email, name, action text['open_library'|'generate'], dish text, created_at)
-    -- Recipe Library usage. action 'open_library' = opened the Recipe card/library; 'generate' = generated a recipe (dish = dish name). May be absent on prod until deployed.
+    -- Recipe Library usage. action: 'open_library' = opened the Recipe card/library; 'generate' = generated a recipe (dish = dish name); 'meal_plan_weekly' / 'meal_plan_today' = generated a meal plan (dish = cuisine). May be absent on prod until deployed.
 - intake_submissions(id, name, phone, age, chronic_conditions, eyesight_issues, auth_user_type, auth_user_id, completed_at, created_at, ...)  -- wellness assessment
 - partner_leads(id, name, phone, email, partner, auth_user_type, auth_user_id, created_at)            -- "Book a consultation" leads
 - page_views(id, visitor_id, auth_user_type, auth_user_id, path, page_title, referrer, created_at, ...) -- page visits (consent-gated; may undercount)
@@ -357,13 +357,14 @@ const GROUPBY = {
   recipe_usage: `
     SELECT COALESCE(NULLIF(rc.email,''), u.email, up.phone) AS email,
            COALESCE(NULLIF(rc.name,''), u.name, up.name) AS name,
-           COUNT(*) FILTER (WHERE rc.action='open_library') AS library_opens,
-           COUNT(*) FILTER (WHERE rc.action='generate')     AS recipes_generated
+           COUNT(*) FILTER (WHERE rc.action='open_library')   AS library_opens,
+           COUNT(*) FILTER (WHERE rc.action='generate')       AS recipes_generated,
+           COUNT(*) FILTER (WHERE rc.action LIKE 'meal_plan%') AS meal_plans
     FROM recipe_clicks rc
     LEFT JOIN users u        ON rc.auth_user_type='oauth' AND u.id = rc.auth_user_id
     LEFT JOIN users_phone up ON rc.auth_user_type='phone' AND up.id::text = rc.auth_user_id
     WHERE ${istRange("rc.created_at")}
-    GROUP BY 1,2 ORDER BY recipes_generated DESC, library_opens DESC LIMIT 500`,
+    GROUP BY 1,2 ORDER BY recipes_generated DESC, meal_plans DESC, library_opens DESC LIMIT 500`,
   recipe_dishes: `
     SELECT dish, COUNT(*) AS times_generated, COUNT(DISTINCT auth_user_id) AS distinct_users
     FROM recipe_clicks WHERE action='generate' AND dish IS NOT NULL AND ${istRange("created_at")}
@@ -455,14 +456,15 @@ const DETAIL = {
   recipe_usage: `
     SELECT COALESCE(NULLIF(rc.email,''), u.email, up.phone) AS email,
            COALESCE(NULLIF(rc.name,''), u.name, up.name) AS name,
-           COUNT(*) FILTER (WHERE rc.action='open_library') AS library_opens,
-           COUNT(*) FILTER (WHERE rc.action='generate')     AS recipes_generated,
+           COUNT(*) FILTER (WHERE rc.action='open_library')   AS library_opens,
+           COUNT(*) FILTER (WHERE rc.action='generate')       AS recipes_generated,
+           COUNT(*) FILTER (WHERE rc.action LIKE 'meal_plan%') AS meal_plans,
            to_char(MAX(rc.created_at) AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS last_activity
     FROM recipe_clicks rc
     LEFT JOIN users u        ON rc.auth_user_type='oauth' AND u.id = rc.auth_user_id
     LEFT JOIN users_phone up ON rc.auth_user_type='phone' AND up.id::text = rc.auth_user_id
     WHERE ${istRange("rc.created_at")}
-    GROUP BY 1,2 ORDER BY recipes_generated DESC, library_opens DESC LIMIT 500`,
+    GROUP BY 1,2 ORDER BY recipes_generated DESC, meal_plans DESC, library_opens DESC LIMIT 500`,
   recipe_dishes: `
     SELECT dish, COUNT(*) AS times_generated, COUNT(DISTINCT auth_user_id) AS distinct_users
     FROM recipe_clicks WHERE action='generate' AND dish IS NOT NULL AND ${istRange("created_at")}
