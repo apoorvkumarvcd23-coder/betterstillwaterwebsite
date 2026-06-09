@@ -103,6 +103,26 @@ async function runReadOnly(sql) {
   }
 }
 
+// Same read-only guarantees, but for PARAMETERIZED queries ($1,$2,…). Used by
+// the "Detailed Views" section so all user-supplied dates are bound, never
+// concatenated into SQL.
+async function runReadOnlyParams(sql, params) {
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SET TRANSACTION READ ONLY");
+    await client.query("SET LOCAL statement_timeout = 8000");
+    const r = await client.query(sql, params);
+    await client.query("ROLLBACK");
+    return { columns: r.fields.map((f) => f.name), rows: r.rows };
+  } catch (err) {
+    try { await client.query("ROLLBACK"); } catch (_e) {}
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 // ── the schema we tell the model about (read-only analytics) ─────────────────
 const SCHEMA_DOC = `
 You write a SINGLE read-only PostgreSQL SELECT (or WITH ... SELECT) query for an
@@ -233,6 +253,254 @@ app.get("/api/kpis/daily", requireAuth, async (req, res) => {
     `);
     res.json({ ok: true, days: q.rows });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── Detailed Views (read-only, date-range aware) ─────────────────────────────
+// Everything below is a NEW section under the existing dashboard. All queries
+// are read-only SELECTs, parameterized on the IST date range ($1=from, $2=to).
+// Timestamps are UTC in the DB; we compare on (col AT TIME ZONE 'Asia/Kolkata').
+const istRange = (col) =>
+  `(${col} AT TIME ZONE 'Asia/Kolkata') >= $1::date AND (${col} AT TIME ZONE 'Asia/Kolkata') < ($2::date + 1)`;
+
+// Resolve {from,to} from the query string; default to TODAY (IST). Bad/missing
+// values fall back to today; an inverted range is swapped.
+async function resolveRange(req) {
+  const re = /^\d{4}-\d{2}-\d{2}$/;
+  let from = String(req.query.from || "").trim();
+  let to = String(req.query.to || "").trim();
+  if (!re.test(from) || !re.test(to)) {
+    const r = await runReadOnlyParams(
+      "SELECT to_char((now() AT TIME ZONE 'Asia/Kolkata')::date,'YYYY-MM-DD') AS d", []);
+    const today = r.rows[0].d;
+    if (!re.test(from)) from = today;
+    if (!re.test(to)) to = today;
+  }
+  if (from > to) { const t = from; from = to; to = t; }
+  return { from, to };
+}
+
+// Group-by explorer — dimension name (whitelisted) -> parameterized SELECT.
+const GROUPBY = {
+  user: `
+    WITH ev AS (
+      SELECT auth_user_type t, auth_user_id uid, 'nutrition' f FROM credit_events WHERE action='nutrition_chat' AND ${istRange("created_at")}
+      UNION ALL SELECT auth_user_type, auth_user_id, 'yoga'        FROM yoga_clicks        WHERE ${istRange("created_at")}
+      UNION ALL SELECT auth_user_type, auth_user_id, 'assessment'  FROM intake_submissions WHERE ${istRange("created_at")}
+      UNION ALL SELECT auth_user_type, auth_user_id, 'partner_lead' FROM partner_leads     WHERE ${istRange("created_at")}
+    )
+    SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
+           COUNT(*) AS total_events,
+           COUNT(*) FILTER (WHERE f='nutrition')   AS nutrition_chats,
+           COUNT(*) FILTER (WHERE f='yoga')         AS yoga_clicks,
+           COUNT(*) FILTER (WHERE f='assessment')   AS assessments,
+           COUNT(*) FILTER (WHERE f='partner_lead') AS partner_leads
+    FROM ev
+    LEFT JOIN users u        ON ev.t='oauth' AND u.id = ev.uid
+    LEFT JOIN users_phone up ON ev.t='phone' AND up.id::text = ev.uid
+    GROUP BY 1,2 ORDER BY total_events DESC LIMIT 500`,
+  date: `
+    WITH days AS (
+      SELECT DISTINCT (created_at AT TIME ZONE 'Asia/Kolkata')::date d FROM login_events WHERE ${istRange("created_at")}
+      UNION SELECT DISTINCT (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM credit_events WHERE ${istRange("created_at")}
+      UNION SELECT DISTINCT (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM yoga_clicks  WHERE ${istRange("created_at")}
+    ),
+    firsts AS (SELECT user_id, (MIN(created_at) AT TIME ZONE 'Asia/Kolkata')::date fd FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id)
+    SELECT to_char(days.d,'YYYY-MM-DD') AS day,
+      (SELECT COUNT(*) FROM firsts f WHERE f.fd=days.d) AS new_users,
+      (SELECT COUNT(DISTINCT auth_user_id) FROM credit_events ce WHERE (ce.created_at AT TIME ZONE 'Asia/Kolkata')::date=days.d) AS active_users,
+      (SELECT COUNT(DISTINCT user_id) FROM login_events le WHERE user_id IS NOT NULL AND (le.created_at AT TIME ZONE 'Asia/Kolkata')::date=days.d) AS users_logged_in,
+      (SELECT COUNT(*) FROM login_events le WHERE (le.created_at AT TIME ZONE 'Asia/Kolkata')::date=days.d) AS logins,
+      (SELECT COUNT(*) FROM credit_events ce WHERE ce.action='nutrition_chat' AND (ce.created_at AT TIME ZONE 'Asia/Kolkata')::date=days.d) AS nutrition_chats,
+      (SELECT COUNT(*) FROM yoga_clicks yc WHERE (yc.created_at AT TIME ZONE 'Asia/Kolkata')::date=days.d) AS yoga_clicks
+    FROM days ORDER BY days.d DESC LIMIT 366`,
+  nutrition_usage: `
+    SELECT COALESCE(NULLIF(ce.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(ce.name,''), u.name, up.name) AS name,
+           COUNT(*) AS nutrition_chats
+    FROM credit_events ce
+    LEFT JOIN users u        ON ce.auth_user_type='oauth' AND u.id = ce.auth_user_id
+    LEFT JOIN users_phone up ON ce.auth_user_type='phone' AND up.id::text = ce.auth_user_id
+    WHERE ce.action='nutrition_chat' AND ${istRange("ce.created_at")}
+    GROUP BY 1,2 ORDER BY nutrition_chats DESC LIMIT 500`,
+  nutrition_questions: `
+    SELECT left(m.value->>'text',160) AS question,
+           COUNT(*) AS times_asked,
+           COUNT(DISTINCT cs.auth_user_id) AS distinct_users
+    FROM aria.chat_sessions cs CROSS JOIN LATERAL jsonb_array_elements(cs.messages) m
+    WHERE cs.mode='nutrition' AND m.value->>'role'='user'
+      AND length(coalesce(m.value->>'text',''))>0 AND ${istRange("cs.updated_at")}
+    GROUP BY left(m.value->>'text',160) ORDER BY times_asked DESC, distinct_users DESC LIMIT 500`,
+  yoga_usage: `
+    SELECT COALESCE(NULLIF(yc.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(yc.name,''), u.name, up.name) AS name,
+           COUNT(*) AS yoga_clicks
+    FROM yoga_clicks yc
+    LEFT JOIN users u        ON yc.auth_user_type='oauth' AND u.id = yc.auth_user_id
+    LEFT JOIN users_phone up ON yc.auth_user_type='phone' AND up.id::text = yc.auth_user_id
+    WHERE ${istRange("yc.created_at")}
+    GROUP BY 1,2 ORDER BY yoga_clicks DESC LIMIT 500`,
+  yoga_clicks: `
+    SELECT asana, COUNT(*) AS total_clicks, COUNT(DISTINCT auth_user_id) AS distinct_users
+    FROM yoga_clicks WHERE ${istRange("created_at")}
+    GROUP BY asana ORDER BY total_clicks DESC LIMIT 100`,
+};
+
+app.get("/api/detail/groupby", requireAuth, async (req, res) => {
+  const dim = String(req.query.dim || "").trim();
+  if (!Object.prototype.hasOwnProperty.call(GROUPBY, dim)) {
+    return res.status(400).json({ error: "Unknown dimension." });
+  }
+  try {
+    const { from, to } = await resolveRange(req);
+    const { columns, rows } = await runReadOnlyParams(GROUPBY[dim], [from, to]);
+    res.json({ ok: true, dim, from, to, columns, rows, rowCount: rows.length });
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// Fixed detail tables. Each is independent and wrapped so one failing query
+// never breaks the rest of the section. (Meditation has NO event table in the
+// DB, so it is intentionally omitted — surfaced as a note in the UI.)
+const DETAIL = {
+  new_users: `
+    WITH firsts AS (
+      SELECT user_id, user_type, MIN(created_at) AS first_at,
+             (array_agg(identifier ORDER BY created_at))[1] AS identifier,
+             (array_agg(method     ORDER BY created_at))[1] AS method
+      FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id, user_type)
+    SELECT COALESCE(u.email, f.identifier, up.phone) AS email,
+           COALESCE(u.name, up.name) AS name,
+           to_char(f.first_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS signup_ist,
+           f.method AS source
+    FROM firsts f
+    LEFT JOIN users u        ON f.user_type='oauth' AND u.id = f.user_id
+    LEFT JOIN users_phone up ON f.user_type='phone' AND up.id::text = f.user_id
+    WHERE ${istRange("f.first_at")}
+    ORDER BY f.first_at DESC LIMIT 500`,
+  repeat_users: `
+    WITH activity AS (
+      SELECT auth_user_type t, auth_user_id uid, (created_at AT TIME ZONE 'Asia/Kolkata')::date d FROM credit_events WHERE auth_user_id IS NOT NULL
+      UNION SELECT auth_user_type, auth_user_id, (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM yoga_clicks WHERE auth_user_id IS NOT NULL
+      UNION SELECT auth_user_type, auth_user_id, (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM aria.chat_sessions WHERE auth_user_id IS NOT NULL
+    ),
+    agg AS (
+      SELECT t, uid, COUNT(DISTINCT d) days, MIN(d) first_d, MAX(d) last_d
+      FROM activity WHERE d >= $1::date AND d <= $2::date
+      GROUP BY t, uid HAVING COUNT(DISTINCT d) > 1)
+    SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
+           a.days AS active_days,
+           to_char(a.first_d,'YYYY-MM-DD') AS first_seen,
+           to_char(a.last_d,'YYYY-MM-DD')  AS last_seen,
+           (SELECT COUNT(*) FROM login_events le WHERE le.user_id=a.uid AND le.user_type=a.t
+              AND ${istRange("le.created_at")}) AS logins
+    FROM agg a
+    LEFT JOIN users u        ON a.t='oauth' AND u.id = a.uid
+    LEFT JOIN users_phone up ON a.t='phone' AND up.id::text = a.uid
+    ORDER BY a.days DESC, a.last_d DESC LIMIT 500`,
+  new_user_usage: `
+    WITH firsts AS (SELECT user_id, user_type, MIN(created_at) first_at FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id, user_type),
+    newu AS (SELECT user_id, user_type FROM firsts WHERE ${istRange("first_at")})
+    SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
+      (SELECT COUNT(*) FROM credit_events ce WHERE ce.auth_user_type=n.user_type AND ce.auth_user_id=n.user_id AND ce.action='nutrition_chat' AND ${istRange("ce.created_at")}) AS nutrition_chats,
+      (SELECT COUNT(*) FROM yoga_clicks yc WHERE yc.auth_user_type=n.user_type AND yc.auth_user_id=n.user_id AND ${istRange("yc.created_at")}) AS yoga_clicks,
+      (SELECT COUNT(*) FROM intake_submissions s WHERE s.auth_user_type=n.user_type AND s.auth_user_id=n.user_id AND ${istRange("s.created_at")}) AS assessments,
+      (SELECT COALESCE(SUM(ce.cost),0) FROM credit_events ce WHERE ce.auth_user_type=n.user_type AND ce.auth_user_id=n.user_id AND ${istRange("ce.created_at")}) AS credits_spent,
+      (SELECT COUNT(*) FROM partner_leads pl WHERE pl.auth_user_type=n.user_type AND pl.auth_user_id=n.user_id AND ${istRange("pl.created_at")}) AS partner_leads
+    FROM newu n
+    LEFT JOIN users u        ON n.user_type='oauth' AND u.id = n.user_id
+    LEFT JOIN users_phone up ON n.user_type='phone' AND up.id::text = n.user_id
+    ORDER BY nutrition_chats DESC, yoga_clicks DESC LIMIT 500`,
+  nutrition_questions: `
+    SELECT COALESCE(u.email, up.phone) AS email,
+           left(m.value->>'text',160) AS question,
+           to_char(cs.updated_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS asked_ist
+    FROM aria.chat_sessions cs CROSS JOIN LATERAL jsonb_array_elements(cs.messages) m
+    LEFT JOIN users u        ON cs.auth_user_type='oauth' AND u.id = cs.auth_user_id
+    LEFT JOIN users_phone up ON cs.auth_user_type='phone' AND up.id::text = cs.auth_user_id
+    WHERE cs.mode='nutrition' AND m.value->>'role'='user'
+      AND length(coalesce(m.value->>'text',''))>0 AND ${istRange("cs.updated_at")}
+    ORDER BY cs.updated_at DESC LIMIT 300`,
+  yoga_detail: `
+    SELECT COALESCE(NULLIF(yc.email,''), u.email, up.phone) AS email, yc.asana, COUNT(*) AS clicks
+    FROM yoga_clicks yc
+    LEFT JOIN users u        ON yc.auth_user_type='oauth' AND u.id = yc.auth_user_id
+    LEFT JOIN users_phone up ON yc.auth_user_type='phone' AND up.id::text = yc.auth_user_id
+    WHERE ${istRange("yc.created_at")}
+    GROUP BY 1, yc.asana ORDER BY clicks DESC LIMIT 500`,
+  yoga_overall: `
+    SELECT asana, COUNT(*) AS total_clicks, COUNT(DISTINCT auth_user_id) AS distinct_users
+    FROM yoga_clicks WHERE ${istRange("created_at")}
+    GROUP BY asana ORDER BY total_clicks DESC LIMIT 100`,
+  assessments: `
+    SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
+           COUNT(*) AS assessments,
+           to_char(MAX(s.created_at) AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS last_at
+    FROM intake_submissions s
+    LEFT JOIN users u        ON s.auth_user_type='oauth' AND u.id = s.auth_user_id
+    LEFT JOIN users_phone up ON s.auth_user_type='phone' AND up.id::text = s.auth_user_id
+    WHERE ${istRange("s.created_at")}
+    GROUP BY 1,2 ORDER BY assessments DESC LIMIT 500`,
+  credits: `
+    SELECT COALESCE(NULLIF(ce.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(ce.name,''), u.name, up.name) AS name,
+           SUM(ce.cost) AS credits_spent, COUNT(*) AS events
+    FROM credit_events ce
+    LEFT JOIN users u        ON ce.auth_user_type='oauth' AND u.id = ce.auth_user_id
+    LEFT JOIN users_phone up ON ce.auth_user_type='phone' AND up.id::text = ce.auth_user_id
+    WHERE ${istRange("ce.created_at")}
+    GROUP BY 1,2 ORDER BY credits_spent DESC LIMIT 500`,
+  partner_leads: `
+    SELECT to_char(created_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS at_ist,
+           name, email, phone, partner
+    FROM partner_leads WHERE ${istRange("created_at")}
+    ORDER BY created_at DESC LIMIT 500`,
+  adoption: `
+    SELECT 'Nutrition chats' AS feature, COUNT(*) AS total_events, COUNT(DISTINCT auth_user_id) AS distinct_users
+      FROM credit_events WHERE action='nutrition_chat' AND ${istRange("created_at")}
+    UNION ALL SELECT 'Yoga clicks', COUNT(*), COUNT(DISTINCT auth_user_id) FROM yoga_clicks WHERE ${istRange("created_at")}
+    UNION ALL SELECT 'Assessments', COUNT(*), COUNT(DISTINCT auth_user_id) FROM intake_submissions WHERE ${istRange("created_at")}
+    UNION ALL SELECT 'Nutrition chat sessions', COUNT(*), COUNT(DISTINCT auth_user_id) FROM aria.chat_sessions WHERE ${istRange("created_at")}
+    UNION ALL SELECT 'Partner leads', COUNT(*), COUNT(DISTINCT auth_user_id) FROM partner_leads WHERE ${istRange("created_at")}
+    UNION ALL SELECT 'Logins', COUNT(*), COUNT(DISTINCT user_id) FROM login_events WHERE ${istRange("created_at")}
+    ORDER BY total_events DESC`,
+  dormant: `
+    WITH firsts AS (SELECT user_id, user_type, MIN(created_at) first_at FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id, user_type),
+    active_in_range AS (
+      SELECT DISTINCT auth_user_type t, auth_user_id uid FROM credit_events WHERE auth_user_id IS NOT NULL AND ${istRange("created_at")}
+      UNION SELECT DISTINCT auth_user_type, auth_user_id FROM yoga_clicks WHERE auth_user_id IS NOT NULL AND ${istRange("created_at")}
+      UNION SELECT DISTINCT auth_user_type, auth_user_id FROM aria.chat_sessions WHERE auth_user_id IS NOT NULL AND ${istRange("created_at")}
+    )
+    SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
+           to_char(f.first_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS signed_up_ist
+    FROM firsts f
+    LEFT JOIN users u        ON f.user_type='oauth' AND u.id = f.user_id
+    LEFT JOIN users_phone up ON f.user_type='phone' AND up.id::text = f.user_id
+    WHERE NOT EXISTS (SELECT 1 FROM active_in_range a WHERE a.t=f.user_type AND a.uid=f.user_id)
+    ORDER BY f.first_at DESC LIMIT 500`,
+  top_spenders: `
+    SELECT COALESCE(NULLIF(ce.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(ce.name,''), u.name, up.name) AS name,
+           SUM(ce.cost) AS credits_spent
+    FROM credit_events ce
+    LEFT JOIN users u        ON ce.auth_user_type='oauth' AND u.id = ce.auth_user_id
+    LEFT JOIN users_phone up ON ce.auth_user_type='phone' AND up.id::text = ce.auth_user_id
+    WHERE ${istRange("ce.created_at")}
+    GROUP BY 1,2 HAVING SUM(ce.cost) > 0 ORDER BY credits_spent DESC LIMIT 15`,
+};
+
+app.get("/api/detail/tables", requireAuth, async (req, res) => {
+  let from, to;
+  try { ({ from, to } = await resolveRange(req)); }
+  catch (e) { return res.status(500).json({ error: e.message }); }
+  const tables = {};
+  for (const key of Object.keys(DETAIL)) {
+    try {
+      const r = await runReadOnlyParams(DETAIL[key], [from, to]);
+      tables[key] = { columns: r.columns, rows: r.rows, count: r.rows.length };
+    } catch (e) {
+      tables[key] = { error: e.message, columns: [], rows: [], count: 0 };
+    }
+  }
+  res.json({ ok: true, from, to, tables });
 });
 
 // ── static (login page public; dashboard gated) ──────────────────────────────
