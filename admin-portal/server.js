@@ -485,6 +485,22 @@ const DETAIL = {
     LEFT JOIN users_phone up ON ce.auth_user_type='phone' AND up.id::text = ce.auth_user_id
     WHERE ${istRange("ce.created_at")}
     GROUP BY 1,2 HAVING SUM(ce.cost) > 0 ORDER BY credits_spent DESC LIMIT 15`,
+  login_method_summary: `
+    SELECT CASE WHEN user_type='oauth' THEN 'Google (oauth)' WHEN user_type='phone' THEN 'Phone' ELSE COALESCE(user_type,'unknown') END AS method,
+           COUNT(DISTINCT user_id) AS distinct_users, COUNT(*) AS logins
+    FROM login_events WHERE user_id IS NOT NULL AND ${istRange("created_at")}
+    GROUP BY user_type ORDER BY logins DESC`,
+  login_method: `
+    SELECT COALESCE(u.email, up.phone, le.identifier) AS email, COALESCE(u.name, up.name) AS name,
+           CASE WHEN le.user_type='oauth' THEN 'Google' WHEN le.user_type='phone' THEN 'Phone' ELSE le.user_type END AS method,
+           COUNT(*) AS logins,
+           to_char(MAX(le.created_at) AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS last_login
+    FROM login_events le
+    LEFT JOIN users u        ON le.user_type='oauth' AND u.id = le.user_id
+    LEFT JOIN users_phone up ON le.user_type='phone' AND up.id::text = le.user_id
+    WHERE le.user_id IS NOT NULL AND ${istRange("le.created_at")}
+    GROUP BY le.user_id, le.user_type, u.email, up.phone, le.identifier, u.name, up.name
+    ORDER BY logins DESC LIMIT 500`,
 };
 
 app.get("/api/detail/tables", requireAuth, async (req, res) => {

@@ -60,6 +60,8 @@
   .dv-card h3{font-size:.92rem;color:var(--forest);margin-bottom:2px;}
   .dv-card .dv-sub{font-size:.73rem;color:var(--muted);margin-bottom:6px;}
   .dv-card table{max-height:300px;}
+  .dv-method-grid{display:grid;grid-template-columns:1fr;gap:18px;align-items:start;}
+  @media(min-width:760px){.dv-method-grid{grid-template-columns:260px 1fr;}}
 </style>
 </head>
 <body>
@@ -129,6 +131,15 @@
           <span class="muted" id="dvGbCount"></span>
         </div>
         <div id="dvGbResult"></div>
+      </div>
+
+      <!-- Login method (Google/oauth vs Phone): breakdown chart + per-user table -->
+      <div class="panel" style="margin-top:18px;">
+        <h2 style="margin-top:0;">Login method — Google (oauth) vs Phone</h2>
+        <div class="dv-method-grid">
+          <div><canvas id="dvMethodChart" height="220"></canvas></div>
+          <div id="dvMethodTable"><div class="muted">Loading…</div></div>
+        </div>
       </div>
 
       <!-- C) fixed detail tables -->
@@ -244,6 +255,20 @@
   function dvYmd(d){ const m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${d.getFullYear()}-${m}-${day}`; }
   function dvShift(base, n){ const d=new Date(base+'T00:00:00'); d.setDate(d.getDate()+n); return dvYmd(d); }
   function dvQs(){ const f=$('dvFrom').value, t=$('dvTo').value; return (f&&t)?`from=${f}&to=${t}`:''; }
+  let dvMethodChart;
+  function dvDrawMethodChart(summary){
+    const ctx = $('dvMethodChart'); if(!ctx) return;
+    const rows = (summary && summary.rows) || [];
+    if(dvMethodChart) dvMethodChart.destroy();
+    if(!rows.length){ const g=ctx.getContext('2d'); g.clearRect(0,0,ctx.width,ctx.height); return; }
+    dvMethodChart = new Chart(ctx, {
+      type:'doughnut',
+      data:{ labels: rows.map(r=>r.method), datasets:[{ data: rows.map(r=>Number(r.logins)),
+        backgroundColor:['#2b4338','#c9952a','#6a7770','#5fb3b3'] }] },
+      options:{ responsive:true, plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12 } },
+        tooltip:{ callbacks:{ label:(c)=>`${c.label}: ${c.parsed} logins` } } } }
+    });
+  }
 
   async function dvLoadTables(){
     $('dvTables').innerHTML='<div class="muted">Loading…</div>';
@@ -254,6 +279,11 @@
       if(!$('dvTo').value) $('dvTo').value=d.to;
       dvToday = dvToday || d.to;
       $('dvRange').textContent = `Showing ${d.from} → ${d.to} (IST)`;
+      // login-method panel (own chart + table, separate from the card grid)
+      dvDrawMethodChart(d.tables.login_method_summary);
+      const lm = d.tables.login_method;
+      $('dvMethodTable').innerHTML = (lm && lm.rows && lm.rows.length)
+        ? tableHtml(lm.columns, lm.rows) : '<div class="muted">No logins in this range.</div>';
       let html='<div class="dv-grid">';
       for(const t of DV_TABLES){
         const tb=d.tables[t.key]||{};
