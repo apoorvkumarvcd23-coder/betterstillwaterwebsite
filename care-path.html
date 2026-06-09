@@ -6680,6 +6680,19 @@
         function showGeneralChat() { switchChatMode("general"); showPlantRecipesChat(); }
         function showChronicChat() { switchChatMode("chronic"); showPlantRecipesChat(); }
 
+        // Keep the URL in sync with the current top-level view so a browser
+        // refresh re-opens the SAME view (the initial-routing block below reads
+        // ?view=). Without this, navigating to the dashboard client-side (e.g.
+        // the chronic page's Back button calls showLauncher()) left a stale
+        // ?submissionId=/?view=chronic in the URL, so a refresh bounced back to
+        // the Chronic partner page instead of the dashboard.
+        function setSwView(view) {
+          try {
+            const u = window.location.pathname + (view ? ("?view=" + view) : "");
+            window.history.replaceState({}, "", u);
+          } catch (_e) {}
+        }
+
         // ── Launcher (3-option selection screen) + embedded Yoga app ────
         function showLauncher() {
           hidePlantRecipesChat();
@@ -6687,12 +6700,14 @@
           const y = swYogaEl(); if (y) y.hidden = true;
           const l = swLauncherEl(); if (l) l.hidden = false;
           setSidebarVisible(false);
+          setSwView("select");
         }
         // Yoga = the "Practice Yoga Asanas with AI" full-page view (Tadasana /
         // Balasana). Keep the launcher as the base view so closing it returns
         // to the dashboard options.
         function showYoga() {
           showLauncher();
+          setSwView("yoga");
           const m = document.getElementById("yogaIntroModal");
           if (m) m.hidden = false;
         }
@@ -6719,6 +6734,7 @@
           hidePlantRecipesChat();
           setSidebarVisible(false);
           companionFromLauncher = true;
+          setSwView("recipe");
         }
         // Back out of the recipes companion → the launcher if opened from the
         // Recipe card, else the chat we opened it from.
