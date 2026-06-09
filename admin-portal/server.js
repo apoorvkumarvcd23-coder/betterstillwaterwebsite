@@ -138,6 +138,8 @@ Tables (schema public unless noted):
     -- FEATURE USAGE ledger. action is 'nutrition_chat' | 'tadasana_watch_learn' | 'balasana_watch_learn'. Started ~2026-06-05 evening IST.
 - user_credits(auth_user_type, auth_user_id, email, name, balance int, total_spent int, updated_at)  -- current balance per user
 - yoga_clicks(id, auth_user_type, auth_user_id, email, name, asana, asana_key, created_at)            -- one row per yoga Watch&Learn click
+- recipe_clicks(id, auth_user_type, auth_user_id, email, name, action text['open_library'|'generate'], dish text, created_at)
+    -- Recipe Library usage. action 'open_library' = opened the Recipe card/library; 'generate' = generated a recipe (dish = dish name). May be absent on prod until deployed.
 - intake_submissions(id, name, phone, age, chronic_conditions, eyesight_issues, auth_user_type, auth_user_id, completed_at, created_at, ...)  -- wellness assessment
 - partner_leads(id, name, phone, email, partner, auth_user_type, auth_user_id, created_at)            -- "Book a consultation" leads
 - page_views(id, visitor_id, auth_user_type, auth_user_id, path, page_title, referrer, created_at, ...) -- page visits (consent-gated; may undercount)
@@ -279,6 +281,15 @@ async function resolveRange(req) {
   return { from, to };
 }
 
+// Some tables (e.g. recipe_clicks) may not exist on prod until the main site is
+// deployed. Cheap existence check so those panels show empty instead of erroring.
+async function tableExists(qualified) {
+  try {
+    const r = await runReadOnlyParams("SELECT to_regclass($1) IS NOT NULL AS ok", [qualified]);
+    return !!(r.rows[0] && r.rows[0].ok);
+  } catch (_e) { return false; }
+}
+
 // Group-by explorer — dimension name (whitelisted) -> parameterized SELECT.
 const GROUPBY = {
   user: `
@@ -343,6 +354,20 @@ const GROUPBY = {
     SELECT asana, COUNT(*) AS total_clicks, COUNT(DISTINCT auth_user_id) AS distinct_users
     FROM yoga_clicks WHERE ${istRange("created_at")}
     GROUP BY asana ORDER BY total_clicks DESC LIMIT 100`,
+  recipe_usage: `
+    SELECT COALESCE(NULLIF(rc.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(rc.name,''), u.name, up.name) AS name,
+           COUNT(*) FILTER (WHERE rc.action='open_library') AS library_opens,
+           COUNT(*) FILTER (WHERE rc.action='generate')     AS recipes_generated
+    FROM recipe_clicks rc
+    LEFT JOIN users u        ON rc.auth_user_type='oauth' AND u.id = rc.auth_user_id
+    LEFT JOIN users_phone up ON rc.auth_user_type='phone' AND up.id::text = rc.auth_user_id
+    WHERE ${istRange("rc.created_at")}
+    GROUP BY 1,2 ORDER BY recipes_generated DESC, library_opens DESC LIMIT 500`,
+  recipe_dishes: `
+    SELECT dish, COUNT(*) AS times_generated, COUNT(DISTINCT auth_user_id) AS distinct_users
+    FROM recipe_clicks WHERE action='generate' AND dish IS NOT NULL AND ${istRange("created_at")}
+    GROUP BY dish ORDER BY times_generated DESC LIMIT 200`,
 };
 
 app.get("/api/detail/groupby", requireAuth, async (req, res) => {
@@ -352,6 +377,9 @@ app.get("/api/detail/groupby", requireAuth, async (req, res) => {
   }
   try {
     const { from, to } = await resolveRange(req);
+    if (dim.startsWith("recipe_") && !(await tableExists("public.recipe_clicks"))) {
+      return res.json({ ok: true, dim, from, to, columns: [], rows: [], rowCount: 0 });
+    }
     const { columns, rows } = await runReadOnlyParams(GROUPBY[dim], [from, to]);
     res.json({ ok: true, dim, from, to, columns, rows, rowCount: rows.length });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -424,6 +452,30 @@ const DETAIL = {
     SELECT asana, COUNT(*) AS total_clicks, COUNT(DISTINCT auth_user_id) AS distinct_users
     FROM yoga_clicks WHERE ${istRange("created_at")}
     GROUP BY asana ORDER BY total_clicks DESC LIMIT 100`,
+  recipe_usage: `
+    SELECT COALESCE(NULLIF(rc.email,''), u.email, up.phone) AS email,
+           COALESCE(NULLIF(rc.name,''), u.name, up.name) AS name,
+           COUNT(*) FILTER (WHERE rc.action='open_library') AS library_opens,
+           COUNT(*) FILTER (WHERE rc.action='generate')     AS recipes_generated,
+           to_char(MAX(rc.created_at) AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS last_activity
+    FROM recipe_clicks rc
+    LEFT JOIN users u        ON rc.auth_user_type='oauth' AND u.id = rc.auth_user_id
+    LEFT JOIN users_phone up ON rc.auth_user_type='phone' AND up.id::text = rc.auth_user_id
+    WHERE ${istRange("rc.created_at")}
+    GROUP BY 1,2 ORDER BY recipes_generated DESC, library_opens DESC LIMIT 500`,
+  recipe_dishes: `
+    SELECT dish, COUNT(*) AS times_generated, COUNT(DISTINCT auth_user_id) AS distinct_users
+    FROM recipe_clicks WHERE action='generate' AND dish IS NOT NULL AND ${istRange("created_at")}
+    GROUP BY dish ORDER BY times_generated DESC LIMIT 200`,
+  recipe_detail: `
+    SELECT COALESCE(NULLIF(rc.email,''), u.email, up.phone) AS email,
+           rc.action, COALESCE(rc.dish,'—') AS dish,
+           to_char(rc.created_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS at_ist
+    FROM recipe_clicks rc
+    LEFT JOIN users u        ON rc.auth_user_type='oauth' AND u.id = rc.auth_user_id
+    LEFT JOIN users_phone up ON rc.auth_user_type='phone' AND up.id::text = rc.auth_user_id
+    WHERE ${istRange("rc.created_at")}
+    ORDER BY rc.created_at DESC LIMIT 300`,
   assessments: `
     SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
            COUNT(*) AS assessments,
@@ -502,7 +554,14 @@ app.get("/api/detail/tables", requireAuth, async (req, res) => {
   try { ({ from, to } = await resolveRange(req)); }
   catch (e) { return res.status(500).json({ error: e.message }); }
   const tables = {};
+  // recipe_clicks may not exist on prod until the main site is deployed; skip
+  // those queries (show empty) rather than surfacing a relation-missing error.
+  const recipeReady = await tableExists("public.recipe_clicks");
   for (const key of Object.keys(DETAIL)) {
+    if (key.startsWith("recipe_") && !recipeReady) {
+      tables[key] = { columns: [], rows: [], count: 0 };
+      continue;
+    }
     try {
       const r = await runReadOnlyParams(DETAIL[key], [from, to]);
       tables[key] = { columns: r.columns, rows: r.rows, count: r.rows.length };
