@@ -1468,7 +1468,62 @@ untouched**). It reuses the portal's **single `DATABASE_URL` pool** (prod DB) �
 
 ---
 
-_Updated 2026-06-09 — added §23 (account migration prep, paused on billing) +
+## 25. 2026-06-09 — Recipe Library → its own dashboard card + usage tracking
+
+The recipe surface (the 3-tab companion: Meal Plan / Recipes / Journaling) was
+reached only via the **"🍽 Recipe Library" button** inside the AI Nutritionist
+chat header. It's now a **first-class dashboard card**, and recipe usage is
+tracked + surfaced in the admin portal. **Two branches, both pushed to origin +
+live, never main** (per §23 workflow).
+
+### 25.1 Website (`care-path.html`, `js/i18n.js`, `server.js`) — branch `test` (`82cde8d`)
+- **Removed** the `🍽 Recipe Library` button from the nutrition chat header
+  (the old `chatMode==='nutrition'` action-button block in
+  `renderPlantRecipesChat`). Chronic header (reco chip + Trusted Providers) is
+  unchanged.
+- **New launcher card** `#swLaunchRecipe` ("Recipe Library") on the dashboard
+  (`#swLauncher`), beside AI Nutritionist. Opens the **same** companion shell —
+  identical functionality. Also deep-linkable via **`?view=recipe`**.
+- New `showCompanionFromLauncher()` (next to `showCompanion()`): opens the
+  companion with `companionFromLauncher=true` so **Back returns to the launcher**
+  (not a chat). `backFromCompanion()` branches on that flag. `showCompanion()`
+  stays exposed for back-compat but is no longer called.
+- **Tracking** (mirrors `yoga_clicks`): new **`recipe_clicks`** table + index +
+  **`recipe_clicks_by_user`** view (auto-created in `initDb`). `POST
+  /api/recipe-click {action,dish}` (`action` = `open_library` | `generate`) and
+  admin `GET /api/admin/recipe-clicks`. Client `trackRecipeClick()` fires on
+  (a) opening the Recipe card (`open_library`) and (b) **every recipe generated**
+  — hooked the single `openRecipePopup()` choke point (`generate`, `dish` = dish
+  name), so the search box, weekly/today meal links, and Recipes-tab cards all
+  log. Fire-and-forget; never blocks UI.
+- i18n: `launcher.recipe.title` / `launcher.recipe.desc` (EN+HI). GA event on the
+  card: `dashboard_card_recipe_library`.
+
+### 25.2 Admin portal (`admin-portal/server.js` + `public/dashboard.html`) — branch `stilwateradminportal` (`dba7e23`)
+- `SCHEMA_DOC` documents `recipe_clicks` (for the NL-to-SQL chatbot).
+- Group-by dims **`recipe_usage`**, **`recipe_dishes`**; detail cards
+  **`recipe_usage`** (per-user opens + generated + last activity),
+  **`recipe_dishes`** (most-generated dishes), **`recipe_detail`** (recent who/
+  what). Auto-renders from `DV_TABLES`.
+- New **`tableExists('public.recipe_clicks')`** guard: until `main` is promoted,
+  the prod DB has no `recipe_clicks`, so the recipe panels return **empty**
+  ("No rows in this range.") instead of a relation-missing error. The existing
+  `adoption` UNION was deliberately **left untouched** (adding `recipe_clicks`
+  there would have broken that panel on prod pre-promotion).
+
+### 25.3 Notes / open items
+- **Data only flows once `recipe_clicks` exists where users actually run.** Test
+  writes to `stillwater-test-db`; the admin portal reads **prod**
+  (`stillwater-postgres`). So recipe panels stay empty in the portal until the
+  website is **promoted `test → main`** (then prod boot creates the table) and
+  real users use it. The code is ready; this is the "only push to test" tradeoff.
+- Carried opens: promote `test → main` when ready; §22.3/§24 items.
+
+---
+
+_Updated 2026-06-09 — added §25 (Recipe Library → dashboard card + recipe_clicks
+tracking, website `82cde8d` + admin portal `dba7e23`). Earlier same day: §23
+(account migration prep, paused on billing) +
 §24 (admin portal Detailed Views, branch `stilwateradminportal`).
 Earlier: 2026-06-08 §22 (SONI123 promo per-account + auto-login note).
 2026-06-07 §21 ("SONI123" promo → Soni yoga variant) + Cobra URL.
