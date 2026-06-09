@@ -239,7 +239,7 @@
   // ════════ DETAILED VIEWS (new; self-contained — reuses $, esc, tableHtml) ════════
   const DV_TABLES = [
     {key:'new_users',          title:'New users',                       sub:'First sign-in within range · email, signup time (IST), source'},
-    {key:'repeat_users',       title:'Repeat users',                    sub:'Active on more than one distinct day in range'},
+    {key:'returning_users',    title:'Returning users',                 sub:'Logged in within range but joined earlier — New + Returning = everyone who signed in'},
     {key:'new_user_usage',     title:'New-user feature usage',          sub:'One row per new user · counts per feature'},
     {key:'nutrition_questions',title:'Nutrition detail — recent questions', sub:'Actual questions asked (recent first, by session time; truncated)'},
     {key:'yoga_detail',        title:'Yoga detail',                     sub:'Per user · asana · click count'},
@@ -278,7 +278,7 @@
       if(!$('dvFrom').value) $('dvFrom').value=d.from;
       if(!$('dvTo').value) $('dvTo').value=d.to;
       dvToday = dvToday || d.to;
-      $('dvRange').textContent = `Showing ${d.from} → ${d.to} (IST)`;
+      $('dvRange').textContent = `Showing ${d.from} → ${d.to} (IST)` + (d.now_ist ? ` · snapshot ${d.now_ist} IST` : '');
       // login-method panel (own chart + table, separate from the card grid)
       dvDrawMethodChart(d.tables.login_method_summary);
       const lm = d.tables.login_method;
@@ -308,7 +308,11 @@
     }catch(e){ $('dvGbResult').innerHTML='<div class="msg err">'+esc(e.message)+'</div>'; }
   }
 
-  function dvApplyAll(){ dvLoadTables(); dvGroupby(); }
+  // Reload KPIs + chart + detail together so the top cards and the detail
+  // section are always the SAME snapshot (prevents "KPI says 2, detail says 3"
+  // when a login happens between two separate loads).
+  function dvApplyAll(){ loadKpis(); loadDaily(); dvLoadTables(); dvGroupby(); }
+  $('refresh').onclick = dvApplyAll;
 
   document.querySelectorAll('.dv-preset').forEach(b=> b.onclick=()=>{
     const today = dvToday || $('dvTo').value || dvYmd(new Date());

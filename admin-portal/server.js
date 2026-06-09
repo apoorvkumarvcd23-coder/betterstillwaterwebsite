@@ -376,26 +376,20 @@ const DETAIL = {
     LEFT JOIN users_phone up ON f.user_type='phone' AND up.id::text = f.user_id
     WHERE ${istRange("f.first_at")}
     ORDER BY f.first_at DESC LIMIT 500`,
-  repeat_users: `
-    WITH activity AS (
-      SELECT auth_user_type t, auth_user_id uid, (created_at AT TIME ZONE 'Asia/Kolkata')::date d FROM credit_events WHERE auth_user_id IS NOT NULL
-      UNION SELECT auth_user_type, auth_user_id, (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM yoga_clicks WHERE auth_user_id IS NOT NULL
-      UNION SELECT auth_user_type, auth_user_id, (created_at AT TIME ZONE 'Asia/Kolkata')::date FROM aria.chat_sessions WHERE auth_user_id IS NOT NULL
-    ),
-    agg AS (
-      SELECT t, uid, COUNT(DISTINCT d) days, MIN(d) first_d, MAX(d) last_d
-      FROM activity WHERE d >= $1::date AND d <= $2::date
-      GROUP BY t, uid HAVING COUNT(DISTINCT d) > 1)
+  returning_users: `
+    WITH firsts AS (SELECT user_id, user_type, MIN(created_at) first_at FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id, user_type)
     SELECT COALESCE(u.email, up.phone) AS email, COALESCE(u.name, up.name) AS name,
-           a.days AS active_days,
-           to_char(a.first_d,'YYYY-MM-DD') AS first_seen,
-           to_char(a.last_d,'YYYY-MM-DD')  AS last_seen,
-           (SELECT COUNT(*) FROM login_events le WHERE le.user_id=a.uid AND le.user_type=a.t
-              AND ${istRange("le.created_at")}) AS logins
-    FROM agg a
-    LEFT JOIN users u        ON a.t='oauth' AND u.id = a.uid
-    LEFT JOIN users_phone up ON a.t='phone' AND up.id::text = a.uid
-    ORDER BY a.days DESC, a.last_d DESC LIMIT 500`,
+           COUNT(*) AS logins_in_range,
+           to_char(MAX(le.created_at) AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI') AS last_login,
+           to_char(f.first_at AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD') AS joined
+    FROM login_events le
+    JOIN firsts f ON f.user_id = le.user_id AND f.user_type = le.user_type
+    LEFT JOIN users u        ON le.user_type='oauth' AND u.id = le.user_id
+    LEFT JOIN users_phone up ON le.user_type='phone' AND up.id::text = le.user_id
+    WHERE le.user_id IS NOT NULL AND ${istRange("le.created_at")}
+      AND (f.first_at AT TIME ZONE 'Asia/Kolkata') < $1::date
+    GROUP BY le.user_id, le.user_type, u.email, up.phone, u.name, up.name, f.first_at
+    ORDER BY logins_in_range DESC LIMIT 500`,
   new_user_usage: `
     WITH firsts AS (SELECT user_id, user_type, MIN(created_at) first_at FROM login_events WHERE user_id IS NOT NULL GROUP BY user_id, user_type),
     newu AS (SELECT user_id, user_type FROM firsts WHERE ${istRange("first_at")})
@@ -516,7 +510,12 @@ app.get("/api/detail/tables", requireAuth, async (req, res) => {
       tables[key] = { error: e.message, columns: [], rows: [], count: 0 };
     }
   }
-  res.json({ ok: true, from, to, tables });
+  let now_ist = null;
+  try {
+    const n = await runReadOnlyParams("SELECT to_char(now() AT TIME ZONE 'Asia/Kolkata','YYYY-MM-DD HH24:MI:SS') AS now_ist", []);
+    now_ist = n.rows[0].now_ist;
+  } catch (_e) {}
+  res.json({ ok: true, from, to, now_ist, tables });
 });
 
 // ── static (login page public; dashboard gated) ──────────────────────────────
