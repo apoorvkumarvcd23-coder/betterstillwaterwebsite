@@ -1557,7 +1557,58 @@ portal on branch `stilwateradminportal` (own service). All pushed origin + live.
 
 ---
 
-_Updated 2026-06-09 — §25 **PROMOTED TO MAIN** (`cfe2164`): Recipe Library →
+## 26. 2026-06-10 — "Yoga Quest": gamified promo yoga + community leaderboard (test only)
+
+A gamified, level-unlock yoga mode for **promo members** (`SONI123` / `VIPIN123`).
+Normal (no-code) users see the **unchanged** standard yoga intro. On `test` only
+(commit `5b74829`); built on top of Manan's cashfree merge (`773e212`). **NOT on
+main.**
+
+### 26.1 Backend (`server.js`)
+- `PROMO_VARIANTS` now `{ SONI123:"soni", VIPIN123:"vipin" }`; `YOGA_GAME_VARIANTS
+  = ["soni","vipin"]`; `YOGA_GAME_LEVELS` (tadasana→balasana→cobra);
+  `YOGA_GAME_PASS = 90`.
+- New table **`yoga_game_scores`** (PK `auth_user_type,auth_user_id,asana_key`):
+  best_score/last_score/attempts + `promo_variant` (the community). Auto-created
+  in `initDb`.
+- **`POST /api/yoga/score {asana,score}`** — members only (variant in
+  YOGA_GAME_VARIANTS); clamps 0–100; keeps the best score (`GREATEST`).
+- **`GET /api/yoga/game`** — `{gamified, variant, pass, levels[], me, leaderboard[]}`.
+  Levels: unlock = previous level best ≥90. Leaderboard = everyone with the SAME
+  variant (separate communities), ranked by levels-cleared, then total, then avg.
+
+### 26.2 Client (`care-path.html`)
+- New full-page **`#yogaGame`** view (own `<style>`): a 3-level path (lock /
+  unlocked / cleared, progress bar, best score) + a right-side **leaderboard**
+  (rank/medals, initials avatar, cleared count, avg, total points, "You").
+- `applyPromoVariant()` (was `applySoniPromo`): reads the captured code
+  (`sw_promo_code`, legacy `sw_promo_soni`→SONI123), POSTs `/api/promo` once,
+  then GETs the authoritative variant and sets `window.__swYogaGameVariant`.
+  Soni guide-video swap kept (variant `soni`); **no longer hides Balasana** (it's
+  level 2). `showYoga()` opens the game for members, the intro for everyone else
+  (with `upgradeIfMember()` to handle a direct `?view=yoga` refresh).
+- Each level's **Practice Now** reuses the existing Watch&Learn → pose-detection
+  flow (clicks `yogaBetaOpen`/`yogaBalasanaOpen`/`yogaCobraOpen`); closing that
+  overlay reveals the game (re-rendered with the new score).
+- **Score capture**: a `window` `message` listener for the pose apps'
+  `postMessage({type:'sw_yoga_score', asana, score})` **(the apps must send
+  this — contract documented inline)**, PLUS a **manual "AI score" entry** per
+  unlocked level so the game + leaderboard work today before the apps are wired.
+- Auth pages (`auth.html` + `admin-served.html`): capture SONI123/VIPIN123
+  generically into `localStorage.sw_promo_code` (legacy `sw_promo_soni` kept).
+
+### 26.3 Open items
+- ⚠ **Pose apps must emit the score.** `static-tadasha-pose-detection-c3tk`,
+  `static-chisld-pose-detection`, `static-cobra-pose-detection` need a one-liner
+  `window.parent.postMessage({type:'sw_yoga_score',asana:'<key>',score:<0-100>},'*')`
+  for automatic scoring. Until then use the manual entry.
+- Not promoted to main. Carried: §25.4 items.
+
+---
+
+_Updated 2026-06-10 — §26 "Yoga Quest" gamified promo yoga + leaderboard (test
+`5b74829`, NOT on main; pose apps must postMessage scores for auto-scoring).
+Earlier 2026-06-09 — §25 **PROMOTED TO MAIN** (`cfe2164`): Recipe Library →
 dashboard card + `recipe_clicks` tracking (incl. Weekly/Today meal-plan
 generation) + launcher copy (Chronic/Yoga/asana names). Website `82cde8d` →
 `db3e446` → `c1ca791`; admin portal `dba7e23` → `e5aaa3e` (branch
