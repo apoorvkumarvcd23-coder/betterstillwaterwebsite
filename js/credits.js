@@ -29,26 +29,14 @@
   // ── public API ────────────────────────────────────────────────────────────
   function get() { return balance; }
 
-  // Spend 1 credit, tagged with an action label (string) for the ledger.
-  // Optimistically updates the badge, then reconciles with the server's
-  // authoritative balance. No-op for logged-out users (server requires auth).
-  function spend(action) {
-    var act = (typeof action === "string" && action.trim()) ? action.trim() : "unknown";
+  // DEPRECATED. Charging is now enforced SERVER-SIDE inside each AI endpoint
+  // (see src/credits/charge.js). The badge syncs automatically from the
+  // `X-Credits-Balance` response header via the fetch interceptor below, and an
+  // out-of-credits 402 opens the Buy modal. This is kept only as a safe no-op
+  // (just refreshes the badge) so any legacy caller can't double-charge.
+  function spend(_action) {
     if (!authed) return;
-    if (typeof balance === "number") { balance = Math.max(0, balance - 1); renderBadge(); pulse(); }
-    try {
-      fetch("/api/credits/spend", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: act }),
-      })
-        .then(function (r) { return r && r.ok ? r.json() : null; })
-        .then(function (d) {
-          if (d && typeof d.balance === "number") { balance = d.balance; renderBadge(); }
-        })
-        .catch(function () {});
-    } catch (_e) {}
+    reload();
   }
 
   function reload() {
@@ -98,7 +86,15 @@
       }
     }
     badge.style.display = "inline-flex";
-    badge.innerHTML = coinMarkup(balance);
+    badge.classList.add("sw-credit-badge-buyable");
+    badge.setAttribute("title", "Add credits");
+    badge.onclick = openBuy;
+    badge.innerHTML =
+      coinMarkup(balance) +
+      '<span class="sw-credit-plus" aria-hidden="true">' +
+      '<svg viewBox="0 0 24 24" width="10" height="10" fill="none">' +
+      '<path d="M12 5.5v13M5.5 12h13" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/>' +
+      "</svg></span>";
   }
 
   function pulse() {
@@ -169,6 +165,181 @@
     if (box && box.parentNode) box.parentNode.removeChild(box);
   }
 
+  // ── Buy credits (Cashfree) ────────────────────────────────────────────────
+  var CF_SDK_URL = "https://sdk.cashfree.com/js/v3/cashfree.js";
+  var cfSdkPromise = null;
+
+  function loadCashfreeSdk() {
+    if (window.Cashfree) return Promise.resolve(window.Cashfree);
+    if (cfSdkPromise) return cfSdkPromise;
+    cfSdkPromise = new Promise(function (resolve, reject) {
+      var s = document.createElement("script");
+      s.src = CF_SDK_URL;
+      s.onload = function () { resolve(window.Cashfree); };
+      s.onerror = function () { reject(new Error("Cashfree SDK failed to load")); };
+      (document.head || document.documentElement).appendChild(s);
+    });
+    return cfSdkPromise;
+  }
+
+  // Small transient toast for purchase feedback.
+  function showToast(msg, ok) {
+    try {
+      var t = document.createElement("div");
+      t.className = "sw-buy-toast" + (ok === false ? " sw-buy-toast-err" : "");
+      t.textContent = msg;
+      document.body.appendChild(t);
+      requestAnimationFrame(function () { t.classList.add("sw-buy-toast-in"); });
+      setTimeout(function () {
+        t.classList.remove("sw-buy-toast-in");
+        setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 250);
+      }, 3200);
+    } catch (_e) {}
+  }
+
+  function closeBuy() {
+    var ov = document.getElementById("swBuyOverlay");
+    if (ov && ov.parentNode) ov.parentNode.removeChild(ov);
+  }
+
+  // Open the package picker. No-op for logged-out users (they can't pay).
+  function openBuy() {
+    if (!authed) {
+      showNudge();
+      return;
+    }
+    if (document.getElementById("swBuyOverlay")) return;
+
+    var overlay = document.createElement("div");
+    overlay.id = "swBuyOverlay";
+    overlay.className = "sw-buy-overlay";
+    overlay.innerHTML =
+      '<div class="sw-buy-modal" role="dialog" aria-label="Add credits">' +
+      '<button class="sw-buy-close" type="button" aria-label="Close">&times;</button>' +
+      '<h3 class="sw-buy-title">Add Stilwater credits</h3>' +
+      '<p class="sw-buy-sub">Credits power Aria chat, meal plans and guided practice.</p>' +
+      '<div class="sw-buy-packs" id="swBuyPacks"><div class="sw-buy-loading">Loading…</div></div>' +
+      '<p class="sw-buy-note">Secured by Cashfree · payments in INR</p>' +
+      "</div>";
+    document.body.appendChild(overlay);
+
+    overlay.addEventListener("click", function (e) {
+      if (e.target === overlay) closeBuy();
+    });
+    overlay.querySelector(".sw-buy-close").addEventListener("click", closeBuy);
+
+    fetch("/api/payments/cashfree/packages", { credentials: "include" })
+      .then(function (r) { return r && r.ok ? r.json() : null; })
+      .then(function (d) {
+        var host = document.getElementById("swBuyPacks");
+        if (!host) return;
+        if (!d || !d.packages) { host.innerHTML = '<div class="sw-buy-loading">Could not load packages.</div>'; return; }
+        var order = ["taster", "popular", "pro"];
+        // Baseline per-credit (the smallest pack) so we can show real savings.
+        var basePer =
+          d.packages.taster && d.packages.taster.credits
+            ? d.packages.taster.amount / d.packages.taster.credits
+            : null;
+        var html = "";
+        order.forEach(function (id) {
+          var p = d.packages[id];
+          if (!p) return;
+          var best = id === "popular";
+          var per = p.amount / p.credits;
+          var perStr = "₹" + per.toFixed(2) + " / credit";
+          var save =
+            basePer && per < basePer
+              ? Math.round((1 - per / basePer) * 100)
+              : 0;
+          html +=
+            '<button class="sw-buy-pack' + (best ? " sw-buy-pack-best" : "") + '" type="button" data-pkg="' + id + '">' +
+            (best ? '<span class="sw-buy-tag">Best value</span>' : "") +
+            '<div class="sw-buy-pack-left">' +
+            '<span class="sw-buy-credits">' + p.credits + " credits</span>" +
+            (p.blurb ? '<span class="sw-buy-blurb">' + p.blurb + "</span>" : "") +
+            '<span class="sw-buy-percredit">' + perStr +
+            (save > 0 ? ' <span class="sw-buy-save">Save ' + save + "%</span>" : "") +
+            "</span>" +
+            "</div>" +
+            '<div class="sw-buy-pack-right">' +
+            '<span class="sw-buy-price">₹' + p.amount + "</span>" +
+            '<span class="sw-buy-go">Buy →</span>' +
+            "</div>" +
+            "</button>";
+        });
+        host.innerHTML = html;
+        Array.prototype.forEach.call(host.querySelectorAll(".sw-buy-pack"), function (btn) {
+          btn.addEventListener("click", function () { startCheckout(btn.getAttribute("data-pkg"), btn); });
+        });
+      })
+      .catch(function () {
+        var host = document.getElementById("swBuyPacks");
+        if (host) host.innerHTML = '<div class="sw-buy-loading">Could not load packages.</div>';
+      });
+  }
+
+  // Create the order, then hand off to Cashfree's hosted checkout. On success
+  // Cashfree redirects back to ?cf_order=<id>, which checkReturn() reconciles.
+  function startCheckout(packageId, btn) {
+    if (btn) { btn.disabled = true; btn.classList.add("sw-buy-pack-busy"); }
+    fetch("/api/payments/cashfree/order", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ packageId: packageId }),
+    })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        if (!res.ok || !res.j || !res.j.paymentSessionId) {
+          throw new Error((res.j && res.j.error) || "Could not start payment");
+        }
+        return loadCashfreeSdk().then(function (Cashfree) {
+          var cashfree = Cashfree({ mode: res.j.mode === "production" ? "production" : "sandbox" });
+          // Remember which order we're awaiting (return URL also carries it).
+          try { sessionStorage.setItem("sw_pending_order", res.j.orderId); } catch (_e) {}
+          cashfree.checkout({ paymentSessionId: res.j.paymentSessionId, redirectTarget: "_self" });
+        });
+      })
+      .catch(function (err) {
+        if (btn) { btn.disabled = false; btn.classList.remove("sw-buy-pack-busy"); }
+        showToast(err.message || "Payment could not start", false);
+      });
+  }
+
+  // On load, if we returned from Cashfree (?cf_order=), confirm + credit.
+  function checkReturn() {
+    var orderId = null;
+    try {
+      var params = new URLSearchParams(window.location.search);
+      orderId = params.get("cf_order");
+    } catch (_e) {}
+    if (!orderId) {
+      try { orderId = sessionStorage.getItem("sw_pending_order"); } catch (_e2) {}
+    }
+    if (!orderId) return;
+    try { sessionStorage.removeItem("sw_pending_order"); } catch (_e3) {}
+
+    // Clean the param from the URL so a refresh doesn't re-trigger.
+    try {
+      var url = new URL(window.location.href);
+      url.searchParams.delete("cf_order");
+      window.history.replaceState({}, document.title, url.toString());
+    } catch (_e4) {}
+
+    fetch("/api/payments/cashfree/status/" + encodeURIComponent(orderId), { credentials: "include" })
+      .then(function (r) { return r && r.ok ? r.json() : null; })
+      .then(function (d) {
+        if (d && d.status === "PAID") {
+          if (typeof d.balance === "number") { balance = d.balance; renderBadge(); pulse(); }
+          else { reload(); }
+          showToast("Credits added — you're all set!", true);
+        } else if (d && (d.status === "ACTIVE" || d.status === "CREATED")) {
+          showToast("Payment is still processing…", false);
+        }
+      })
+      .catch(function () {});
+  }
+
   // ── styles ─────────────────────────────────────────────────────────────────
   function injectStyles() {
     if (document.getElementById("swCreditStyles")) return;
@@ -196,16 +367,93 @@
       ".sw-credit-nudge-x{background:transparent;border:none;color:#cfe0d6;font-size:1.1rem;line-height:1;" +
       "cursor:pointer;padding:0 0.15rem;}" +
       ".sw-credit-nudge-x:hover{color:#fff;}" +
-      "@media(max-width:480px){.sw-credit-nudge-text{white-space:normal;}}";
+      "@media(max-width:480px){.sw-credit-nudge-text{white-space:normal;}}" +
+      // buyable badge
+      ".sw-credit-badge-buyable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;}" +
+      ".sw-credit-badge-buyable:hover{transform:translateY(-1px);box-shadow:0 3px 8px rgba(0,0,0,0.12);}" +
+      ".sw-credit-plus{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;" +
+      "margin-left:0.2rem;border-radius:999px;background:#6b4e0e;color:#fff8e6;flex:0 0 auto;}" +
+      // overlay + modal
+      ".sw-buy-overlay{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;" +
+      "padding:18px;background:rgba(26,32,28,0.55);backdrop-filter:blur(2px);}" +
+      ".sw-buy-modal{position:relative;width:100%;max-width:420px;background:#faf8f2;border:1px solid #e7e0d2;" +
+      "border-radius:20px;padding:24px 22px 18px;box-shadow:0 24px 60px rgba(0,0,0,0.28);font-family:inherit;}" +
+      ".sw-buy-close{position:absolute;top:12px;right:14px;background:transparent;border:none;font-size:1.5rem;" +
+      "line-height:1;color:#6a7770;cursor:pointer;}" +
+      ".sw-buy-close:hover{color:#2b4338;}" +
+      ".sw-buy-title{margin:0 0 4px;font-family:'Fraunces',Georgia,serif;font-size:1.4rem;color:#2b4338;}" +
+      ".sw-buy-sub{margin:0 0 16px;font-size:0.9rem;color:#6a7770;line-height:1.4;}" +
+      ".sw-buy-packs{display:flex;flex-direction:column;gap:10px;}" +
+      ".sw-buy-loading{padding:18px 0;text-align:center;color:#6a7770;font-size:0.9rem;}" +
+      ".sw-buy-pack{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;" +
+      "padding:15px 16px;background:#fff;border:1.5px solid #e3ddcf;border-radius:14px;cursor:pointer;" +
+      "font-family:inherit;text-align:left;width:100%;transition:border-color .12s ease,transform .12s ease,box-shadow .12s ease;}" +
+      ".sw-buy-pack:hover{border-color:#c9a978;transform:translateY(-1px);box-shadow:0 4px 14px rgba(201,169,120,0.18);}" +
+      ".sw-buy-pack-best{border-color:#c9a978;background:linear-gradient(180deg,#fffdf7,#fbf4e6);}" +
+      ".sw-buy-pack-busy{opacity:0.6;cursor:default;}" +
+      ".sw-buy-pack-left{display:flex;flex-direction:column;gap:3px;align-items:flex-start;min-width:0;}" +
+      ".sw-buy-pack-right{display:flex;flex-direction:column;align-items:flex-end;gap:1px;flex:0 0 auto;}" +
+      ".sw-buy-credits{font-weight:700;color:#2b4338;font-size:1.05rem;line-height:1.1;}" +
+      ".sw-buy-blurb{font-size:0.78rem;color:#6a7770;line-height:1.25;}" +
+      ".sw-buy-percredit{font-size:0.73rem;color:#9a7d3f;display:flex;align-items:center;gap:6px;margin-top:1px;}" +
+      ".sw-buy-save{background:#e6efe2;color:#3f6b4a;font-weight:800;font-size:0.62rem;padding:1px 6px;" +
+      "border-radius:999px;letter-spacing:0.02em;white-space:nowrap;}" +
+      ".sw-buy-price{font-weight:800;color:#6b4e0e;font-size:1.12rem;line-height:1.1;}" +
+      ".sw-buy-go{font-size:0.72rem;color:#9aa39a;font-weight:700;}" +
+      ".sw-buy-pack:hover .sw-buy-go{color:#c9a978;}" +
+      ".sw-buy-tag{position:absolute;top:-9px;left:14px;background:#c9a978;color:#3a2c05;font-size:0.66rem;" +
+      "font-weight:800;letter-spacing:0.03em;text-transform:uppercase;padding:2px 8px;border-radius:999px;}" +
+      ".sw-buy-note{margin:14px 0 2px;text-align:center;font-size:0.74rem;color:#9aa39a;}" +
+      // toast
+      ".sw-buy-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(12px);z-index:3200;" +
+      "background:#2b4338;color:#f4f1ea;padding:0.7rem 1.1rem;border-radius:12px;font-size:0.88rem;" +
+      "box-shadow:0 10px 30px rgba(0,0,0,0.28);opacity:0;transition:opacity .25s ease,transform .25s ease;max-width:90vw;}" +
+      ".sw-buy-toast-in{opacity:1;transform:translateX(-50%) translateY(0);}" +
+      ".sw-buy-toast-err{background:#8a4a3a;}";
     var s = document.createElement("style");
     s.id = "swCreditStyles";
     s.textContent = css;
     (document.head || document.documentElement).appendChild(s);
   }
 
+  // ── fetch interceptor: keep the badge in sync with server-side charging ────
+  // Every charged AI endpoint returns the new balance in an `X-Credits-Balance`
+  // header; a 402 means out of credits. We read both globally so no per-call
+  // wiring is needed in care-path, and open the Buy modal on 402.
+  function installFetchInterceptor() {
+    if (window.__swCreditsFetchPatched) return;
+    var _fetch = window.fetch;
+    if (typeof _fetch !== "function") return;
+    window.__swCreditsFetchPatched = true;
+    window.fetch = function (input) {
+      var p = _fetch.apply(this, arguments);
+      var url = (typeof input === "string") ? input : (input && input.url) || "";
+      if (url.indexOf("/api/") === -1) return p;
+      return p.then(function (res) {
+        try {
+          var b = res.headers && res.headers.get("X-Credits-Balance");
+          if (b !== null && b !== undefined && b !== "") {
+            var n = parseInt(b, 10);
+            if (!isNaN(n)) { authed = true; balance = n; renderBadge(); pulse(); }
+          }
+          if (res.status === 402) {
+            res.clone().json().then(function (d) {
+              if (d && d.error === "insufficient_credits") {
+                if (typeof d.balance === "number") { balance = d.balance; renderBadge(); }
+                openBuy();
+              }
+            }).catch(function () {});
+          }
+        } catch (_e) {}
+        return res;
+      });
+    };
+  }
+
   // ── init: one request resolves auth AND balance ───────────────────────────
   function init() {
     injectStyles();
+    installFetchInterceptor();
     fetch("/api/credits", { credentials: "include" })
       .then(function (r) {
         if (r && r.ok) return r.json();
@@ -218,6 +466,7 @@
           markLoggedIn();
           hideNudge();
           renderBadge();
+          checkReturn();        // reconcile a Cashfree return, if any
         } else {
           authed = false;
           renderBadge();        // hides badge
@@ -234,7 +483,7 @@
     setTimeout(renderBadge, 1500);
   }
 
-  window.SwCredits = { get: get, spend: spend, reload: reload };
+  window.SwCredits = { get: get, spend: spend, reload: reload, openBuy: openBuy };
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

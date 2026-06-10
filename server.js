@@ -431,6 +431,34 @@ async function initDb() {
       ON credit_events (auth_user_type, auth_user_id, created_at DESC)
   `);
 
+  // ── Credit top-up orders (Cashfree) ────────────────────────────────
+  // One row per purchase attempt. `credited_at` is the idempotency guard —
+  // once set, the credits have been granted and must never be granted again
+  // (webhook + status-poll both funnel through grantCreditsForOrder).
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS credit_orders (
+      order_id           TEXT PRIMARY KEY,
+      auth_user_type     TEXT NOT NULL,
+      auth_user_id       TEXT NOT NULL,
+      email              TEXT,
+      name               TEXT,
+      package_id         TEXT NOT NULL,
+      credits            INTEGER NOT NULL,
+      amount             NUMERIC(10,2) NOT NULL,
+      currency           TEXT NOT NULL DEFAULT 'INR',
+      status             TEXT NOT NULL DEFAULT 'CREATED',
+      cf_payment_id      TEXT,
+      payment_session_id TEXT,
+      credited_at        TIMESTAMPTZ,
+      created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at         TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_credit_orders_user
+      ON credit_orders (auth_user_type, auth_user_id, created_at DESC)
+  `);
+
   // ── Yoga clicks (dedicated tracking, independent of credits) ───────
   // One row per "Watch & Learn" click: which user practised which asana.
   // Separate from credit_events on purpose so it keeps working regardless of
@@ -796,7 +824,15 @@ app.use(
   }),
 );
 app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+// Capture the raw request body so payment webhooks (Cashfree) can verify their
+// HMAC signature over the exact bytes. Harmless for every other route.
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      req.rawBody = buf;
+    },
+  }),
+);
 
 app.get("/favicon.ico", (_req, res) => {
   // Keep browser console clean even when no explicit favicon asset is shipped.
@@ -1504,6 +1540,28 @@ const requireAuthApi = (req, res, next) => {
   }
   next();
 };
+
+// ── Payments (Cashfree credit top-ups). Mounted here, after requireAuthApi /
+// the auth helpers exist, and before express.static so the API routes win. ──
+app.use(
+  require("./src/payments/cashfree")({
+    pool,
+    requireAuthApi,
+    getAuthUserType,
+    getAuthUserId,
+    creditsStart: CREDITS_START,
+  }),
+);
+
+// ── Server-side credit enforcement. `chargeCredits("<action>")` is dropped in
+// as middleware on each paid AI route below — it deducts atomically before the
+// handler runs and 402s when the balance is too low. ──
+const { charge: chargeCredits } = require("./src/credits/charge")({
+  pool,
+  getAuthUserType,
+  getAuthUserId,
+  creditsStart: CREDITS_START,
+});
 
 
 // === PROTECTED ROUTES ===
@@ -2922,7 +2980,7 @@ app.post("/api/aria/journal/entry", requireAuthApi, async (req, res) => {
   }
 });
 
-app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
+app.post("/api/aria/meal-plan-weekly", requireAuthApi, chargeCredits("meal_plan_weekly"), async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
@@ -3044,7 +3102,7 @@ app.post("/api/aria/meal-plan-weekly", requireAuthApi, async (req, res) => {
   }
 });
 
-app.post("/api/aria/meal-plan-day", requireAuthApi, async (req, res) => {
+app.post("/api/aria/meal-plan-day", requireAuthApi, chargeCredits("meal_plan_day"), async (req, res) => {
   try {
     const cuisine = String(req.body?.cuisine || "").trim();
     const avoid = String(req.body?.avoid || "").trim();
@@ -3531,7 +3589,7 @@ function parseStilwaterReply(raw) {
   return { reply: clean, followups };
 }
 
-app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
+app.post("/api/stilwater/chat", requireAuthApi, chargeCredits("aria_chat"), async (req, res) => {
   try {
     if (!OPENROUTER_API_KEY) {
       return res.status(503).json({ error: "OpenRouter is not configured on this server." });
@@ -3668,7 +3726,7 @@ app.post("/api/stilwater/chat", requireAuthApi, async (req, res) => {
 // answer is GROUNDED in the recipe PDF via the nutrition RAG pipeline. Top-K
 // chunks are retrieved by cosine similarity and injected into the system
 // prompt; the same gpt-oss-120b model streams the reply + follow-up chips.
-app.post("/api/nutrition/chat", requireAuthApi, async (req, res) => {
+app.post("/api/nutrition/chat", requireAuthApi, chargeCredits("nutrition_chat"), async (req, res) => {
   try {
     if (!OPENROUTER_API_KEY) {
       return res.status(503).json({ error: "OpenRouter is not configured on this server." });
@@ -4194,7 +4252,7 @@ async function retrieveTestimonials(dataset, query, topK) {
 //   diabetes -> Sharan Diabetes Mate AI   (dataset: diabetes)
 //   eye      -> Amar Eye Vision Mate AI   (dataset: amar_eye_yoga, OpenAI model)
 //   other    -> Holistic Wellness AI      (dataset: holistic_wellness)
-app.post("/api/chronic/chat", requireAuthApi, async (req, res) => {
+app.post("/api/chronic/chat", requireAuthApi, chargeCredits("chronic_chat"), async (req, res) => {
   try {
     if (!OPENROUTER_API_KEY) {
       return res.status(503).json({ error: "OpenRouter is not configured on this server." });
@@ -4367,7 +4425,7 @@ ${context || "(No matching testimonials were retrieved for this question.)"}`;
   }
 });
 
-app.post("/api/aria/recipes", requireAuthApi, async (req, res) => {
+app.post("/api/aria/recipes", requireAuthApi, chargeCredits("recipes"), async (req, res) => {
   try {
     const dish = String(req.body?.dish || "").trim();
     if (!dish) {
@@ -5189,6 +5247,105 @@ app.get(
     });
   },
 );
+
+// Native (Flutter / iOS / Android) Google Sign-In hand-off.
+// The mobile app obtains a Google ID token on-device and POSTs it here; we
+// verify it with Google, upsert the user into the SAME `users` table the web
+// OAuth strategy uses (keyed by the Google account id `sub`, so web and app
+// link), then start the passport session. No new npm dependency — the token
+// is verified via global fetch against Google's tokeninfo endpoint.
+app.post("/auth/google/mobile", async (req, res) => {
+  try {
+    const idToken = String(req.body?.idToken || "").trim();
+    if (!idToken) {
+      return res.status(400).json({ error: "idToken is required" });
+    }
+
+    // Verify the token with Google (validates signature, expiry, issuer).
+    const verifyRes = await fetch(
+      "https://oauth2.googleapis.com/tokeninfo?id_token=" +
+        encodeURIComponent(idToken),
+    );
+    if (!verifyRes.ok) {
+      return res.status(401).json({ error: "Invalid Google token" });
+    }
+    const payload = await verifyRes.json();
+
+    // The ID token's audience must be one of our OAuth client IDs. The app
+    // passes the WEB client id as serverClientId, so that's the primary
+    // audience; iOS/Android client ids are accepted too if configured.
+    const allowedAudiences = [
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_WEB_CLIENT_ID,
+      process.env.GOOGLE_IOS_CLIENT_ID,
+      process.env.GOOGLE_ANDROID_CLIENT_ID,
+    ].filter(Boolean);
+    if (!allowedAudiences.includes(payload.aud)) {
+      return res.status(401).json({ error: "Token audience mismatch" });
+    }
+    if (
+      payload.email_verified !== "true" &&
+      payload.email_verified !== true
+    ) {
+      return res.status(401).json({ error: "Email not verified" });
+    }
+
+    const googleId = payload.sub;
+    const email = payload.email || null;
+    const name = payload.name || email || "User";
+    const userIsAdmin = isAdminEmail(email);
+
+    // Upsert — same shape/keys as the web GoogleStrategy callback.
+    const existing = await pool.query("SELECT * FROM users WHERE id = $1", [
+      googleId,
+    ]);
+    let user = existing.rows[0];
+    if (user) {
+      if (userIsAdmin && user.role !== "admin") {
+        const updated = await pool.query(
+          "UPDATE users SET role = 'admin' WHERE id = $1 RETURNING *",
+          [googleId],
+        );
+        user = updated.rows[0];
+      }
+    } else {
+      const role = userIsAdmin ? "admin" : "customer";
+      await pool.query(
+        "INSERT INTO users (id, name, email, role) VALUES ($1, $2, $3, $4)",
+        [googleId, name, email, role],
+      );
+      await incrementWaitlistCount();
+      user = { id: googleId, name, email, role };
+    }
+
+    // Start the passport session (sets the same cookie phone login uses).
+    req.logIn(user, (err) => {
+      if (err) return res.status(500).json({ error: "Login failed" });
+      req.session.save(async (saveErr) => {
+        if (saveErr) {
+          return res.status(500).json({ error: "Session save failed" });
+        }
+        let redirectUrl = "/intake.html";
+        try {
+          redirectUrl = await getDefaultPostAuthRedirectForUser(user);
+        } catch (_) {}
+        res.json({
+          success: true,
+          redirectUrl,
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+        });
+      });
+    });
+  } catch (err) {
+    console.error("Google mobile auth error:", err);
+    res.status(500).json({ error: "Google sign-in failed" });
+  }
+});
 
 // Phone/Password Registration Route
 app.post("/auth/register", async (req, res) => {

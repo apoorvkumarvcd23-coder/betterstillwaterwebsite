@@ -31,3 +31,7 @@ LOCAL_PRIVATE_NOTES.md
 Timeless recipes for healthy living.pdf
 Reversing Diabetes 21 Days.pdf
 data/nutrition/*.pages.json
+
+# local dev runner (contains test DB password)
+run-local.sh
+db-query.sh
