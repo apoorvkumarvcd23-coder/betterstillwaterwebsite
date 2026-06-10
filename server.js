@@ -545,6 +545,31 @@ async function initDb() {
     )
   `);
 
+  // ── Gamified "Yoga Quest" scores (promo-gated levels + leaderboard) ─
+  // One row per (user, asana/level): their best AI pose score, attempts, and
+  // which promo community (variant) they belong to. The leaderboard is built
+  // per variant. Keyed by the same (auth_user_type, auth_user_id) identity.
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS yoga_game_scores (
+      auth_user_type TEXT NOT NULL,
+      auth_user_id   TEXT NOT NULL,
+      email          TEXT,
+      name           TEXT,
+      promo_variant  TEXT NOT NULL,
+      asana_key      TEXT NOT NULL,
+      best_score     INTEGER NOT NULL DEFAULT 0,
+      last_score     INTEGER,
+      attempts       INTEGER NOT NULL DEFAULT 0,
+      created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (auth_user_type, auth_user_id, asana_key)
+    )
+  `);
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS idx_yoga_game_scores_variant
+      ON yoga_game_scores (promo_variant, best_score DESC)
+  `);
+
   // ── Aria journal entries (data ingestion, no AI) ───────────────────
   await pool.query(`CREATE SCHEMA IF NOT EXISTS aria`);
   await pool.query(`
@@ -4088,7 +4113,17 @@ app.get("/api/admin/recipe-clicks", requireRole("admin"), async (_req, res) => {
 // OAuth roundtrip); the in-app yoga page then POSTs it here once to attach it
 // to the logged-in account, and reads it back via GET so the variant follows
 // the user across logout/login and devices.
-const PROMO_VARIANTS = { SONI123: "soni" };
+const PROMO_VARIANTS = { SONI123: "soni", VIPIN123: "vipin" };
+// Variants that unlock the gamified "Yoga Quest" (level-unlock + community
+// leaderboard). Each variant is its OWN community (separate leaderboard).
+const YOGA_GAME_VARIANTS = ["soni", "vipin"];
+// Ordered levels of the game. asana_key matches the client + score posts.
+const YOGA_GAME_LEVELS = [
+  { key: "tadasana", label: "Tadasana", order: 1 },
+  { key: "balasana", label: "Balasana", order: 2 },
+  { key: "cobra",    label: "Cobra",    order: 3 },
+];
+const YOGA_GAME_PASS = 90; // score needed to clear a level and unlock the next
 
 // GET  /api/promo  → { promo: "<variant>" | null } for the logged-in user.
 app.get("/api/promo", requireAuthApi, async (req, res) => {
@@ -4138,6 +4173,133 @@ app.post("/api/promo", requireAuthApi, async (req, res) => {
     return res.json({ ok: true, promo: r.rows[0] ? r.rows[0].promo_code : null });
   } catch (err) {
     console.error("[promo] post", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// ── Gamified "Yoga Quest" (promo-gated levels + community leaderboard) ───
+// Only users whose account promo variant is in YOGA_GAME_VARIANTS get the game;
+// their community = everyone sharing the SAME variant (separate leaderboards).
+// Helper: read the caller's promo variant (or null).
+async function getUserPromoVariant(req) {
+  const type = getAuthUserType(req.user);
+  const id = getAuthUserId(req.user);
+  if (!id) return { type, id, variant: null };
+  const r = await pool.query(
+    `SELECT promo_code FROM user_promos WHERE auth_user_type=$1 AND auth_user_id=$2`,
+    [type, id],
+  );
+  return { type, id, variant: r.rows[0] ? r.rows[0].promo_code : null };
+}
+
+// POST /api/yoga/score { asana, score } → record the user's best score for a
+// level (gamified-promo users only). score clamped 0–100; best score is kept.
+app.post("/api/yoga/score", requireAuthApi, async (req, res) => {
+  try {
+    const { type, id, variant } = await getUserPromoVariant(req);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    if (!YOGA_GAME_VARIANTS.includes(variant)) {
+      return res.status(403).json({ error: "Not a Yoga Quest member" });
+    }
+    const asana = String(req.body?.asana || "").trim().toLowerCase().slice(0, 40);
+    if (!YOGA_GAME_LEVELS.some((l) => l.key === asana)) {
+      return res.status(400).json({ error: "Unknown level" });
+    }
+    let score = Number(req.body?.score);
+    if (!Number.isFinite(score)) return res.status(400).json({ error: "Invalid score" });
+    score = Math.max(0, Math.min(100, Math.round(score)));
+    await pool.query(
+      `INSERT INTO yoga_game_scores
+         (auth_user_type, auth_user_id, email, name, promo_variant, asana_key, best_score, attempts, last_score)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,1,$7)
+       ON CONFLICT (auth_user_type, auth_user_id, asana_key)
+       DO UPDATE SET best_score = GREATEST(yoga_game_scores.best_score, EXCLUDED.best_score),
+                     last_score = EXCLUDED.last_score,
+                     attempts   = yoga_game_scores.attempts + 1,
+                     email      = COALESCE(EXCLUDED.email, yoga_game_scores.email),
+                     name       = COALESCE(EXCLUDED.name,  yoga_game_scores.name),
+                     promo_variant = EXCLUDED.promo_variant,
+                     updated_at = NOW()`,
+      [type, id, req.user.email || null, req.user.name || null, variant, asana, score],
+    );
+    return res.json({ ok: true, asana, score, pass: YOGA_GAME_PASS });
+  } catch (err) {
+    console.error("[yoga-game] score", err.message);
+    return res.status(500).json({ error: "failed" });
+  }
+});
+
+// GET /api/yoga/game → the caller's level progress + their community leaderboard.
+// { gamified, variant, pass, levels:[{key,label,order,score,attempts,cleared,unlocked}],
+//   me:{rank,total,avg,cleared}, leaderboard:[{rank,name,total,avg,cleared,scores{},me}] }
+app.get("/api/yoga/game", requireAuthApi, async (req, res) => {
+  try {
+    const { type, id, variant } = await getUserPromoVariant(req);
+    if (!id) return res.status(401).json({ error: "Auth required" });
+    if (!YOGA_GAME_VARIANTS.includes(variant)) {
+      return res.json({ ok: true, gamified: false, variant: variant || null });
+    }
+    // All scores for this community (same variant).
+    const rows = (await pool.query(
+      `SELECT auth_user_type, auth_user_id, name, email, asana_key, best_score, attempts
+         FROM yoga_game_scores WHERE promo_variant=$1`,
+      [variant],
+    )).rows;
+
+    // Group per user.
+    const byUser = new Map();
+    for (const r of rows) {
+      const k = r.auth_user_type + ":" + r.auth_user_id;
+      if (!byUser.has(k)) {
+        byUser.set(k, {
+          key: k, name: r.name, email: r.email,
+          scores: {}, attempts: {},
+          me: r.auth_user_type === type && String(r.auth_user_id) === String(id),
+        });
+      }
+      const u = byUser.get(k);
+      u.scores[r.asana_key] = r.best_score;
+      u.attempts[r.asana_key] = r.attempts;
+    }
+    // Ensure the caller appears even with no scores yet.
+    const meKey = type + ":" + id;
+    if (!byUser.has(meKey)) {
+      byUser.set(meKey, { key: meKey, name: req.user.name || null, email: req.user.email || null, scores: {}, attempts: {}, me: true });
+    }
+
+    const levelKeys = YOGA_GAME_LEVELS.map((l) => l.key);
+    const community = Array.from(byUser.values()).map((u) => {
+      const vals = levelKeys.map((k) => u.scores[k]).filter((v) => typeof v === "number");
+      const total = vals.reduce((a, b) => a + b, 0);
+      const cleared = levelKeys.filter((k) => (u.scores[k] || 0) >= YOGA_GAME_PASS).length;
+      const avg = vals.length ? Math.round(total / vals.length) : 0;
+      return { name: u.name || (u.email ? u.email.split("@")[0] : "Member"), total, avg, cleared, scores: u.scores, me: !!u.me };
+    });
+    // Rank: most levels cleared, then highest total, then highest avg.
+    community.sort((a, b) => b.cleared - a.cleared || b.total - a.total || b.avg - a.avg);
+    community.forEach((c, i) => { c.rank = i + 1; });
+
+    const me = community.find((c) => c.me) || { rank: community.length, total: 0, avg: 0, cleared: 0, scores: {} };
+    // Level progress for the caller (unlock = previous level cleared).
+    const levels = YOGA_GAME_LEVELS.map((lv, i) => {
+      const score = me.scores[lv.key];
+      const prevCleared = i === 0 ? true : (me.scores[YOGA_GAME_LEVELS[i - 1].key] || 0) >= YOGA_GAME_PASS;
+      return {
+        key: lv.key, label: lv.label, order: lv.order,
+        score: typeof score === "number" ? score : null,
+        cleared: (score || 0) >= YOGA_GAME_PASS,
+        unlocked: prevCleared,
+      };
+    });
+
+    return res.json({
+      ok: true, gamified: true, variant, pass: YOGA_GAME_PASS,
+      levels,
+      me: { rank: me.rank, total: me.total, avg: me.avg, cleared: me.cleared },
+      leaderboard: community.slice(0, 100),
+    });
+  } catch (err) {
+    console.error("[yoga-game] get", err.message);
     return res.status(500).json({ error: "failed" });
   }
 });

@@ -3111,6 +3111,102 @@
       </div>
     </main>
 
+    <!-- Gamified "Yoga Quest" — shown only for promo (SONI123 / VIPIN123) users -->
+    <style>
+      #yogaGame {
+        position: fixed; inset: 0; top: 64px; z-index: 40;
+        background: linear-gradient(180deg, #f4f1ea 0%, #eef2ea 100%);
+        overflow-y: auto; padding: 28px 22px 56px;
+      }
+      #yogaGame[hidden] { display: none; }
+      .yg-wrap { max-width: 1120px; margin: 0 auto; }
+      .yg-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 6px; }
+      .yg-title { font-family: "Fraunces", Georgia, serif; font-size: 1.9rem; color: #2b4338; margin: 0; display: flex; align-items: center; gap: 12px; }
+      .yg-badge { font-family: "Mulish", sans-serif; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #6b4f12; background: #f4e3b6; border: 1px solid #e7cd84; padding: 4px 10px; border-radius: 999px; }
+      .yg-sub { color: #5d6b5e; font-size: 0.98rem; margin: 4px 0 22px; line-height: 1.5; }
+      .yg-layout { display: grid; grid-template-columns: 1.55fr 1fr; gap: 22px; align-items: start; }
+      /* Level path */
+      .yg-levels { display: flex; flex-direction: column; gap: 16px; }
+      .yg-level {
+        position: relative; background: #fff; border: 1px solid #e3e8e0; border-radius: 18px;
+        padding: 18px 20px; display: flex; gap: 16px; align-items: center;
+        box-shadow: 0 8px 24px rgba(43,67,56,0.06); transition: transform .15s, box-shadow .15s;
+      }
+      .yg-level.is-unlocked:hover { transform: translateY(-2px); box-shadow: 0 12px 30px rgba(43,67,56,0.10); }
+      .yg-level.is-locked { opacity: 0.72; background: #f3f4f1; }
+      .yg-level.is-cleared { border-color: #bfe0c0; background: linear-gradient(180deg,#ffffff,#f3fbf3); }
+      .yg-lnum {
+        flex: 0 0 auto; width: 54px; height: 54px; border-radius: 14px; display: grid; place-items: center;
+        font-family: "Fraunces", serif; font-size: 1.5rem; font-weight: 700; color: #fff;
+        background: linear-gradient(135deg,#3f6b4f,#2b4338);
+      }
+      .yg-level.is-locked .yg-lnum { background: #b9c2b6; }
+      .yg-level.is-cleared .yg-lnum { background: linear-gradient(135deg,#3aa657,#1f7d3b); }
+      .yg-lbody { flex: 1 1 auto; min-width: 0; }
+      .yg-lname { font-family: "Fraunces", serif; font-size: 1.22rem; color: #2b4338; margin: 0 0 2px; display: flex; align-items: center; gap: 8px; }
+      .yg-lmeta { color: #6b766a; font-size: 0.85rem; margin: 0 0 8px; }
+      .yg-bar { height: 8px; border-radius: 999px; background: #e7ece4; overflow: hidden; max-width: 320px; }
+      .yg-bar > i { display: block; height: 100%; background: linear-gradient(90deg,#c9a978,#3aa657); border-radius: 999px; transition: width .5s; }
+      .yg-lscore { font-size: 0.82rem; color: #4a5a4c; margin-top: 6px; font-weight: 700; }
+      .yg-lscore .muted { color: #9aa597; font-weight: 500; }
+      .yg-lcta { flex: 0 0 auto; display: flex; flex-direction: column; gap: 8px; align-items: stretch; min-width: 132px; }
+      .yg-btn {
+        border: 0; cursor: pointer; border-radius: 999px; padding: 10px 16px; font-weight: 800; font-size: 0.9rem;
+        font-family: "Mulish", sans-serif; background: #2b4338; color: #fff; display: inline-flex; gap: 8px; align-items: center; justify-content: center;
+      }
+      .yg-btn:hover { background: #213830; }
+      .yg-btn[disabled] { background: #c4ccc0; cursor: not-allowed; }
+      .yg-btn.ghost { background: #eef2ea; color: #2b4338; border: 1px solid #d6ddd2; }
+      .yg-lock { font-size: 0.78rem; color: #8a958a; display: flex; align-items: center; gap: 6px; justify-content: center; }
+      .yg-tag-clear { font-size: 0.72rem; font-weight: 800; color: #1f7d3b; background: #d8f3dd; border-radius: 999px; padding: 2px 9px; }
+      .yg-manual { display: flex; gap: 6px; margin-top: 2px; }
+      .yg-manual input { width: 64px; border: 1px solid #d6ddd2; border-radius: 8px; padding: 6px 8px; font-size: 0.85rem; text-align: center; }
+      .yg-manual button { border: 1px solid #d6ddd2; background: #fff; border-radius: 8px; padding: 6px 10px; font-size: 0.8rem; font-weight: 700; cursor: pointer; color: #2b4338; }
+      /* Leaderboard */
+      .yg-board { background: #2b4338; border-radius: 18px; padding: 20px 18px; color: #eaf1ea; box-shadow: 0 12px 30px rgba(43,67,56,0.18); position: sticky; top: 84px; }
+      .yg-board h3 { margin: 0 0 4px; font-family: "Fraunces", serif; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px; }
+      .yg-board .yg-bsub { color: #aebfb1; font-size: 0.8rem; margin: 0 0 14px; }
+      .yg-row { display: flex; align-items: center; gap: 12px; padding: 10px 10px; border-radius: 12px; }
+      .yg-row + .yg-row { margin-top: 4px; }
+      .yg-row.is-me { background: rgba(201,169,120,0.18); outline: 1px solid rgba(201,169,120,0.5); }
+      .yg-rank { flex: 0 0 28px; text-align: center; font-weight: 800; font-size: 1rem; color: #cde0d0; }
+      .yg-rank.medal { font-size: 1.2rem; }
+      .yg-av { flex: 0 0 36px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; color: #2b4338; background: #d9c79a; font-size: 0.9rem; }
+      .yg-rbody { flex: 1 1 auto; min-width: 0; }
+      .yg-rname { font-weight: 700; font-size: 0.95rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      .yg-rmeta { font-size: 0.76rem; color: #aebfb1; }
+      .yg-rscore { flex: 0 0 auto; text-align: right; }
+      .yg-rscore b { font-size: 1.05rem; color: #f4e3b6; }
+      .yg-rscore span { display: block; font-size: 0.72rem; color: #aebfb1; }
+      .yg-empty { color: #aebfb1; font-size: 0.9rem; padding: 8px 4px; }
+      @media (max-width: 900px) {
+        .yg-layout { grid-template-columns: 1fr; }
+        .yg-board { position: static; }
+        .yg-level { flex-wrap: wrap; }
+        .yg-lcta { width: 100%; min-width: 0; flex-direction: row; }
+      }
+    </style>
+    <section id="yogaGame" hidden aria-label="Yoga Quest">
+      <div class="yg-wrap">
+        <div class="yg-head">
+          <button class="plant-chat-back" type="button" id="yogaGameBack" aria-label="Back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>Back</span>
+          </button>
+          <h1 class="yg-title">Yoga Quest <span class="yg-badge" id="yogaGameBadge">Community</span></h1>
+        </div>
+        <p class="yg-sub">Clear each asana with an AI score of <strong>90+</strong> to unlock the next level. Climb your community leaderboard!</p>
+        <div class="yg-layout">
+          <div class="yg-levels" id="yogaGameLevels"></div>
+          <aside class="yg-board">
+            <h3>🏆 Leaderboard</h3>
+            <p class="yg-bsub" id="yogaGameBoardSub">Your community</p>
+            <div id="yogaGameBoard"></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
     <!-- Practice Yoga Asanas — opened from the "Practice yoga with AI" header button -->
     <div class="modal-overlay" id="yogaIntroModal" hidden>
       <div class="modal-card yoga-intro-card" role="dialog" aria-modal="true" aria-label="Practice Yoga Asanas with AI">
@@ -3675,13 +3771,14 @@
       // When active: hide the Balasana card and swap the Tadasana + Cobra
       // guide videos for the Soni-recorded versions. No promo → present
       // behaviour (3 cards, default videos).
-      (function applySoniPromo() {
-        let applied = false;
-        function applyVariant() {
-          if (applied) return;
-          applied = true;
-          const bal = document.getElementById("yogaBalasanaCard");
-          if (bal) bal.style.display = "none";
+      (function applyPromoVariant() {
+        // Map of known codes ↔ variant keys (must match server PROMO_VARIANTS).
+        const CODE_FOR = { soni: "SONI123", vipin: "VIPIN123" };
+        let soniApplied = false;
+        // Soni's recorded guide videos are used inside the practice surfaces.
+        function applySoniVideos() {
+          if (soniApplied) return;
+          soniApplied = true;
           const tad = document.getElementById("yogaVideo");
           if (tad && !/sonitadashana/i.test(tad.getAttribute("src") || "")) {
             tad.setAttribute("src", "videos/sonitadashana.mp4");
@@ -3698,21 +3795,35 @@
             document.addEventListener("DOMContentLoaded", fn);
           } else { fn(); }
         }
+        // Apply a resolved variant: soni + vipin both unlock the Yoga Quest.
+        function onVariant(variant) {
+          if (variant !== "soni" && variant !== "vipin") return;
+          window.__swYogaGameVariant = variant;
+          if (variant === "soni") whenReady(applySoniVideos);
+          // If the yoga view is already open, re-render it as the game.
+          if (window.__swYogaGame && window.__swYogaGame.refreshIfOpen) {
+            window.__swYogaGame.refreshIfOpen();
+          }
+        }
 
-        let pending = false;
-        try { pending = localStorage.getItem("sw_promo_soni") === "1"; } catch (_e) {}
-
-        // (a) Fast path: this browser just logged in with the code.
-        if (pending) whenReady(applyVariant);
+        // Fast path: this browser just logged in with a known code (captured by
+        // the auth page into localStorage so it survives the OAuth roundtrip).
+        let pendingCode = null;
+        try {
+          pendingCode = localStorage.getItem("sw_promo_code");
+          if (!pendingCode && localStorage.getItem("sw_promo_soni") === "1") pendingCode = "SONI123";
+        } catch (_e) {}
+        if (pendingCode === "SONI123") onVariant("soni");
+        else if (pendingCode === "VIPIN123") onVariant("vipin");
 
         // (b) Persist the captured code to the account (once), then
-        // (c) read the authoritative per-user promo and apply if "soni".
-        const persist = pending
+        // (c) read the authoritative per-user promo and apply.
+        const persist = pendingCode
           ? fetch("/api/promo", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               credentials: "include",
-              body: JSON.stringify({ code: "SONI123" }),
+              body: JSON.stringify({ code: pendingCode }),
             }).catch(function () {})
           : Promise.resolve();
 
@@ -3720,12 +3831,197 @@
           .then(function () { return fetch("/api/promo", { credentials: "include" }); })
           .then(function (r) { return r && r.ok ? r.json() : null; })
           .then(function (data) {
-            if (data && data.promo === "soni") {
-              try { localStorage.setItem("sw_promo_soni", "1"); } catch (_e) {}
-              whenReady(applyVariant);
+            if (data && data.promo) {
+              try {
+                if (CODE_FOR[data.promo]) localStorage.setItem("sw_promo_code", CODE_FOR[data.promo]);
+                if (data.promo === "soni") localStorage.setItem("sw_promo_soni", "1");
+              } catch (_e) {}
+              onVariant(data.promo);
             }
           })
           .catch(function () {});
+      })();
+
+      // ── Gamified "Yoga Quest" (promo members: SONI123 / VIPIN123) ──────
+      (function () {
+        const section = document.getElementById("yogaGame");
+        if (!section) return;
+        const levelsBox = document.getElementById("yogaGameLevels");
+        const boardBox = document.getElementById("yogaGameBoard");
+        const boardSub = document.getElementById("yogaGameBoardSub");
+        const badge = document.getElementById("yogaGameBadge");
+        const backBtn = document.getElementById("yogaGameBack");
+
+        // Each level maps to the asana's existing "Watch & Learn" trigger so the
+        // real practice + pose-detection flow is reused.
+        const LEVELS = [
+          { key: "tadasana", label: "Tadasana", sanskrit: "Mountain Pose", trigger: "yogaBetaOpen" },
+          { key: "balasana", label: "Balasana", sanskrit: "Child's Pose",  trigger: "yogaBalasanaOpen" },
+          { key: "cobra",    label: "Cobra",    sanskrit: "Bhujangasana",  trigger: "yogaCobraOpen" },
+        ];
+        const VARIANT_NAME = { soni: "SONI123 Community", vipin: "VIPIN123 Community" };
+
+        function esc(s) {
+          return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+            return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+          });
+        }
+        function initials(name) {
+          const p = String(name || "?").trim().split(/\s+/);
+          return ((p[0] || "?")[0] + (p[1] ? p[1][0] : "")).toUpperCase();
+        }
+        function isOpen() { return !section.hidden; }
+        function show() {
+          const m = document.getElementById("yogaIntroModal"); if (m) m.hidden = true;
+          section.hidden = false;
+        }
+        function hide() { section.hidden = true; }
+
+        async function fetchGame() {
+          try {
+            const r = await fetch("/api/yoga/game", { credentials: "include" });
+            if (!r.ok) return null;
+            return await r.json();
+          } catch (_e) { return null; }
+        }
+
+        function renderLevels(data) {
+          levelsBox.innerHTML = "";
+          (data.levels || []).forEach(function (lv) {
+            const cfg = LEVELS.find(function (l) { return l.key === lv.key; }) || {};
+            const card = document.createElement("div");
+            card.className = "yg-level " + (lv.cleared ? "is-cleared" : (lv.unlocked ? "is-unlocked" : "is-locked"));
+            const pct = lv.score != null ? Math.max(0, Math.min(100, lv.score)) : 0;
+            let cta;
+            if (!lv.unlocked) {
+              cta = '<div class="yg-lock">🔒 Clear level ' + (lv.order - 1) + ' to unlock</div>';
+            } else {
+              cta = '<button class="yg-btn" type="button" data-yg-play="' + lv.key + '">' +
+                    (lv.cleared ? "Practice again" : "▶ Practice Now") + '</button>' +
+                    '<div class="yg-manual"><input type="number" min="0" max="100" placeholder="AI score" data-yg-score="' + lv.key + '"><button type="button" data-yg-save="' + lv.key + '">Save</button></div>';
+            }
+            card.innerHTML =
+              '<div class="yg-lnum">' + (lv.cleared ? "✓" : lv.order) + '</div>' +
+              '<div class="yg-lbody">' +
+                '<div class="yg-lname">' + esc(cfg.label || lv.label) + (lv.cleared ? ' <span class="yg-tag-clear">CLEARED</span>' : '') + '</div>' +
+                '<div class="yg-lmeta">' + esc(cfg.sanskrit || "") + ' · Level ' + lv.order + '</div>' +
+                '<div class="yg-bar"><i style="width:' + pct + '%"></i></div>' +
+                '<div class="yg-lscore">' + (lv.score != null ? ('Best: ' + lv.score + '/100') : '<span class="muted">Not attempted yet</span>') + '</div>' +
+              '</div>' +
+              '<div class="yg-lcta">' + cta + '</div>';
+            levelsBox.appendChild(card);
+          });
+        }
+
+        function renderBoard(data) {
+          const lb = data.leaderboard || [];
+          boardSub.textContent = (VARIANT_NAME[data.variant] || "Your community") + " · " + lb.length + (lb.length === 1 ? " member" : " members");
+          if (!lb.length) { boardBox.innerHTML = '<div class="yg-empty">No scores yet. Be the first!</div>'; return; }
+          const medals = { 1: "🥇", 2: "🥈", 3: "🥉" };
+          boardBox.innerHTML = lb.map(function (row) {
+            return '<div class="yg-row' + (row.me ? " is-me" : "") + '">' +
+              '<div class="yg-rank' + (medals[row.rank] ? " medal" : "") + '">' + (medals[row.rank] || row.rank) + '</div>' +
+              '<div class="yg-av">' + esc(initials(row.name)) + '</div>' +
+              '<div class="yg-rbody"><div class="yg-rname">' + esc(row.name) + (row.me ? " (You)" : "") + '</div>' +
+                '<div class="yg-rmeta">' + row.cleared + '/3 cleared · avg ' + row.avg + '</div></div>' +
+              '<div class="yg-rscore"><b>' + row.total + '</b><span>points</span></div>' +
+            '</div>';
+          }).join("");
+        }
+
+        function paint(data) {
+          if (data.variant && VARIANT_NAME[data.variant]) badge.textContent = data.variant.toUpperCase();
+          renderLevels(data);
+          renderBoard(data);
+        }
+
+        async function render() {
+          const data = await fetchGame();
+          if (!data || !data.gamified) {
+            hide();
+            const m = document.getElementById("yogaIntroModal"); if (m) m.hidden = false;
+            return;
+          }
+          window.__swYogaGameVariant = data.variant;
+          paint(data);
+        }
+
+        function toast(msg) {
+          let t = document.getElementById("ygToast");
+          if (!t) {
+            t = document.createElement("div"); t.id = "ygToast";
+            t.style.cssText = "position:fixed;left:50%;bottom:28px;transform:translateX(-50%);background:#2b4338;color:#fff;padding:12px 20px;border-radius:999px;font-weight:700;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.2);transition:opacity .3s";
+            document.body.appendChild(t);
+          }
+          t.textContent = msg; t.style.opacity = "1";
+          clearTimeout(t._h); t._h = setTimeout(function () { t.style.opacity = "0"; }, 2800);
+        }
+
+        async function record(asana, score) {
+          score = Math.round(Number(score));
+          if (!asana || !Number.isFinite(score)) return;
+          try {
+            const r = await fetch("/api/yoga/score", {
+              method: "POST", credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ asana: asana, score: score }),
+            });
+            const d = await r.json().catch(function () { return {}; });
+            if (r.ok) {
+              toast(score >= (d.pass || 90) ? ("🎉 Level cleared! " + score + "/100") : ("Saved " + score + "/100 — need " + (d.pass || 90) + "+ to clear"));
+              if (isOpen()) render();
+            } else { toast(d.error || "Could not save score"); }
+          } catch (_e) { toast("Could not save score"); }
+        }
+
+        levelsBox.addEventListener("click", function (e) {
+          const play = e.target.closest("[data-yg-play]");
+          if (play) {
+            const key = play.getAttribute("data-yg-play");
+            window.__swActiveYogaAsana = key;
+            const cfg = LEVELS.find(function (l) { return l.key === key; });
+            const btn = cfg && document.getElementById(cfg.trigger);
+            if (btn) btn.click(); // reuse the existing Watch & Learn → practice flow
+            return;
+          }
+          const save = e.target.closest("[data-yg-save]");
+          if (save) {
+            const key = save.getAttribute("data-yg-save");
+            const inp = levelsBox.querySelector('[data-yg-score="' + key + '"]');
+            const v = inp ? inp.value : "";
+            if (v === "" || isNaN(Number(v))) { toast("Enter a score 0–100"); return; }
+            record(key, v);
+            if (inp) inp.value = "";
+          }
+        });
+
+        if (backBtn) backBtn.addEventListener("click", function () {
+          hide();
+          if (window.__swPlantRecipes && window.__swPlantRecipes.showLauncher) window.__swPlantRecipes.showLauncher();
+        });
+
+        // Capture AI scores sent by the external pose-detection apps. Each pose
+        // app should post: window.parent.postMessage({type:'sw_yoga_score',
+        // asana:'tadasana', score:95}, '*') when it computes a final score.
+        window.addEventListener("message", function (e) {
+          const d = e && e.data;
+          if (!d || typeof d !== "object" || d.type !== "sw_yoga_score") return;
+          if (!window.__swYogaGameVariant) return; // members only
+          const asana = String(d.asana || window.__swActiveYogaAsana || "").toLowerCase();
+          const score = Number(d.score);
+          if (!asana || !Number.isFinite(score)) return;
+          record(asana, score);
+        });
+
+        window.__swYogaGame = {
+          open: function () { show(); render(); },
+          refreshIfOpen: function () { if (isOpen()) render(); },
+          upgradeIfMember: async function () {
+            const data = await fetchGame();
+            if (data && data.gamified) { window.__swYogaGameVariant = data.variant; show(); paint(data); }
+          },
+          hide: hide,
+        };
       })();
 
       // ── Practice Yoga Asanas with AI (Beta) ──────────────────────────
@@ -6698,6 +6994,8 @@
           hidePlantRecipesChat();
           const c = companionEl(); if (c) c.hidden = true;
           const y = swYogaEl(); if (y) y.hidden = true;
+          const g = document.getElementById("yogaGame"); if (g) g.hidden = true;
+          const ym = document.getElementById("yogaIntroModal"); if (ym) ym.hidden = true;
           const l = swLauncherEl(); if (l) l.hidden = false;
           setSidebarVisible(false);
           setSwView("select");
@@ -6708,8 +7006,19 @@
         function showYoga() {
           showLauncher();
           setSwView("yoga");
+          // Promo (SONI123/VIPIN123) members get the gamified Yoga Quest; the
+          // standard intro for everyone else. If membership isn't resolved yet
+          // (e.g. a direct ?view=yoga refresh), show the intro and let the game
+          // module upgrade once /api/yoga/game confirms.
+          if (window.__swYogaGameVariant && window.__swYogaGame) {
+            window.__swYogaGame.open();
+            return;
+          }
           const m = document.getElementById("yogaIntroModal");
           if (m) m.hidden = false;
+          if (window.__swYogaGame && window.__swYogaGame.upgradeIfMember) {
+            window.__swYogaGame.upgradeIfMember();
+          }
         }
         // Explore Plant-Based Recipes = the 3-tab companion shell (Meal Plan /
         // Recipes / Journaling) — same surface the sidebar "Plant-Based

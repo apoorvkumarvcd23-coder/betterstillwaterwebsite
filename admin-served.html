@@ -815,16 +815,21 @@
         // chosen method ("google") so a returning visitor can skip straight
         // back to Google (see the /api/auth/me handler below).
         const promoInput = document.getElementById("promoCode");
-        const SONI_PROMO_CODE = "SONI123";
+        // Known promo codes (SONI123 + VIPIN123) both open the gamified
+        // "Yoga Quest"; account variant follows the user server-side.
+        const KNOWN_PROMO_CODES = ["SONI123", "VIPIN123"];
         googleAuthLink.addEventListener("click", function () {
           try { localStorage.setItem("sw_login_method", "google"); } catch (_e) {}
           const val = ((promoInput && promoInput.value) || "")
             .trim()
             .toUpperCase();
           try {
-            if (val === SONI_PROMO_CODE) {
-              localStorage.setItem("sw_promo_soni", "1");
+            if (KNOWN_PROMO_CODES.indexOf(val) !== -1) {
+              localStorage.setItem("sw_promo_code", val);
+              if (val === "SONI123") localStorage.setItem("sw_promo_soni", "1");
+              else localStorage.removeItem("sw_promo_soni");
             } else {
+              localStorage.removeItem("sw_promo_code");
               localStorage.removeItem("sw_promo_soni");
             }
           } catch (_e) {}
