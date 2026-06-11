@@ -19,7 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-const DEFAULT_ADMIN_EMAILS = new Set(["amar@stillwater.you", "amar.dani@stillwater.you"]);
+const DEFAULT_ADMIN_EMAILS = new Set();
 
 const isAdminEmail = (email) => {
   const normalizedEmail = String(email || "")
