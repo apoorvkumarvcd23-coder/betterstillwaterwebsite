@@ -3811,6 +3811,9 @@
         };
 
         const launchPractice = () => {
+          // Track that the user actually clicked "Practice Now" (separate from
+          // the Watch & Learn open) so admin can see open vs practice follow-through.
+          trackYogaClick("Tadasana – Practice Now", "tadasana_practice_now");
           frame.src = activePoseUrl;
           showStage("frame");
         };
@@ -3941,6 +3944,9 @@
         };
 
         const launchPractice = () => {
+          // Track that the user actually clicked "Practice Now" (separate from
+          // the Watch & Learn open) so admin can see open vs practice follow-through.
+          trackYogaClick("Balasana – Practice Now", "balasana_practice_now");
           frame.src = POSE_APP_URL;
           showStage("frame");
         };
@@ -4048,6 +4054,9 @@
         };
 
         const launchPractice = () => {
+          // Track that the user actually clicked "Practice Now" (separate from
+          // the Watch & Learn open) so admin can see open vs practice follow-through.
+          trackYogaClick("Cobra – Practice Now", "cobra_practice_now");
           showStage("frame");
           if (POSE_APP_URL) {
             if (comingSoon) comingSoon.hidden = true;
